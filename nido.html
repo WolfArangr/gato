@@ -109,48 +109,56 @@
     <div class="movimientos" id="lista"></div>
   </div>
 
-  <script>
-    const movimientos = `
-      Pendiente;3085.74
-      Zapatos;124
-      Psicóloga;80
-      Compra en la playa;44
-      Souvenirs;40
-      Cena y propina Asturias;90
-      Bikini;55
-      Pollo,23
-    `.trim().split("\n");
+<script>
+  const movimientos = `
+    Pendiente;3085.74
+    Zapatos;124
+    Psicóloga;80
+    Compra en la playa;44
+    Souvenirs;40
+    Cena y propina Asturias;90
+    Bikini;55
+    Pollo;23
+  `.trim().split("\n");
 
-    const hoy = new Date();
-    const formatFecha = hoy.toLocaleDateString("es-ES", { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const hoy = new Date();
+  const formatFecha = hoy.toLocaleDateString("es-ES", { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-    let total = 0;
-    let lista = document.getElementById("lista");
+  let total = 0;
+  let lista = document.getElementById("lista");
 
-    movimientos.slice(0, 5).forEach((linea) => {
-      const [concepto, cantidadStr] = linea.split(";");
-      const cantidad = parseFloat(cantidadStr);
-      total += cantidad;
-      const div = document.createElement("div");
-      div.textContent = `${formatFecha} – ${concepto.trim()}: ${cantidad.toFixed(2)} €`;
-      lista.appendChild(div);
-    });
+  // Sumamos todos los movimientos
+  movimientos.forEach((linea) => {
+    const [, cantidadStr] = linea.split(";");
+    total += parseFloat(cantidadStr);
+  });
 
-    document.getElementById("total").textContent = total.toFixed(2) + " €";
+  // Mostramos solo los últimos 5 (los de más abajo)
+  const ultimos5 = movimientos.slice(-5);
+  ultimos5.forEach((linea) => {
+    const [concepto, cantidadStr] = linea.split(";");
+    const cantidad = parseFloat(cantidadStr);
+    const div = document.createElement("div");
+    div.textContent = `${formatFecha} – ${concepto.trim()}: ${cantidad.toFixed(2)} €`;
+    lista.appendChild(div);
+  });
 
-    const emojis = ['☁️', '☁️', '🐱', '🐈', '💶', '💴', '💸'];
-    const fondo = document.getElementById("fondo");
+  document.getElementById("total").textContent = total.toFixed(2) + " €";
 
-    for (let i = 0; i < 30; i++) {
-      const span = document.createElement("span");
-      span.className = "emoji";
-      span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      span.style.left = Math.random() * 100 + "%";
-      span.style.top = Math.random() * 100 + "%";
-      span.style.fontSize = (Math.random() * 1.5 + 1.2) + "rem";
-      span.style.animationDuration = (Math.random() * 10 + 15) + "s";
-      fondo.appendChild(span);
-    }
-  </script>
+  const emojis = ['☁️', '☁️', '🐱', '🐈', '💶', '💴', '💸'];
+  const fondo = document.getElementById("fondo");
+
+  for (let i = 0; i < 30; i++) {
+    const span = document.createElement("span");
+    span.className = "emoji";
+    span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    span.style.left = Math.random() * 100 + "%";
+    span.style.top = Math.random() * 100 + "%";
+    span.style.fontSize = (Math.random() * 1.5 + 1.2) + "rem";
+    span.style.animationDuration = (Math.random() * 10 + 15) + "s";
+    fondo.appendChild(span);
+  }
+</script>
+
 </body>
 </html>
