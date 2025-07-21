@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PASTA</title>
+  <style>
+    :root {
+      --neon-pink: #ff00aa;
+      --neon-cyan: #00ffff;
+      --bg-dark: #0d0d0d;
+      --card-bg: #1a1a1a;
+      --text-main: #ffffff;
+      --accent: #ff00aa;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(ellipse at center, #111 0%, #000 100%);
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .background {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .emoji {
+      position: absolute;
+      font-size: 2rem;
+      animation: float 20s linear infinite;
+      opacity: 0.15;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(100vh); }
+      100% { transform: translateY(-10vh); }
+    }
+
+    .container {
+      padding: 2rem 1rem;
+      text-align: center;
+      max-width: 100vw;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 8px var(--neon-cyan);
+      margin-bottom: 0.8rem;
+    }
+
+    .total {
+      font-size: 2.5rem;
+      color: var(--neon-pink);
+      font-weight: bold;
+      text-shadow: 0 0 8px var(--neon-pink);
+      margin-bottom: 2rem;
+    }
+
+    .movimientos {
+      text-align: left;
+      max-width: 90%;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: 1.2rem;
+      box-shadow: 0 0 15px rgba(255, 0, 170, 0.3);
+    }
+
+    .movimientos div {
+      padding: 0.7rem 0;
+      border-bottom: 1px dashed #444;
+      font-size: 1rem;
+      color: #ccc;
+    }
+
+    .movimientos div:last-child {
+      border-bottom: none;
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.5rem; }
+      .total { font-size: 2rem; }
+      .movimientos div { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="background" id="fondo"></div>
+  <div class="container">
+    <h1>💸</h1>
+    <div class="total" id="total">0 €</div>
+    <div class="movimientos" id="lista"></div>
+  </div>
+
+  <script>
+    const movimientos = `
+      Pendiente;3085.74
+      Zapatos;124
+      Psicóloga;80
+      Compra en la playa;44
+      Souvenirs;40
+      Cena y propina Asturias;90
+      Bikini;55
+      Pollo,23
+    `.trim().split("\n");
+
+    const hoy = new Date();
+    const formatFecha = hoy.toLocaleDateString("es-ES", { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    let total = 0;
+    let lista = document.getElementById("lista");
+
+    movimientos.slice(0, 5).forEach((linea) => {
+      const [concepto, cantidadStr] = linea.split(";");
+      const cantidad = parseFloat(cantidadStr);
+      total += cantidad;
+      const div = document.createElement("div");
+      div.textContent = `${formatFecha} – ${concepto.trim()}: ${cantidad.toFixed(2)} €`;
+      lista.appendChild(div);
+    });
+
+    document.getElementById("total").textContent = total.toFixed(2) + " €";
+
+    const emojis = ['☁️', '☁️', '🐱', '🐈', '💶', '💴', '💸'];
+    const fondo = document.getElementById("fondo");
+
+    for (let i = 0; i < 30; i++) {
+      const span = document.createElement("span");
+      span.className = "emoji";
+      span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      span.style.left = Math.random() * 100 + "%";
+      span.style.top = Math.random() * 100 + "%";
+      span.style.fontSize = (Math.random() * 1.5 + 1.2) + "rem";
+      span.style.animationDuration = (Math.random() * 10 + 15) + "s";
+      fondo.appendChild(span);
+    }
+  </script>
+</body>
+</html>
