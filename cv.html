@@ -1082,90 +1082,103 @@
             const t = translations[lang];
             
             // Update all text content
-            document.querySelector('.title').textContent = t.title;
-            document.querySelector('.location').textContent = t.location;
-            document.querySelector('.contact-link[href*="email"]').innerHTML = t.email;
-            document.querySelector('.contact-link[href*="linkedin"]').innerHTML = t.linkedin;
-            document.querySelector('.contact-link[href*="gato.red"]').innerHTML = t.portfolio;
+            const titleEl = document.querySelector('.title');
+            const locationEl = document.querySelector('.location');
+            const emailEl = document.querySelector('.contact-link[href*="email"]');
+            const linkedinEl = document.querySelector('.contact-link[href*="linkedin"]');
+            const portfolioEl = document.querySelector('.contact-link[href*="gato.red"]');
+            
+            if (titleEl) titleEl.textContent = t.title;
+            if (locationEl) locationEl.textContent = t.location;
+            if (emailEl) emailEl.innerHTML = t.email;
+            if (linkedinEl) linkedinEl.innerHTML = t.linkedin;
+            if (portfolioEl) portfolioEl.innerHTML = t.portfolio;
             
             // Update section titles
             const sections = document.querySelectorAll('.section');
-            if (sections[0]) sections[0].querySelector('.section-title').textContent = t.summary;
-            if (sections[1]) sections[1].querySelector('.section-title').textContent = t.experience;
-            if (sections[2]) sections[2].querySelector('.section-title').textContent = t.education;
-            if (sections[3]) sections[3].querySelector('.section-title').textContent = t.skills;
-            if (sections[4]) sections[4].querySelector('.section-title').textContent = t.languages;
-            if (sections[5]) sections[5].querySelector('.section-title').textContent = t.certifications;
-            if (sections[6]) sections[6].querySelector('.section-title').textContent = t.awards;
+            const sectionTitles = [t.summary, t.experience, t.education, t.skills, t.languages, t.certifications, t.awards];
+            
+            sections.forEach((section, index) => {
+                const titleEl = section.querySelector('.section-title');
+                if (titleEl && sectionTitles[index]) {
+                    titleEl.textContent = sectionTitles[index];
+                }
+            });
             
             // Update summary text
-            document.querySelector('.extract').textContent = t.summaryText;
+            const extractEl = document.querySelector('.extract');
+            if (extractEl) extractEl.textContent = t.summaryText;
             
-            // Update job titles and descriptions
+            // Update job titles
             const jobTitles = document.querySelectorAll('.job-title');
-            const jobDescriptions = document.querySelectorAll('.job-description ul');
+            const jobTitleTexts = [t.projectSpecialist, t.freelance, t.securityInspector, t.headOnlineEd, t.officeManager, t.trackingSpecialist];
             
-            if (jobTitles[0]) jobTitles[0].textContent = t.projectSpecialist;
-            if (jobTitles[1]) jobTitles[1].textContent = t.freelance;
-            if (jobTitles[2]) jobTitles[2].textContent = t.securityInspector;
-            if (jobTitles[3]) jobTitles[3].textContent = t.headOnlineEd;
-            if (jobTitles[4]) jobTitles[4].textContent = t.officeManager;
-            if (jobTitles[5]) jobTitles[5].textContent = t.trackingSpecialist;
+            jobTitles.forEach((title, index) => {
+                if (title && jobTitleTexts[index]) {
+                    title.textContent = jobTitleTexts[index];
+                }
+            });
             
-            // Update job descriptions
-            if (jobDescriptions[0] && t.job1desc) {
-                jobDescriptions[0].innerHTML = t.job1desc.map(desc => `<li>${desc}</li>`).join('');
-            }
-            if (jobDescriptions[1] && t.job2desc) {
-                jobDescriptions[1].innerHTML = t.job2desc.map(desc => `<li>${desc}</li>`).join('');
-            }
-            if (jobDescriptions[2] && t.job3desc) {
-                jobDescriptions[2].innerHTML = t.job3desc.map(desc => `<li>${desc}</li>`).join('');
-            }
-            if (jobDescriptions[3] && t.job4desc) {
-                jobDescriptions[3].innerHTML = t.job4desc.map(desc => `<li>${desc}</li>`).join('');
-            }
-            if (jobDescriptions[4] && t.job6desc) {
-                jobDescriptions[4].innerHTML = t.job6desc.map(desc => `<li>${desc}</li>`).join('');
-            }
+            // Update job descriptions - map each job to its descriptions
+            const jobs = document.querySelectorAll('.job');
+            const jobDescriptions = [t.job1desc, t.job2desc, t.job3desc, t.job4desc, null, t.job6desc]; // null for office manager
+            
+            jobs.forEach((job, index) => {
+                const descriptionList = job.querySelector('.job-description ul');
+                if (descriptionList && jobDescriptions[index]) {
+                    descriptionList.innerHTML = jobDescriptions[index].map(desc => `<li>${desc}</li>`).join('');
+                }
+            });
             
             // Update education
             const educationTitles = document.querySelectorAll('.education-content h3');
-            const focusText = document.querySelector('.focus');
+            const educationTexts = [t.mba, t.ba, t.promptEng, t.finance, t.marketing];
             
-            if (educationTitles[0]) educationTitles[0].textContent = t.mba;
-            if (educationTitles[1]) educationTitles[1].textContent = t.ba;
-            if (educationTitles[2]) educationTitles[2].textContent = t.promptEng;
-            if (educationTitles[3]) educationTitles[3].textContent = t.finance;
-            if (educationTitles[4]) educationTitles[4].textContent = t.marketing;
-            if (focusText) focusText.textContent = t.focus;
+            educationTitles.forEach((title, index) => {
+                if (title && educationTexts[index]) {
+                    title.textContent = educationTexts[index];
+                }
+            });
+            
+            const focusEl = document.querySelector('.focus');
+            if (focusEl) focusEl.textContent = t.focus;
             
             // Update skills
             const skillItems = document.querySelectorAll('.skill-item');
             const skillsTexts = [t.skills1, t.skills2, t.skills3, t.skills4, t.skills5, t.skills6, t.skills7, t.skills8];
+            
             skillItems.forEach((item, index) => {
-                if (skillsTexts[index]) item.textContent = skillsTexts[index];
+                if (item && skillsTexts[index]) {
+                    item.textContent = skillsTexts[index];
+                }
             });
             
             // Update language levels
             const languageLevels = document.querySelectorAll('.language-level');
             languageLevels.forEach(level => {
-                level.textContent = t.native;
+                if (level) level.textContent = t.native;
             });
             
             // Update awards
             const awardItems = document.querySelectorAll('.award-item');
-            if (awardItems[0]) awardItems[0].textContent = t.award1;
-            if (awardItems[1]) awardItems[1].textContent = t.award2;
+            const awardTexts = [t.award1, t.award2];
+            
+            awardItems.forEach((item, index) => {
+                if (item && awardTexts[index]) {
+                    item.textContent = awardTexts[index];
+                }
+            });
             
             // Update date text for "Present"
             const jobMetas = document.querySelectorAll('.job-meta');
             jobMetas.forEach(jobMeta => {
                 const dateDiv = jobMeta.querySelector('div');
-                if (dateDiv && dateDiv.textContent.includes('Present')) {
-                    dateDiv.textContent = dateDiv.textContent.replace('Present', t.present);
-                } else if (dateDiv && dateDiv.textContent.includes('Presente')) {
-                    dateDiv.textContent = dateDiv.textContent.replace('Presente', t.present);
+                if (dateDiv) {
+                    if (dateDiv.textContent.includes('Present')) {
+                        dateDiv.textContent = dateDiv.textContent.replace('Present', t.present);
+                    } else if (dateDiv.textContent.includes('Presente')) {
+                        dateDiv.textContent = dateDiv.textContent.replace('Presente', t.present);
+                    }
                 }
             });
         }
