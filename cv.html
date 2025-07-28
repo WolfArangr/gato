@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eduardo Arango - Professional CV</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-dark: #0A0F1C;
+            --secondary-dark: #1A2332;
+            --accent-blue: #2563EB;
+            --light-blue: #3B82F6;
+            --cyan-accent: #06B6D4;
+            --text-primary: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+            --border-color: #334155;
+            --glass-bg: rgba(26, 35, 50, 0.8);
+            --gradient-primary: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+            --gradient-accent: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .background-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(37, 99, 235, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 99, 235, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -2;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .floating-orbs {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.3;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .orb:nth-child(1) {
+            width: 200px;
+            height: 200px;
+            background: var(--gradient-accent);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .orb:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 100%);
+            top: 60%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        .orb:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient-accent);
+            bottom: 20%;
+            left: 50%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-accent);
+        }
+
+        .profile-picture-container {
+            position: relative;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .profile-picture {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            background: var(--gradient-accent);
+            padding: 4px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .profile-picture:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(37, 99, 235, 0.4);
+        }
+
+        .profile-picture img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            background: var(--secondary-dark);
+        }
+
+        .profile-picture-placeholder {
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--text-muted);
+            position: relative;
+        }
+
+        .profile-picture-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transform: translate(-50%, -60%);
+        }
+
+        .profile-picture-placeholder::after {
+            content: '';
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            width: 80px;
+            height: 50px;
+            background: var(--text-muted);
+            border-radius: 40px 40px 0 0;
+            transform: translateX(-50%);
+        }
+
+        .upload-hint {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .upload-hint:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .name {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .title {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .location {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .contact-link {
+            color: var(--cyan-accent);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--cyan-accent);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .contact-link:hover {
+            background: var(--cyan-accent);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+        }
+
+        .section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+            padding: 0.75rem;
+            background: var(--gradient-accent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .extract {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .job {
+            margin-bottom: 2.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .job:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .job-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--light-blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .company {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .job-meta {
+            text-align: right;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .job-description {
+            margin-top: 1rem;
+        }
+
+        .job-description ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .job-description li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .job-description li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: var(--cyan-accent);
+            font-size: 0.8rem;
+        }
+
+        .education-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: rgba(37, 99, 235, 0.05);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .education-item:hover {
+            transform: translateX(10px);
+            border-color: var(--light-blue);
+        }
+
+        .education-content h3 {
+            color: var(--light-blue);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .education-content .institution {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .education-content .focus {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .education-date {
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .skill-item {
+            padding: 1rem;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 500;
+            color: var(--cyan-accent);
+            transition: all 0.3s ease;
+        }
+
+        .skill-item:hover {
+            background: rgba(6, 182, 212, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .languages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .language-item {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .language-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .language-level {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .certifications-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .cert-item {
+            padding: 1rem;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .cert-item:hover {
+            background: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .awards-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .award-item {
+            padding: 1rem 1.5rem;
+            background: var(--gradient-accent);
+            color: white;
+            border-radius: 25px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+        }
+
+        .language-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1001;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .lang-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .lang-btn.active {
+            background: var(--gradient-accent);
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .lang-btn:hover:not(.active) {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+            @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 2rem;
+            }
+
+            .name {
+                font-size: 2.5rem;
+            }
+
+            .section {
+                padding: 1.5rem;
+            }
+
+            .job-header {
+                flex-direction: column;
+            }
+
+            .job-meta {
+                text-align: left;
+            }
+
+            .contact-links {
+                gap: 1rem;
+            }
+
+            .contact-link {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .education-item {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .education-date {
+                text-align: left;
+            }
+
+            .language-toggle {
+                top: 1rem;
+                right: 1rem;
+                padding: 0.3rem;
+            }
+
+            .lang-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            .profile-picture {
+                width: 120px;
+                height: 120px;
+            }
+
+            .profile-picture-placeholder::before {
+                width: 45px;
+                height: 45px;
+            }
+
+            .profile-picture-placeholder::after {
+                width: 60px;
+                height: 38px;
+                bottom: 15px;
+            }
+
+            .upload-hint {
+                width: 30px;
+                height: 30px;
+                font-size: 1rem;
+            }
+        }
+
+        .scroll-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(37, 99, 235, 0.2);
+            z-index: 1000;
+        }
+
+        .scroll-progress {
+            height: 100%;
+            background: var(--gradient-accent);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-grid"></div>
+    
+    <div class="floating-orbs">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+
+    <div class="scroll-indicator">
+        <div class="scroll-progress" id="scrollProgress"></div>
+    </div>
+
+    <div class="language-toggle">
+        <button class="lang-btn active" onclick="switchLanguage('en')" id="btnEn">EN</button>
+        <button class="lang-btn" onclick="switchLanguage('es')" id="btnEs">ES</button>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <div class="profile-picture-container">
+                <div class="profile-picture">
+                    <div class="profile-picture-placeholder" id="profilePlaceholder">
+                        <img id="profileImage" style="display: none;" alt="Eduardo Arango">
+                    </div>
+                    <div class="upload-hint" onclick="document.getElementById('fileInput').click()">
+                        📷
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleImageUpload(event)">
+                </div>
+            </div>
+            <h1 class="name">Eduardo Arango</h1>
+            <p class="title">BA (Honours) Business Management</p>
+            <p class="location">📍 Palma, Islas Baleares, España</p>
+            <div class="contact-links">
+                <a href="mailto:arangocolleduardo@gmail.com" class="contact-link">📧 Email</a>
+                <a href="https://linkedin.com/in/eduardoarango" class="contact-link">🔗 LinkedIn</a>
+                <a href="https://gato.red" class="contact-link">🌐 Portfolio</a>
+            </div>
+        </header>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-icon">🔍</div>
+                <h2 class="section-title">Professional Summary</h2>
+            </div>
+            <p class="extract">
+                I love to analyse everything and come up with new, improved ways of doing things. I think innovation should be at the core of every business. I have experience managing a very busy, fast-changing work environment, and I'm comfortable in situations that would otherwise be very stressful for others. I have experience working in very different fields, and I am open to change.
+            </p>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-icon">💼</div>
+                <h2 class="section-title">Professional Experience</h2>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <h3 class="job-title">Project Specialist</h3>
+                        <p class="company">Club de Mar-Mallorca</p>
+                    </div>
+                    <div class="job-meta">
+                        <div>Nov 2023 – Present</div>
+                        <div>Greater Palma de Mallorca</div>
+                    </div>
+                </div>
+                <div class="job-description">
+                    <ul>
+                        <li>Financial/Admin tasks in synergy with Systems</li>
+                        <li>Programming (VBA, Python) for DB integration and internal data analysis</li>
+                        <li>Bespoke tools per department</li>
+                        <li>Microsoft Power Platform implementation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <h3 class="job-title">Profesional independiente</h3>
+                        <p class="company">Freelance</p>
+                    </div>
+                    <div class="job-meta">
+                        <div>May 2022 – Nov 2023</div>
+                    </div>
+                </div>
+                <div class="job-description">
+                    <ul>
+                        <li>BI, Data Analysis, frontend programming</li>
+                        <li>LLM and quantisation research for AI mobile apps</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <h3 class="job-title">Security Inspector</h3>
+                        <p class="company">Govern de les Illes Balears</p>
+                    </div>
+                    <div class="job-meta">
+                        <div>Sep 2021 – Jun 2022</div>
+                    </div>
+                </div>
+                <div class="job-description">
+                    <ul>
+                        <li>Building inspections for government compliance with security protocols</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <h3 class="job-title">Head of Online Education</h3>
+                        <p class="company">BCN Languages</p>
+                    </div>
+                    <div class="job-meta">
+                        <div>Jun 2019 – Aug 2021</div>
+                        <div>Palma Area, Spain</div>
+                    </div>
+                </div>
+                <div class="job-description">
+                    <ul>
+                        <li>Virtual platform management, tutor support</li>
+                        <li>Reception, Admin, Community Manager</li>
+                        <li>B2B visits and client relations</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <h3 class="job-title">Office Manager</h3>
+                        <p class="company">Mallory International Ltd.</p>
+                    </div>
+                    <div class="job-meta">
+                        <div>Jun 2016 – May 2019</div>
+                        <div>Aylesbeare, UK</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div>
+                        <h3 class="job-title">Tracking Specialist (SITEL)</h3>
+                        <p class="company">Guardia Civil</p>
+                    </div>
+                    <div class="job-meta">
+                        <div>Sep 2014 – Dec 2016</div>
+                    </div>
+                </div>
+                <div class="job-description">
+                    <ul>
+                        <li>Translator, Interpreter, Target Tracking</li>
+                        <li>Comms Interception, SIGINT operations</li>
+                        <li>Coordinated major operations with Drug Enforcement and Organized Crime Units</li>
+                        <li>Technology: NROL-39 Skunkworks III</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-icon">🎓</div>
+                <h2 class="section-title">Education</h2>
+            </div>
+
+            <div class="education-item">
+                <div class="education-content">
+                    <h3>Master of Business Administration (MBA)</h3>
+                    <p class="institution">The Open University</p>
+                </div>
+                <div class="education-date">Nov 2023 – Jun 2025</div>
+            </div>
+
+            <div class="education-item">
+                <div class="education-content">
+                    <h3>BA (Honours) in Business Management</h3>
+                    <p class="institution">The Open University</p>
+                    <p class="focus">Focus: Leadership, Innovation & Enterprise</p>
+                </div>
+                <div class="education-date">Oct 2017 – Oct 2021</div>
+            </div>
+
+            <div class="education-item">
+                <div class="education-content">
+                    <h3>Prompt Engineering & NLP Specialization</h3>
+                    <p class="institution">OpenAI</p>
+                </div>
+                <div class="education-date">Apr 2023 – Jun 2023</div>
+            </div>
+
+            <div class="education-item">
+                <div class="education-content">
+                    <h3>Diploma in Finance & Risk Management</h3>
+                    <p class="institution">Yale University</p>
+                </div>
+                <div class="education-date">Feb 2016 – Nov 2016</div>
+            </div>
+
+            <div class="education-item">
+                <div class="education-content">
+                    <h3>Diploma in Marketing</h3>
+                    <p class="institution">Universitat Oberta de Catalunya</p>
+                </div>
+                <div class="education-date">Sep 2016 – Jun 2017</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-icon">🧠</div>
+                <h2 class="section-title">Core Skills</h2>
+            </div>
+            <div class="skills-grid">
+                <div class="skill-item">Microsoft Power Platform</div>
+                <div class="skill-item">Data Analysis & BI</div>
+                <div class="skill-item">Python Programming</div>
+                <div class="skill-item">VBA Development</div>
+                <div class="skill-item">Team Leadership</div>
+                <div class="skill-item">Project Management</div>
+                <div class="skill-item">AI & Machine Learning</div>
+                <div class="skill-item">Business Innovation</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-icon">🌍</div>
+                <h2 class="section-title">Languages</h2>
+            </div>
+            <div class="languages-grid">
+                <div class="language-item">
+                    <div class="language-name">Español</div>
+                    <div class="language-level">Native</div>
+                </div>
+                <div class="language-item">
+                    <div class="language-name">Català</div>
+                    <div class="language-level">Native</div>
+                </div>
+                <div class="language-item">
+                    <div class="language-name">English</div>
+                    <div class="language-level">Native</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-icon">📜</div>
+                <h2 class="section-title">Certifications</h2>
+            </div>
+            <div class="certifications-list">
+                <div class="cert-item">Video SEO Basics</div>
+                <div class="cert-item">Raising Startup Capital</div>
+                <div class="cert-item">Become an SEO Expert</div>
+                <div class="cert-item">International SEO Fundamentals</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-icon">🏆</div>
+                <h2 class="section-title">Honors & Awards</h2>
+            </div>
+            <div class="awards-list">
+                <div class="award-item">🥇 Big Bang Trading League Winner</div>
+                <div class="award-item">👑 Lord of the Principality of Sealand</div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Language translations
+        const translations = {
+            en: {
+                title: "BA (Honours) Business Management",
+                location: "📍 Palma, Islas Baleares, España",
+                email: "📧 Email",
+                linkedin: "🔗 LinkedIn",
+                portfolio: "🌐 Portfolio",
+                summary: "Professional Summary",
+                summaryText: "I love to analyse everything and come up with new, improved ways of doing things. I think innovation should be at the core of every business. I have experience managing a very busy, fast-changing work environment, and I'm comfortable in situations that would otherwise be very stressful for others. I have experience working in very different fields, and I am open to change.",
+                experience: "Professional Experience",
+                education: "Education",
+                skills: "Core Skills",
+                languages: "Languages",
+                certifications: "Certifications",
+                awards: "Honors & Awards",
+                present: "Present",
+                projectSpecialist: "Project Specialist",
+                freelance: "Profesional independiente",
+                securityInspector: "Security Inspector",
+                headOnlineEd: "Head of Online Education",
+                officeManager: "Office Manager",
+                trackingSpecialist: "Tracking Specialist (SITEL)",
+                localizationDirector: "Localization Team Director / Project Manager",
+                localizationSpecialist: "Localization Specialist / Project Manager",
+                mba: "Master of Business Administration (MBA)",
+                ba: "BA (Honours) in Business Management",
+                promptEng: "Prompt Engineering & NLP Specialization",
+                finance: "Diploma in Finance & Risk Management",
+                marketing: "Diploma in Marketing",
+                focus: "Focus: Leadership, Innovation & Enterprise",
+                native: "Native",
+                skills1: "Microsoft Power Platform",
+                skills2: "Data Analysis & BI",
+                skills3: "Python Programming",
+                skills4: "VBA Development",
+                skills5: "Team Leadership",
+                skills6: "Project Management",
+                skills7: "AI & Machine Learning",
+                skills8: "Business Innovation",
+                award1: "🥇 Big Bang Trading League Winner",
+                award2: "👑 Lord of the Principality of Sealand",
+                job1desc: [
+                    "Financial/Admin tasks in synergy with Systems",
+                    "Programming (VBA, Python) for DB integration and internal data analysis",
+                    "Bespoke tools per department",
+                    "Microsoft Power Platform implementation"
+                ],
+                job2desc: [
+                    "BI, Data Analysis, frontend programming",
+                    "LLM and quantisation research for AI mobile apps"
+                ],
+                job3desc: [
+                    "Building inspections for government compliance with security protocols"
+                ],
+                job4desc: [
+                    "Virtual platform management, tutor support",
+                    "Reception, Admin, Community Manager",
+                    "B2B visits and client relations"
+                ],
+                job6desc: [
+                    "Translator, Interpreter, Target Tracking",
+                    "Comms Interception, SIGINT operations",
+                    "Coordinated major operations with Drug Enforcement and Organized Crime Units",
+                    "Technology: NROL-39 Skunkworks III"
+                ]
+            },
+            es: {
+                title: "Licenciado en Administración de Empresas",
+                location: "📍 Palma, Islas Baleares, España",
+                email: "📧 Email",
+                linkedin: "🔗 LinkedIn",
+                portfolio: "🌐 Portfolio",
+                summary: "Resumen Profesional",
+                summaryText: "Me encanta analizar todo y encontrar formas nuevas y mejoradas de hacer las cosas. Creo que la innovación debe estar en el núcleo de cada negocio. Tengo experiencia gestionando un entorno de trabajo muy ocupado y en constante cambio, y me siento cómodo en situaciones que de otro modo serían muy estresantes para otros. Tengo experiencia trabajando en campos muy diferentes, y estoy abierto al cambio.",
+                experience: "Experiencia Profesional",
+                education: "Educación",
+                skills: "Habilidades Principales",
+                languages: "Idiomas",
+                certifications: "Certificaciones",
+                awards: "Honores y Premios",
+                present: "Presente",
+                projectSpecialist: "Especialista de Proyectos",
+                freelance: "Profesional independiente",
+                securityInspector: "Inspector de Seguridad",
+                headOnlineEd: "Jefe de Educación Online",
+                officeManager: "Gerente de Oficina",
+                trackingSpecialist: "Especialista en Seguimiento (SITEL)",
+                localizationDirector: "Director de Equipo de Localización / Gerente de Proyecto",
+                localizationSpecialist: "Especialista en Localización / Gerente de Proyecto",
+                mba: "Máster en Administración de Empresas (MBA)",
+                ba: "Licenciatura en Administración de Empresas",
+                promptEng: "Especialización en Ingeniería de Prompts y PNL",
+                finance: "Diploma en Finanzas y Gestión de Riesgos",
+                marketing: "Diploma en Marketing",
+                focus: "Enfoque: Liderazgo, Innovación y Empresa",
+                native: "Nativo",
+                skills1: "Microsoft Power Platform",
+                skills2: "Análisis de Datos e BI",
+                skills3: "Programación Python",
+                skills4: "Desarrollo VBA",
+                skills5: "Liderazgo de Equipos",
+                skills6: "Gestión de Proyectos",
+                skills7: "IA y Aprendizaje Automático",
+                skills8: "Innovación Empresarial",
+                award1: "🥇 Ganador de Big Bang Trading League",
+                award2: "👑 Señor del Principado de Sealand",
+                job1desc: [
+                    "Tareas financieras/administrativas en sinergia con Sistemas",
+                    "Programación (VBA, Python) para integración de BD y análisis de datos interno",
+                    "Herramientas personalizadas por departamento",
+                    "Implementación de Microsoft Power Platform"
+                ],
+                job2desc: [
+                    "BI, Análisis de Datos, programación frontend",
+                    "Investigación en LLM y cuantización para aplicaciones móviles de IA"
+                ],
+                job3desc: [
+                    "Inspecciones de edificios para cumplimiento gubernamental con protocolos de seguridad"
+                ],
+                job4desc: [
+                    "Gestión de plataforma virtual, apoyo a tutores",
+                    "Recepción, Administración, Community Manager",
+                    "Visitas B2B y relaciones con clientes"
+                ],
+                job6desc: [
+                    "Traductor, Intérprete, Seguimiento de Objetivos",
+                    "Interceptación de Comunicaciones, operaciones SIGINT",
+                    "Coordiné operaciones importantes con Unidades de Narcóticos y Crimen Organizado",
+                    "Tecnología: NROL-39 Skunkworks III"
+                ]
+            }
+        };
+
+        let currentLang = 'en';
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            
+            // Update button states
+            document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+            document.getElementById('btnEs').classList.toggle('active', lang === 'es');
+            
+            const t = translations[lang];
+            
+            // Update all text content
+            document.querySelector('.title').textContent = t.title;
+            document.querySelector('.location').textContent = t.location;
+            document.querySelector('.contact-link[href*="email"]').innerHTML = t.email;
+            document.querySelector('.contact-link[href*="linkedin"]').innerHTML = t.linkedin;
+            document.querySelector('.contact-link[href*="gato.red"]').innerHTML = t.portfolio;
+            
+            // Update section titles
+            document.querySelector('.section:nth-of-type(1) .section-title').textContent = t.summary;
+            document.querySelector('.section:nth-of-type(2) .section-title').textContent = t.experience;
+            document.querySelector('.section:nth-of-type(3) .section-title').textContent = t.education;
+            document.querySelector('.section:nth-of-type(4) .section-title').textContent = t.skills;
+            document.querySelector('.section:nth-of-type(5) .section-title').textContent = t.languages;
+            document.querySelector('.section:nth-of-type(6) .section-title').textContent = t.certifications;
+            document.querySelector('.section:nth-of-type(7) .section-title').textContent = t.awards;
+            
+            // Update summary text
+            document.querySelector('.extract').textContent = t.summaryText;
+            
+            // Update job titles and descriptions
+            const jobTitles = document.querySelectorAll('.job-title');
+            const jobDescriptions = document.querySelectorAll('.job-description ul');
+            
+            if (jobTitles[0]) jobTitles[0].textContent = t.projectSpecialist;
+            if (jobTitles[1]) jobTitles[1].textContent = t.freelance;
+            if (jobTitles[2]) jobTitles[2].textContent = t.securityInspector;
+            if (jobTitles[3]) jobTitles[3].textContent = t.headOnlineEd;
+            if (jobTitles[4]) jobTitles[4].textContent = t.officeManager;
+            if (jobTitles[5]) jobTitles[5].textContent = t.trackingSpecialist;
+            
+            // Update job descriptions
+            if (jobDescriptions[0] && t.job1desc) {
+                jobDescriptions[0].innerHTML = t.job1desc.map(desc => `<li>${desc}</li>`).join('');
+            }
+            if (jobDescriptions[1] && t.job2desc) {
+                jobDescriptions[1].innerHTML = t.job2desc.map(desc => `<li>${desc}</li>`).join('');
+            }
+            if (jobDescriptions[2] && t.job3desc) {
+                jobDescriptions[2].innerHTML = t.job3desc.map(desc => `<li>${desc}</li>`).join('');
+            }
+            if (jobDescriptions[3] && t.job4desc) {
+                jobDescriptions[3].innerHTML = t.job4desc.map(desc => `<li>${desc}</li>`).join('');
+            }
+            if (jobDescriptions[4] && t.job6desc) {
+                jobDescriptions[4].innerHTML = t.job6desc.map(desc => `<li>${desc}</li>`).join('');
+            }
+            
+            // Update education
+            const educationTitles = document.querySelectorAll('.education-content h3');
+            const focusText = document.querySelector('.focus');
+            
+            if (educationTitles[0]) educationTitles[0].textContent = t.mba;
+            if (educationTitles[1]) educationTitles[1].textContent = t.ba;
+            if (educationTitles[2]) educationTitles[2].textContent = t.promptEng;
+            if (educationTitles[3]) educationTitles[3].textContent = t.finance;
+            if (educationTitles[4]) educationTitles[4].textContent = t.marketing;
+            if (focusText) focusText.textContent = t.focus;
+            
+            // Update skills
+            const skillItems = document.querySelectorAll('.skill-item');
+            const skillsTexts = [t.skills1, t.skills2, t.skills3, t.skills4, t.skills5, t.skills6, t.skills7, t.skills8];
+            skillItems.forEach((item, index) => {
+                if (skillsTexts[index]) item.textContent = skillsTexts[index];
+            });
+            
+            // Update language levels
+            const languageLevels = document.querySelectorAll('.language-level');
+            languageLevels.forEach(level => {
+                level.textContent = t.native;
+            });
+            
+            // Update awards
+            const awardItems = document.querySelectorAll('.award-item');
+            if (awardItems[0]) awardItems[0].textContent = t.award1;
+            if (awardItems[1]) awardItems[1].textContent = t.award2;
+            
+            // Update date text
+            const jobMetas = document.querySelectorAll('.job-meta');
+            if (jobMetas[0]) {
+                const dateText = jobMetas[0].querySelector('div').textContent;
+                if (dateText.includes('Present')) {
+                    jobMetas[0].querySelector('div').textContent = dateText.replace('Present', t.present);
+                }
+            }
+        }
+
+        // Scroll progress indicator
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset;
+            const docHeight = document.body.offsetHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            document.getElementById('scrollProgress').style.width = scrollPercent + '%';
+        });
+
+        // Smooth reveal animation for sections
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Apply initial styles and observe sections
+        document.querySelectorAll('.section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(section);
+        });
+
+        // Header reveal
+        const header = document.querySelector('.header');
+        header.style.opacity = '0';
+        header.style.transform = 'translateY(-30px)';
+        header.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        
+        setTimeout(() => {
+            header.style.opacity = '1';
+            header.style.transform = 'translateY(0)';
+        }, 200);
+
+        // Add subtle parallax effect to floating orbs
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const orbs = document.querySelectorAll('.orb');
+            
+            orbs.forEach((orb, index) => {
+                const speed = 0.5 + (index * 0.1);
+                orb.style.transform = `translateY(${scrolled * speed}px)`;
+            });
+        });
+    </script>
+</body>
+</html>
