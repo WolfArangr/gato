@@ -1056,6 +1056,22 @@
 
         let currentLang = 'en';
 
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('profileImage');
+                    const placeholder = document.getElementById('profilePlaceholder');
+                    
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
         function switchLanguage(lang) {
             currentLang = lang;
             
@@ -1073,13 +1089,14 @@
             document.querySelector('.contact-link[href*="gato.red"]').innerHTML = t.portfolio;
             
             // Update section titles
-            document.querySelector('.section:nth-of-type(1) .section-title').textContent = t.summary;
-            document.querySelector('.section:nth-of-type(2) .section-title').textContent = t.experience;
-            document.querySelector('.section:nth-of-type(3) .section-title').textContent = t.education;
-            document.querySelector('.section:nth-of-type(4) .section-title').textContent = t.skills;
-            document.querySelector('.section:nth-of-type(5) .section-title').textContent = t.languages;
-            document.querySelector('.section:nth-of-type(6) .section-title').textContent = t.certifications;
-            document.querySelector('.section:nth-of-type(7) .section-title').textContent = t.awards;
+            const sections = document.querySelectorAll('.section');
+            if (sections[0]) sections[0].querySelector('.section-title').textContent = t.summary;
+            if (sections[1]) sections[1].querySelector('.section-title').textContent = t.experience;
+            if (sections[2]) sections[2].querySelector('.section-title').textContent = t.education;
+            if (sections[3]) sections[3].querySelector('.section-title').textContent = t.skills;
+            if (sections[4]) sections[4].querySelector('.section-title').textContent = t.languages;
+            if (sections[5]) sections[5].querySelector('.section-title').textContent = t.certifications;
+            if (sections[6]) sections[6].querySelector('.section-title').textContent = t.awards;
             
             // Update summary text
             document.querySelector('.extract').textContent = t.summaryText;
@@ -1141,14 +1158,16 @@
             if (awardItems[0]) awardItems[0].textContent = t.award1;
             if (awardItems[1]) awardItems[1].textContent = t.award2;
             
-            // Update date text
+            // Update date text for "Present"
             const jobMetas = document.querySelectorAll('.job-meta');
-            if (jobMetas[0]) {
-                const dateText = jobMetas[0].querySelector('div').textContent;
-                if (dateText.includes('Present')) {
-                    jobMetas[0].querySelector('div').textContent = dateText.replace('Present', t.present);
+            jobMetas.forEach(jobMeta => {
+                const dateDiv = jobMeta.querySelector('div');
+                if (dateDiv && dateDiv.textContent.includes('Present')) {
+                    dateDiv.textContent = dateDiv.textContent.replace('Present', t.present);
+                } else if (dateDiv && dateDiv.textContent.includes('Presente')) {
+                    dateDiv.textContent = dateDiv.textContent.replace('Presente', t.present);
                 }
-            }
+            });
         }
 
         // Scroll progress indicator
