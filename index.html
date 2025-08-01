@@ -806,29 +806,43 @@ text-align: center;
 </footer>
     </div>
 
-    <script>
-        class BlogManager {
-            constructor() {
-                this.articles = [];
-                this.filteredArticles = [];
-                this.categories = new Set();
-                this.languages = new Set();
-                this.currentFilter = 'all';
-                this.searchTerm = '';
-                
-                this.init();
-            }
+<script>
+    class BlogManager {
+        constructor() {
+            this.articles = [];
+            this.filteredArticles = [];
+            this.categories = new Set();
+            this.languages = new Set();
+            this.currentFilter = 'all';
+            this.searchTerm = '';
 
-            init() {
-                this.loadArticles();
-                this.setupEventListeners();
-                this.updateStats();
-                this.renderFilterTabs();
-                this.filterAndRenderArticles(); // Cambiado aquí
-            }
+            this.init();
+        }
 
-            loadArticles() {
-                this.articles = [
+        init() {
+            this.loadArticles();
+            this.setupEventListeners();
+            this.updateStats();
+            this.renderFilterTabs();
+            this.filterAndRenderArticles();
+
+            // Detecta ?articulo=slug y lo abre
+            setTimeout(() => {
+                const params = new URLSearchParams(window.location.search);
+                const slug = params.get("articulo");
+
+                if (slug) {
+                    const index = this.articles.findIndex(a => a.slug === slug);
+                    if (index !== -1) {
+                        const articleId = `article-${index}`;
+                        toggleArticle(articleId, slug);
+                    }
+                }
+            }, 100);
+        }
+
+        loadArticles() {
+            this.articles = [
 
 
 
@@ -841,6 +855,7 @@ text-align: center;
 
    {
   "title": "El Espejo Rodesiano",
+  "slug": "el-espejo-rodesiano",
   "category": "Política",
   "language": "Español",
   "fullCategory": "Política",
@@ -1066,6 +1081,7 @@ text-align: center;
 
 {
   "title": "Los Jinetes del Alba",
+  "slug": "los-jinetes-del-alba",
   "category": "Historia",
   "language": "Español", 
   "fullCategory": "Historia",
@@ -1232,6 +1248,7 @@ text-align: center;
 
 {
     "title": "El Socialismo: Autopsia de una Utopía Egoísta",
+    "slug": "autopsia-de-una-utopia",
     "category": "Economía",
     "language": "Español",
     "fullCategory": "Economía",
@@ -1365,6 +1382,7 @@ text-align: center;
 
                     {
     "title": "El Gran Teatro del Miedo",
+    "slug": "el-gran-teatro-del-miedo",
     "category": "Ciencia",
     "language": "Español",
     "fullCategory": "Ciencia",
@@ -1379,6 +1397,7 @@ text-align: center;
 
 {
     "title": "El Fraude Electoral de 1936",
+    "slug": "el-fraude-electoral-de-1936",
     "category": "Historia",
     "language": "Español",
     "fullCategory": "Historia",
@@ -1545,6 +1564,7 @@ text-align: center;
 
 {
     "title": "El Despertar de la Memoria Económica",
+    "slug": "el-despertar-de-la-memoria-economica",
     "category": "Economía",
     "language": "Español",
     "fullCategory": "Economía",
@@ -1674,6 +1694,7 @@ text-align: center;
                     
                          {
     "title": "La imposibilidad de experimentar la Muerte",
+    "slug": "la-imposibilidad-de-experimentar-la-muerte",
     "category": "Filosofía",
     "language": "Español",
     "fullCategory": "Filosofía",
@@ -1759,6 +1780,7 @@ text-align: center;
 
                     {
     title: "La falacia del Altruismo Colectivo",
+    slug: "la-falacia-del-altruismo-colectivo",
     category: "Economía",
     language: "Español",
     fullCategory: "Economía",
@@ -1868,6 +1890,7 @@ text-align: center;
 
 {
   title: "Cristianismo y nación: defensa de una raíz compartida",
+  slug: "cristianismo-y-nacion",
   category: "Religion",
   language: "Español",
   fullCategory: "Religión",
@@ -1998,6 +2021,7 @@ text-align: center;
                     
 {
     title: "La improbable telaraña de conexiones en los medios progresistas",
+    slug: "los-medios-progresistas",
     category: "Politica",
     language: "Español",
     fullCategory: "Política",
@@ -2059,120 +2083,120 @@ text-align: center;
                     
                 ];
 
-                this.articles.forEach(article => {
-                    this.languages.add(article.language);
-                    this.categories.add(article.category);
-                });
-            }
-
-            setupEventListeners() {
-                const searchInput = document.getElementById('searchInput');
-                searchInput.addEventListener('input', (e) => {
-                    this.searchTerm = e.target.value.toLowerCase();
-                    this.filterAndRenderArticles();
-                });
-
-                document.getElementById('filterTabs').addEventListener('click', (e) => {
-                    if (e.target.classList.contains('filter-tab')) {
-                        document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
-                        e.target.classList.add('active');
-                        this.currentFilter = e.target.getAttribute('data-filter');
-                        this.filterAndRenderArticles();
-                    }
-                });
-            }
-
-            updateStats() {
-                document.getElementById('totalArticles').textContent = this.articles.length;
-                document.getElementById('totalCategories').textContent = this.categories.size;
-            }
-
-            renderFilterTabs() {
-                const tabsContainer = document.getElementById('filterTabs');
-                const allCategories = Array.from(new Set(this.articles.map(a => a.fullCategory))).sort();
-                
-                let tabsHTML = '<button class="filter-tab active" data-filter="all">Todo</button>';
-                
-                allCategories.forEach(category => {
-                    tabsHTML += `<button class="filter-tab" data-filter="${category}">${category}</button>`;
-                });
-
-                tabsContainer.innerHTML = tabsHTML;
-            }
-
-            filterAndRenderArticles() {
-                this.filteredArticles = this.articles.filter(article => {
-                    const matchesFilter = this.currentFilter === 'all' || article.fullCategory === this.currentFilter;
-                    const matchesSearch = this.searchTerm === '' || 
-                                        article.title.toLowerCase().includes(this.searchTerm) ||
-                                        article.excerpt.toLowerCase().includes(this.searchTerm) ||
-                                        article.category.toLowerCase().includes(this.searchTerm);
-                    
-                    return matchesFilter && matchesSearch;
-                });
-
-                this.renderArticles();
-            }
-
-            renderArticles() {
-                const grid = document.getElementById('articlesGrid');
-                
-                if (this.filteredArticles.length === 0) {
-                    grid.innerHTML = '<div class="no-articles">No se han encontrado artículos con esas características.</div>';
-                    return;
-                }
-
-                let articlesHTML = '';
-                this.filteredArticles.forEach((article, index) => {
-                    const articleId = `article-${index}`;
-                    articlesHTML += `
-                        <article class="article-card fade-in" style="animation-delay: ${index * 0.1}s">
-                            <div class="article-meta">
-                                <span class="article-category">${article.fullCategory}</span>
-                                <span class="article-date">${article.date}</span>
-                            </div>
-                            <h2 class="article-title">${article.title}</h2>
-                            <p class="article-excerpt">${article.excerpt}</p>
-                            <button class="read-more" onclick="toggleArticle('${articleId}')">
-                                Leer →
-                            </button>
-                            <div class="article-content" id="${articleId}">
-                                <button class="close-article" onclick="toggleArticle('${articleId}')">← Volver</button>
-                                ${article.content}
-                            </div>
-                        </article>
-                    `;
-                });
-
-                grid.innerHTML = articlesHTML;
-            }
+            this.articles.forEach(article => {
+                this.languages.add(article.language);
+                this.categories.add(article.category);
+            });
         }
 
-        function toggleArticle(articleId) {
-            const content = document.getElementById(articleId);
-            const isExpanded = content.classList.contains('expanded');
-            
-            // Close all other articles
-            document.querySelectorAll('.article-content.expanded').forEach(el => {
-                if (el.id !== articleId) {
-                    el.classList.remove('expanded');
+        setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                this.searchTerm = e.target.value.toLowerCase();
+                this.filterAndRenderArticles();
+            });
+
+            document.getElementById('filterTabs').addEventListener('click', (e) => {
+                if (e.target.classList.contains('filter-tab')) {
+                    document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+                    e.target.classList.add('active');
+                    this.currentFilter = e.target.getAttribute('data-filter');
+                    this.filterAndRenderArticles();
                 }
             });
-            
-            // Toggle current article
-            if (isExpanded) {
-                content.classList.remove('expanded');
-            } else {
-                content.classList.add('expanded');
-                // Scroll to the article
-                content.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
         }
 
-        // Initialize the blog when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            new BlogManager();
+        updateStats() {
+            document.getElementById('totalArticles').textContent = this.articles.length;
+            document.getElementById('totalCategories').textContent = this.categories.size;
+        }
+
+        renderFilterTabs() {
+            const tabsContainer = document.getElementById('filterTabs');
+            const allCategories = Array.from(new Set(this.articles.map(a => a.fullCategory))).sort();
+
+            let tabsHTML = '<button class="filter-tab active" data-filter="all">Todo</button>';
+            allCategories.forEach(category => {
+                tabsHTML += `<button class="filter-tab" data-filter="${category}">${category}</button>`;
+            });
+
+            tabsContainer.innerHTML = tabsHTML;
+        }
+
+        filterAndRenderArticles() {
+            this.filteredArticles = this.articles.filter(article => {
+                const matchesFilter = this.currentFilter === 'all' || article.fullCategory === this.currentFilter;
+                const matchesSearch = this.searchTerm === '' ||
+                    article.title.toLowerCase().includes(this.searchTerm) ||
+                    article.excerpt.toLowerCase().includes(this.searchTerm) ||
+                    article.category.toLowerCase().includes(this.searchTerm);
+
+                return matchesFilter && matchesSearch;
+            });
+
+            this.renderArticles();
+        }
+
+        renderArticles() {
+            const grid = document.getElementById('articlesGrid');
+
+            if (this.filteredArticles.length === 0) {
+                grid.innerHTML = '<div class="no-articles">No se han encontrado artículos con esas características.</div>';
+                return;
+            }
+
+            let articlesHTML = '';
+            this.filteredArticles.forEach((article, index) => {
+                const articleId = `article-${index}`;
+                articlesHTML += `
+                    <article class="article-card fade-in" data-slug="${article.slug}" style="animation-delay: ${index * 0.1}s">
+                        <div class="article-meta">
+                            <span class="article-category">${article.fullCategory}</span>
+                            <span class="article-date">${article.date}</span>
+                        </div>
+                        <h2 class="article-title">${article.title}</h2>
+                        <p class="article-excerpt">${article.excerpt}</p>
+                        <button class="read-more" onclick="toggleArticle('${articleId}', '${article.slug}')">
+                            Leer →
+                        </button>
+                        <div class="article-content" id="${articleId}">
+                            <button class="close-article" onclick="toggleArticle('${articleId}')">← Volver</button>
+                            ${article.content}
+                        </div>
+                    </article>
+                `;
+            });
+
+            grid.innerHTML = articlesHTML;
+        }
+    }
+
+    // Función mejorada
+    function toggleArticle(articleId, slug = null) {
+        const content = document.getElementById(articleId);
+        const isExpanded = content.classList.contains('expanded');
+
+        document.querySelectorAll('.article-content.expanded').forEach(el => {
+            if (el.id !== articleId) {
+                el.classList.remove('expanded');
+            }
         });
-    </script>
+
+        if (isExpanded) {
+            content.classList.remove('expanded');
+            history.replaceState(null, '', window.location.pathname);
+        } else {
+            content.classList.add('expanded');
+            content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (slug) {
+                history.replaceState(null, '', `?articulo=${slug}`);
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        new BlogManager();
+    });
+</script>
 </body>
 </html>
