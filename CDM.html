@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Panel Meteorológico — Club de Mar Mallorca</title>
+
+<!-- Font (sólo si tienes conexión) -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: rgb(25,52,90); /* base color solicitado */
+    --glass: rgba(255,255,255,0.04);
+    --accent: #ffd166;
+    --muted: rgba(255,255,255,0.75);
+    --blue-soft: rgba(135,206,235,0.9);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background: linear-gradient(180deg, var(--bg) 0%, rgba(20,40,75,0.9) 60%);font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", Roboto, Arial; color:#fff}
+  .stage{
+    height:100vh;
+    width:100vw;
+    display:grid;
+    grid-template-rows: auto 1fr auto;
+    gap:18px;
+    align-items:center;
+    justify-items:center;
+    padding:28px;
+  }
+
+  header{
+    width:100%;
+    max-width:1400px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:6px 10px;
+  }
+  header img.logo{height:56px;object-fit:contain}
+  header .title{
+    font-weight:700;
+    letter-spacing:0.6px;
+    font-size:20px;
+    color: #fff;
+    opacity:0.95;
+  }
+
+  main.panel{
+    width:100%;
+    max-width:1400px;
+    height: calc(100vh - 220px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border-radius:16px;
+    padding:22px;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:20px;
+    box-shadow: 0 20px 60px rgba(8,18,40,0.6);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Left: estado actual */
+  .now{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:18px;
+  }
+  .now-top{
+    display:flex;
+    gap:18px;
+    align-items:center;
+  }
+  .now-icon{
+    width:220px;
+    height:220px;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    box-shadow: inset 0 -8px 30px rgba(0,0,0,0.25);
+    flex-shrink:0;
+  }
+  .now-icon svg{width:140px;height:140px}
+  .now-main{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .large-temp{
+    font-size:72px;
+    font-weight:700;
+    color: var(--accent);
+    line-height:0.9;
+  }
+  .conditions{
+    font-size:20px;
+    color:var(--muted);
+  }
+  .now-bottom{
+    margin-top:20px;
+    display:flex;
+    gap:18px;
+    align-items:center;
+    color:var(--muted);
+    font-size:16px;
+  }
+  .now-row{
+    background: var(--glass);
+    padding:10px 14px;
+    border-radius:10px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+
+/* Wind arrow for now panel */
+.now-wind-arrow{
+  width:20px;
+  height:20px;
+  display:inline-block;
+  transform-origin:center center; 
+  transition: transform .6s ease;
+  margin-left: 8px;
+}
+
+  /* Right: timeline / forecast */
+  .forecast{
+    display:flex;
+    flex-direction:column;
+    padding:18px;
+    gap:12px;
+  }
+  .forecast-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .forecast-head h3{margin:0;font-size:18px}
+  .timeline{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:12px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    height: calc(100% - 72px);
+    justify-content:space-between;
+  }
+
+  .slot{
+    flex: 1;
+    max-width: calc(20% - 8px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:center;
+    position:relative;
+    transition: transform .7s cubic-bezier(.2,.9,.2,1), box-shadow .4s;
+  }
+
+  .slot.current{
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.45);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .slot .time{font-size:14px;color:var(--muted)}
+  .slot .sicon{width:64px;height:64px;display:flex;align-items:center;justify-content:center}
+  .slot .temp{font-weight:700;font-size:28px;color:var(--accent)}
+  .wind-block{display:flex;flex-direction:column;gap:6px;align-items:center}
+  .wind-main{display:flex;align-items:center;gap:10px}
+  .wind-val{font-weight:700}
+  .wind-arrow{
+    width:26px;height:26px;display:inline-block;transform-origin:center center; transition: transform .6s ease;
+  }
+  .wind-units{font-size:13px;color:var(--muted)}
+
+  /* bottom progress bar */
+  .progress-wrap{width:100%;max-width:1400px;padding:8px 0}
+  .progress{
+    width:100%;
+    height:8px;
+    background: rgba(255,255,255,0.05);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .progress > i{
+    display:block;height:100%;background:linear-gradient(90deg,var(--accent), #ffd79a);
+    width:0%;
+    transition: width 1s linear;
+  }
+
+  /* responsive */
+  @media (max-width:1000px){
+    main.panel{grid-template-columns:1fr; height: auto; padding:16px}
+    .now-icon{width:140px;height:140px}
+    .large-temp{font-size:48px}
+    .timeline{height:320px; overflow:auto}
+    .slot{flex:0 0 46%}
+  }
+
+  /* small helper */
+  .muted{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+  <div class="stage" aria-live="polite">
+    <header>
+      <img class="logo" src="https://www.clubdemar-mallorca.com/wp-content/webp-express/webp-images/uploads/2024/05/clubdemar-logo.png.webp" alt="Club de Mar">
+      <div class="title">Panel Meteorológico — Club de Mar</div>
+    </header>
+
+    <main class="panel" role="application" aria-label="Panel meteorológico">
+      <!-- LEFT: NOW -->
+      <section class="now" id="nowPanel" aria-label="Estado actual">
+        <div class="now-top">
+          <div class="now-icon" id="nowIcon" aria-hidden="true">
+            <!-- SVG icon placed by JS -->
+          </div>
+          <div class="now-main">
+            <div class="large-temp" id="nowTemp">--°C</div>
+            <div class="conditions" id="nowCond">--</div>
+            <div class="muted" id="nowTime">--:--</div>
+          </div>
+        </div>
+
+        <div class="now-bottom">
+          <div class="now-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v2" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div>
+              <div style="font-size:12px;color:var(--muted)">Temperatura</div>
+              <div id="nowTempDetail">-- °C</div>
+            </div>
+          </div>
+
+          <div class="now-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h3l3 8 4-16 3 8h4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div>
+              <div style="font-size:12px;color:var(--muted)">Viento</div>
+			<div id="nowWindDetail">-- km/h
+			<svg class="now-wind-arrow" id="nowWindArrow" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+			<path d="M12 2 L12 18 M12 2 L6 8 M12 2 L18 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+		</svg>
+				</div>
+            </div>
+          </div>
+
+          <div class="now-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2v4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div>
+              <div style="font-size:12px;color:var(--muted)" id="nowGustLabel">Ráfaga</div>
+              <div id="nowGustDetail">-- km/h</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: TIMELINE -->
+      <aside class="forecast" id="forecastPanel" aria-label="Próximas horas">
+        <div class="forecast-head">
+          <h3 id="forecastTitle">Próximas 5 predicciones</h3>
+          <div class="muted" id="langNote" aria-hidden="true"></div>
+        </div>
+
+        <div class="timeline" id="timeline" role="list" aria-label="Línea temporal de previsión">
+          <!-- slots injected here -->
+        </div>
+      </aside>
+    </main>
+
+    <div class="progress-wrap">
+      <div class="progress" aria-hidden="true"><i id="progressFill"></i></div>
+    </div>
+  </div>
+
+<script>
+/*
+    ===================================================================
+    🔥 INSTRUCCIONES PARA ACTUALIZAR LA PREDICCIÓN METEOROLÓGICA 🔥
+    ===================================================================
+
+    Para actualizar los datos meteorológicos, simplemente pega tu array
+    de datos en la línea 382 (busca "// 👉 PEGA TU PREDICCIÓN AQUÍ")
+    
+    FORMATO DE DATOS REQUERIDO:
+    
+    const miPrediccion = [
+      {
+        time: "2025-08-12T08:30:00",   // Fecha y hora (formato ISO)
+        tempC: 27,                     // Temperatura en °C
+        cond_es: "Despejado",         // Condición en español
+        cond_en: "Clear",             // Condición en inglés
+        wind_kph: 14,                 // Viento en km/h
+        wind_deg: 135,                // Dirección del viento en grados (0=Norte, 90=Este, 180=Sur, 270=Oeste)
+        gust_kph: 20,                 // Ráfaga en km/h
+        icon: "sun"                   // Icono: 'sun', 'cloud', 'rain', 'storm', 'fog', 'snow'
+      },
+      // ... más predicciones (una cada 30 minutos o cada hora)
+    ];
+
+    NOTAS IMPORTANTES:
+    - Ahora solo se muestran las próximas 5 predicciones (antes eran más)
+    - Puedes usar intervalos de 30 minutos o cada hora
+    - Los iconos disponibles son: sun, cloud, rain, storm, fog, snow
+    - Las direcciones del viento: 0°=Norte, 90°=Este, 180°=Sur, 270°=Oeste
+    - El sistema cambia automáticamente entre español e inglés cada 15 segundos
+*/
+
+(function(){
+  // Config - MODIFICADO: solo 5 predicciones
+  const languageToggleSeconds = 15; // cambio ES <-> EN
+  const maxSlots = 5; // 👈 CAMBIADO: solo mostrar 5 predicciones
+  const slotMinutes = 30; // intervalos en minutos (30)
+  const progressUpdateInterval = 1000; // ms para barra/refresh
+  const autoAdvanceCheckInterval = 60 * 1000; // ms para recalcular ventana (cada minuto)
+
+  // Estado
+  let forecastData = []; // array de objetos (ver arriba)
+  let lang = 'es';
+  let currentWindowStartISO = null; // ISO string for start slot shown
+  const timelineEl = document.getElementById('timeline');
+  const nowTempEl = document.getElementById('nowTemp');
+  const nowCondEl  = document.getElementById('nowCond');
+  const nowTimeEl  = document.getElementById('nowTime');
+  const nowTempDetail = document.getElementById('nowTempDetail');
+  const nowWindDetail = document.getElementById('nowWindDetail');
+  const nowGustDetail = document.getElementById('nowGustDetail');
+  const nowGustLabel  = document.getElementById('nowGustLabel');
+  const nowIconEl = document.getElementById('nowIcon');
+  const progressFill = document.getElementById('progressFill');
+  const forecastTitle = document.getElementById('forecastTitle');
+
+  // language labels - MODIFICADO: 5 predicciones
+  const LABELS = {
+    es: { nextHours: 'Próximas 5 predicciones', gust: 'Ráfaga', wind: 'Viento', now: 'Ahora' },
+    en: { nextHours: 'Next 5 forecasts', gust: 'Gust', wind: 'Wind', now: 'Now' }
+  };
+
+  // Helper: round date up to next slot (30 min)
+  function roundUpToSlot(d){
+    const ms = d.getTime();
+    const m = d.getMinutes();
+    const remainder = m % slotMinutes;
+    if (remainder === 0 && d.getSeconds()===0) return new Date(ms);
+    const add = slotMinutes - remainder;
+    const res = new Date(d);
+    res.setMinutes(m + add, 0, 0);
+    return res;
+  }
+
+  function formatHM(d, locale){
+    return d.toLocaleTimeString(locale, {hour:'2-digit', minute:'2-digit'});
+  }
+
+  // pick icon name from entry
+  function pickIcon(name){
+    if(!name) return 'sun';
+    const n = name.toLowerCase();
+    if(n.includes('sun')||n.includes('sol')||n.includes('clear')) return 'sun';
+    if(n.includes('cloud')||n.includes('nublado')||n.includes('partly')) return 'cloud';
+    if(n.includes('rain')||n.includes('lluv')) return 'rain';
+    if(n.includes('storm')||n.includes('torment')) return 'storm';
+    if(n.includes('fog')||n.includes('niebla')) return 'fog';
+    if(n.includes('snow')||n.includes('nieve')) return 'snow';
+    return 'sun';
+  }
+
+  // create SVG icons inline (modern flat)
+  const ICON_SVGS = {
+    sun: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs/><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="32" cy="32" r="10" fill="none"/><g stroke-linecap="round"><path d="M32 6v6"/><path d="M32 52v6"/><path d="M6 32h6"/><path d="M52 32h6"/><path d="M12 12l4 4"/><path d="M48 48l4 4"/><path d="M12 52l4-4"/><path d="M48 16l4-4"/></g></g></svg>`,
+    cloud: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 44h28a8 8 0 0 0 0-16 12 12 0 0 0-23-4 8 8 0 0 0-5 4 6 6 0 0 0 0 12z"/></g></svg>`,
+    rain: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 30h28a8 8 0 0 0 0-16 12 12 0 0 0-23-4 8 8 0 0 0-5 4 6 6 0 0 0 0 12z"/><path d="M22 44l0 6"/><path d="M30 44l0 8"/><path d="M38 44l0 6"/><path d="M46 44l0 8"/></g></svg>`,
+    storm: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 26h28a8 8 0 0 0 0-16 12 12 0 0 0-23-4 8 8 0 0 0-5 4 6 6 0 0 0 0 12z"/><path d="M32 36l-6 12h8l-2 10 10-16h-8z"/></g></svg>`,
+    fog: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 30h40"/><path d="M10 38h44"/><path d="M16 46h32"/></g></svg>`,
+    snow: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" ><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M32 12v8"/><path d="M32 44v8"/><path d="M20 20l6 6"/><path d="M38 34l6 6"/><path d="M44 20l-6 6"/><path d="M26 34l-6 6"/></g></svg>`
+  };
+
+  // render a single slot DOM
+  function createSlot(entry, isCurrent){
+    const slot = document.createElement('div');
+    slot.className = 'slot' + (isCurrent ? ' current' : '');
+    const time = new Date(entry.time);
+    const timeLabel = formatHM(time, lang === 'es' ? 'es-ES' : 'en-GB');
+    const iconName = entry.icon ? entry.icon : pickIcon(entry.cond_en || entry.cond_es);
+    const iconSvg = ICON_SVGS[iconName] || ICON_SVGS['sun'];
+
+    // compute nudos if missing
+    const kn = (entry.wind_kn !== undefined) ? entry.wind_kn : +(entry.wind_kph / 1.852).toFixed(1);
+
+    slot.innerHTML = `
+      <div class="time">${timeLabel}</div>
+      <div class="sicon">${iconSvg}</div>
+      <div class="temp">${entry.tempC}°C</div>
+      <div class="wind-block">
+        <div class="wind-main">
+          <svg class="wind-arrow" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 2 L12 18 M12 2 L6 8 M12 2 L18 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          <div class="wind-val">${entry.wind_kph} km/h</div>
+        </div>
+        <div class="wind-units">${kn} kt · ${entry.wind_deg}° · ${LABELS[lang].gust}: ${entry.gust_kph ?? '--'} km/h</div>
+      </div>
+    `;
+
+    // rotate arrow according to degrees (0=N -> up). We'll rotate such that 0deg => up (-90deg from SVG default pointing up)
+    const arrow = slot.querySelector('.wind-arrow');
+    if(arrow && typeof entry.wind_deg === 'number') arrow.style.transform = `rotate(${entry.wind_deg}deg)`;
+
+    return slot;
+  }
+
+  // update "now" panel (closest past or current slot)
+  function updateNowPanel(entry){
+    if(!entry) return;
+    nowTempEl.textContent = `${entry.tempC}°C`;
+    nowCondEl.textContent = lang === 'es' ? (entry.cond_es || entry.cond_en) : (entry.cond_en || entry.cond_es);
+    nowTimeEl.textContent = `${LABELS[lang].now} — ${formatHM(new Date(), (lang === 'es' ? 'es-ES' : 'en-GB'))}`;
+    nowTempDetail.textContent = `${entry.tempC} °C`;
+nowWindDetail.innerHTML = `${entry.wind_kph} km/h · ${((entry.wind_kn !== undefined) ? entry.wind_kn : (entry.wind_kph/1.852).toFixed(1))} kt · ${entry.wind_deg}°
+  <svg class="now-wind-arrow" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+    <path d="M12 2 L12 18 M12 2 L6 8 M12 2 L18 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>`;
+
+// Update wind arrow rotation
+const nowArrow = document.querySelector('#nowWindDetail .now-wind-arrow');
+if(nowArrow && typeof entry.wind_deg === 'number') {
+  nowArrow.style.transform = `rotate(${entry.wind_deg}deg)`;
+}
+    nowGustDetail.textContent = `${entry.gust_kph ?? '--'} km/h`;
+    nowGustLabel.textContent = LABELS[lang].gust;
+
+    const iconName = entry.icon ? entry.icon : pickIcon(entry.cond_en || entry.cond_es);
+    nowIconEl.innerHTML = ICON_SVGS[iconName] || ICON_SVGS['sun'];
+  }
+
+  // find index in forecastData for slot matching given date (ISO minute precision)
+  function findSlotIndexByDate(d){
+    const iso = new Date(d).toISOString();
+    return forecastData.findIndex(e => (new Date(e.time)).toISOString() === iso);
+  }
+
+  // build and display timeline starting from a startDate (Date object) - MODIFICADO: solo 5 slots
+  function renderTimeline(startDate){
+    if(!forecastData || forecastData.length===0) { timelineEl.innerHTML = ''; return; }
+
+    // MODIFICADO: usar maxSlots en lugar de calcular basado en horas
+    const slotsCount = maxSlots;
+    const startRounded = roundUpToSlot(startDate);
+    currentWindowStartISO = startRounded.toISOString();
+
+    // fill slots array by searching forecastData for matching times; if missing show placeholder
+    const slots = [];
+    for(let i=0;i<slotsCount;i++){
+      const dt = new Date(startRounded.getTime() + i * slotMinutes * 60000);
+      // find entry
+      const idx = findSlotIndexByDate(dt);
+      if(idx>=0) slots.push({entry: forecastData[idx], date: dt});
+      else {
+        // placeholder object
+        slots.push({
+          entry: {
+            time: dt.toISOString(),
+            tempC: '--',
+            cond_es: '--',
+            cond_en: '--',
+            wind_kph: '--',
+            wind_kn: '--',
+            wind_deg: 0,
+            gust_kph: '--',
+            icon: 'cloud'
+          },
+          date: dt
+        });
+      }
+    }
+
+    // determine "now" entry: the most recent slot <= now (we choose nearest past slot)
+    const now = new Date();
+    const nowRoundedDown = new Date(now);
+    const m = nowRoundedDown.getMinutes();
+    nowRoundedDown.setMinutes(m - (m % slotMinutes), 0, 0);
+    const nowIdx = findSlotIndexByDate(nowRoundedDown);
+    const nowEntry = (nowIdx>=0) ? forecastData[nowIdx] : (slots[0] ? slots[0].entry : null);
+    updateNowPanel(nowEntry);
+
+    // render slots
+    timelineEl.innerHTML = '';
+    slots.forEach((s, i) => {
+      const isCurrent = (i===0); // first slot in the timeline is the "next" slot; highlight it
+      const slotEl = createSlot(s.entry, isCurrent);
+      timelineEl.appendChild(slotEl);
+    });
+
+    // set title language
+    forecastTitle.textContent = LABELS[lang].nextHours;
+  }
+
+  // progress until next slot (fills bar 0-100)
+  function updateProgressBar(){
+    const now = new Date();
+    const nextSlot = roundUpToSlot(now);
+    const prevSlot = new Date(nextSlot.getTime() - slotMinutes * 60000);
+    const elapsed = now - prevSlot;
+    const total = nextSlot - prevSlot;
+    const pct = Math.max(0, Math.min(100, (elapsed/total)*100));
+    progressFill.style.width = pct + '%';
+  }
+
+  // language toggle
+  setInterval(() => {
+    lang = (lang === 'es') ? 'en' : 'es';
+    // re-render labels and timeline / now text
+    renderTimeline(new Date(currentWindowStartISO || new Date()));
+  }, languageToggleSeconds * 1000);
+
+  // auto-advance: every minute, recalc window start (rounded up from now) and re-render if changed
+  setInterval(() => {
+    const nextStart = roundUpToSlot(new Date());
+    if(!currentWindowStartISO || (new Date(currentWindowStartISO).getTime() !== nextStart.getTime())){
+      renderTimeline(nextStart);
+    }
+  }, autoAdvanceCheckInterval);
+
+  // update progress bar every second
+  setInterval(updateProgressBar, progressUpdateInterval);
+
+  // PUBLIC: updateForecast - pasar array de datos (ver arriba)
+  window.updateForecast = function(arr){
+    // normalize times to ISO with full date/time (assume input times are local ISO or Date strings)
+    forecastData = (arr || []).map(e => {
+      const copy = Object.assign({}, e);
+      // ensure time is an ISO string (if user gave HH:MM only, we assume today)
+      let dt = null;
+      if(!e.time) dt = new Date();
+      else {
+        dt = new Date(e.time);
+        if(isNaN(dt.getTime())){
+          // try parse HH:MM today
+          const parts = String(e.time).trim().split(':');
+          if(parts.length>=2){
+            const d = new Date();
+            d.setHours(parseInt(parts[0],10), parseInt(parts[1],10), 0, 0);
+            dt = d;
+          } else dt = new Date();
+        }
+      }
+      copy.time = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), dt.getHours(), dt.getMinutes(), 0, 0).toISOString();
+      // compute wind_kn if missing
+      if(copy.wind_kph !== undefined && (copy.wind_kn === undefined || copy.wind_kn === null)){
+        copy.wind_kn = +(copy.wind_kph / 1.852).toFixed(1);
+      }
+      return copy;
+    });
+
+    // sort by time ascending
+    forecastData.sort((a,b)=> new Date(a.time) - new Date(b.time));
+
+    // initial render: start from next slot relative to now
+    renderTimeline(new Date());
+    updateProgressBar();
+  };
+
+  // 👉 PEGA TU PREDICCIÓN AQUÍ - Reemplaza este array con tus datos reales
+  const miPrediccion = [
+    {
+    "time": "2025-08-12T08:00:00",
+    "tempC": 26,
+    "cond_es": "Soleado",
+    "cond_en": "Sunny",
+    "wind_kph": 12,
+    "wind_deg": 45,
+    "gust_kph": 18,
+    "icon": "sun"
+  },
+  {
+    "time": "2025-08-12T08:30:00",
+    "tempC": 27,
+    "cond_es": "Soleado",
+    "cond_en": "Sunny",
+    "wind_kph": 15,
+    "wind_deg": 50,
+    "gust_kph": 22,
+    "icon": "sun"
+  },
+  {
+    "time": "2025-08-12T09:00:00",
+    "tempC": 28,
+    "cond_es": "Soleado",
+    "cond_en": "Sunny",
+    "wind_kph": 18,
+    "wind_deg": 55,
+    "gust_kph": 25,
+    "icon": "sun"
+  },
+  {
+    "time": "2025-08-12T09:30:00",
+    "tempC": 29,
+    "cond_es": "Soleado",
+    "cond_en": "Sunny",
+    "wind_kph": 20,
+    "wind_deg": 60,
+    "gust_kph": 28,
+    "icon": "sun"
+  },
+  {
+    "time": "2025-08-12T10:00:00",
+    "tempC": 30,
+    "cond_es": "Soleado",
+    "cond_en": "Sunny",
+    "wind_kph": 22,
+    "wind_deg": 65,
+    "gust_kph": 30,
+    "icon": "sun"
+  },
+  {
+    "time": "2025-08-12T10:30:00",
+    "tempC": 31,
+    "cond_es": "Soleado",
+    "cond_en": "Sunny",
+    "wind_kph": 25,
+    "wind_deg": 70,
+    "gust_kph": 32,
+    "icon": "sun"
+  },
+  {
+    "time": "2025-08-12T11:00:00",
+    "tempC": 32,
+    "cond_es": "Parcialmente nublado",
+    "cond_en": "Partly cloudy",
+    "wind_kph": 28,
+    "wind_deg": 75,
+    "gust_kph": 35,
+    "icon": "cloud-sun"
+  },
+  {
+    "time": "2025-08-12T11:30:00",
+    "tempC": 33,
+    "cond_es": "Parcialmente nublado",
+    "cond_en": "Partly cloudy",
+    "wind_kph": 30,
+    "wind_deg": 80,
+    "gust_kph": 38,
+    "icon": "cloud-sun"
+  },
+  {
+    "time": "2025-08-12T12:00:00",
+    "tempC": 33,
+    "cond_es": "Nublado",
+    "cond_en": "Cloudy",
+    "wind_kph": 32,
+    "wind_deg": 85,
+    "gust_kph": 40,
+    "icon": "cloud"
+  },
+  {
+    "time": "2025-08-12T12:30:00",
+    "tempC": 32,
+    "cond_es": "Nublado",
+    "cond_en": "Cloudy",
+    "wind_kph": 33,
+    "wind_deg": 90,
+    "gust_kph": 42,
+    "icon": "cloud"
+  },
+  {
+    "time": "2025-08-12T13:00:00",
+    "tempC": 31,
+    "cond_es": "Lluvia ligera",
+    "cond_en": "Light rain",
+    "wind_kph": 35,
+    "wind_deg": 95,
+    "gust_kph": 45,
+    "icon": "rain"
+  },
+  {
+    "time": "2025-08-12T13:30:00",
+    "tempC": 30,
+    "cond_es": "Lluvia ligera",
+    "cond_en": "Light rain",
+    "wind_kph": 37,
+    "wind_deg": 100,
+    "gust_kph": 47,
+    "icon": "rain"
+  },
+  {
+    "time": "2025-08-12T14:00:00",
+    "tempC": 29,
+    "cond_es": "Lluvia ligera",
+    "cond_en": "Light rain",
+    "wind_kph": 38,
+    "wind_deg": 105,
+    "gust_kph": 50,
+    "icon": "rain"
+  }
+    // Añade más predicciones aquí siguiendo el mismo formato
+  ];
+
+  // Initialize con tu predicción personalizada
+  updateForecast(miPrediccion);
+
+})(); // end module
+</script>
+
+</body>
+</html>
