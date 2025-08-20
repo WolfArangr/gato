@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💸 El Gran Expolio Fiscal de España</title>
+    <title>💸 El Gran Expolio Fiscal - España 2024</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         
@@ -658,9 +658,167 @@
             to { box-shadow: 0 0 30px rgba(255, 0, 102, 0.8); }
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.02); opacity: 0.9; }
+        .balance-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .balance-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .balance-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .balance-icon {
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+        }
+
+        .balance-details {
+            flex: 1;
+        }
+
+        .balance-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .balance-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .balance-item.savings .balance-icon {
+            background: linear-gradient(135deg, var(--success), #20bf6b);
+        }
+
+        .balance-item.debt .balance-icon {
+            background: linear-gradient(135deg, var(--danger), #c44569);
+        }
+
+        .balance-item.debt .balance-value {
+            color: var(--danger);
+        }
+
+        .balance-item.savings .balance-value {
+            color: var(--success);
+        }
+
+        .government-spending {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 30px;
+        }
+
+        .spending-intro {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .spending-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .spending-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .spending-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .spending-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .spending-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .spending-title {
+            flex: 1;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .spending-percentage {
+            font-weight: 700;
+            color: var(--accent);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .spending-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .spending-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .spending-amount {
+            font-weight: 700;
+            color: var(--primary);
+            text-align: right;
+        }
+
+        .spending-reality {
+            background: linear-gradient(135deg, rgba(255, 0, 102, 0.1), rgba(255, 71, 87, 0.1));
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 0, 102, 0.2);
+        }
+
+        .reality-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .reality-point {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -678,7 +836,7 @@
                 <div class="input-group">
                     <label for="salarioNeto">💰 Tu Salario Neto Mensual (€)</label>
                     <div class="input-wrapper">
-                        <input type="number" id="salarioNeto" placeholder="1200" min="0" step="50">
+                        <input type="number" id="salarioNeto" placeholder="2500" min="0" step="50">
                     </div>
                 </div>
 
@@ -689,7 +847,7 @@
                             <div class="expense-title">🚬 Tabaco</div>
                             <div class="expense-toggle" data-expense="tabaco"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="tabaco" placeholder="0" min="0">
+                        <input type="number" class="expense-input" data-expense="tabaco" placeholder="150" min="0">
                         <div class="tax-rate">Impuestos: ~80% del precio</div>
                     </div>
 
@@ -698,7 +856,7 @@
                             <div class="expense-title">🍷 Alcohol</div>
                             <div class="expense-toggle" data-expense="alcohol"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="alcohol" placeholder="50" min="0">
+                        <input type="number" class="expense-input" data-expense="alcohol" placeholder="120" min="0">
                         <div class="tax-rate">Impuestos: ~45% del precio</div>
                     </div>
 
@@ -707,7 +865,7 @@
                             <div class="expense-title">⛽ Gasolina</div>
                             <div class="expense-toggle" data-expense="gasolina"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="gasolina" placeholder="50" min="0">
+                        <input type="number" class="expense-input" data-expense="gasolina" placeholder="200" min="0">
                         <div class="tax-rate">Impuestos: ~60% del precio</div>
                     </div>
 
@@ -716,7 +874,7 @@
                             <div class="expense-title">🚗 Coche</div>
                             <div class="expense-toggle" data-expense="coche"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="coche" placeholder="0" min="0">
+                        <input type="number" class="expense-input" data-expense="coche" placeholder="400" min="0">
                         <div class="tax-rate">Impuestos: ~35% (matriculación, circulación, IVA)</div>
                     </div>
 
@@ -725,7 +883,7 @@
                             <div class="expense-title">🛡️ Seguros</div>
                             <div class="expense-toggle" data-expense="seguros"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="seguros" placeholder="40" min="0">
+                        <input type="number" class="expense-input" data-expense="seguros" placeholder="180" min="0">
                         <div class="tax-rate">Impuestos: ~8% + IVA</div>
                     </div>
 
@@ -734,7 +892,7 @@
                             <div class="expense-title">💡 Electricidad</div>
                             <div class="expense-toggle" data-expense="luz"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="luz" placeholder="60" min="0">
+                        <input type="number" class="expense-input" data-expense="luz" placeholder="120" min="0">
                         <div class="tax-rate">Impuestos: ~26% del recibo</div>
                     </div>
 
@@ -743,7 +901,7 @@
                             <div class="expense-title">📱 Telefonía</div>
                             <div class="expense-toggle" data-expense="telefono"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="telefono" placeholder="40" min="0">
+                        <input type="number" class="expense-input" data-expense="telefono" placeholder="60" min="0">
                         <div class="tax-rate">Impuestos: 21% IVA</div>
                     </div>
 
@@ -752,7 +910,7 @@
                             <div class="expense-title">🏠 Vivienda</div>
                             <div class="expense-toggle" data-expense="vivienda"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="vivienda" placeholder="300" min="0">
+                        <input type="number" class="expense-input" data-expense="vivienda" placeholder="900" min="0">
                         <div class="tax-rate">Impuestos: ~12% (IBI, basuras, etc.)</div>
                     </div>
 
@@ -770,7 +928,7 @@
                             <div class="expense-title">🛍️ Ropa</div>
                             <div class="expense-toggle" data-expense="ropa"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="ropa" placeholder="50" min="0">
+                        <input type="number" class="expense-input" data-expense="ropa" placeholder="150" min="0">
                         <div class="tax-rate">Impuestos: 21% IVA</div>
                     </div>
 
@@ -779,7 +937,7 @@
                             <div class="expense-title">🎮 Ocio/Entretenimiento</div>
                             <div class="expense-toggle" data-expense="ocio"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="ocio" placeholder="60" min="0">
+                        <input type="number" class="expense-input" data-expense="ocio" placeholder="100" min="0">
                         <div class="tax-rate">Impuestos: 21% IVA</div>
                     </div>
 
@@ -788,7 +946,7 @@
                             <div class="expense-title">🛒 Supermercado</div>
                             <div class="expense-toggle" data-expense="supermercado"></div>
                         </div>
-                        <input type="number" class="expense-input" data-expense="supermercado" placeholder="350" min="0">
+                        <input type="number" class="expense-input" data-expense="supermercado" placeholder="300" min="0">
                         <div class="tax-rate">Impuestos: ~8% (mix IVA 4%-21%)</div>
                     </div>
                 </div>
@@ -833,7 +991,7 @@
                         <span class="result-value" id="ssT">0€</span>
                     </div>
                     <div class="result-item">
-                        <span class="result-label">🏭 Seguridad Social (El Estado se interpone entre tu empresa y tú para robártelo)</span>
+                        <span class="result-label">🏭 Seguridad Social (Empresa paga POR TI)</span>
                         <span class="result-value" id="ssE">0€</span>
                     </div>
                 </div>
@@ -943,9 +1101,184 @@
             </div>
         </div>
 
+        <div class="visual-section">
+            <h2 class="section-title">💰 Balance Personal</h2>
+            <div class="balance-section">
+                <div class="balance-item income">
+                    <div class="balance-icon">📈</div>
+                    <div class="balance-details">
+                        <div class="balance-label">Ingresos Netos</div>
+                        <div class="balance-value" id="ingresos">0€</div>
+                    </div>
+                </div>
+                <div class="balance-item expenses">
+                    <div class="balance-icon">📉</div>
+                    <div class="balance-details">
+                        <div class="balance-label">Gastos Totales</div>
+                        <div class="balance-value" id="gastosTotales">0€</div>
+                    </div>
+                </div>
+                <div class="balance-item result" id="balanceResult">
+                    <div class="balance-icon" id="balanceIcon">💰</div>
+                    <div class="balance-details">
+                        <div class="balance-label" id="balanceLabel">Balance</div>
+                        <div class="balance-value" id="balanceValue">0€</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="visual-section">
+            <h2 class="section-title">🏛️ ¿En qué se gasta el Estado TUS impuestos?</h2>
+            <div class="government-spending">
+                <div class="spending-intro">
+                    <p style="margin-bottom: 20px; font-size: 1.1rem; color: var(--text-secondary);">
+                        Basado en los Presupuestos Generales del Estado 2024, esto es en lo que se van 
+                        <span style="color: var(--primary); font-weight: bold;" id="tusImpuestos">0€</span> 
+                        de TUS impuestos anuales:
+                    </p>
+                </div>
+                
+                <div class="spending-grid">
+                    <div class="spending-item pensiones">
+                        <div class="spending-header">
+                            <span class="spending-icon">👴</span>
+                            <span class="spending-title">Pensiones</span>
+                            <span class="spending-percentage">38.5%</span>
+                        </div>
+                        <div class="spending-bar">
+                            <div class="spending-fill" style="width: 38.5%; background: linear-gradient(90deg, #2ed573, #20bf6b);"></div>
+                        </div>
+                        <div class="spending-amount" id="gasto-pensiones">0€</div>
+                    </div>
+
+                    <div class="spending-item sanidad">
+                        <div class="spending-header">
+                            <span class="spending-icon">🏥</span>
+                            <span class="spending-title">Sanidad</span>
+                            <span class="spending-percentage">15.2%</span>
+                        </div>
+                        <div class="spending-bar">
+                            <div class="spending-fill" style="width: 15.2%; background: linear-gradient(90deg, #ff6b6b, #ff5252);"></div>
+                        </div>
+                        <div class="spending-amount" id="gasto-sanidad">0€</div>
+                    </div>
+
+                    <div class="spending-item educacion">
+                        <div class="spending-header">
+                            <span class="spending-icon">📚</span>
+                            <span class="spending-title">Educación</span>
+                            <span class="spending-percentage">11.3%</span>
+                        </div>
+                        <div class="spending-bar">
+                            <div class="spending-fill" style="width: 11.3%; background: linear-gradient(90deg, #4ecdc4, #26d0ce);"></div>
+                        </div>
+                        <div class="spending-amount" id="gasto-educacion">0€</div>
+                    </div>
+
+                    <div class="spending-item seguridad">
+                        <div class="spending-header">
+                            <span class="spending-icon">👮</span>
+                            <span class="spending-title">Seguridad y Defensa</span>
+                            <span class="spending-percentage">8.7%</span>
+                        </div>
+                        <div class="spending-bar">
+                            <div class="spending-fill" style="width: 8.7%; background: linear-gradient(90deg, #ffa502, #ff8c00);"></div>
+                        </div>
+                        <div class="spending-amount" id="gasto-seguridad">0€</div>
+                    </div>
+
+                    <div class="spending-item deuda">
+                        <div class="spending-header">
+                            <span class="spending-icon">💸</span>
+                            <span class="spending-title">Pago de Deuda</span>
+                            <span class="spending-percentage">7.9%</span>
+                        </div>
+                        <div class="spending-bar">
+                            <div class="spending-fill" style="width: 7.9%; background: linear-gradient(90deg, #ff4757, #c44569);"></div>
+                        </div>
+                        <div class="spending-amount" id="gasto-deuda">0€</div>
+                    </div>
+
+                    <div class="spending-item desempleo">
+                        <div class="spending-header">
+                            <span class="spending-icon">💼</span>
+                            <span class="spending-title">Desempleo</span>
+                            <span class="spending-percentage">6.1%</span>
+                        </div>
+                        <div class="spending-bar">
+                            <div class="spending-fill" style="width: 6.1%; background: linear-gradient(90deg, #a55eea, #8854d0);"></div>
+                        </div>
+                        <div class="spending-amount" id="gasto-desempleo">0€</div>
+                    </div>
+
+                    <div class="spending-item infraestructuras">
+                        <div class="spending-header">
+                            <span class="spending-icon">🏗️</span>
+                            <span class="spending-title">Infraestructuras</span>
+                            <span class="spending-percentage">4.8%</span>
+                        </div>
+                        <div class="spending-bar">
+                            <div class="spending-fill" style="width: 4.8%; background: linear-gradient(90deg, #26de81, #20bf6b);"></div>
+                        </div>
+                        <div class="spending-amount" id="gasto-infraestructuras">0€</div>
+                    </div>
+
+                    <div class="spending-item administracion">
+                        <div class="spending-header">
+                            <span class="spending-icon">🏛️</span>
+                            <span class="spending-title">Administración</span>
+                            <span class="spending-percentage">4.2%</span>
+                        </div>
+                        <div class="spending-bar">
+                            <div class="spending-fill" style="width: 4.2%; background: linear-gradient(90deg, #45b7d1, #3867d6);"></div>
+                        </div>
+                        <div class="spending-amount" id="gasto-administracion">0€</div>
+                    </div>
+
+                    <div class="spending-item corrupcion">
+                        <div class="spending-header">
+                            <span class="spending-icon">🔥</span>
+                            <span class="spending-title">Corrupción/Despilfarros</span>
+                            <span class="spending-percentage">3.3%</span>
+                        </div>
+                        <div class="spending-bar">
+                            <div class="spending-fill" style="width: 3.3%; background: linear-gradient(90deg, #fd79a8, #e84393);"></div>
+                        </div>
+                        <div class="spending-amount" id="gasto-corrupcion">0€</div>
+                        <div style="font-size: 0.8rem; color: var(--danger); margin-top: 5px;">
+                            *Estimación basada en casos conocidos y auditorías
+                        </div>
+                    </div>
+                </div>
+
+                <div class="spending-reality">
+                    <h4 style="color: var(--danger); margin-bottom: 15px;">⚡ Realidad del Gasto Público</h4>
+                    <div class="reality-grid">
+                        <div class="reality-point">
+                            <strong style="color: var(--primary);">👴 Pensiones:</strong> 
+                            Sistema insostenible que pagamos los trabajadores actuales
+                        </div>
+                        <div class="reality-point">
+                            <strong style="color: var(--primary);">💸 Deuda:</strong> 
+                            Pagamos los errores económicos de políticos del pasado
+                        </div>
+                        <div class="reality-point">
+                            <strong style="color: var(--primary);">🏛️ Administración:</strong> 
+                            17 autonomías + diputaciones + ayuntamientos = duplicidades
+                        </div>
+                        <div class="reality-point">
+                            <strong style="color: var(--primary);">🔥 Corrupción:</strong> 
+                            Miles de millones perdidos en casos como Mascarillas, EREs, Púnica, Gürtel...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="info-section">
             <h4>🔍 Metodología y Fuentes Oficiales</h4>
-            <p><strong>Impuestos Directos:</strong> IRPF progresivo (Ley 35/2006), Seguridad Social (Real Decreto Legislativo 8/2015) • <strong>Impuestos Indirectos:</strong> IVA (Ley 37/1992), Impuestos Especiales (Ley 38/1992) • <strong>Datos actualizados 2024:</strong> Todos los porcentajes son oficiales del BOE y Agencia Tributaria • <strong>Objetivo:</strong> Mostrar la presión fiscal REAL que sufre el ciudadano español promedio</p>
+            <p><strong>Impuestos Directos:</strong> IRPF progresivo (Ley 35/2006), Seguridad Social (Real Decreto Legislativo 8/2015) • <strong>Impuestos Indirectos:</strong> IVA (Ley 37/1992), Impuestos Especiales (Ley 38/1992) • <strong>Gasto Público:</strong> Presupuestos Generales del Estado 2024 • <strong>Datos actualizados 2024:</strong> Todos los porcentajes son oficiales del BOE y Agencia Tributaria • <strong>Objetivo:</strong> Mostrar la presión fiscal REAL y el destino de los impuestos del ciudadano español</p>
         </div>
     </div>
 
@@ -957,13 +1290,13 @@
             gasolina: 0.60,    // ~60% impuestos hidrocarburos + IVA
             coche: 0.35,       // Impuesto matriculación + circulación + IVA
             seguros: 0.08,     // Impuesto sobre seguros + IVA
-            luz: 0.26,         // Impuesto electricidad + IVA + otros
+            luz: 0.28,         // Impuesto electricidad + IVA + otros
             telefono: 0.21,    // IVA
             vivienda: 0.12,    // IBI + basuras + otras tasas
             restaurantes: 0.10, // IVA reducido
             ropa: 0.21,        // IVA general
             ocio: 0.21,        // IVA general
-            supermercado: 0.08 // Mix IVA (4% básicos, 10% alimentación, 21% resto)
+            supermercado: 0.116 // Mix IVA (4% básicos, 10% alimentación, 21% resto)
         };
 
         function calcularIRPF(salarioBruto) {
@@ -1043,10 +1376,15 @@
             // Cálculos de impuestos indirectos personalizados
             const { totalImpuestosIndirectos, totalGastos } = calcularImpuestosPersonalizados();
             
+            // Balance personal: ingresos vs gastos
+            const ingresos = salarioNeto;
+            const gastosTotales = totalGastos;
+            const balance = ingresos - gastosTotales;
+            
             // Estimación de otros gastos con IVA general si hay gastos no especificados
-            const gastosRestantes = Math.max(0, salarioNeto * 0.8 - totalGastos); // Asumimos que gasta 80% del neto
-            const ivaResto = gastosRestantes * 0.175; // IVA efectivo medio
-            const otrosImpuestos = (totalGastos + gastosRestantes) * 0.01; // Tasas municipales, etc.
+            const gastosRestantes = Math.max(0, gastosTotales > ingresos ? 0 : (ingresos - gastosTotales) * 0.3); // 30% del ahorro se gasta
+            const ivaResto = gastosRestantes * 0.21; // IVA efectivo medio
+            const otrosImpuestos = (totalGastos + gastosRestantes) * 0.04; // Tasas municipales, etc.
 
             // Totales
             const totalIndirectosMensual = totalImpuestosIndirectos + ivaResto + otrosImpuestos;
@@ -1070,7 +1408,7 @@
                 totalImpuestosIndirectos, ivaResto, otrosImpuestos, robadoDirecto,
                 totalImpuestosAnual, porcentajeTotal, porcentajeRobo, diasTrabajo,
                 mesesTrabajo, eficiencia, horasDiarias, eurosPorHora, libertadFinanciera,
-                salarioNeto, totalIndirectosMensual
+                salarioNeto, totalIndirectosMensual, ingresos, gastosTotales, balance
             });
         }
 
@@ -1102,6 +1440,43 @@
             document.getElementById('horasDiarias').textContent = `${datos.horasDiarias.toFixed(1)}h`;
             document.getElementById('eurosPorHora').textContent = `${datos.eurosPorHora.toFixed(2)}€`;
             document.getElementById('libertadFinanciera').textContent = `${datos.libertadFinanciera.toFixed(1)}%`;
+
+            // Actualizar balance personal
+            document.getElementById('ingresos').textContent = `${datos.ingresos.toFixed(0)}€`;
+            document.getElementById('gastosTotales').textContent = `${datos.gastosTotales.toFixed(0)}€`;
+            
+            const balanceElement = document.getElementById('balanceResult');
+            const balanceIcon = document.getElementById('balanceIcon');
+            const balanceLabel = document.getElementById('balanceLabel');
+            const balanceValue = document.getElementById('balanceValue');
+            
+            if (datos.balance >= 0) {
+                balanceElement.className = 'balance-item result savings';
+                balanceIcon.textContent = '💰';
+                balanceLabel.textContent = 'Ahorros Mensuales';
+                balanceValue.textContent = `+${datos.balance.toFixed(0)}€`;
+            } else {
+                balanceElement.className = 'balance-item result debt';
+                balanceIcon.textContent = '⚠️';
+                balanceLabel.textContent = 'Deuda Mensual';
+                balanceValue.textContent = `${datos.balance.toFixed(0)}€`;
+            }
+
+            // Actualizar distribución del gasto público
+            document.getElementById('tusImpuestos').textContent = `${datos.totalImpuestosAnual.toFixed(0)}€`;
+            
+            // Calcular gastos específicos del usuario
+            const gastosPublicos = {
+                pensiones: datos.totalImpuestosAnual * 0.385,
+                sanidad: datos.totalImpuestosAnual * 0.152,
+                educacion: datos.totalImpuestosAnual * 0.113,
+                seguridad: datos.totalImpuestosAnual * 0.087,
+                deuda: datos.totalImpuestosAnual * 0.079,
+                desempleo: datos.totalImpuestosAnual * 0.061,
+                infraestructuras: datos.totalImpuestosAnual * 0.048,
+                administracion: datos.totalImpuestosAnual * 0.042,
+                corrupcion: datos.totalImpuestosAnual * 0.033
+            };
 
             // Actualizar medidor
             document.getElementById('devastationFill').style.width = `${datos.porcentajeTotal}%`;
@@ -1176,28 +1551,30 @@
                 input.style.opacity = '0.5';
             });
 
-            // Inicialización
-            document.getElementById('salarioNeto').value = 1200;
+            // Inicialización con valores de persona media española
+            document.getElementById('salarioNeto').value = 1800; // Salario medio neto España 2024
             
-            // Activar algunos gastos por defecto
-            const gastosPorDefecto = ['supermercado', 'vivienda', 'gasolina', 'luz', 'telefono'];
-            gastosPorDefecto.forEach(gasto => {
+            // Activar gastos típicos españoles con valores medios reales
+            const gastosMediosEspañoles = {
+                supermercado: 280,    // Gasto medio alimentación
+                vivienda: 650,        // Alquiler/hipoteca medio
+                gasolina: 140,        // Gasto medio combustible
+                luz: 85,              // Factura eléctrica media
+                telefono: 45,         // Telefonía e internet
+                seguros: 120,         // Seguros hogar, vida, etc.
+                restaurantes: 150,    // Gasto medio hostelería
+                ropa: 80,             // Gasto medio textil
+                coche: 200            // Mantenimiento, seguros, impuestos
+            };
+
+            Object.entries(gastosMediosEspañoles).forEach(([gasto, valor]) => {
                 const toggle = document.querySelector(`[data-expense="${gasto}"]`);
                 const input = document.querySelector(`input[data-expense="${gasto}"]`);
                 if (toggle && input) {
                     toggle.classList.add('active');
                     input.disabled = false;
                     input.style.opacity = '1';
-                    
-                    // Valores por defecto
-                    const valoresPorDefecto = {
-                        supermercado: 400,
-                        vivienda: 600,
-                        gasolina: 50,
-                        luz: 100,
-                        telefono: 50
-                    };
-                    input.value = valoresPorDefecto[gasto] || 100;
+                    input.value = valor;
                 }
             });
             
