@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Septuaginta - Traducción e Interpretación Secular</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2d2d2d;
+            --text-primary: #e8e8e8;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+            --accent: #4a90e2;
+            --accent-hover: #357abd;
+            --blob-gradient: linear-gradient(135deg, #4a90e2 0%, #357abd 50%, #2d5aa0 100%);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-secondary);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .navigation {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .current-location {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .location-item {
+            padding: 5px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .location-item:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Blob decorations */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            background: var(--blob-gradient);
+            filter: blur(40px);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .blob-1 {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: -5%;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            width: 150px;
+            height: 150px;
+            top: 50%;
+            right: -10%;
+            animation-delay: 2s;
+        }
+
+        .blob-3 {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 10%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(120deg); }
+            66% { transform: translateY(10px) rotate(240deg); }
+        }
+
+        /* Main content */
+        main {
+            position: relative;
+            padding: 40px 0;
+            min-height: calc(100vh - 80px);
+        }
+
+        .book-selector {
+            margin-bottom: 40px;
+        }
+
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .book-card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--bg-tertiary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--blob-gradient);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .book-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            background: var(--bg-tertiary);
+        }
+
+        .book-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .book-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Content area */
+        .content-area {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--bg-tertiary);
+            overflow: hidden;
+        }
+
+        .chapter-header {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+
+        .chapter-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .chapter-context {
+            color: var(--text-secondary);
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .verses-container {
+            padding: 30px;
+        }
+
+        .verse {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--accent);
+            position: relative;
+        }
+
+        .verse-number {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .verse-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .verse-notes {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-style: italic;
+            border-top: 1px solid var(--bg-tertiary);
+            padding-top: 10px;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+            z-index: 50;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .control-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .navigation {
+                gap: 15px;
+            }
+
+            .current-location {
+                font-size: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .book-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .verses-container {
+                padding: 20px;
+            }
+
+            .controls {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .blob {
+                display: none;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--bg-tertiary);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Blob decorations -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Septuaginta</div>
+                <nav class="navigation">
+                    <div class="current-location">
+                        <span class="location-item" id="current-book">Génesis</span>
+                        <span class="location-item" id="current-chapter">1</span>
+                        <span class="location-item" id="current-verse">1</span>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Book selector -->
+            <div class="book-selector">
+                <div class="book-grid">
+
+                  
+                    <div class="book-card" data-book="genesis">
+                        <div class="book-title">Génesis</div>
+                        <div class="book-description">Los orígenes según la tradición griega</div>
+                    </div>
+
+
+                  
+                </div>
+            </div>
+
+            <!-- Content area -->
+            <div class="content-area">
+                <div class="chapter-header">
+                    <h1 class="chapter-title">Génesis 1</h1>
+                    <p class="chapter-context">
+                        Contexto histórico: Este texto forma parte de la tradición sacerdotal (siglo VI a.C.) 
+                        y refleja influencias cosmogónicas mesopotámicas reinterpretadas desde una perspectiva monoteísta.
+                    </p>
+                </div>
+
+                <div class="verses-container">
+                  
+                    <div class="verse">
+                        <div class="verse-number">1:1</div>
+                        <div class="verse-text">
+                            En el principio creó Dios los cielos y la tierra.
+                        </div>
+                        <div class="verse-notes">
+                            Nota secular: El término "bereshit" sugiere un comienzo temporal más que absoluto. 
+                            La cosmogonía presenta paralelos con el Enuma Elish babilónico.
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating controls -->
+    <div class="controls">
+        <button class="control-btn" title="Capítulo anterior">‹</button>
+        <button class="control-btn" title="Capítulo siguiente">›</button>
+    </div>
+
+    <script>
+        // Navigation state
+        let currentBook = 'genesis';
+        let currentChapter = 1;
+        let currentVerse = 1;
+
+        // ========================================
+        // CONFIGURACIÓN DE LIBROS - EDITA AQUÍ
+        // ========================================
+        const books = {
+            // PLANTILLA PARA AÑADIR NUEVO LIBRO:
+            // nombreDelLibro: { name: 'Nombre Mostrado', chapters: NumeroDeCapitulos },
+            
+            genesis: { name: 'Génesis', chapters: 50 },
+            exodus: { name: 'Éxodo', chapters: 40 },
+            leviticus: { name: 'Levítico', chapters: 27 },
+            numbers: { name: 'Números', chapters: 36 }
+            
+            // Añade más libros siguiendo el patrón:
+            // deuteronomy: { name: 'Deuteronomio', chapters: 34 },
+            // joshua: { name: 'Josué', chapters: 24 },
+        };
+
+        // Update location display
+        function updateLocation() {
+            document.getElementById('current-book').textContent = books[currentBook].name;
+            document.getElementById('current-chapter').textContent = currentChapter;
+            document.getElementById('current-verse').textContent = currentVerse;
+        }
+
+        // Book selection
+        document.querySelectorAll('.book-card').forEach(card => {
+            card.addEventListener('click', function() {
+                currentBook = this.dataset.book;
+                currentChapter = 1;
+                currentVerse = 1;
+                updateLocation();
+                loadChapter();
+            });
+        });
+
+        // Chapter navigation
+        document.querySelectorAll('.control-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.textContent === '‹') {
+                    if (currentChapter > 1) {
+                        currentChapter--;
+                        updateLocation();
+                        loadChapter();
+                    }
+                } else {
+                    if (currentChapter < books[currentBook].chapters) {
+                        currentChapter++;
+                        updateLocation();
+                        loadChapter();
+                    }
+                }
+            });
+        });
+
+        // Load chapter content (placeholder function)
+        function loadChapter() {
+            // Aquí puedes implementar la carga dinámica de contenido
+            // Por ahora solo actualiza el título
+            document.querySelector('.chapter-title').textContent = 
+                `${books[currentBook].name} ${currentChapter}`;
+        }
+
+        // Smooth scrolling for verse navigation
+        function scrollToVerse(verseNumber) {
+            const verse = document.querySelector(`[data-verse="${verseNumber}"]`);
+            if (verse) {
+                verse.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Initialize
+        updateLocation();
+    </script>
+</body>
+</html>
