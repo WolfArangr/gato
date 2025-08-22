@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 El Fachómetro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e94560;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(15, 15, 35, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(233, 69, 96, 0.1);
+            border: 1px solid rgba(233, 69, 96, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #e94560, #f39c12);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #bbb;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            background: rgba(233, 69, 96, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #e94560;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .question-container {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question {
+            background: rgba(26, 26, 46, 0.8);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .question h3 {
+            color: #f39c12;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: rgba(15, 15, 35, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .option:hover {
+            background: rgba(233, 69, 96, 0.1);
+            border-color: #e94560;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: rgba(233, 69, 96, 0.2);
+            border-color: #e94560;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(233, 69, 96, 0.2);
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #f39c12);
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #e94560, #f39c12);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(233, 69, 96, 0.1);
+            color: #e94560;
+            border: 2px solid #e94560;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(233, 69, 96, 0.2);
+        }
+
+        .results {
+            display: none;
+            text-align: center;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .score-container {
+            background: rgba(26, 26, 46, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid;
+        }
+
+        .score-number {
+            font-size: 4em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .interpretation {
+            background: rgba(233, 69, 96, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-left: 4px solid #e94560;
+        }
+
+        .restart-btn {
+            margin-top: 30px;
+            background: linear-gradient(45deg, #e94560, #f39c12);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .title {
+                font-size: 2em;
+            }
+
+            .options {
+                gap: 10px;
+            }
+
+            .option {
+                padding: 12px;
+            }
+
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        .intro {
+            display: block;
+        }
+
+        .intro.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">📊 El Fachómetro™</h1>
+            <p class="subtitle">"Descubre tu nivel de fascista reprimido (o no tan reprimido)"</p>
+        </div>
+
+        <div class="intro">
+            <div class="description">
+                <p><strong>🎭 Bienvenido al test con más downvotes de Reddit</strong></p>
+                <p>Este test mide tu tendencia hacia comportamientos autoritarios, independientemente de si vienes de la izquierda progresista o de la derecha conservadora. Porque seamos honestos: el autoritarismo no tiene color político, solo tiene hambre de poder.</p>
+                <p><em>Advertencia: Este test contiene altas dosis de ironía, sarcasmo y verdades incómodas. Si eres sensible a la autocrítica política, mejor vete a ver gatitos en TikTok.</em></p>
+            </div>
+            <button class="btn btn-primary" onclick="startTest()">Comenzar Test 🚀</button>
+        </div>
+
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress" id="progress"></div>
+        </div>
+
+        <div class="question-container" id="questionContainer">
+            <!-- Las preguntas se generarán aquí -->
+        </div>
+
+        <div class="navigation" id="navigation" style="display: none;">
+            <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()">← Anterior</button>
+            <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Siguiente →</button>
+        </div>
+
+        <div class="results" id="results">
+            <h2>🎯 Tu Puntuación Final</h2>
+            <div class="score-container" id="scoreContainer">
+                <div class="score-number" id="scoreNumber">0%</div>
+                <div class="score-label">Nivel de Autoritarismo</div>
+            </div>
+            <div class="interpretation" id="interpretation">
+                <!-- La interpretación se generará aquí -->
+            </div>
+            <button class="restart-btn" onclick="restartTest()">🔄 Repetir Test</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "¿Cómo reaccionas cuando alguien expresa una opinión que consideras 'problemática' o que es un 'discurso de odio'?",
+                options: [
+                    { text: "Respeto su derecho a expresarse, aunque no esté de acuerdo", score: 0 },
+                    { text: "Trato de entender su perspectiva y debatir respetuosamente", score: 1 },
+                    { text: "Le explico por qué está equivocado y debería cambiar de opinión", score: 3 },
+                    { text: "Esa persona debería ser silenciada, no se deben permitir discursos de odio", score: 4 }
+                ]
+            },
+            {
+                question: "Tu opinión sobre la 'educación ideológica' en las escuelas:",
+                options: [
+                    { text: "La educación debe ser neutral y presentar múltiples perspectivas, incluso si creo que son incorrectas", score: 0 },
+                    { text: "Está bien incluir algunos valores, pero con moderación", score: 1 },
+                    { text: "Es necesario educar a los niños en los valores correctos y que sepan rechazar los valores incorrectos", score: 3 },
+                    { text: "Es fundamental educar desde pequeños valores que vayan en contra de los discursos de odio", score: 4 }
+                ]
+            },
+            {
+                question: "¿Qué piensas sobre censurar contenido 'dañino' en redes sociales?",
+                options: [
+                    { text: "Nada debería censurarse", score: 0 },
+                    { text: "Algunas cosas extremas o ilegales sí deberían moderarse", score: 1 },
+                    { text: "Todo lo que pueda ofender o dañar a otra persona se debe censurar y eliminar", score: 3 },
+                    { text: "Se debe controlar extensamente lo que se publica en redes para evitar la proliferación de bulos o discursos de odio", score: 4 }
+                ]
+            },
+            {
+                question: "Tu actitud hacia quienes no siguen las 'normas sociales':",
+                options: [
+                    { text: "Que cada cual haga y diga lo que quiera mientras no dañe a otros", score: 0 },
+                    { text: "Está bien señalar comportamientos que no sean inclusivos", score: 1 },
+                    { text: "Deben ser educados sobre por qué están mal y recibir cursos de inclusión", score: 3 },
+                    { text: "Necesitan consecuencias sociales para que cambien, como señalamiento y multas", score: 4 }
+                ]
+            },
+            {
+                question: "¿Cómo ves la imposición de cuotas por género/raza en trabajos?",
+                options: [
+                    { text: "El mérito debería ser el único criterio", score: 0 },
+                    { text: "Pueden ser útiles temporalmente en algunos casos", score: 1 },
+                    { text: "Son necesarias para corregir injusticias históricas", score: 3 },
+                    { text: "Cualquiera que se oponga o no vea la utilidad de estas politicas es parte del problema", score: 4 }
+                ]
+            },
+            {
+                question: "Tu reacción cuando tu grupo político favorito hace algo cuestionable:",
+                options: [
+                    { text: "Lo critico igual que haría con cualquier otro", score: 0 },
+                    { text: "Lo critico pero entiendo el contexto", score: 1 },
+                    { text: "Confío en que hay razones que desconozco o alguna justificación", score: 3 },
+                    { text: "Si lo hace mi grupo, debe estar bien", score: 4 }
+                ]
+            },
+            {
+                question: "¿Qué opinas sobre obligar a la gente a usar cierto lenguaje?",
+                options: [
+                    { text: "El lenguaje evoluciona naturalmente, no por imposición", score: 0 },
+                    { text: "Está bien sugerir un lenguaje más inclusivo", score: 1 },
+                    { text: "Usar lenguaje 'incorrecto' refleja mentalidad retrógrada", score: 3 },
+                    { text: "Quien no use el lenguaje inclusivo demuestra su intolerancia y debe ser censurado", score: 4 }
+                ]
+            },
+            {
+                question: "Tu opinión sobre los 'espacios seguros' y la cancelación:",
+                options: [
+                    { text: "La gente debe aprender a lidiar con ideas incómodas", score: 0 },
+                    { text: "Algunos espacios protegidos pueden ser útiles", score: 1 },
+                    { text: "Es necesario proteger a los vulnerables de ideas dañinas", score: 3 },
+                    { text: "Quien hiera sensibilidades debe enfrentar consecuencias", score: 4 }
+                ]
+            },
+            {
+                question: "¿Cómo reaccionas ante información y hechos que contradicen tus creencias?",
+                options: [
+                    { text: "La examino críticamente y ajusto mi opinión si es necesario", score: 0 },
+                    { text: "La considero pero mantengo cierto escepticismo", score: 1 },
+                    { text: "Busco fuentes en las que confío para contrastar la información", score: 3 },
+                    { text: "Vivimos en la era de la desinformación y los bulos, no me creo nada", score: 4 }
+                ]
+            },
+            {
+                question: "Tu actitud hacia las tradiciones y costumbres 'problemáticas':",
+                options: [
+                    { text: "Cada cultura tiene derecho a sus tradiciones", score: 0 },
+                    { text: "Algunas tradiciones pueden evolucionar con el tiempo", score: 1 },
+                    { text: "Las tradiciones dañinas deben ser abandonadas", score: 3 },
+                    { text: "Es nuestro deber civilizar y concienciar sobre estas prácticas", score: 4 }
+                ]
+            },
+            {
+                question: "¿Qué piensas sobre imponer tu cosmovisión a otros 'por su bien'?",
+                options: [
+                    { text: "Cada persona debe elegir su propio camino", score: 0 },
+                    { text: "A veces es necesario un empujoncito", score: 1 },
+                    { text: "Si es por su bien, está justificado", score: 3 },
+                    { text: "Si lo que pienso es lo correcto, es mi deber promoverlo", score: 4 }
+                ]
+            },
+            {
+                question: "Tu reacción ante alguien que dice 'no soy político':",
+                options: [
+                    { text: "Respeto su decisión de mantenerse al margen", score: 0 },
+                    { text: "Está bien no involucrarse activamente", score: 1 },
+                    { text: "La neutralidad es imposible, todos somos políticos", score: 3 },
+                    { text: "Su silencio es complicidad con la opresión", score: 4 }
+                ]
+            },
+            {
+                question: "¿Cómo ves dividir a la sociedad en 'opresores' y 'oprimidos'?",
+                options: [
+                    { text: "La realidad es más compleja que esas categorías", score: 0 },
+                    { text: "Puede ser útil para entender ciertas dinámicas", score: 1 },
+                    { text: "Es una forma precisa de analizar la sociedad", score: 3 },
+                    { text: "Es la realidad y quien no lo quiera ver, es parte del problema", score: 4 }
+                ]
+            },
+            {
+                question: "Tu actitud hacia quienes cuestionan el 'consenso científico':",
+                options: [
+                    { text: "El escepticismo científico es saludable y necesario", score: 0 },
+                    { text: "Está bien cuestionar, pero con bases sólidas", score: 1 },
+                    { text: "Solo los expertos pueden cuestionar el consenso", score: 3 },
+                    { text: "Cuestionar la ciencia es peligroso y debe detenerse", score: 4 }
+                ]
+            },
+            {
+                question: "¿Qué opinas sobre las 'microagresiones'?",
+                options: [
+                    { text: "La gente debería ser menos susceptible", score: 0 },
+                    { text: "A veces vale la pena señalar comentarios hirientes", score: 1 },
+                    { text: "Son violencia real y deben ser tomadas en serio", score: 3 },
+                    { text: "Cada microagresión es una forma de opresión sistemática y solo aumenta con el tiempo", score: 4 }
+                ]
+            },
+            {
+                question: "Tu reacción cuando tu 'lado' pierde una elección:",
+                options: [
+                    { text: "Acepto los resultados y respeto la democracia", score: 0 },
+                    { text: "Me decepciona pero acepto la voluntad popular", score: 1 },
+                    { text: "La gente vota mal, se dejan manipular fácilmente", score: 3 },
+                    { text: "Los votos están claramente manipulados y no podemos confiar en el resultado", score: 4 }
+                ]
+            },
+            {
+                question: "¿Cómo ves la 'apropiación cultural'?",
+                options: [
+                    { text: "El intercambio cultural enriquece a la humanidad", score: 0 },
+                    { text: "Hay que tener respeto pero no paranoia", score: 1 },
+                    { text: "Es una forma real de colonialismo moderno", score: 3 },
+                    { text: "Debe ser castigada, no podemos jugar con la cultura y el legado de otros", score: 4 }
+                ]
+            },
+            {
+                question: "Tu opinión sobre obligar a empresas a seguir agendas sociales:",
+                options: [
+                    { text: "Las empresas deben ser libres de elegir sus políticas", score: 0 },
+                    { text: "Puede ser positivo si lo hacen voluntariamente", score: 1 },
+                    { text: "Es responsabilidad social corporativa obligatoria", score: 3 },
+                    { text: "Quien no siga politicas y agendas sociales o climáticas debe ser boicoteado", score: 4 }
+                ]
+            },
+            {
+                question: "¿Qué piensas sobre re-escribir la historia para hacerla más 'inclusiva'?",
+                options: [
+                    { text: "La historia debe ser contada con honestidad, no ideología", score: 0 },
+                    { text: "Está bien incluir perspectivas antes ignoradas", score: 1 },
+                    { text: "Es necesario corregir la narrativa del poder dominante, especialmente para incluir a más mujeres", score: 3 },
+                    { text: "La historia 'problemática' debe ser re-interpretada o censurada para evitar que aparezcan discursos de odio", score: 4 }
+                ]
+            },
+            {
+                question: "Tu actitud hacia los 'privilegiados' que no reconocen su privilegio:",
+                options: [
+                    { text: "Cada persona tiene su propia experiencia válida", score: 0 },
+                    { text: "Pueden beneficiarse de un poco de perspectiva", score: 1 },
+                    { text: "Su negación demuestra exactamente su privilegio", score: 3 },
+                    { text: "Deben vivir como los demás y renunciar a sus privilegios para entender la realidad", score: 4 }
+                ]
+            },
+            {
+                question: "¿Cómo ves el papel de los medios en 'educar' al público?",
+                options: [
+                    { text: "Los medios deben informar, no adoctrinar", score: 0 },
+                    { text: "Pueden incluir algo de perspectiva en sus reportes", score: 1 },
+                    { text: "Tienen la responsabilidad de promover lso valores correctos", score: 3 },
+                    { text: "Son herramientas esenciales para la transformación social, especialmente hoy en día", score: 4 }
+                ]
+            },
+            {
+                question: "Tu reacción ante alguien que dice 'todos los políticos son iguales':",
+                options: [
+                    { text: "Entiendo su desilusión con el sistema político", score: 0 },
+                    { text: "Hay diferencias pero también similitudes", score: 1 },
+                    { text: "Eso es falsa equivalencia, claramente hay buenos y malos", score: 3 },
+                    { text: "Esa apatía es exactamente lo que quieren los fascistas", score: 4 }
+                ]
+            },
+            {
+                question: "¿Qué opinas sobre criar niños con identidades de género 'fluidas'?",
+                options: [
+                    { text: "Los padres conocen mejor a sus hijos", score: 0 },
+                    { text: "Está bien ser flexible con los roles de género", score: 1 },
+                    { text: "Es progresista y necesario para romper estereotipos", score: 3 },
+                    { text: "Quien se oponga está promoviendo violencia transfóbica", score: 4 }
+                ]
+            },
+            {
+                question: "Tu actitud hacia crear listas de personas con ideas 'peligrosas':",
+                options: [
+                    { text: "Eso es propio de regímenes totalitarios", score: 0 },
+                    { text: "Podría ser problemático para la libertad de expresión, pero en algunos casos se podría justificar", score: 1 },
+                    { text: "Es necesario para proteger a los vulnerables y protegernos contra ideas dañinas", score: 3 },
+                    { text: "Es una herramienta legítima contra el odio y la desinformación", score: 4 }
+                ]
+            },
+            {
+                question: "Tu opinión sobre el movimiento 'woke':",
+                options: [
+                    { text: "Es una forma moderna de censura disfrazada de justicia social", score: 0 },
+                    { text: "Tiene buenas intenciones, pero a veces se vuelve autoritario", score: 1 },
+                    { text: "Es una respuesta legítima a desigualdades históricas", score: 3 },
+                    { text: "Es fundamental para construir una sociedad verdaderamente inclusiva", score: 4 }
+                ]
+            },
+            {
+                question: "Dar espacio a voces de extrema derecha en medios de comunicación:",
+                options: [
+                    { text: "Es esencial para proteger la libertad de expresión", score: 0 },
+                    { text: "Puede ser útil si se les cuestiona adecuadamente", score: 1 },
+                    { text: "Normaliza discursos peligrosos y debe evitarse", score: 3 },
+                    { text: "Es parte de una estrategia fascista para ganar legitimidad", score: 4 }
+                ]
+            },
+            {
+                question: "Tu actitud hacia los movimientos antifascistas actuales (como Antifa):",
+                options: [
+                    { text: "Son una amenaza violenta y autoritaria", score: 0 },
+                    { text: "Tienen buenas intenciones pero se extralimitan", score: 1 },
+                    { text: "Son una defensa necesaria ante el avance de la extrema derecha", score: 3 },
+                    { text: "Son esenciales para combatir el fascismo estructural en todas sus formas", score: 4 }
+                ]
+            },
+            {
+                question: "¿La corrección política ha ido demasiado lejos?",
+                options: [
+                    { text: "Sí, limita el pensamiento libre", score: 0 },
+                    { text: "A veces sí, aunque su objetivo original era justo", score: 1 },
+                    { text: "No, es una forma de avanzar hacia una sociedad más respetuosa", score: 3 },
+                    { text: "Criticarla es parte del discurso fascista moderno", score: 4 }
+                ]
+            },
+            {
+                question: "¿Debemos permitir debates sobre ideas radicales como el fascismo o el anti-woke extremo?",
+                options: [
+                    { text: "Sí, todas las ideas deben poder debatirse", score: 0 },
+                    { text: "Depende del contexto, pero se deben permitir con cautela", score: 1 },
+                    { text: "Algunas ideas no deberían tener plataforma", score: 3 },
+                    { text: "Debatir con fascistas es colaborar con ellos", score: 4 }
+                ]
+            },
+            {
+                question: "Tu opinión sobre monitorear y denunciar discursos considerados peligrosos en redes sociales:",
+                options: [
+                    { text: "Eso abre la puerta a la censura masiva y el control estatal", score: 0 },
+                    { text: "Podría justificarse en casos extremos, pero es un terreno muy delicado", score: 1 },
+                    { text: "Es necesario para mantener un entorno digital seguro", score: 3 },
+                    { text: "Es una obligación moral para frenar la difusión de odio y desinformación", score: 4 }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let answers = [];
+        let shuffledQuestions = [];
+        let questionOptionsOrder = []; // Array para guardar el orden de las opciones de cada pregunta
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Nueva función para crear orden aleatorio de opciones manteniendo referencia al índice original
+        function createShuffledOptions(options) {
+            const indexedOptions = options.map((option, index) => ({
+                ...option,
+                originalIndex: index
+            }));
+            return shuffleArray(indexedOptions);
+        }
+
+        function startTest() {
+            document.querySelector('.intro').classList.add('hidden');
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('navigation').style.display = 'flex';
+            
+            shuffledQuestions = shuffleArray(questions);
+            
+            // Crear orden aleatorio de opciones para cada pregunta
+            questionOptionsOrder = shuffledQuestions.map(question => 
+                createShuffledOptions(question.options)
+            );
+            
+            answers = new Array(shuffledQuestions.length).fill(null);
+            currentQuestion = 0;
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const container = document.getElementById('questionContainer');
+            const question = shuffledQuestions[currentQuestion];
+            const shuffledOptions = questionOptionsOrder[currentQuestion];
+            
+            container.innerHTML = `
+                <div class="question">
+                    <h3>Pregunta ${currentQuestion + 1} de ${shuffledQuestions.length}</h3>
+                    <p>${question.question}</p>
+                    <div class="options">
+                        ${shuffledOptions.map((option, displayIndex) => `
+                            <div class="option" onclick="selectOption(${displayIndex})" data-display-index="${displayIndex}">
+                                ${option.text}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // Si ya hay una respuesta seleccionada, mostrarla
+            if (answers[currentQuestion] !== null) {
+                const selectedDisplayIndex = answers[currentQuestion];
+                const selectedOption = container.querySelector(`[data-display-index="${selectedDisplayIndex}"]`);
+                if (selectedOption) {
+                    selectedOption.classList.add('selected');
+                }
+            }
+            
+            updateProgress();
+            updateNavigation();
+            container.style.display = 'block';
+        }
+
+        function selectOption(displayIndex) {
+            // Guardar el índice de la opción mostrada (no el original)
+            answers[currentQuestion] = displayIndex;
+            
+            // Remover selección previa
+            document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            
+            // Agregar selección actual
+            document.querySelector(`[data-display-index="${displayIndex}"]`).classList.add('selected');
+            
+            updateNavigation();
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestion] === null) return;
+            
+            if (currentQuestion < shuffledQuestions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / shuffledQuestions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function updateNavigation() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.style.display = currentQuestion === 0 ? 'none' : 'block';
+            
+            if (currentQuestion === shuffledQuestions.length - 1) {
+                nextBtn.textContent = 'Ver Resultados 🎯';
+            } else {
+                nextBtn.textContent = 'Siguiente →';
+            }
+            
+            nextBtn.disabled = answers[currentQuestion] === null;
+            nextBtn.style.opacity = answers[currentQuestion] === null ? '0.5' : '1';
+        }
+
+        function calculateScore() {
+            let totalScore = 0;
+            answers.forEach((answerDisplayIndex, questionIndex) => {
+                if (answerDisplayIndex !== null) {
+                    // Obtener la puntuación real basada en el orden aleatorizado
+                    const shuffledOptions = questionOptionsOrder[questionIndex];
+                    const selectedOption = shuffledOptions[answerDisplayIndex];
+                    totalScore += selectedOption.score;
+                }
+            });
+            
+            const maxScore = shuffledQuestions.length * 4;
+            return Math.round((totalScore / maxScore) * 100);
+        }
+
+        function getInterpretation(score) {
+            if (score <= 20) {
+                return {
+                    title: "🕊️ Demócrata Tolerante",
+                    description: "¡Felicidades! Tienes un nivel muy bajo de tendencias autoritarias. Valoras la libertad individual y el debate abierto. Eres capaz de separar tus convicciones personales del respeto por los derechos de otros. En el espectro político actual, eres una especie en peligro de extinción.",
+                    color: "#2ecc71",
+                    subtitle: "Nivel de Peligro Democrático: BAJO"
+                };
+            } else if (score <= 40) {
+                return {
+                    title: "🤔 Moderadamente Autoritario",
+                    description: "Tienes algunas tendencias autoritarias, pero aún mantienes cierto respeto por la diversidad de opiniones. A veces sientes la tentación de 'corregir' a otros, pero generalmente te contienes. Cuidado: este es el punto donde muchos se radicalizan.",
+                    color: "#f39c12",
+                    subtitle: "Nivel de Peligro Democrático: MODERADO"
+                };
+            } else if (score <= 70) {
+                return {
+                    title: "🚩 Autoritario en Negación",
+                    description: "Houston, tenemos un problema. Muestras claras tendencias autoritarias pero probablemente te consideras un defensor de la libertad. Tienes una fuerte necesidad de que otros piensen como tú 'por su propio bien'. Eres exactamente el tipo de persona sobre quien Orwell nos advirtió.",
+                    color: "#e67e22",
+                    subtitle: "Nivel de Peligro Democrático: ALTO"
+                };
+            } else {
+                return {
+                    title: "⚠️ Fascista de Manual",
+                    description: "¡Bingo! Has alcanzado niveles preocupantes de autoritarismo. Crees fervientemente que tienes la verdad absoluta y que es tu deber imponerla a otros. Probablemente te consideras muy progresista o muy patriota, pero funcionalmente operas como un pequeño dictador. La historia está llena de gente como tú que 'solo quería ayudar'.",
+                    color: "#e74c3c",
+                    subtitle: "Nivel de Peligro Democrático: CRÍTICO"
+                };
+            }
+        }
+
+        function showResults() {
+            document.getElementById('questionContainer').style.display = 'none';
+            document.getElementById('navigation').style.display = 'none';
+            document.getElementById('progressBar').style.display = 'none';
+            
+            const score = calculateScore();
+            const interpretation = getInterpretation(score);
+            
+            const scoreContainer = document.getElementById('scoreContainer');
+            scoreContainer.style.borderColor = interpretation.color;
+            
+            document.getElementById('scoreNumber').textContent = score + '%';
+            document.getElementById('scoreNumber').style.color = interpretation.color;
+            
+            document.getElementById('interpretation').innerHTML = `
+                <h3 style="color: ${interpretation.color}; margin-bottom: 10px;">${interpretation.title}</h3>
+                <p style="color: #bbb; font-style: italic; margin-bottom: 15px;">${interpretation.subtitle}</p>
+                <p>${interpretation.description}</p>
+                <div style="margin-top: 20px; padding: 15px; background: rgba(233, 69, 96, 0.05); border-radius: 10px; font-size: 0.9em;">
+                    <strong>💡 Reflexión final:</strong> Recuerda que este test es satírico, pero los patrones que mide son reales. El autoritarismo no conoce de izquierda o derecha - solo conoce el poder y el control. Sea cual sea tu resultado, lo importante es mantener la humildad intelectual y el respeto por la libertad de otros, incluso cuando no estés de acuerdo con ellos.
+                </div>
+            `;
+            
+            document.getElementById('results').classList.add('active');
+        }
+
+        function restartTest() {
+            document.getElementById('results').classList.remove('active');
+            document.querySelector('.intro').classList.remove('hidden');
+            document.getElementById('progressBar').style.display = 'none';
+            document.getElementById('navigation').style.display = 'none';
+            currentQuestion = 0;
+            answers = [];
+            shuffledQuestions = [];
+            questionOptionsOrder = [];
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // El test comienza con la pantalla de introducción
+        });
+    </script>
+</body>
+</html>
