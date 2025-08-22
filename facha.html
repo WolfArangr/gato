@@ -532,35 +532,53 @@
             return shuffled;
         }
 
-        function startTest() {
-            document.querySelector('.intro').classList.add('hidden');
-            document.getElementById('progressBar').style.display = 'block';
-            document.getElementById('navigation').style.display = 'flex';
-            
-            shuffledQuestions = shuffleArray(questions);
-            answers = new Array(shuffledQuestions.length).fill(null);
-            currentQuestion = 0;
-            
-            showQuestion();
-        }
+function startTest() {
+    document.querySelector('.intro').classList.add('hidden');
+    document.getElementById('progressBar').style.display = 'block';
+    document.getElementById('navigation').style.display = 'flex';
+    
+    // Mezclar las preguntas
+    shuffledQuestions = shuffleArray(questions);
+    answers = new Array(shuffledQuestions.length).fill(null);
+    currentQuestion = 0;
+    
+    // Mostrar la primera pregunta
+    showQuestion();
+}
 
-        function showQuestion() {
-            const container = document.getElementById('questionContainer');
-            const question = shuffledQuestions[currentQuestion];
-            
-            container.innerHTML = `
-                <div class="question">
-                    <h3>Pregunta ${currentQuestion + 1} de ${shuffledQuestions.length}</h3>
-                    <p>${question.question}</p>
-                    <div class="options">
-                        ${question.options.map((option, index) => `
-                            <div class="option" onclick="selectOption(${index})" data-index="${index}">
-                                ${option.text}
-                            </div>
-                        `).join('')}
+function showQuestion() {
+    const container = document.getElementById('questionContainer');
+    const question = shuffledQuestions[currentQuestion];
+    
+    container.innerHTML = `
+        <div class="question">
+            <h3>Pregunta ${currentQuestion + 1} de ${shuffledQuestions.length}</h3>
+            <p>${question.question}</p>
+            <div class="options">
+                ${question.options.map((option, index) => `
+                    <div class="option" onclick="selectOption(${index})" data-index="${index}">
+                        ${option.text}
                     </div>
-                </div>
-            `;
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    // Si ya hay una respuesta seleccionada, mostrarla
+    if (answers[currentQuestion] !== null) {
+        const selectedOption = container.querySelector(`[data-index="${answers[currentQuestion]}"]`);
+        if (selectedOption) {
+            selectedOption.classList.add('selected');
+        }
+    }
+    
+    updateProgress();
+    updateNavigation();
+    
+    // Hacer visible el contenedor y agregar la clase active
+    container.style.display = 'block';
+    container.classList.add('active');
+}
             
             if (answers[currentQuestion] !== null) {
                 const selectedOption = container.querySelector(`[data-index="${answers[currentQuestion]}"]`);
