@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 El Fachómetro™</title>
+    <title>📊 El Fachómetro</title>
     <style>
         * {
             margin: 0;
@@ -251,13 +251,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="title">📊 El Fasciómetro™</h1>
-            <p class="subtitle">"Descubre tu nivel de autoritarismo interno"</p>
+            <h1 class="title">📊 El Fachómetro™</h1>
+            <p class="subtitle">"Descubre tu nivel de fascista reprimido (o no tan reprimido)"</p>
         </div>
 
         <div class="intro">
             <div class="description">
-                <p><strong>🎭 Bienvenido al test más políticamente incorrecto de Internet</strong></p>
+                <p><strong>🎭 Bienvenido al test con más downvotes de Reddit</strong></p>
                 <p>Este test mide tu tendencia hacia comportamientos autoritarios, independientemente de si vienes de la izquierda progresista o de la derecha conservadora. Porque seamos honestos: el autoritarismo no tiene color político, solo tiene hambre de poder.</p>
                 <p><em>Advertencia: Este test contiene altas dosis de ironía, sarcasmo y verdades incómodas. Si eres sensible a la autocrítica política, mejor vete a ver gatitos en TikTok.</em></p>
             </div>
@@ -293,10 +293,10 @@
     <script>
         const questions = [
             {
-                question: "¿Cómo reaccionas cuando alguien expresa una opinión que consideras 'problemática' o que es un 'discurso de odio'?",
+                question: "¿Cómo reaccionas cuando alguien expresa una opinión que consideras 'problemática'?",
                 options: [
                     { text: "Respeto su derecho a expresarse, aunque no esté de acuerdo", score: 0 },
-                    { text: "Trato de entender su perspectiva y debat0 respetuosamente", score: 1 },
+                    { text: "Trato de entender su perspectiva y debate respetuosamente", score: 1 },
                     { text: "Le explico por qué está equivocado y debería cambiar de opinión", score: 3 },
                     { text: "Esa persona debería ser silenciada por el bien común", score: 4 }
                 ]
@@ -307,16 +307,16 @@
                     { text: "La educación debe ser neutral y presentar múltiples perspectivas", score: 0 },
                     { text: "Está bien incluir algunos valores, pero con moderación", score: 1 },
                     { text: "Es necesario educar a los niños en los valores correctos", score: 3 },
-                    { text: "Es fundamental educar desde pequeños principalmente para evitar que sus padres les intoxiquen con su ideología", score: 4 }
+                    { text: "Es fundamental adoctrinar... digo, educar desde pequeños", score: 4 }
                 ]
             },
             {
                 question: "¿Qué piensas sobre censurar contenido 'dañino' en redes sociales?",
                 options: [
-                    { text: "Nada debería censurarse", score: 0 },
+                    { text: "Solo lo ilegal debería censurarse", score: 0 },
                     { text: "Algunas cosas extremas sí deberían moderarse", score: 1 },
-                    { text: "Todo lo que contradiga la ciencia o la moral debe eliminarse", score: 3 },
-                    { text: "Las plataformas deben decidir qué es verdad y qué no apoyándose en un comité gubernamental para contrastar datos", score: 4 }
+                    { text: "Todo lo que contradiga la ciencia/moral debe eliminarse", score: 3 },
+                    { text: "Las plataformas deben decidir qué es verdad y qué no", score: 4 }
                 ]
             },
             {
@@ -532,53 +532,35 @@
             return shuffled;
         }
 
-function startTest() {
-    document.querySelector('.intro').classList.add('hidden');
-    document.getElementById('progressBar').style.display = 'block';
-    document.getElementById('navigation').style.display = 'flex';
-    
-    // Mezclar las preguntas
-    shuffledQuestions = shuffleArray(questions);
-    answers = new Array(shuffledQuestions.length).fill(null);
-    currentQuestion = 0;
-    
-    // Mostrar la primera pregunta
-    showQuestion();
-}
-
-function showQuestion() {
-    const container = document.getElementById('questionContainer');
-    const question = shuffledQuestions[currentQuestion];
-    
-    container.innerHTML = `
-        <div class="question">
-            <h3>Pregunta ${currentQuestion + 1} de ${shuffledQuestions.length}</h3>
-            <p>${question.question}</p>
-            <div class="options">
-                ${question.options.map((option, index) => `
-                    <div class="option" onclick="selectOption(${index})" data-index="${index}">
-                        ${option.text}
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-    
-    // Si ya hay una respuesta seleccionada, mostrarla
-    if (answers[currentQuestion] !== null) {
-        const selectedOption = container.querySelector(`[data-index="${answers[currentQuestion]}"]`);
-        if (selectedOption) {
-            selectedOption.classList.add('selected');
+        function startTest() {
+            document.querySelector('.intro').classList.add('hidden');
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('navigation').style.display = 'flex';
+            
+            shuffledQuestions = shuffleArray(questions);
+            answers = new Array(shuffledQuestions.length).fill(null);
+            currentQuestion = 0;
+            
+            showQuestion();
         }
-    }
-    
-    updateProgress();
-    updateNavigation();
-    
-    // Hacer visible el contenedor y agregar la clase active
-    container.style.display = 'block';
-    container.classList.add('active');
-}
+
+        function showQuestion() {
+            const container = document.getElementById('questionContainer');
+            const question = shuffledQuestions[currentQuestion];
+            
+            container.innerHTML = `
+                <div class="question">
+                    <h3>Pregunta ${currentQuestion + 1} de ${shuffledQuestions.length}</h3>
+                    <p>${question.question}</p>
+                    <div class="options">
+                        ${question.options.map((option, index) => `
+                            <div class="option" onclick="selectOption(${index})" data-index="${index}">
+                                ${option.text}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
             
             if (answers[currentQuestion] !== null) {
                 const selectedOption = container.querySelector(`[data-index="${answers[currentQuestion]}"]`);
@@ -658,7 +640,7 @@ function showQuestion() {
         function getInterpretation(score) {
             if (score <= 20) {
                 return {
-                    title: "🕊️ Libertatio o Tolerante",
+                    title: "🕊️ Demócrata Tolerante",
                     description: "¡Felicidades! Tienes un nivel muy bajo de tendencias autoritarias. Valoras la libertad individual y el debate abierto. Eres capaz de separar tus convicciones personales del respeto por los derechos de otros. En el espectro político actual, eres una especie en peligro de extinción.",
                     color: "#2ecc71",
                     subtitle: "Nivel de Peligro Democrático: BAJO"
@@ -679,7 +661,7 @@ function showQuestion() {
                 };
             } else {
                 return {
-                    title: "⚠️ Fascista de manual",
+                    title: "⚠️ Fascista de Closet",
                     description: "¡Bingo! Has alcanzado niveles preocupantes de autoritarismo. Crees fervientemente que tienes la verdad absoluta y que es tu deber imponerla a otros. Probablemente te consideras muy progresista o muy patriota, pero funcionalmente operas como un pequeño dictador. La historia está llena de gente como tú que 'solo quería ayudar'.",
                     color: "#e74c3c",
                     subtitle: "Nivel de Peligro Democrático: CRÍTICO"
@@ -699,3 +681,34 @@ function showQuestion() {
             scoreContainer.style.borderColor = interpretation.color;
             
             document.getElementById('scoreNumber').textContent = score + '%';
+            document.getElementById('scoreNumber').style.color = interpretation.color;
+            
+            document.getElementById('interpretation').innerHTML = `
+                <h3 style="color: ${interpretation.color}; margin-bottom: 10px;">${interpretation.title}</h3>
+                <p style="color: #bbb; font-style: italic; margin-bottom: 15px;">${interpretation.subtitle}</p>
+                <p>${interpretation.description}</p>
+                <div style="margin-top: 20px; padding: 15px; background: rgba(233, 69, 96, 0.05); border-radius: 10px; font-size: 0.9em;">
+                    <strong>💡 Reflexión final:</strong> Recuerda que este test es satírico, pero los patrones que mide son reales. El autoritarismo no conoce de izquierda o derecha - solo conoce el poder y el control. Sea cual sea tu resultado, lo importante es mantener la humildad intelectual y el respeto por la libertad de otros, incluso cuando no estés de acuerdo con ellos.
+                </div>
+            `;
+            
+            document.getElementById('results').classList.add('active');
+        }
+
+        function restartTest() {
+            document.getElementById('results').classList.remove('active');
+            document.querySelector('.intro').classList.remove('hidden');
+            document.getElementById('progressBar').style.display = 'none';
+            document.getElementById('navigation').style.display = 'none';
+            currentQuestion = 0;
+            answers = [];
+            shuffledQuestions = [];
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // El test comienza con la pantalla de introducción
+        });
+    </script>
+</body>
+</html>
