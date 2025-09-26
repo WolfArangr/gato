@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🐱‍💻 Agencia de Espías Gatunos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e, #16213e);
+            color: #00ff88;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(120, 219, 226, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #ff006e;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #ff006e;
+            color: #ff006e;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid #333;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #ff006e, #8338ec);
+            color: white;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .cat-card, .mission-card, .item-card, .building-card {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .cat-card:hover, .mission-card:hover, .item-card:hover, .building-card:hover {
+            border-color: #ff006e;
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .cat-header, .mission-header, .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .cat-name, .mission-name, .item-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #ff006e;
+        }
+
+        .cat-status, .mission-status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-available {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .status-mission {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            color: #ffc107;
+        }
+
+        .status-training {
+            background: rgba(138, 56, 236, 0.2);
+            border: 1px solid #8a38ec;
+            color: #8a38ec;
+        }
+
+        .status-injured {
+            background: rgba(255, 0, 110, 0.2);
+            border: 1px solid #ff006e;
+            color: #ff006e;
+        }
+
+        .status-active {
+            background: rgba(0, 123, 255, 0.2);
+            border: 1px solid #007bff;
+            color: #007bff;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #8338ec, #3a86ff);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(131, 56, 236, 0.3);
+            margin: 5px;
+            font-size: 0.9em;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(131, 56, 236, 0.5);
+        }
+
+        .btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff006e, #fb5607);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #00ff88, #06ffa5);
+            color: #000;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+
+        .skill-bar {
+            background: rgba(0, 0, 0, 0.5);
+            height: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .skill-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ffff);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .progress-bar {
+            background: rgba(0, 0, 0, 0.5);
+            height: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff006e, #8338ec);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(255, 0, 110, 0.3);
+        }
+
+        .event-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #ff006e;
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 1000;
+            max-width: 90%;
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+            display: none;
+        }
+
+        .event-content h3 {
+            color: #ff006e;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .rarity-common { color: #888; }
+        .rarity-uncommon { color: #00ff88; }
+        .rarity-rare { color: #007bff; }
+        .rarity-epic { color: #8338ec; }
+        .rarity-legendary { color: #ff006e; }
+        .rarity-mythic { color: #ffc107; }
+
+        .faction-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin: 2px;
+        }
+
+        .faction-shadow { background: rgba(128, 0, 128, 0.3); color: #8b008b; }
+        .faction-tech { background: rgba(0, 191, 255, 0.3); color: #00bfff; }
+        .faction-nature { background: rgba(0, 128, 0, 0.3); color: #00ff00; }
+        .faction-mystic { background: rgba(255, 215, 0, 0.3); color: #ffd700; }
+        .faction-chaos { background: rgba(255, 0, 0, 0.3); color: #ff4444; }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 300px;
+            z-index: 999;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .pulsing {
+            animation: pulse 2s infinite;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7em;
+            margin: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 5px; }
+            .tab { font-size: 0.7em; padding: 10px 5px; }
+            .btn { padding: 8px 12px; font-size: 0.8em; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐱‍💻 AGENCIA DE ESPÍAS GATUNOS</h1>
+            <div id="current-time">Cargando...</div>
+            <div id="level-display" style="margin-top: 10px;">
+                <span style="color: #ffc107;">⭐ Nivel <span id="agency-level">1</span></span>
+                <div class="progress-bar" style="margin: 5px auto; max-width: 300px;">
+                    <div class="progress-fill" id="level-progress" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div>💰 Dinero</div>
+                <div class="stat-value" id="money">1000</div>
+            </div>
+            <div class="stat">
+                <div>🏆 Rep</div>
+                <div class="stat-value" id="reputation">0</div>
+            </div>
+            <div class="stat">
+                <div>🔍 Intel</div>
+                <div class="stat-value" id="intelligence">0</div>
+            </div>
+            <div class="stat">
+                <div>⚡ Energía</div>
+                <div class="stat-value" id="energy">100</div>
+            </div>
+            <div class="stat">
+                <div>🐱 Gatos</div>
+                <div class="stat-value" id="cat-count">0</div>
+            </div>
+            <div class="stat">
+                <div>🏢 Bases</div>
+                <div class="stat-value" id="base-count">1</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('agents', this)">🐱 Agentes</button>
+            <button class="tab" onclick="switchTab('missions', this)">🎯 Misiones</button>
+            <button class="tab" onclick="switchTab('training', this)">💪 Entrenamiento</button>
+            <button class="tab" onclick="switchTab('base', this)">🏢 Base</button>
+            <button class="tab" onclick="switchTab('market', this)">🛒 Mercado</button>
+            <button class="tab" onclick="switchTab('intel', this)">🔍 Intel</button>
+            <button class="tab" onclick="switchTab('factions', this)">🏴 Facciones</button>
+            <button class="tab" onclick="switchTab('achievements', this)">🏅 Logros</button>
+        </div>
+
+        <div id="agents-tab" class="tab-content active"></div>
+        <div id="missions-tab" class="tab-content"></div>
+        <div id="training-tab" class="tab-content"></div>
+        <div id="base-tab" class="tab-content"></div>
+        <div id="market-tab" class="tab-content"></div>
+        <div id="intel-tab" class="tab-content"></div>
+        <div id="factions-tab" class="tab-content"></div>
+        <div id="achievements-tab" class="tab-content"></div>
+    </div>
+
+    <div id="event-popup" class="event-popup">
+        <div class="event-content">
+            <h3 id="event-title">🚨 Evento</h3>
+            <p id="event-description"></p>
+            <div id="event-choices"></div>
+            <button class="btn" onclick="closeEvent()">Continuar</button>
+        </div>
+    </div>
+
+    <script>
+        const gameState = {
+            money: 1000,
+            reputation: 0,
+            intelligence: 0,
+            energy: 100,
+            maxEnergy: 100,
+            level: 1,
+            experience: 0,
+            cats: [],
+            missions: [],
+            activeMissions: [],
+            completedMissions: 0,
+            items: [],
+            buildings: [{ id: 'hq', level: 1 }],
+            factions: {},
+            achievements: {},
+            intelData: [],
+            contracts: [],
+            blackMarketUnlocked: false,
+            eliteUnlocked: false,
+            lastEventTime: Date.now(),
+            gameTime: 0,
+            season: 1,
+            weeklyReset: Date.now() + 604800000
+        };
+
+        const catPrefixes = ['Shadow', 'Ghost', 'Ninja', 'Stealth', 'Phantom', 'Silent', 'Swift', 'Dark', 'Mystic', 'Cyber'];
+        const catSuffixes = ['paw', 'whisker', 'tail', 'claw', 'fur', 'eye', 'tooth', 'strike', 'hunter', 'shade'];
+        
+        const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
+        const factionNames = ['shadow', 'tech', 'nature', 'mystic', 'chaos'];
+        
+        const specialTraits = [
+            'Acrobático', 'Telépata', 'Hacker', 'Invisible', 'Velocista', 'Francotirador',
+            'Demoledor', 'Infiltrador', 'Estratega', 'Carismático', 'Visionario', 'Inmortal'
+        ];
+
+        const missionPrefixes = ['Operación', 'Misión', 'Protocolo', 'Proyecto', 'Iniciativa'];
+        const missionCodenames = [
+            'Sombra', 'Relámpago', 'Aurora', 'Eclipse', 'Tormenta', 'Fantasma',
+            'Dragón', 'Fénix', 'Valkiria', 'Titán', 'Némesis', 'Kronos'
+        ];
+
+        const locations = [
+            'Tokio', 'Londres', 'Nueva York', 'París', 'Moscú', 'Hong Kong',
+            'Dubai', 'Berlín', 'Sydney', 'Cairo', 'Mumbai', 'Ciudad del Cabo'
+        ];
+
+        const organizations = [
+            'Corporación Omega', 'Instituto Génesis', 'Sindicato Crimson',
+            'Fundación Nexus', 'Consorcio Azure', 'Red Phantom'
+        ];
+
+        const itemTemplates = [
+            { name: 'Collar Láser', type: 'gadget', bonus: { stealth: 10 }, price: 1000 },
+            { name: 'Gafas Nocturnas', type: 'gadget', bonus: { observation: 15 }, price: 1200 },
+            { name: 'Garras Mejoradas', type: 'weapon', bonus: { combat: 20 }, price: 1500 },
+            { name: 'Traje Invisible', type: 'armor', bonus: { stealth: 25 }, price: 3000 },
+            { name: 'Jetpack Felino', type: 'gadget', bonus: { agility: 30 }, price: 5000 },
+            { name: 'Traductor Universal', type: 'gadget', bonus: { charisma: 20 }, price: 2000 },
+            { name: 'Escudo Cuántico', type: 'armor', bonus: { defense: 35 }, price: 4000 },
+            { name: 'Portal Dimensional', type: 'special', bonus: { all: 10 }, price: 10000 }
+        ];
+
+        const buildingTypes = [
+            { id: 'training', name: 'Centro de Entrenamiento', basePrice: 2000, effect: 'training_speed' },
+            { id: 'intel', name: 'Centro de Inteligencia', basePrice: 3000, effect: 'intel_generation' },
+            { id: 'medical', name: 'Centro Médico', basePrice: 2500, effect: 'recovery_speed' },
+            { id: 'workshop', name: 'Taller', basePrice: 4000, effect: 'item_crafting' },
+            { id: 'barracks', name: 'Barracas', basePrice: 5000, effect: 'cat_capacity' },
+            { id: 'lab', name: 'Laboratorio', basePrice: 8000, effect: 'research' },
+            { id: 'vault', name: 'Bóveda', basePrice: 6000, effect: 'money_storage' },
+            { id: 'radar', name: 'Radar', basePrice: 7000, effect: 'mission_detection' }
+        ];
+
+        const achievements = [
+            { id: 'first_cat', name: 'Primer Recluta', desc: 'Contrata tu primer gato', reward: 100 },
+            { id: 'ten_cats', name: 'Escuadrón', desc: 'Ten 10 gatos', reward: 500 },
+            { id: 'hundred_missions', name: 'Veterano', desc: 'Completa 100 misiones', reward: 2000 },
+            { id: 'millionaire', name: 'Millonario', desc: 'Acumula 1,000,000 en dinero', reward: 5000 },
+            { id: 'legendary_cat', name: 'Leyenda Viva', desc: 'Obtén un gato legendario', reward: 3000 },
+            { id: 'all_factions', name: 'Diplomático', desc: 'Alcanza reputación máxima con todas las facciones', reward: 10000 }
+        ];
+
+        function generateCatName() {
+            const prefix = catPrefixes[Math.floor(Math.random() * catPrefixes.length)];
+            const suffix = catSuffixes[Math.floor(Math.random() * catSuffixes.length)];
+            return `${prefix}${suffix}`;
+        }
+
+        function generateCat(forceRarity = null) {
+            const rarityChances = [50, 30, 15, 4, 0.9, 0.1];
+            let rarity = forceRarity || 0;
+            
+            if (!forceRarity) {
+                const roll = Math.random() * 100;
+                let cumulative = 0;
+                for (let i = 0; i < rarityChances.length; i++) {
+                    cumulative += rarityChances[i];
+                    if (roll <= cumulative) {
+                        rarity = i;
+                        break;
+                    }
+                }
+            }
+
+            const baseStats = 20 + (rarity * 15);
+            const statVariation = 20 + (rarity * 10);
+            
+            const cat = {
+                id: Date.now() + Math.random(),
+                name: `${['🐱','🐈','🐈‍⬛','🦁','🐯','🐆'][rarity]} ${generateCatName()}`,
+                rarity: rarities[rarity],
+                level: 1,
+                exp: 0,
+                stealth: baseStats + Math.floor(Math.random() * statVariation),
+                agility: baseStats + Math.floor(Math.random() * statVariation),
+                observation: baseStats + Math.floor(Math.random() * statVariation),
+                combat: baseStats + Math.floor(Math.random() * statVariation),
+                charisma: baseStats + Math.floor(Math.random() * statVariation),
+                hacking: baseStats + Math.floor(Math.random() * statVariation),
+                status: 'available',
+                health: 100,
+                maxHealth: 100,
+                morale: 100,
+                trait: rarity > 2 ? specialTraits[Math.floor(Math.random() * specialTraits.length)] : null,
+                faction: rarity > 1 ? factionNames[Math.floor(Math.random() * factionNames.length)] : null,
+                equipment: [],
+                missionCount: 0,
+                specialization: null
+            };
+
+            return cat;
+        }
+
+        function generateMission() {
+            const difficulty = Math.floor(Math.random() * 5) + 1;
+            const location = locations[Math.floor(Math.random() * locations.length)];
+            const org = organizations[Math.floor(Math.random() * organizations.length)];
+            const prefix = missionPrefixes[Math.floor(Math.random() * missionPrefixes.length)];
+            const codename = missionCodenames[Math.floor(Math.random() * missionCodenames.length)];
+            
+            const missionTypes = [
+                { type: 'infiltration', icon: '🏢', name: 'Infiltración' },
+                { type: 'surveillance', icon: '📹', name: 'Vigilancia' },
+                { type: 'theft', icon: '💎', name: 'Robo' },
+                { type: 'sabotage', icon: '💣', name: 'Sabotaje' },
+                { type: 'rescue', icon: '🆘', name: 'Rescate' },
+                { type: 'assassination', icon: '🎯', name: 'Eliminación' },
+                { type: 'hacking', icon: '💻', name: 'Hackeo' },
+                { type: 'diplomacy', icon: '🤝', name: 'Diplomacia' }
+            ];
+
+            const missionType = missionTypes[Math.floor(Math.random() * missionTypes.length)];
+            const baseDuration = 60000 * (difficulty * 3 + Math.random() * 10);
+            const baseReward = 100 * difficulty * (1 + Math.random());
+            
+            const requirements = {};
+            const reqCount = Math.min(3, difficulty);
+            const skills = ['stealth', 'agility', 'observation', 'combat', 'charisma', 'hacking'];
+            
+            for (let i = 0; i < reqCount; i++) {
+                const skill = skills[Math.floor(Math.random() * skills.length)];
+                requirements[skill] = 15 * difficulty + Math.floor(Math.random() * 20);
+            }
+
+            return {
+                id: Date.now() + Math.random(),
+                name: `${missionType.icon} ${prefix} ${codename}`,
+                type: missionType.type,
+                location: location,
+                organization: org,
+                difficulty: difficulty,
+                duration: baseDuration,
+                reward: Math.floor(baseReward),
+                repReward: difficulty * 5 + Math.floor(Math.random() * 10),
+                intelReward: difficulty * 3 + Math.floor(Math.random() * 5),
+                energyCost: difficulty * 10,
+                requirements: requirements,
+                faction: Math.random() > 0.7 ? factionNames[Math.floor(Math.random() * factionNames.length)] : null,
+                special: Math.random() > 0.9 ? 'elite' : null,
+                expireTime: Date.now() + 3600000 * (1 + Math.random() * 3)
+            };
+        }
+
+        function generateEvent() {
+            const eventTypes = [
+                {
+                    title: '🚨 Alerta de Seguridad',
+                    description: 'Las autoridades han aumentado la vigilancia.',
+                    choices: [
+                        { text: 'Sobornar oficiales (-500💰)', effect: () => { gameState.money -= 500; gameState.reputation += 10; } },
+                        { text: 'Esconderse (perder misiones activas)', effect: () => { gameState.activeMissions = []; } }
+                    ]
+                },
+                {
+                    title: '📦 Paquete Misterioso',
+                    description: 'Un paquete anónimo llegó a tu base.',
+                    choices: [
+                        { text: 'Abrir con cuidado', effect: () => { 
+                            if (Math.random() > 0.5) {
+                                gameState.money += 1000;
+                                showNotification('💰 ¡Encontraste 1000 de dinero!', 'success');
+                            } else {
+                                gameState.intelligence -= 5;
+                                showNotification('💣 ¡Era una trampa! Perdiste inteligencia', 'danger');
+                            }
+                        }},
+                        { text: 'Destruir el paquete', effect: () => { gameState.reputation += 5; } }
+                    ]
+                },
+                {
+                    title: '🐱 Gato Perdido',
+                    description: 'Un gato espía élite busca refugio.',
+                    choices: [
+                        { text: 'Reclutar (gratis)', effect: () => { 
+                            const cat = generateCat(Math.random() > 0.3 ? 3 : 4);
+                            gameState.cats.push(cat);
+                            showNotification(`🎉 ${cat.name} se unió a tu agencia!`, 'success');
+                        }},
+                        { text: 'Rechazar', effect: () => { gameState.reputation -= 10; } }
+                    ]
+                }
+            ];
+
+            return eventTypes[Math.floor(Math.random() * eventTypes.length)];
+        }
+
+        function updateStats() {
+            document.getElementById('money').textContent = gameState.money;
+            document.getElementById('reputation').textContent = gameState.reputation;
+            document.getElementById('intelligence').textContent = gameState.intelligence;
+            document.getElementById('cat-count').textContent = gameState.cats.length;
+        }
+
+        function switchTab(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Mostrar la pestaña seleccionada
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'missions') {
+                generateMissions();
+            }
+        }
+
+        function hireCat() {
+            if (gameState.money < 500) {
+                alert('💸 No tienes suficiente dinero para contratar un gato espía!');
+                return;
+            }
+
+            const newCat = {
+                id: Date.now(),
+                name: catNames[Math.floor(Math.random() * catNames.length)],
+                stealth: Math.floor(Math.random() * 30) + 20,
+                agility: Math.floor(Math.random() * 30) + 20,
+                observation: Math.floor(Math.random() * 30) + 20,
+                status: 'available',
+                missionEndTime: null
+            };
+
+            gameState.cats.push(newCat);
+            gameState.money -= 500;
+            
+            updateStats();
+            renderCats();
+            
+            showEvent('🎉 Nuevo Recluta', `${newCat.name} se ha unido a tu agencia de espías gatunos!`);
+        }
+
+        function renderCats() {
+            const catsList = document.getElementById('cats-list');
+            
+            if (gameState.cats.length === 0) {
+                catsList.innerHTML = '<p style="text-align: center; color: #888;">No tienes gatos espía aún. ¡Contrata algunos!</p>';
+                return;
+            }
+
+            catsList.innerHTML = gameState.cats.map(cat => `
+                <div class="cat-card">
+                    <div class="cat-header">
+                        <span class="cat-name">${cat.name}</span>
+                        <span class="cat-status ${cat.status === 'available' ? 'status-available' : 'status-mission'}">
+                            ${cat.status === 'available' ? '✅ Disponible' : '🎯 En Misión'}
+                        </span>
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <div>🥷 Sigilo: ${cat.stealth}</div>
+                        <div class="skill-bar">
+                            <div class="skill-fill" style="width: ${Math.min(cat.stealth, 100)}%"></div>
+                        </div>
+                        <div>⚡ Agilidad: ${cat.agility}</div>
+                        <div class="skill-bar">
+                            <div class="skill-fill" style="width: ${Math.min(cat.agility, 100)}%"></div>
+                        </div>
+                        <div>👁️ Observación: ${cat.observation}</div>
+                        <div class="skill-bar">
+                            <div class="skill-fill" style="width: ${Math.min(cat.observation, 100)}%"></div>
+                        </div>
+                    </div>
+                    ${cat.status === 'mission' && cat.missionEndTime ? 
+                        `<div class="mission-timer" id="timer-${cat.id}">⏱️ Calculando...</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function generateMissions() {
+            const missionsList = document.getElementById('missions-list');
+            
+            // Generar misiones disponibles si no hay suficientes
+            while (gameState.missions.length < 5) {
+                const missionTemplate = missionTypes[Math.floor(Math.random() * missionTypes.length)];
+                const mission = {
+                    ...missionTemplate,
+                    id: Date.now() + Math.random(),
+                    available: true
+                };
+                gameState.missions.push(mission);
+            }
+
+            missionsList.innerHTML = gameState.missions.map(mission => `
+                <div class="mission-card">
+                    <div class="mission-header">
+                        <span class="mission-name">${mission.name}</span>
+                        <span class="mission-status status-active">Disponible</span>
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <div>💰 Recompensa: ${mission.reward}</div>
+                        <div>🏆 Reputación: +${mission.repReward}</div>
+                        <div>🔍 Intel: +${mission.intelReward}</div>
+                        <div>⏱️ Duración: ${formatDuration(mission.duration)}</div>
+                        <div class="mission-requirement">
+                            Requisitos: ${Object.entries(mission.requirements).map(([skill, value]) => 
+                                `${getSkillEmoji(skill)} ${value}`
+                            ).join(', ')}
+                        </div>
+                    </div>
+                    <select id="cat-select-${mission.id}" onchange="updateMissionButton(${mission.id})">
+                        <option value="">Seleccionar gato</option>
+                        ${gameState.cats.filter(cat => cat.status === 'available').map(cat => 
+                            `<option value="${cat.id}">${cat.name}</option>`
+                        ).join('')}
+                    </select>
+                    <button class="btn" id="mission-btn-${mission.id}" disabled onclick="startMission(${mission.id})">
+                        Iniciar Misión
+                    </button>
+                </div>
+            `).join('');
+
+            // Mostrar misiones activas
+            if (gameState.activeMissions.length > 0) {
+                missionsList.innerHTML += '<h3 style="color: #ffc107; margin: 20px 0;">🔄 Misiones en Progreso</h3>';
+                missionsList.innerHTML += gameState.activeMissions.map(mission => `
+                    <div class="mission-card">
+                        <div class="mission-header">
+                            <span class="mission-name">${mission.name}</span>
+                            <span class="mission-status status-mission">En Progreso</span>
+                        </div>
+                        <div>🐱 Asignado: ${mission.catName}</div>
+                        <div class="mission-timer" id="active-timer-${mission.id}">⏱️ Calculando...</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-${mission.id}"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function getSkillEmoji(skill) {
+            switch(skill) {
+                case 'stealth': return '🥷';
+                case 'agility': return '⚡';
+                case 'observation': return '👁️';
+                default: return '🔹';
+            }
+        }
+
+        function formatDuration(ms) {
+            const minutes = Math.floor(ms / 60000);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 0) return `${days}d`;
+            if (hours > 0) return `${hours}h`;
+            return `${minutes}m`;
+        }
+
+        function updateMissionButton(missionId) {
+            const select = document.getElementById(`cat-select-${missionId}`);
+            const button = document.getElementById(`mission-btn-${missionId}`);
+            button.disabled = !select.value;
+        }
+
+        function startMission(missionId) {
+            const mission = gameState.missions.find(m => m.id === missionId);
+            const select = document.getElementById(`cat-select-${missionId}`);
+            const catId = parseInt(select.value);
+            const cat = gameState.cats.find(c => c.id === catId);
+
+            if (!cat || !mission) return;
+
+            // Verificar requisitos
+            const meetsRequirements = Object.entries(mission.requirements).every(([skill, required]) => 
+                cat[skill] >= required
+            );
+
+            if (!meetsRequirements) {
+                alert('🚫 El gato seleccionado no cumple con los requisitos de la misión!');
+                return;
+            }
+
+            // Iniciar misión
+            const endTime = Date.now() + mission.duration;
+            const activeMission = {
+                ...mission,
+                catId: catId,
+                catName: cat.name,
+                endTime: endTime,
+                startTime: Date.now()
+            };
+
+            cat.status = 'mission';
+            cat.missionEndTime = endTime;
+            gameState.activeMissions.push(activeMission);
+            
+            // Remover misión de disponibles
+            gameState.missions = gameState.missions.filter(m => m.id !== missionId);
+
+            renderCats();
+            generateMissions();
+            
+            showEvent('🎯 Misión Iniciada', `${cat.name} ha comenzado: ${mission.name}`);
+        }
+
+        function completeMission(mission) {
+            const cat = gameState.cats.find(c => c.id === mission.catId);
+            if (!cat) return;
+
+            // Calcular éxito basado en habilidades del gato
+            const successChance = Math.min(95, 50 + 
+                (cat.stealth + cat.agility + cat.observation - 60) * 0.5);
+            const success = Math.random() * 100 < successChance;
+
+            let reward = mission.reward;
+            let repReward = mission.repReward;
+            let intelReward = mission.intelReward;
+
+            if (!success) {
+                reward = Math.floor(reward * 0.3);
+                repReward = Math.floor(repReward * 0.2);
+                intelReward = Math.floor(intelReward * 0.1);
+                
+                showEvent('⚠️ Misión Parcial', `${cat.name} completó parcialmente: ${mission.name}`);
+            } else {
+                showEvent('✅ Misión Exitosa', `${cat.name} completó exitosamente: ${mission.name}`);
+                
+                // Mejorar habilidades del gato
+                cat.stealth = Math.min(100, cat.stealth + Math.floor(Math.random() * 3) + 1);
+                cat.agility = Math.min(100, cat.agility + Math.floor(Math.random() * 3) + 1);
+                cat.observation = Math.min(100, cat.observation + Math.floor(Math.random() * 3) + 1);
+            }
+
+            gameState.money += reward;
+            gameState.reputation += repReward;
+            gameState.intelligence += intelReward;
+
+            // Agregar inteligencia específica
+            if (intelReward > 0) {
+                const intelType = intelTypes[Math.floor(Math.random() * intelTypes.length)];
+                addIntelligence(intelType);
+            }
+
+            cat.status = 'available';
+            cat.missionEndTime = null;
+            gameState.completedMissions++;
+
+            // Remover misión activa
+            gameState.activeMissions = gameState.activeMissions.filter(m => m.id !== mission.id);
+
+            updateStats();
+            renderCats();
+            generateMissions();
+        }
+
+        function addIntelligence(intel) {
+            const intelligenceList = document.getElementById('intelligence-list');
+            const intelDiv = document.createElement('div');
+            intelDiv.className = 'intelligence-item';
+            intelDiv.innerHTML = `
+                <div>${intel}</div>
+                <div style="font-size: 0.8em; color: #888; margin-top: 5px;">
+                    📅 ${new Date().toLocaleString('es-ES')}
+                </div>
+            `;
+            
+            if (intelligenceList.children[0]?.textContent.includes('No hay inteligencia')) {
+                intelligenceList.innerHTML = '';
+            }
+            
+            intelligenceList.insertBefore(intelDiv, intelligenceList.firstChild);
+        }
+
+        function updateTimers() {
+            const now = Date.now();
+
+            // Actualizar timers de gatos en misión
+            gameState.cats.forEach(cat => {
+                if (cat.status === 'mission' && cat.missionEndTime) {
+                    const timerElement = document.getElementById(`timer-${cat.id}`);
+                    if (timerElement) {
+                        const remaining = cat.missionEndTime - now;
+                        if (remaining <= 0) {
+                            timerElement.textContent = '⏱️ ¡Completada!';
+                        } else {
+                            timerElement.textContent = `⏱️ ${formatTimeRemaining(remaining)}`;
+                        }
+                    }
+                }
+            });
+
+            // Actualizar misiones activas
+            gameState.activeMissions.forEach(mission => {
+                const timerElement = document.getElementById(`active-timer-${mission.id}`);
+                const progressElement = document.getElementById(`progress-${mission.id}`);
+                
+                if (timerElement && progressElement) {
+                    const remaining = mission.endTime - now;
+                    const total = mission.endTime - mission.startTime;
+                    const progress = Math.max(0, Math.min(100, ((total - remaining) / total) * 100));
+                    
+                    progressElement.style.width = `${progress}%`;
+                    
+                    if (remaining <= 0) {
+                        timerElement.textContent = '⏱️ ¡Completada!';
+                        completeMission(mission);
+                    } else {
+                        timerElement.textContent = `⏱️ ${formatTimeRemaining(remaining)}`;
+                    }
+                }
+            });
+        }
+
+        function formatTimeRemaining(ms) {
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (days > 0) return `${days}d ${hours % 24}h ${minutes % 60}m`;
+            if (hours > 0) return `${hours}h ${minutes % 60}m`;
+            if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+            return `${seconds}s`;
+        }
+
+        function checkRandomEvents() {
+            const now = Date.now();
+            const timeSinceLastEvent = now - gameState.lastEventTime;
+            
+            // Evento aleatorio cada 2-5 minutos
+            const eventChance = 0.001; // 0.1% por segundo después de 2 minutos
+            if (timeSinceLastEvent > 120000 && Math.random() < eventChance) {
+                const event = events[Math.floor(Math.random() * events.length)];
+                event.effect();
+                showEvent(event.title, event.description);
+                gameState.lastEventTime = now;
+                updateStats();
+            }
+        }
+
+        function showEvent(title, description) {
+            document.getElementById('event-title').textContent = title;
+            document.getElementById('event-description').textContent = description;
+            document.getElementById('event-popup').style.display = 'block';
+        }
+
+        function closeEvent() {
+            document.getElementById('event-popup').style.display = 'none';
+        }
+
+        function buyItem(itemId, cost) {
+            if (gameState.money < cost) {
+                alert('💸 No tienes suficiente dinero para comprar este objeto!');
+                return;
+            }
+
+            if (gameState.items.includes(itemId)) {
+                alert('🚫 Ya tienes este objeto!');
+                return;
+            }
+
+            gameState.money -= cost;
+            gameState.items.push(itemId);
+            updateStats();
+
+            let message = '';
+            switch(itemId) {
+                case 'laser-collar':
+                    message = '🎯 Collar Láser adquirido! Tus gatos son más efectivos en infiltraciones.';
+                    break;
+                case 'quantum-comm':
+                    message = '📡 Comunicador Cuántico adquirido! Las misiones ahora son 20% más rápidas.';
+                    break;
+            }
+
+            showEvent('🛒 Compra Exitosa', message);
+        }
+
+        function applyItemEffects() {
+            // Aplicar efectos de objetos comprados
+            gameState.cats.forEach(cat => {
+                if (gameState.items.includes('laser-collar')) {
+                    // Bonus para infiltración (stealth)
+                    if (cat.status === 'mission') {
+                        // El efecto se aplica durante el cálculo de éxito
+                    }
+                }
+            });
+
+            // Reducir tiempo de misiones si tiene comunicador cuántico
+            if (gameState.items.includes('quantum-comm')) {
+                gameState.activeMissions.forEach(mission => {
+                    if (!mission.quantumApplied) {
+                        const timeReduction = (mission.endTime - mission.startTime) * 0.2;
+                        mission.endTime -= timeReduction;
+                        mission.quantumApplied = true;
+                    }
+                });
+            }
+        }
+
+        function gameLoop() {
+            updateTime();
+            updateTimers();
+            checkRandomEvents();
+            applyItemEffects();
+        }
+
+        function initGame() {
+            updateStats();
+            renderCats();
+            generateMissions();
+            
+            // Agregar algo de inteligencia inicial después de un momento
+            setTimeout(() => {
+                addIntelligence('🔍 Sistema de seguridad básico analizado');
+                addIntelligence('📍 Ubicaciones de cámaras de seguridad identificadas');
+            }, 3000);
+
+            // Iniciar loop del juego
+            setInterval(gameLoop, 1000);
+            gameLoop();
+        }
+
+        // Auto-save del juego
+        function saveGame() {
+            localStorage.setItem('spyCatsGame', JSON.stringify(gameState));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('spyCatsGame');
+            if (saved) {
+                try {
+                    const loadedState = JSON.parse(saved);
+                    // Validar y cargar solo datos válidos
+                    if (loadedState.money !== undefined) {
+                        gameState = { ...gameState, ...loadedState };
+                    }
+                } catch (e) {
+                    console.log('No se pudo cargar el juego guardado');
+                }
+            }
+        }
+
+        // Auto-save cada 30 segundos
+        setInterval(saveGame, 30000);
+
+        // Cargar juego y inicializar
+        loadGame();
+        initGame();
+
+        // Save al cerrar
+        window.addEventListener('beforeunload', saveGame);
+    </script>
+</body>
+</html>
