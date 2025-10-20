@@ -336,7 +336,7 @@
             let matches = findMatches();
             
             while (matches.length > 0) {
-                // Animar matches
+                // Animar matches (solo las celdas que se eliminan)
                 matches.forEach(match => {
                     const cell = document.querySelector(`[data-row="${match.row}"][data-col="${match.col}"]`);
                     if (cell) cell.classList.add('matched');
@@ -348,7 +348,7 @@
                 
                 await new Promise(resolve => setTimeout(resolve, 400));
                 
-                // Eliminar matches
+                // Eliminar matches del tablero
                 matches.forEach(match => {
                     board[match.row][match.col] = null;
                 });
@@ -359,16 +359,30 @@
                 // Rellenar huecos
                 fillEmptyCells();
                 
-                // Renderizar con animación
-                renderBoard();
-                document.querySelectorAll('.cell').forEach(cell => {
-                    if (cell.textContent) cell.classList.add('falling');
-                });
+                // Actualizar solo las celdas que cambiaron (sin re-renderizar todo)
+                updateBoardCells();
                 
                 await new Promise(resolve => setTimeout(resolve, 400));
                 
                 // Buscar nuevos matches (combos)
                 matches = findMatches();
+            }
+        }
+        
+        function updateBoardCells() {
+            // Actualizar solo el contenido de las celdas existentes sin recrear todo
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                    if (cell && cell.textContent !== board[i][j]) {
+                        cell.textContent = board[i][j];
+                        cell.className = 'cell falling';
+                        // Remover clase después de la animación
+                        setTimeout(() => {
+                            cell.className = 'cell';
+                        }, 400);
+                    }
+                }
             }
         }
 
