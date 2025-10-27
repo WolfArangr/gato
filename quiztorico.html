@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiztórico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a0a0a0;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .artifact-image {
+            width: 100%;
+            max-width: 500px;
+            height: 350px;
+            object-fit: cover;
+            margin: 0 auto 30px;
+            display: block;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.3s ease;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #ffd700;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .hints-section {
+            margin-top: 30px;
+        }
+
+        .hint {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #ffd700;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.5s ease;
+        }
+
+        .hint.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .hint.locked {
+            background: rgba(255, 255, 255, 0.02);
+            border-left-color: #555;
+            color: #666;
+        }
+
+        .hint-label {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .message.show {
+            opacity: 1;
+        }
+
+        .message.error {
+            background: rgba(255, 68, 68, 0.2);
+            border: 2px solid rgba(255, 68, 68, 0.5);
+            color: #ff6b6b;
+        }
+
+        .message.success {
+            background: rgba(51, 217, 178, 0.2);
+            border: 2px solid rgba(51, 217, 178, 0.5);
+            color: #33d9b2;
+        }
+
+        .attempts {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 25px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .info-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .info-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .info-text {
+            line-height: 1.6;
+            color: #e0e0e0;
+            text-align: justify;
+        }
+
+        .new-game-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            margin-top: 15px;
+        }
+
+        .new-game-btn:hover {
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .loading {
+            text-align: center;
+            color: #ffd700;
+            font-size: 1.2rem;
+            padding: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .artifact-image {
+                height: 250px;
+            }
+
+            input[type="text"], button {
+                font-size: 1rem;
+                padding: 12px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .artifact-image {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏰 Quiztórico 🏰</h1>
+        <p class="subtitle">El Quiz Histórico diario de objetos y artefactos</p>
+
+        <img id="artifactImage" class="artifact-image" src="" alt="Artefacto medieval">
+
+        <div class="input-section">
+            <input type="text" id="guessInput" placeholder="Escribe el nombre del artefacto...">
+            <button onclick="checkGuess()" id="checkBtn">Verificar</button>
+            <button onclick="newGame()" id="newGameBtn" class="new-game-btn" style="display: none;">Nuevo Artefacto</button>
+        </div>
+
+        <div id="message" class="message"></div>
+        <div class="attempts" id="attempts">Intentos: 0/3</div>
+
+        <div class="hints-section">
+            <div class="hint locked" id="hint1">
+                <div class="hint-label">🔒 Pista 1</div>
+                <div id="hint1Text">???</div>
+            </div>
+            <div class="hint locked" id="hint2">
+                <div class="hint-label">🔒 Pista 2</div>
+                <div id="hint2Text">???</div>
+            </div>
+            <div class="hint locked" id="hint3">
+                <div class="hint-label">🔒 Pista 3</div>
+                <div id="hint3Text">???</div>
+            </div>
+        </div>
+
+        <div id="infoSection" class="info-section">
+            <div class="info-title" id="infoTitle"></div>
+            <div class="info-text" id="infoText"></div>
+        </div>
+    </div>
+
+    <script>
+        const TOTAL_ARTIFACTS = 12; // Actualizar según el número de archivos JSON
+        let currentArtifact;
+        let attempts = 0;
+        const maxAttempts = 3;
+        let gameWon = false;
+        let usedArtifacts = [];
+
+        function getDateSeed() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            return year * 10000 + month * 100 + day;
+        }
+
+        function seededRandom(seed) {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        function getDailyArtifactNumber() {
+            const seed = getDateSeed();
+            const randomValue = seededRandom(seed);
+            return Math.floor(randomValue * TOTAL_ARTIFACTS) + 1;
+        }
+
+        function getRandomArtifactNumber() {
+            if (usedArtifacts.length === TOTAL_ARTIFACTS) {
+                usedArtifacts = [];
+            }
+            
+            let availableNumbers = [];
+            for (let i = 1; i <= TOTAL_ARTIFACTS; i++) {
+                if (!usedArtifacts.includes(i)) {
+                    availableNumbers.push(i);
+                }
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+            const selectedNumber = availableNumbers[randomIndex];
+            usedArtifacts.push(selectedNumber);
+            return selectedNumber;
+        }
+
+        async function loadArtifact(number) {
+            try {
+                const response = await fetch(`quiztorico/Objeto ${number}.json`);
+                if (!response.ok) throw new Error('Archivo no encontrado');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error cargando artefacto:', error);
+                return null;
+            }
+        }
+
+        async function initGame() {
+            let artifactNumber;
+            
+            if (usedArtifacts.length === 0) {
+                artifactNumber = getDailyArtifactNumber();
+            } else {
+                artifactNumber = getRandomArtifactNumber();
+            }
+            
+            if (!usedArtifacts.includes(artifactNumber)) {
+                usedArtifacts.push(artifactNumber);
+            }
+            
+            currentArtifact = await loadArtifact(artifactNumber);
+            
+            if (!currentArtifact) {
+                showMessage('Error cargando el artefacto. Intenta recargar la página.', 'error');
+                return;
+            }
+            
+            document.getElementById('artifactImage').src = `quiztorico/Objeto ${artifactNumber}.png`;
+            document.getElementById('hint1Text').textContent = currentArtifact.hints[0];
+            document.getElementById('hint2Text').textContent = currentArtifact.hints[1];
+            document.getElementById('hint3Text').textContent = currentArtifact.hints[2];
+            
+            attempts = 0;
+            gameWon = false;
+            updateAttempts();
+            
+            document.getElementById('guessInput').disabled = false;
+            document.getElementById('guessInput').value = '';
+            document.getElementById('checkBtn').style.display = 'block';
+            document.getElementById('newGameBtn').style.display = 'none';
+            document.getElementById('infoSection').classList.remove('show');
+            document.getElementById('message').classList.remove('show');
+            
+            ['hint1', 'hint2', 'hint3'].forEach(id => {
+                const hint = document.getElementById(id);
+                hint.classList.add('locked');
+                hint.classList.remove('visible');
+            });
+        }
+
+        function normalizeString(str) {
+            return str.toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .trim();
+        }
+
+        function checkGuess() {
+            if (gameWon) return;
+
+            const guess = document.getElementById('guessInput').value;
+            const normalized = normalizeString(guess);
+            const validAnswers = [currentArtifact.name, ...currentArtifact.alternatives].map(normalizeString);
+
+            if (validAnswers.includes(normalized)) {
+                showMessage(`¡Correcto! Es ${currentArtifact.name} 🎉`, 'success');
+                gameWon = true;
+                document.getElementById('guessInput').disabled = true;
+                document.getElementById('checkBtn').style.display = 'none';
+                document.getElementById('newGameBtn').style.display = 'block';
+                showInfo();
+                return;
+            }
+
+            attempts++;
+            updateAttempts();
+            showMessage('Incorrecto, sigue intentando...', 'error');
+
+            if (attempts === 1) {
+                unlockHint('hint1');
+            } else if (attempts === 2) {
+                unlockHint('hint2');
+            } else if (attempts >= 3) {
+                unlockHint('hint3');
+                showMessage(`¡Se acabaron los intentos! Era ${currentArtifact.name} 😔`, 'error');
+                document.getElementById('guessInput').disabled = true;
+                document.getElementById('checkBtn').style.display = 'none';
+                document.getElementById('newGameBtn').style.display = 'block';
+                setTimeout(() => showInfo(), 1000);
+            }
+
+            document.getElementById('guessInput').value = '';
+        }
+
+        function unlockHint(hintId) {
+            const hint = document.getElementById(hintId);
+            hint.classList.remove('locked');
+            setTimeout(() => {
+                hint.classList.add('visible');
+            }, 100);
+        }
+
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = `message ${type}`;
+            setTimeout(() => {
+                msg.classList.add('show');
+            }, 10);
+        }
+
+        function showInfo() {
+            const infoSection = document.getElementById('infoSection');
+            const infoTitle = document.getElementById('infoTitle');
+            const infoText = document.getElementById('infoText');
+            
+            infoTitle.textContent = `Sobre ${currentArtifact.name}`;
+            infoText.textContent = currentArtifact.info;
+            
+            setTimeout(() => {
+                infoSection.classList.add('show');
+            }, 500);
+        }
+
+        function updateAttempts() {
+            document.getElementById('attempts').textContent = `Intentos: ${attempts}/${maxAttempts}`;
+        }
+
+        function newGame() {
+            initGame();
+        }
+
+        document.getElementById('guessInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkGuess();
+            }
+        });
+
+        initGame();
+    </script>
+</body>
+</html>
