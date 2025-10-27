@@ -55,16 +55,15 @@ h1 {
 .subtitle {
     text-align: center;
     color: #c0b283;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     font-size: 1rem;
 }
 
 .artifact-image {
     width: 100%;
-    max-width: 500px;
     height: 350px;
     object-fit: cover;
-    margin: 0 auto 30px;
+    margin: 0 auto 20px;
     display: block;
     border-radius: 15px;
     background: rgba(0, 0, 0, 0.3);
@@ -72,6 +71,7 @@ h1 {
     border: 3px solid #d4af37;
     transform: rotate(-0.5deg);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
 }
 
 .artifact-image:hover {
@@ -80,7 +80,7 @@ h1 {
 }
 
 .input-section {
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 input[type="text"] {
@@ -142,8 +142,16 @@ button:disabled {
     box-shadow: none;
 }
 
+.extra-counter {
+    text-align: center;
+    color: #ffd700;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
 .hints-section {
-    margin-top: 30px;
+    margin-top: 20px;
 }
 
 .hint {
@@ -204,7 +212,7 @@ button:disabled {
 
 .attempts {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px;
     font-size: 0.9rem;
     color: #c0b283;
 }
@@ -248,44 +256,14 @@ button:disabled {
 .new-game-btn:hover {
     box-shadow: 0 6px 20px rgba(238, 90, 82, 0.4);
 }
-
-.loading {
-    text-align: center;
-    color: #ffd700;
-    font-size: 1.2rem;
-    padding: 40px;
-}
-
-@media (max-width: 768px) {
-    .container {
-        padding: 25px;
-    }
-    h1 {
-        font-size: 2rem;
-    }
-    .artifact-image {
-        height: 250px;
-    }
-    input[type="text"], button {
-        font-size: 1rem;
-        padding: 12px 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    h1 {
-        font-size: 1.5rem;
-    }
-    .artifact-image {
-        height: 200px;
-    }
-}
 </style>
 </head>
 <body>
 <div class="container">
     <h1>Quiztórico</h1>
-    <p class="subtitle">El Quiz Histórico diario de objetos y artefactos</p>
+    <p class="subtitle">El Quiz Histórico diario de armas, armaduras, objetos y artefactos</p>
+
+    <div class="extra-counter" id="extraCounter">Artefactos extra restantes: 3</div>
 
     <img id="artifactImage" class="artifact-image" src="" alt="Artefacto medieval">
 
@@ -320,14 +298,19 @@ button:disabled {
 </div>
 
 <script>
-// Lógica original sin cambios
+// Configuración
 const TOTAL_ARTIFACTS = 12;
+const MAX_EXTRA_PER_DAY = 3;
 let currentArtifact;
 let attempts = 0;
-const maxAttempts = 4;
+const maxAttempts = 3;
 let gameWon = false;
-let usedArtifacts = [];
 
+// Manejo de progreso diario
+const todayKey = new Date().toISOString().slice(0,10); // yyyy-mm-dd
+let dailyProgress = JSON.parse(localStorage.getItem('quiztorico_' + todayKey)) || { extrasLeft: MAX_EXTRA_PER_DAY, extraUsedIds: [] };
+
+// Funciones de random
 function getDateSeed() {
     const now = new Date();
     const year = now.getFullYear();
@@ -341,24 +324,40 @@ function seededRandom(seed) {
     return x - Math.floor(x);
 }
 
+// Artefacto diario
 function getDailyArtifactNumber() {
     const seed = getDateSeed();
     const randomValue = seededRandom(seed);
     return Math.floor(randomValue * TOTAL_ARTIFACTS) + 1;
 }
 
+// Artefacto extra sin repetir
 function getRandomArtifactNumber() {
-    if (usedArtifacts.length === TOTAL_ARTIFACTS) usedArtifacts = [];
     let availableNumbers = [];
     for (let i = 1; i <= TOTAL_ARTIFACTS; i++) {
-        if (!usedArtifacts.includes(i)) availableNumbers.push(i);
+        if (!dailyProgress.extraUsedIds.includes(i)) availableNumbers.push(i);
     }
+    if (availableNumbers.length === 0) return null;
     const randomIndex = Math.floor(Math.random() * availableNumbers.length);
     const selectedNumber = availableNumbers[randomIndex];
-    usedArtifacts.push(selectedNumber);
+    dailyProgress.extraUsedIds.push(selectedNumber);
+    dailyProgress.extrasLeft--;
+    saveProgress();
     return selectedNumber;
 }
 
+// Guardar progreso
+function saveProgress() {
+    localStorage.setItem('quiztorico_' + todayKey, JSON.stringify(dailyProgress));
+    updateExtraCounter();
+}
+
+// Actualizar contador visual
+function updateExtraCounter() {
+    document.getElementById('extraCounter').textContent = `Artefactos extra restantes: ${dailyProgress.extrasLeft}`;
+}
+
+// Cargar artefacto
 async function loadArtifact(number) {
     try {
         const response = await fetch(`quiztorico/Objeto ${number}.json`);
@@ -371,20 +370,37 @@ async function loadArtifact(number) {
     }
 }
 
-async function initGame() {
+// Inicializar juego
+async function initGame(extra=false) {
     let artifactNumber;
-    if (usedArtifacts.length === 0) artifactNumber = getDailyArtifactNumber();
-    else artifactNumber = getRandomArtifactNumber();
-    if (!usedArtifacts.includes(artifactNumber)) usedArtifacts.push(artifactNumber);
+    if (!extra) {
+        artifactNumber = getDailyArtifactNumber();
+    } else {
+        if (dailyProgress.extrasLeft <= 0) {
+            showMessage('Ya no quedan artefactos extra hoy.', 'error');
+            return;
+        }
+        artifactNumber = getRandomArtifactNumber();
+        if (!artifactNumber) {
+            showMessage('Todos los artefactos extra ya han sido vistos hoy.', 'error');
+            return;
+        }
+    }
+
     currentArtifact = await loadArtifact(artifactNumber);
     if (!currentArtifact) {
         showMessage('Error cargando el artefacto. Intenta recargar la página.', 'error');
         return;
     }
+
     document.getElementById('artifactImage').src = `quiztorico/Objeto ${artifactNumber}.jpg`;
-    document.getElementById('hint1Text').textContent = currentArtifact.hints[0];
-    document.getElementById('hint2Text').textContent = currentArtifact.hints[1];
-    document.getElementById('hint3Text').textContent = currentArtifact.hints[2];
+    ['hint1', 'hint2', 'hint3'].forEach((id, i) => {
+        document.getElementById(id + 'Text').textContent = currentArtifact.hints[i];
+        const hint = document.getElementById(id);
+        hint.classList.add('locked');
+        hint.classList.remove('visible');
+    });
+
     attempts = 0;
     gameWon = false;
     updateAttempts();
@@ -394,22 +410,22 @@ async function initGame() {
     document.getElementById('newGameBtn').style.display = 'none';
     document.getElementById('infoSection').classList.remove('show');
     document.getElementById('message').classList.remove('show');
-    ['hint1', 'hint2', 'hint3'].forEach(id => {
-        const hint = document.getElementById(id);
-        hint.classList.add('locked');
-        hint.classList.remove('visible');
-    });
+
+    updateExtraCounter();
 }
 
+// Normalizar strings
 function normalizeString(str) {
     return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 }
 
+// Verificar respuesta
 function checkGuess() {
     if (gameWon) return;
     const guess = document.getElementById('guessInput').value;
     const normalized = normalizeString(guess);
     const validAnswers = [currentArtifact.name, ...currentArtifact.alternatives].map(normalizeString);
+
     if (validAnswers.includes(normalized)) {
         showMessage(`¡Correcto! Es ${currentArtifact.name}`, 'success');
         gameWon = true;
@@ -419,28 +435,31 @@ function checkGuess() {
         showInfo();
         return;
     }
+
     attempts++;
     updateAttempts();
     showMessage('Incorrecto, sigue intentando...', 'error');
     if (attempts === 1) unlockHint('hint1');
     else if (attempts === 2) unlockHint('hint2');
     else if (attempts === 3) unlockHint('hint3');
-    else if (attempts >= 4) {
+    else if (attempts >= maxAttempts) {
         showMessage(`¡Se acabaron los intentos! Era ${currentArtifact.name}`, 'error');
         document.getElementById('guessInput').disabled = true;
         document.getElementById('checkBtn').style.display = 'none';
         document.getElementById('newGameBtn').style.display = 'block';
-        setTimeout(() => showInfo(), 1000);
+        setTimeout(() => showInfo(), 500);
     }
     document.getElementById('guessInput').value = '';
 }
 
+// Desbloquear pista
 function unlockHint(hintId) {
     const hint = document.getElementById(hintId);
     hint.classList.remove('locked');
     setTimeout(() => { hint.classList.add('visible'); }, 100);
 }
 
+// Mensaje
 function showMessage(text, type) {
     const msg = document.getElementById('message');
     msg.textContent = text;
@@ -448,28 +467,63 @@ function showMessage(text, type) {
     setTimeout(() => { msg.classList.add('show'); }, 10);
 }
 
+// Mostrar info
 function showInfo() {
     const infoSection = document.getElementById('infoSection');
-    const infoTitle = document.getElementById('infoTitle');
-    const infoText = document.getElementById('infoText');
-    infoTitle.textContent = `Sobre ${currentArtifact.name}`;
-    infoText.textContent = currentArtifact.info;
+    document.getElementById('infoTitle').textContent = `Sobre ${currentArtifact.name}`;
+    document.getElementById('infoText').textContent = currentArtifact.info;
     setTimeout(() => { infoSection.classList.add('show'); }, 500);
 }
 
+// Actualizar intentos
 function updateAttempts() {
     document.getElementById('attempts').textContent = `Intentos: ${attempts}/${maxAttempts}`;
 }
 
+// Nuevo artefacto
 function newGame() {
-    initGame();
+    // Si quedan extras, preguntar
+    if (dailyProgress.extrasLeft > 0 && confirm('¿Quieres ver un artefacto extra?')) {
+        initGame(true);
+    } else {
+        initGame(false);
+    }
 }
 
+// Enter
 document.getElementById('guessInput').addEventListener('keyup', function(e) {
     if (e.key === 'Enter') checkGuess();
 });
 
-window.onload = initGame;
+// Click en imagen para ampliar
+document.getElementById('artifactImage').addEventListener('click', function() {
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.background = 'rgba(0,0,0,0.8)';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.style.cursor = 'zoom-out';
+    modal.style.zIndex = '9999';
+
+    const img = document.createElement('img');
+    img.src = this.src;
+    img.style.maxWidth = '90%';
+    img.style.maxHeight = '90%';
+    img.style.boxShadow = '0 0 50px #ffd700';
+    img.style.borderRadius = '10px';
+    modal.appendChild(img);
+
+    modal.addEventListener('click', () => modal.remove());
+    document.body.appendChild(modal);
+});
+
+// Iniciar
+initGame();
 </script>
 </body>
 </html>
