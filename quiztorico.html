@@ -436,18 +436,19 @@
             updateAttempts();
             showMessage('Incorrecto, sigue intentando...', 'error');
 
-            if (attempts === 1) {
-                unlockHint('hint1');
-            } else if (attempts === 2) {
-                unlockHint('hint2');
-            } else if (attempts >= 3) {
-                unlockHint('hint3');
-                showMessage(`¡Se acabaron los intentos! Era ${currentArtifact.name} 😔`, 'error');
-                document.getElementById('guessInput').disabled = true;
-                document.getElementById('checkBtn').style.display = 'none';
-                document.getElementById('newGameBtn').style.display = 'block';
-                setTimeout(() => showInfo(), 1000);
-            }
+if (attempts === 1) {
+    unlockHint('hint1');
+} else if (attempts === 2) {
+    unlockHint('hint2');
+} else if (attempts === 3) {
+    unlockHint('hint3');
+} else if (attempts >= 4) {
+    showMessage(`¡Se acabaron los intentos! Era ${currentArtifact.name} 😔`, 'error');
+    document.getElementById('guessInput').disabled = true;
+    document.getElementById('checkBtn').style.display = 'none';
+    document.getElementById('newGameBtn').style.display = 'block';
+    setTimeout(() => showInfo(), 1000);
+}
 
             document.getElementById('guessInput').value = '';
         }
