@@ -643,6 +643,26 @@ if (focusedPlanet && targetCameraPosition && targetCameraLookAt) {
             });
         }
         updateStarLabels(); updatePlanetLabels(); updateMoonLabels();
+if (focusedPlanet) {
+    const targetPos = new THREE.Vector3();
+    focusedPlanet.getWorldPosition(targetPos);
+
+    // Vector cámara → planeta
+    const camOffset = camera.position.clone().sub(targetPos);
+
+    // Si NO se está arrastrando → rotación automática suave
+    if (!isDragging) {
+        const rotationMatrix = new THREE.Matrix4().makeRotationY(0.002);
+        camOffset.applyMatrix4(rotationMatrix);
+    }
+
+    // Nueva posición de la cámara orbitando el planeta
+    camera.position.copy(targetPos.clone().add(camOffset));
+
+    // La cámara siempre mira al planeta
+    camera.lookAt(targetPos);
+}
+
         renderer.render(scene,camera);
     }
     function onWindowResize(){ camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); }
