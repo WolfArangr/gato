@@ -8,6 +8,8 @@ let starLabels = [];
 // Variables para touch/móvil
 let touchStartDistance = 0;
 let initialCameraDistance = 0;
+let lastTouchTime = 0;
+let touchStartPos = { x: 0, y: 0 };
 
 // Inicializar la escena
 function init() {
@@ -41,18 +43,20 @@ function init() {
     // Cargar datos y crear sistema
     loadData();
 
-    // Event listeners para desktop
+    // Event listeners
     window.addEventListener('resize', onWindowResize);
+    
+    // Desktop
     renderer.domElement.addEventListener('mousedown', onMouseDown);
     renderer.domElement.addEventListener('mousemove', onMouseMove);
     renderer.domElement.addEventListener('mouseup', onMouseUp);
     renderer.domElement.addEventListener('click', onClick);
-    renderer.domElement.addEventListener('wheel', onWheel);
+    renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
 
-    // Event listeners para móvil/touch
-    renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
-    renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
-    renderer.domElement.addEventListener('touchend', onTouchEnd, { passive: false });
+    // Móvil/touch
+    document.addEventListener('touchstart', onTouchStart, { passive: false });
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd, { passive: false });
 
     // Panel de planeta
     document.getElementById('close-btn').addEventListener('click', closePlanetPanel);
@@ -387,16 +391,24 @@ function onClick(event) {
 // Eventos táctiles (móvil)
 function onTouchStart(event) {
     event.preventDefault();
+    event.stopPropagation();
     
     if (event.touches.length === 1) {
-        // Un dedo - rotar
+        // Un dedo - preparar para rotar o tap
         isDragging = true;
+        const touch = event.touches[0];
         previousMousePosition = {
-            x: event.touches[0].clientX,
-            y: event.touches[0].clientY
+            x: touch.clientX,
+            y: touch.clientY
         };
+        touchStartPos = {
+            x: touch.clientX,
+            y: touch.clientY
+        };
+        lastTouchTime = Date.now();
     } else if (event.touches.length === 2) {
         // Dos dedos - zoom
+        isDragging = false;
         const dx = event.touches[0].clientX - event.touches[1].clientX;
         const dy = event.touches[0].clientY - event.touches[1].clientY;
         touchStartDistance = Math.sqrt(dx * dx + dy * dy);
@@ -406,14 +418,16 @@ function onTouchStart(event) {
 
 function onTouchMove(event) {
     event.preventDefault();
+    event.stopPropagation();
     
     if (event.touches.length === 1 && isDragging) {
         // Un dedo - rotar
-        const deltaX = event.touches[0].clientX - previousMousePosition.x;
-        const deltaY = event.touches[0].clientY - previousMousePosition.y;
+        const touch = event.touches[0];
+        const deltaX = touch.clientX - previousMousePosition.x;
+        const deltaY = touch.clientY - previousMousePosition.y;
 
-        cameraRotation.y += deltaX * 0.01;
-        cameraRotation.x += deltaY * 0.01;
+        cameraRotation.y += deltaX * 0.008;
+        cameraRotation.x += deltaY * 0.008;
 
         cameraRotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraRotation.x));
 
@@ -424,8 +438,8 @@ function onTouchMove(event) {
         camera.lookAt(scene.position);
 
         previousMousePosition = {
-            x: event.touches[0].clientX,
-            y: event.touches[0].clientY
+            x: touch.clientX,
+            y: touch.clientY
         };
     } else if (event.touches.length === 2) {
         // Dos dedos - zoom
@@ -433,24 +447,26 @@ function onTouchMove(event) {
         const dy = event.touches[0].clientY - event.touches[1].clientY;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        const scale = touchStartDistance / distance;
-        const newDistance = Math.max(50, Math.min(300, initialCameraDistance * scale));
-        
-        camera.position.normalize().multiplyScalar(newDistance);
+        if (touchStartDistance > 0) {
+            const scale = touchStartDistance / distance;
+            const newDistance = Math.max(50, Math.min(300, initialCameraDistance * scale));
+            camera.position.normalize().multiplyScalar(newDistance);
+        }
     }
 }
 
 function onTouchEnd(event) {
     event.preventDefault();
+    event.stopPropagation();
     
-    if (event.changedTouches.length === 1 && isDragging) {
-        // Detectar tap
+    if (event.changedTouches.length === 1) {
         const touch = event.changedTouches[0];
-        const deltaX = Math.abs(touch.clientX - previousMousePosition.x);
-        const deltaY = Math.abs(touch.clientY - previousMousePosition.y);
+        const deltaX = Math.abs(touch.clientX - touchStartPos.x);
+        const deltaY = Math.abs(touch.clientY - touchStartPos.y);
+        const deltaTime = Date.now() - lastTouchTime;
         
-        if (deltaX < 10 && deltaY < 10) {
-            // Fue un tap, no un drag
+        // Detectar tap (poco movimiento y rápido)
+        if (deltaX < 15 && deltaY < 15 && deltaTime < 300) {
             mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
 
