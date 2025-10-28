@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador Espacial - Gestión y Aventuras</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            background: #000;
+            color: #0f0;
+        }
+        
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .panel {
+            position: absolute;
+            background: rgba(0, 20, 40, 0.85);
+            border: 2px solid #00ffff;
+            padding: 15px;
+            pointer-events: all;
+            backdrop-filter: blur(5px);
+        }
+        
+        #resourcePanel {
+            top: 20px;
+            left: 20px;
+            min-width: 280px;
+        }
+        
+        #missionPanel {
+            top: 20px;
+            right: 20px;
+            min-width: 300px;
+        }
+        
+        #controlPanel {
+            bottom: 20px;
+            left: 20px;
+            min-width: 350px;
+        }
+        
+        #marketPanel {
+            bottom: 20px;
+            right: 20px;
+            min-width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .panel h3 {
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00ffff;
+            border-bottom: 1px solid #00ffff;
+            padding-bottom: 5px;
+        }
+        
+        .resource-item, .mission-item {
+            margin: 8px 0;
+            padding: 5px;
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 3px solid #0f0;
+        }
+        
+        .resource-bar {
+            width: 100%;
+            height: 8px;
+            background: #001a33;
+            border: 1px solid #00ffff;
+            margin-top: 3px;
+            position: relative;
+        }
+        
+        .resource-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0f0, #0ff);
+            transition: width 0.3s;
+        }
+        
+        button {
+            background: #003366;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            padding: 8px 15px;
+            margin: 5px 5px 5px 0;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: #00ffff;
+            color: #000;
+            box-shadow: 0 0 15px #00ffff;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 20, 40, 0.95);
+            border: 3px solid #0f0;
+            padding: 30px;
+            min-width: 400px;
+            text-align: center;
+            display: none;
+            pointer-events: all;
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+        
+        #notification.show {
+            display: block;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translate(-50%, -60%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+        
+        .market-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0, 100, 150, 0.2);
+            border: 1px solid #00ffff;
+        }
+        
+        .price-up { color: #0f0; }
+        .price-down { color: #f00; }
+        
+        #loadingScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        #loadingBar {
+            width: 300px;
+            height: 30px;
+            border: 2px solid #00ffff;
+            margin-top: 20px;
+        }
+        
+        #loadingFill {
+            height: 100%;
+            background: linear-gradient(90deg, #0f0, #00ffff);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .stat-label {
+            color: #00ffff;
+            font-size: 11px;
+        }
+        
+        .stat-value {
+            color: #0f0;
+            font-weight: bold;
+        }
+        
+        #timeDisplay {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 20, 40, 0.85);
+            border: 2px solid #00ffff;
+            padding: 10px 20px;
+            pointer-events: none;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="loadingScreen">
+        <h1 style="color: #00ffff; text-shadow: 0 0 20px #00ffff;">EXPLORADOR ESPACIAL</h1>
+        <p style="color: #0f0; margin-top: 10px;">Cargando sistemas...</p>
+        <div id="loadingBar"><div id="loadingFill"></div></div>
+    </div>
+    
+    <div id="ui">
+        <div id="timeDisplay">
+            <div class="stat-label">DÍA ESPACIAL</div>
+            <div class="stat-value" id="dayCounter">1</div>
+        </div>
+        
+        <div id="resourcePanel" class="panel">
+            <h3>⚙️ RECURSOS</h3>
+            <div id="resourceList"></div>
+        </div>
+        
+        <div id="missionPanel" class="panel">
+            <h3>🎯 MISIÓN ACTUAL</h3>
+            <div id="missionInfo"></div>
+            <div style="margin-top: 15px;">
+                <h3 style="font-size: 14px;">🚀 NAVE</h3>
+                <div id="shipInfo"></div>
+            </div>
+        </div>
+        
+        <div id="controlPanel" class="panel">
+            <h3>🎮 CONTROLES</h3>
+            <div id="controlButtons"></div>
+            <div style="margin-top: 10px; font-size: 11px; color: #0ff;">
+                <div>🖱️ Click: Seleccionar planeta</div>
+                <div>🔄 Arrastrar: Rotar cámara</div>
+            </div>
+        </div>
+        
+        <div id="marketPanel" class="panel">
+            <h3>💰 MERCADO GALÁCTICO</h3>
+            <div id="marketList"></div>
+        </div>
+        
+        <div id="notification">
+            <h2 id="notifTitle" style="color: #00ffff; margin-bottom: 15px;"></h2>
+            <p id="notifText" style="color: #0f0; margin-bottom: 20px;"></p>
+            <button id="notifBtn">ACEPTAR</button>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
