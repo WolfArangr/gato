@@ -2,6 +2,12 @@
 let scene, camera, renderer, stars = [], planets = [], raycaster, mouse, isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
 let cameraRotation = { x: 0, y: 0 };
+let currentPlanetData = null;
+let starLabels = [];
+
+// Variables para touch/móvil
+let touchStartDistance = 0;
+let initialCameraDistance = 0;
 
 // Inicializar la escena
 function init() {
@@ -35,13 +41,22 @@ function init() {
     // Cargar datos y crear sistema
     loadData();
 
-    // Event listeners
+    // Event listeners para desktop
     window.addEventListener('resize', onWindowResize);
     renderer.domElement.addEventListener('mousedown', onMouseDown);
     renderer.domElement.addEventListener('mousemove', onMouseMove);
     renderer.domElement.addEventListener('mouseup', onMouseUp);
     renderer.domElement.addEventListener('click', onClick);
     renderer.domElement.addEventListener('wheel', onWheel);
+
+    // Event listeners para móvil/touch
+    renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
+    renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
+    renderer.domElement.addEventListener('touchend', onTouchEnd, { passive: false });
+
+    // Panel de planeta
+    document.getElementById('close-btn').addEventListener('click', closePlanetPanel);
+    document.getElementById('visit-btn').addEventListener('click', visitPlanet);
 
     // Iniciar animación
     animate();
@@ -75,13 +90,13 @@ function createStarField() {
 // Cargar datos del JSON
 async function loadData() {
     try {
-        const response = await fetch('basedatosconstelacion.json');
+        const response = await fetch('data.json');
         const data = await response.json();
         createUniverse(data);
         document.getElementById('loading').classList.add('hidden');
     } catch (error) {
         console.error('Error cargando datos:', error);
-        document.getElementById('loading').innerHTML = '<p>Error cargando datos. Verifica que basedatosconstelacion.json existe.</p>';
+        document.getElementById('loading').innerHTML = '<p>Error cargando datos. Verifica que data.json existe.</p>';
     }
 }
 
@@ -102,11 +117,47 @@ function createUniverse(data) {
         scene.add(starGroup);
         stars.push(starGroup);
 
+        // Crear label de estrella
+        createStarLabel(category.name, starGroup);
+
         // Crear planetas (enlaces)
         category.links.forEach((link, planetIndex) => {
-            const planet = createPlanet(link, starGroup, planetIndex, category.links.length);
+            const planet = createPlanet(link, starGroup, planetIndex, category.links.length, category.name);
             planets.push(planet);
         });
+    });
+}
+
+// Crear label para estrella
+function createStarLabel(name, starGroup) {
+    const label = document.createElement('div');
+    label.className = 'star-label';
+    label.textContent = name;
+    document.body.appendChild(label);
+    
+    starLabels.push({
+        element: label,
+        star: starGroup
+    });
+}
+
+// Actualizar posición de labels
+function updateStarLabels() {
+    starLabels.forEach(({ element, star }) => {
+        const vector = star.position.clone();
+        vector.project(camera);
+        
+        const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+        
+        // Ocultar si está detrás de la cámara
+        if (vector.z > 1) {
+            element.style.display = 'none';
+        } else {
+            element.style.display = 'block';
+            element.style.left = x + 'px';
+            element.style.top = (y - 30) + 'px';
+        }
     });
 }
 
@@ -146,7 +197,7 @@ function createStar(category, x, y, z) {
 }
 
 // Crear planeta (enlace)
-function createPlanet(link, star, index, total) {
+function createPlanet(link, star, index, total, categoryName) {
     const group = new THREE.Group();
     
     // Órbita del planeta
@@ -179,6 +230,7 @@ function createPlanet(link, star, index, total) {
         type: 'planet',
         name: link.name,
         url: link.url,
+        category: categoryName,
         star: star,
         orbitRadius: orbitRadius,
         angleOffset: angleOffset,
@@ -188,6 +240,28 @@ function createPlanet(link, star, index, total) {
     star.add(planet);
     
     return planet;
+}
+
+// Mostrar panel de planeta
+function showPlanetPanel(planetData) {
+    currentPlanetData = planetData;
+    document.getElementById('planet-name').textContent = planetData.name;
+    document.getElementById('planet-category').textContent = `Categoría: ${planetData.category}`;
+    document.getElementById('planet-panel').classList.add('show');
+}
+
+// Cerrar panel de planeta
+function closePlanetPanel() {
+    document.getElementById('planet-panel').classList.remove('show');
+    currentPlanetData = null;
+}
+
+// Visitar planeta
+function visitPlanet() {
+    if (currentPlanetData && currentPlanetData.url) {
+        window.open(currentPlanetData.url, '_blank');
+        closePlanetPanel();
+    }
 }
 
 // Animación
@@ -209,6 +283,9 @@ function animate() {
         star.children[1].scale.set(scale, scale, scale);
     });
 
+    // Actualizar labels de estrellas
+    updateStarLabels();
+
     // Aplicar rotación de cámara
     if (!isDragging) {
         camera.lookAt(scene.position);
@@ -217,7 +294,7 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-// Eventos del ratón
+// Eventos del ratón (desktop)
 function onMouseDown(event) {
     isDragging = true;
     previousMousePosition = {
@@ -231,30 +308,32 @@ function onMouseMove(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    // Mostrar tooltip
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(scene.children, true);
-    
-    const tooltip = document.getElementById('tooltip');
-    let found = false;
+    // Mostrar tooltip solo en desktop
+    if (!('ontouchstart' in window)) {
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(scene.children, true);
+        
+        const tooltip = document.getElementById('tooltip');
+        let found = false;
 
-    for (let intersect of intersects) {
-        if (intersect.object.userData.type === 'planet' || intersect.object.userData.type === 'star') {
-            tooltip.innerHTML = intersect.object.userData.type === 'star' 
-                ? `<span class="tooltip-star">⭐ ${intersect.object.userData.name}</span>`
-                : `<span class="tooltip-planet">🌍 ${intersect.object.userData.name}</span>`;
-            tooltip.style.left = event.clientX + 15 + 'px';
-            tooltip.style.top = event.clientY + 15 + 'px';
-            tooltip.classList.add('show');
-            document.body.style.cursor = 'pointer';
-            found = true;
-            break;
+        for (let intersect of intersects) {
+            if (intersect.object.userData.type === 'planet' || intersect.object.userData.type === 'star') {
+                tooltip.innerHTML = intersect.object.userData.type === 'star' 
+                    ? `<span class="tooltip-star">⭐ ${intersect.object.userData.name}</span>`
+                    : `<span class="tooltip-planet">🌍 ${intersect.object.userData.name}</span>`;
+                tooltip.style.left = event.clientX + 15 + 'px';
+                tooltip.style.top = event.clientY + 15 + 'px';
+                tooltip.classList.add('show');
+                document.body.style.cursor = 'pointer';
+                found = true;
+                break;
+            }
         }
-    }
 
-    if (!found) {
-        tooltip.classList.remove('show');
-        document.body.style.cursor = 'default';
+        if (!found) {
+            tooltip.classList.remove('show');
+            document.body.style.cursor = 'default';
+        }
     }
 
     // Rotar cámara al arrastrar
@@ -288,7 +367,7 @@ function onMouseUp() {
 function onClick(event) {
     if (Math.abs(event.clientX - previousMousePosition.x) > 5 || 
         Math.abs(event.clientY - previousMousePosition.y) > 5) {
-        return; // Era un arrastre, no un click
+        return;
     }
 
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -299,10 +378,96 @@ function onClick(event) {
 
     for (let intersect of intersects) {
         if (intersect.object.userData.type === 'planet') {
-            window.open(intersect.object.userData.url, '_blank');
+            showPlanetPanel(intersect.object.userData);
             break;
         }
     }
+}
+
+// Eventos táctiles (móvil)
+function onTouchStart(event) {
+    event.preventDefault();
+    
+    if (event.touches.length === 1) {
+        // Un dedo - rotar
+        isDragging = true;
+        previousMousePosition = {
+            x: event.touches[0].clientX,
+            y: event.touches[0].clientY
+        };
+    } else if (event.touches.length === 2) {
+        // Dos dedos - zoom
+        const dx = event.touches[0].clientX - event.touches[1].clientX;
+        const dy = event.touches[0].clientY - event.touches[1].clientY;
+        touchStartDistance = Math.sqrt(dx * dx + dy * dy);
+        initialCameraDistance = camera.position.length();
+    }
+}
+
+function onTouchMove(event) {
+    event.preventDefault();
+    
+    if (event.touches.length === 1 && isDragging) {
+        // Un dedo - rotar
+        const deltaX = event.touches[0].clientX - previousMousePosition.x;
+        const deltaY = event.touches[0].clientY - previousMousePosition.y;
+
+        cameraRotation.y += deltaX * 0.01;
+        cameraRotation.x += deltaY * 0.01;
+
+        cameraRotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraRotation.x));
+
+        const distance = camera.position.length();
+        camera.position.x = distance * Math.sin(cameraRotation.y) * Math.cos(cameraRotation.x);
+        camera.position.y = distance * Math.sin(cameraRotation.x);
+        camera.position.z = distance * Math.cos(cameraRotation.y) * Math.cos(cameraRotation.x);
+        camera.lookAt(scene.position);
+
+        previousMousePosition = {
+            x: event.touches[0].clientX,
+            y: event.touches[0].clientY
+        };
+    } else if (event.touches.length === 2) {
+        // Dos dedos - zoom
+        const dx = event.touches[0].clientX - event.touches[1].clientX;
+        const dy = event.touches[0].clientY - event.touches[1].clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        const scale = touchStartDistance / distance;
+        const newDistance = Math.max(50, Math.min(300, initialCameraDistance * scale));
+        
+        camera.position.normalize().multiplyScalar(newDistance);
+    }
+}
+
+function onTouchEnd(event) {
+    event.preventDefault();
+    
+    if (event.changedTouches.length === 1 && isDragging) {
+        // Detectar tap
+        const touch = event.changedTouches[0];
+        const deltaX = Math.abs(touch.clientX - previousMousePosition.x);
+        const deltaY = Math.abs(touch.clientY - previousMousePosition.y);
+        
+        if (deltaX < 10 && deltaY < 10) {
+            // Fue un tap, no un drag
+            mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            for (let intersect of intersects) {
+                if (intersect.object.userData.type === 'planet') {
+                    showPlanetPanel(intersect.object.userData);
+                    break;
+                }
+            }
+        }
+    }
+    
+    isDragging = false;
+    touchStartDistance = 0;
 }
 
 function onWheel(event) {
