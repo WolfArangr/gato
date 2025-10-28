@@ -94,13 +94,13 @@ function createStarField() {
 // Cargar datos del JSON
 async function loadData() {
     try {
-        const response = await fetch('data.json');
+        const response = await fetch('basedatosconstelacion.json');
         const data = await response.json();
         createUniverse(data);
         document.getElementById('loading').classList.add('hidden');
     } catch (error) {
         console.error('Error cargando datos:', error);
-        document.getElementById('loading').innerHTML = '<p>Error cargando datos. Verifica que data.json existe.</p>';
+        document.getElementById('loading').innerHTML = '<p>Error cargando datos. Verifica que basedatosconstelacion.json existe.</p>';
     }
 }
 
