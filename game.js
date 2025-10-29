@@ -1,42 +1,42 @@
 // ==================== CONFIGURACIÓN GLOBAL ====================
 const GAME_CONFIG = {
-    // Escalas realistas (reducidas para gameplay)
-    DISTANCE_SCALE: 0.00001, // Factor de escala para distancias
-    SIZE_SCALE: 0.001, // Factor de escala para tamaños
-    TIME_SCALE: 3600, // 1 segundo = 1 hora
+    // Tiempo: 1 minuto real = 1 día del juego
+    TIME_SCALE: 1 / 60, // Segundos por frame para completar un día
+    YEAR_DAYS: 365,
     
-    // Órbitas realistas (distancias en millones de km)
+    // Órbitas realistas (en unidades arbitrarias para visualización)
     ORBITS: {
-        EARTH: 150, // 150 millones de km del Sol
-        MOON: 0.384, // 384,000 km de la Tierra
-        MARS: 228,
-        VENUS: 108,
-        JUPITER: 778,
+        EARTH: { distance: 150, speed: 1, eccentricity: 0.017 }, // 365 días
+        MOON: { distance: 15, speed: 12.37, eccentricity: 0.055 }, // ~27 días
+        MARS: { distance: 228, speed: 0.532, eccentricity: 0.093 }, // 687 días
+        VENUS: { distance: 108, speed: 1.626, eccentricity: 0.007 }, // 225 días
+        JUPITER: { distance: 520, speed: 0.084, eccentricity: 0.048 }, // 4333 días
     },
     
-    // Tamaños realistas (en km)
+    // Tamaños para visualización
     SIZES: {
-        SUN: 1392700,
-        EARTH: 12742,
-        MOON: 3474,
-        MARS: 6779,
-        VENUS: 12104,
-        JUPITER: 139820,
+        SUN: 20,
+        EARTH: 5,
+        MOON: 1.5,
+        MARS: 3,
+        VENUS: 4.5,
+        JUPITER: 12,
     }
 };
 
 // ==================== ESTADO DEL JUEGO ====================
 let gameState = {
     day: 1,
-    time: 0,
-    credits: 10000,
+    year: 1,
+    time: 0, // En días
+    credits: 5000,
     
     resources: {
-        minerals: { amount: 100, capacity: 500, price: 50 },
-        water: { amount: 50, capacity: 300, price: 80 },
-        fuel: { amount: 200, capacity: 1000, price: 30 },
-        electronics: { amount: 10, capacity: 100, price: 200 },
-        alien_artifacts: { amount: 0, capacity: 50, price: 1000 }
+        minerals: { amount: 100, capacity: 500, price: 50, lastPrice: 50 },
+        water: { amount: 50, capacity: 300, price: 80, lastPrice: 80 },
+        fuel: { amount: 200, capacity: 1000, price: 30, lastPrice: 30 },
+        electronics: { amount: 10, capacity: 100, price: 200, lastPrice: 200 },
+        alien_artifacts: { amount: 0, capacity: 50, price: 1000, lastPrice: 1000 }
     },
     
     ship: {
@@ -55,23 +55,24 @@ let gameState = {
     missions: [],
     completedMissions: 0,
     
-    market: {},
-    
     structures: {
         refinery: 0,
         factory: 0,
         storage: 0,
         laboratory: 0
+    },
+    
+    production: {
+        lastUpdate: 0
     }
 };
 
 // ==================== THREE.JS SETUP ====================
-let scene, camera, renderer, composer;
+let scene, camera, renderer;
 let planets = {};
 let selectedPlanet = null;
-let mouse = { x: 0, y: 0 };
-let isDragging = false;
-let previousMousePosition = { x: 0, y: 0 };
+let touchStartPos = null;
+let lastTouchPos = null;
 let cameraAngle = 0;
 let cameraHeight = 50;
 let cameraDistance = 100;
@@ -90,7 +91,7 @@ function initThreeJS() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     
-    // Luz ambiental suave
+    // Luz ambiental
     const ambientLight = new THREE.AmbientLight(0x222244, 0.3);
     scene.add(ambientLight);
     
@@ -101,10 +102,13 @@ function initThreeJS() {
     createSolarSystem();
     
     window.addEventListener('resize', onWindowResize);
-    window.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('click', onMouseClick);
+    
+    // Soporte táctil
+    const canvas = document.getElementById('gameCanvas');
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', onTouchEnd, { passive: false });
+    canvas.addEventListener('click', onMouseClick);
 }
 
 function createStarfield() {
@@ -126,7 +130,7 @@ function createStarfield() {
 
 function createSolarSystem() {
     // Sol
-    const sunGeometry = new THREE.SphereGeometry(20, 32, 32);
+    const sunGeometry = new THREE.SphereGeometry(GAME_CONFIG.SIZES.SUN, 32, 32);
     const sunTexture = new THREE.TextureLoader().load('/constelacion/estrella.png');
     const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
@@ -140,28 +144,38 @@ function createSolarSystem() {
     scene.add(sunLight);
     
     // Tierra
-    createPlanet('earth', 'planeta1.png', 5, 150, 0.01, 0);
+    const earthOrbit = GAME_CONFIG.ORBITS.EARTH;
+    createPlanet('earth', 'planeta1.png', GAME_CONFIG.SIZES.EARTH, 
+                 earthOrbit.distance, earthOrbit.speed, 0, earthOrbit.eccentricity);
     
     // Luna (orbita la Tierra)
-    createMoon('moon', 'luna1.png', 1.5, 15, 0.05, planets.earth);
+    const moonOrbit = GAME_CONFIG.ORBITS.MOON;
+    createMoon('moon', 'luna1.png', GAME_CONFIG.SIZES.MOON, 
+               moonOrbit.distance, moonOrbit.speed, planets.earth, moonOrbit.eccentricity);
     
     // Marte
-    createPlanet('mars', 'planeta2.png', 3, 228, 0.008, Math.PI / 4);
+    const marsOrbit = GAME_CONFIG.ORBITS.MARS;
+    createPlanet('mars', 'planeta2.png', GAME_CONFIG.SIZES.MARS, 
+                 marsOrbit.distance, marsOrbit.speed, Math.PI / 4, marsOrbit.eccentricity);
     
     // Venus
-    createPlanet('venus', 'luna5.png', 4.5, 108, 0.012, Math.PI);
+    const venusOrbit = GAME_CONFIG.ORBITS.VENUS;
+    createPlanet('venus', 'luna5.png', GAME_CONFIG.SIZES.VENUS, 
+                 venusOrbit.distance, venusOrbit.speed, Math.PI, venusOrbit.eccentricity);
     
     // Júpiter
-    createPlanet('jupiter', 'luna2.png', 12, 778, 0.004, Math.PI / 2);
+    const jupiterOrbit = GAME_CONFIG.ORBITS.JUPITER;
+    createPlanet('jupiter', 'luna2.png', GAME_CONFIG.SIZES.JUPITER, 
+                 jupiterOrbit.distance, jupiterOrbit.speed, Math.PI / 2, jupiterOrbit.eccentricity);
     
     // Europa (luna de Júpiter)
-    createMoon('europa', 'luna3.png', 1.2, 25, 0.06, planets.jupiter);
+    createMoon('europa', 'luna3.png', 1.2, 25, 0.06, planets.jupiter, 0.009);
     
     // Cinturón de asteroides
     createAsteroidBelt();
 }
 
-function createPlanet(name, texture, size, orbitRadius, speed, startAngle) {
+function createPlanet(name, texture, size, orbitRadius, speed, startAngle, eccentricity) {
     const geometry = new THREE.SphereGeometry(size, 32, 32);
     const textureLoader = new THREE.TextureLoader();
     const planetTexture = textureLoader.load(`/constelacion/${texture}`);
@@ -171,28 +185,17 @@ function createPlanet(name, texture, size, orbitRadius, speed, startAngle) {
     mesh.userData = { name, type: 'planet' };
     scene.add(mesh);
     
-    // Órbita visual
-    const orbitGeometry = new THREE.RingGeometry(orbitRadius - 0.5, orbitRadius + 0.5, 128);
-    const orbitMaterial = new THREE.MeshBasicMaterial({ 
-        color: 0x444466, 
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.3
-    });
-    const orbitMesh = new THREE.Mesh(orbitGeometry, orbitMaterial);
-    orbitMesh.rotation.x = Math.PI / 2;
-    scene.add(orbitMesh);
-    
     planets[name] = { 
         mesh, 
-        orbit: orbitRadius, 
+        orbit: orbitRadius,
+        eccentricity: eccentricity || 0,
         angle: startAngle, 
-        speed,
-        orbitMesh
+        speed: speed * 0.001, // Ralentizar
+        rotationSpeed: 0.01 // Rotación sobre su eje
     };
 }
 
-function createMoon(name, texture, size, orbitRadius, speed, parentPlanet) {
+function createMoon(name, texture, size, orbitRadius, speed, parentPlanet, eccentricity) {
     const geometry = new THREE.SphereGeometry(size, 32, 32);
     const textureLoader = new THREE.TextureLoader();
     const moonTexture = textureLoader.load(`/constelacion/${texture}`);
@@ -204,15 +207,17 @@ function createMoon(name, texture, size, orbitRadius, speed, parentPlanet) {
     
     planets[name] = { 
         mesh, 
-        orbit: orbitRadius, 
+        orbit: orbitRadius,
+        eccentricity: eccentricity || 0,
         angle: 0, 
-        speed,
-        parent: parentPlanet
+        speed: speed * 0.001,
+        parent: parentPlanet,
+        tidalLock: true // La luna siempre mira a la Tierra
     };
 }
 
 function createAsteroidBelt() {
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 150; i++) {
         const size = Math.random() * 0.5 + 0.2;
         const geometry = new THREE.SphereGeometry(size, 8, 8);
         const texture = new THREE.TextureLoader().load('/constelacion/planeta3.png');
@@ -233,22 +238,40 @@ function createAsteroidBelt() {
 function updatePlanets() {
     Object.keys(planets).forEach(key => {
         const planet = planets[key];
+        
         if (planet.parent) {
             // Luna orbita su planeta padre
             const parentPos = planet.parent.mesh.position;
             planet.angle += planet.speed;
-            planet.mesh.position.x = parentPos.x + Math.cos(planet.angle) * planet.orbit;
-            planet.mesh.position.z = parentPos.z + Math.sin(planet.angle) * planet.orbit;
+            
+            // Órbita elíptica
+            const r = planet.orbit * (1 - planet.eccentricity * planet.eccentricity) / 
+                     (1 + planet.eccentricity * Math.cos(planet.angle));
+            
+            planet.mesh.position.x = parentPos.x + Math.cos(planet.angle) * r;
+            planet.mesh.position.z = parentPos.z + Math.sin(planet.angle) * r;
             planet.mesh.position.y = parentPos.y;
+            
+            // Tidal lock: la luna siempre mira al planeta
+            if (planet.tidalLock) {
+                planet.mesh.lookAt(parentPos);
+            }
         } else if (planet.orbit > 0) {
             // Planeta orbita el sol
             planet.angle += planet.speed;
-            planet.mesh.position.x = Math.cos(planet.angle) * planet.orbit;
-            planet.mesh.position.z = Math.sin(planet.angle) * planet.orbit;
+            
+            // Órbita elíptica
+            const r = planet.orbit * (1 - planet.eccentricity * planet.eccentricity) / 
+                     (1 + planet.eccentricity * Math.cos(planet.angle));
+            
+            planet.mesh.position.x = Math.cos(planet.angle) * r;
+            planet.mesh.position.z = Math.sin(planet.angle) * r;
+            
+            // Rotación sobre su eje (1 día = 1 rotación completa)
+            if (planet.rotationSpeed) {
+                planet.mesh.rotation.y += planet.rotationSpeed;
+            }
         }
-        
-        // Rotación del planeta
-        planet.mesh.rotation.y += 0.001;
     });
     
     // Cámara sigue la Tierra
@@ -259,7 +282,7 @@ function updateCamera() {
     if (!planets.earth) return;
     
     const earthPos = planets.earth.mesh.position;
-    cameraAngle += 0.001;
+    cameraAngle += 0.0002; // Rotación muy lenta automática
     
     camera.position.x = earthPos.x + Math.cos(cameraAngle) * cameraDistance;
     camera.position.z = earthPos.z + Math.sin(cameraAngle) * cameraDistance;
@@ -267,35 +290,60 @@ function updateCamera() {
     camera.lookAt(earthPos);
 }
 
-// ==================== EVENTOS DE MOUSE ====================
-function onMouseDown(e) {
-    isDragging = true;
-    previousMousePosition = { x: e.clientX, y: e.clientY };
+// ==================== EVENTOS TÁCTILES ====================
+function onTouchStart(e) {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+        touchStartPos = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY,
+            time: Date.now()
+        };
+        lastTouchPos = { ...touchStartPos };
+    }
 }
 
-function onMouseMove(e) {
-    if (isDragging) {
-        const deltaX = e.clientX - previousMousePosition.x;
-        const deltaY = e.clientY - previousMousePosition.y;
+function onTouchMove(e) {
+    e.preventDefault();
+    if (e.touches.length === 1 && lastTouchPos) {
+        const deltaX = e.touches[0].clientX - lastTouchPos.x;
+        const deltaY = e.touches[0].clientY - lastTouchPos.y;
         
         cameraAngle -= deltaX * 0.01;
         cameraHeight += deltaY * 0.3;
         cameraHeight = Math.max(20, Math.min(150, cameraHeight));
         
-        previousMousePosition = { x: e.clientX, y: e.clientY };
+        lastTouchPos = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY
+        };
     }
 }
 
-function onMouseUp() {
-    isDragging = false;
+function onTouchEnd(e) {
+    e.preventDefault();
+    
+    // Si fue un tap rápido (no arrastrar), detectar click en planeta
+    if (touchStartPos && Date.now() - touchStartPos.time < 200) {
+        const deltaX = Math.abs(e.changedTouches[0].clientX - touchStartPos.x);
+        const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartPos.y);
+        
+        if (deltaX < 10 && deltaY < 10) {
+            // Fue un tap, no un arrastre
+            onMouseClick(e.changedTouches[0]);
+        }
+    }
+    
+    touchStartPos = null;
+    lastTouchPos = null;
 }
 
 function onMouseClick(e) {
-    if (isDragging) return;
-    
     const rect = renderer.domElement.getBoundingClientRect();
-    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    const mouse = {
+        x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        y: -((e.clientY - rect.top) / rect.height) * 2 + 1
+    };
     
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
@@ -311,6 +359,7 @@ function onMouseClick(e) {
 
 function selectPlanet(name) {
     selectedPlanet = name;
+    gameState.currentPlanet = name;
     showNotification(`🪐 ${name.toUpperCase()}`, `Has seleccionado ${getPlanetInfo(name)}`);
 }
 
@@ -333,21 +382,33 @@ function onWindowResize() {
 }
 
 // ==================== SISTEMA DE JUEGO ====================
+let lastFrameTime = Date.now();
+
 function updateGameState() {
-    gameState.time += 1;
+    const now = Date.now();
+    const deltaTime = (now - lastFrameTime) / 1000; // En segundos
+    lastFrameTime = now;
     
-    if (gameState.time % 60 === 0) {
-        gameState.day++;
+    // Incrementar tiempo del juego (más lento)
+    gameState.time += deltaTime * GAME_CONFIG.TIME_SCALE;
+    
+    const prevDay = gameState.day;
+    gameState.day = Math.floor(gameState.time) + 1;
+    gameState.year = Math.floor(gameState.day / GAME_CONFIG.YEAR_DAYS) + 1;
+    
+    // Nuevo día
+    if (gameState.day !== prevDay) {
         onNewDay();
     }
     
-    // Actualizar recursos pasivos
-    if (gameState.time % 10 === 0) {
+    // Producción continua cada 10 días del juego
+    if (gameState.day - gameState.production.lastUpdate >= 10) {
         produceResources();
+        gameState.production.lastUpdate = gameState.day;
     }
     
-    // Actualizar mercado
-    if (gameState.time % 30 === 0) {
+    // Actualizar mercado cada 5 días
+    if (gameState.day % 5 === 0 && gameState.day !== prevDay) {
         updateMarket();
     }
     
@@ -356,80 +417,111 @@ function updateGameState() {
 
 function onNewDay() {
     // Consumo de recursos de la nave
-    gameState.ship.fuel = Math.max(0, gameState.ship.fuel - 10);
+    gameState.ship.fuel = Math.max(0, gameState.ship.fuel - 5);
     
     // Generar nuevas misiones
-    if (Math.random() < 0.3 && gameState.missions.length < 3) {
+    if (Math.random() < 0.2 && gameState.missions.length < 2) {
         generateMission();
     }
     
     // Eventos aleatorios
-    if (Math.random() < 0.1) {
+    if (Math.random() < 0.05) {
         generateRandomEvent();
     }
 }
 
 function produceResources() {
-    // Producción por estructuras
+    if (gameState.structures.refinery === 0 && 
+        gameState.structures.factory === 0) {
+        return; // No hay producción sin estructuras
+    }
+    
+    // Producción por estructuras (x10 días)
     const production = {
-        minerals: gameState.structures.refinery * 2,
-        electronics: gameState.structures.factory * 1,
-        fuel: gameState.structures.refinery * 3
+        minerals: gameState.structures.refinery * 20,
+        electronics: gameState.structures.factory * 10,
+        fuel: gameState.structures.refinery * 30
     };
     
+    let totalProduced = 0;
+    
     Object.keys(production).forEach(res => {
-        if (gameState.resources[res]) {
+        if (gameState.resources[res] && production[res] > 0) {
+            const before = gameState.resources[res].amount;
             const newAmount = Math.min(
                 gameState.resources[res].amount + production[res],
                 gameState.resources[res].capacity
             );
             gameState.resources[res].amount = newAmount;
+            totalProduced += (newAmount - before);
         }
     });
+    
+    if (totalProduced > 0) {
+        showNotification('🏭 Producción', `Tus estructuras han producido recursos`);
+    }
 }
 
 function generateMission() {
-    const types = ['mining', 'exploration', 'trade', 'rescue'];
+    const types = ['mining', 'exploration', 'trade'];
     const type = types[Math.floor(Math.random() * types.length)];
     
     const missions = {
         mining: {
-            title: '⛏️ Extracción de Minerales',
-            desc: `Extrae 50 unidades de minerales`,
-            reward: 500,
-            requirement: { type: 'resource', resource: 'minerals', amount: 50 }
+            title: '⛏️ Extracción',
+            desc: `Extrae 50 minerales`,
+            reward: 800,
+            requirement: { type: 'mine' }
         },
         exploration: {
             title: '🔭 Exploración',
-            desc: 'Descubre un nuevo planeta',
-            reward: 1000,
+            desc: 'Descubre un planeta',
+            reward: 1500,
             requirement: { type: 'discover' }
         },
         trade: {
-            title: '💰 Contrato Comercial',
-            desc: 'Vende 20 componentes electrónicos',
-            reward: 800,
-            requirement: { type: 'sell', resource: 'electronics', amount: 20 }
-        },
-        rescue: {
-            title: '🚨 Misión de Rescate',
-            desc: 'Rescata tripulación perdida',
+            title: '💰 Comercio',
+            desc: 'Vende 20 electrónicos',
             reward: 1200,
-            requirement: { type: 'event' }
+            requirement: { type: 'sell' }
         }
     };
     
     const mission = missions[type];
     mission.id = Date.now();
     gameState.missions.push(mission);
+    showNotification('📋 Nueva Misión', mission.title);
 }
 
 function generateRandomEvent() {
     const events = [
-        { title: '☄️ Lluvia de Meteoritos', desc: 'Daño a la nave: -10 HP', effect: () => { gameState.ship.health = Math.max(0, gameState.ship.health - 10); }},
-        { title: '🎁 Descubrimiento', desc: '+5 artefactos alienígenas', effect: () => { gameState.resources.alien_artifacts.amount += 5; }},
-        { title: '⚡ Tormenta Solar', desc: 'Los sistemas fallan temporalmente', effect: () => {}},
-        { title: '👽 Señal Misteriosa', desc: 'Has detectado algo extraño...', effect: () => {}}
+        { 
+            title: '☄️ Lluvia de Meteoritos', 
+            desc: 'Daño a la nave: -10 HP', 
+            effect: () => { 
+                gameState.ship.health = Math.max(0, gameState.ship.health - 10); 
+            }
+        },
+        { 
+            title: '🎁 Descubrimiento', 
+            desc: '+3 artefactos alienígenas encontrados', 
+            effect: () => { 
+                gameState.resources.alien_artifacts.amount = Math.min(
+                    gameState.resources.alien_artifacts.amount + 3,
+                    gameState.resources.alien_artifacts.capacity
+                );
+            }
+        },
+        { 
+            title: '💎 Filón Rico', 
+            desc: '+50 minerales descubiertos', 
+            effect: () => { 
+                gameState.resources.minerals.amount = Math.min(
+                    gameState.resources.minerals.amount + 50,
+                    gameState.resources.minerals.capacity
+                );
+            }
+        }
     ];
     
     const event = events[Math.floor(Math.random() * events.length)];
@@ -438,55 +530,77 @@ function generateRandomEvent() {
 }
 
 function updateMarket() {
+    let hasChanges = false;
+    
     Object.keys(gameState.resources).forEach(res => {
         const resource = gameState.resources[res];
-        const volatility = 0.1;
+        resource.lastPrice = resource.price;
+        
+        const volatility = 0.15;
         const change = (Math.random() - 0.5) * 2 * volatility;
         resource.price = Math.max(10, Math.round(resource.price * (1 + change)));
+        
+        if (Math.abs(resource.price - resource.lastPrice) > resource.lastPrice * 0.1) {
+            hasChanges = true;
+        }
     });
+    
+    if (hasChanges) {
+        showNotification('📊 Mercado', 'Los precios han cambiado significativamente');
+    }
 }
 
 // ==================== ACCIONES DEL JUGADOR ====================
 function mineResources() {
     if (gameState.ship.fuel < 50) {
-        showNotification('⚠️ Sin Combustible', 'Necesitas al menos 50 unidades de combustible');
+        showNotification('⚠️ Sin Combustible', 'Necesitas al menos 50 de combustible');
         return;
     }
     
-    const planet = selectedPlanet || 'earth';
+    const planet = gameState.currentPlanet;
     const miningYield = {
         earth: { minerals: 10, water: 5 },
-        moon: { minerals: 20, water: 3 },
-        mars: { minerals: 15, fuel: 10 },
-        europa: { water: 25, minerals: 5 }
+        moon: { minerals: 25, water: 3 },
+        mars: { minerals: 18, fuel: 12 },
+        europa: { water: 30, minerals: 5 },
+        venus: { minerals: 8, fuel: 8 },
+        jupiter: { fuel: 15 }
     };
     
     const yield = miningYield[planet];
     if (!yield) {
-        showNotification('⚠️ No Disponible', 'No puedes minar en esta ubicación');
+        showNotification('⚠️ No Disponible', 'No puedes minar aquí');
         return;
     }
     
     gameState.ship.fuel -= 50;
+    let mined = [];
     
     Object.keys(yield).forEach(res => {
         if (gameState.resources[res]) {
+            const amount = yield[res];
             gameState.resources[res].amount = Math.min(
-                gameState.resources[res].amount + yield[res],
+                gameState.resources[res].amount + amount,
                 gameState.resources[res].capacity
             );
+            mined.push(`${amount} ${res}`);
         }
     });
     
-    showNotification('⛏️ Minería Exitosa', `Has extraído recursos en ${planet}`);
+    showNotification('⛏️ Minería Exitosa', `Extraído: ${mined.join(', ')}`);
 }
 
 function travelToPlanet(planet) {
     if (!planets[planet]) return;
     
+    if (planet === gameState.currentPlanet) {
+        showNotification('ℹ️ Ya estás aquí', `Ya te encuentras en ${planet}`);
+        return;
+    }
+    
     const fuelCost = 100;
     if (gameState.ship.fuel < fuelCost) {
-        showNotification('⚠️ Sin Combustible', 'No tienes suficiente combustible para viajar');
+        showNotification('⚠️ Sin Combustible', 'No tienes suficiente combustible');
         return;
     }
     
@@ -495,10 +609,10 @@ function travelToPlanet(planet) {
     
     if (!gameState.discoveredPlanets.includes(planet)) {
         gameState.discoveredPlanets.push(planet);
-        gameState.credits += 500;
-        showNotification('🎉 Nuevo Descubrimiento!', `Has descubierto ${planet}. +500 créditos`);
+        gameState.credits += 1000;
+        showNotification('🎉 Descubrimiento!', `${planet.toUpperCase()} descubierto! +1000 créditos`);
     } else {
-        showNotification('🚀 Viaje Completado', `Has viajado a ${planet}`);
+        showNotification('🚀 Viaje', `Has viajado a ${planet.toUpperCase()}`);
     }
     
     selectedPlanet = planet;
@@ -508,39 +622,43 @@ function buyResource(resource) {
     const res = gameState.resources[resource];
     if (!res) return;
     
-    const cost = res.price * 10;
+    const amount = 10;
+    const cost = res.price * amount;
+    
     if (gameState.credits < cost) {
-        showNotification('⚠️ Fondos Insuficientes', `Necesitas ${cost} créditos`);
+        showNotification('⚠️ Sin Fondos', `Necesitas ${cost} créditos`);
         return;
     }
     
-    if (res.amount + 10 > res.capacity) {
-        showNotification('⚠️ Capacidad Llena', 'Necesitas más almacenamiento');
+    if (res.amount + amount > res.capacity) {
+        showNotification('⚠️ Capacidad Llena', 'Construye más almacenes');
         return;
     }
     
     gameState.credits -= cost;
-    res.amount += 10;
-    showNotification('💰 Compra Realizada', `Has comprado 10 ${resource}`);
+    res.amount += amount;
+    showNotification('💰 Compra', `+${amount} ${resource} por ${cost}cr`);
 }
 
 function sellResource(resource) {
     const res = gameState.resources[resource];
-    if (!res || res.amount < 10) {
-        showNotification('⚠️ Recursos Insuficientes', 'Necesitas al menos 10 unidades');
+    const amount = 10;
+    
+    if (!res || res.amount < amount) {
+        showNotification('⚠️ Sin Recursos', `Necesitas ${amount} unidades`);
         return;
     }
     
-    const earnings = res.price * 10;
+    const earnings = res.price * amount;
     gameState.credits += earnings;
-    res.amount -= 10;
-    showNotification('💰 Venta Realizada', `Has vendido 10 ${resource} por ${earnings} créditos`);
+    res.amount -= amount;
+    showNotification('💰 Venta', `-${amount} ${resource} por ${earnings}cr`);
 }
 
 function buildStructure(type) {
     const costs = {
         refinery: { credits: 2000, minerals: 50 },
-        factory: { credits: 3000, minerals: 80, electronics: 20 },
+        factory: { credits: 3500, minerals: 80, electronics: 15 },
         storage: { credits: 1500, minerals: 40 },
         laboratory: { credits: 5000, electronics: 50 }
     };
@@ -549,7 +667,7 @@ function buildStructure(type) {
     if (!cost) return;
     
     if (gameState.credits < cost.credits) {
-        showNotification('⚠️ Fondos Insuficientes', `Necesitas ${cost.credits} créditos`);
+        showNotification('⚠️ Sin Fondos', `Necesitas ${cost.credits} créditos`);
         return;
     }
     
@@ -557,7 +675,7 @@ function buildStructure(type) {
     for (let res in cost) {
         if (res !== 'credits' && gameState.resources[res]) {
             if (gameState.resources[res].amount < cost[res]) {
-                showNotification('⚠️ Recursos Insuficientes', `Necesitas ${cost[res]} ${res}`);
+                showNotification('⚠️ Sin Recursos', `Necesitas ${cost[res]} ${res}`);
                 return;
             }
         }
@@ -573,56 +691,69 @@ function buildStructure(type) {
     
     gameState.structures[type]++;
     
-    // Aumentar capacidades
+    // Beneficios
     if (type === 'storage') {
         Object.keys(gameState.resources).forEach(res => {
             gameState.resources[res].capacity += 200;
         });
     }
     
-    showNotification('🏗️ Construcción Completada', `Has construido: ${type}. Nivel ${gameState.structures[type]}`);
+    const names = {
+        refinery: 'Refinería',
+        factory: 'Fábrica',
+        storage: 'Almacén',
+        laboratory: 'Laboratorio'
+    };
+    
+    showNotification('🏗️ Construido!', `${names[type]} Nivel ${gameState.structures[type]}`);
 }
 
 function repairShip() {
     const cost = 500;
     if (gameState.credits < cost) {
-        showNotification('⚠️ Fondos Insuficientes', `Necesitas ${cost} créditos`);
+        showNotification('⚠️ Sin Fondos', `Necesitas ${cost} créditos`);
         return;
     }
     
     if (gameState.ship.health >= 100) {
-        showNotification('ℹ️ No Necesario', 'La nave está en perfecto estado');
+        showNotification('ℹ️ No Necesario', 'La nave está perfecta');
         return;
     }
     
     gameState.credits -= cost;
     gameState.ship.health = 100;
-    showNotification('🔧 Reparación Completada', 'La nave ha sido reparada al 100%');
+    showNotification('🔧 Reparado', 'Nave al 100%');
 }
 
 function refuelShip() {
     const fuelNeeded = gameState.ship.maxFuel - gameState.ship.fuel;
-    const cost = Math.ceil(fuelNeeded * 0.5);
     
-    if (gameState.credits < cost) {
-        showNotification('⚠️ Fondos Insuficientes', `Necesitas ${cost} créditos`);
+    if (fuelNeeded === 0) {
+        showNotification('ℹ️ Tanque Lleno', 'Ya tienes combustible completo');
         return;
     }
     
-    if (gameState.resources.fuel.amount < fuelNeeded / 2) {
-        showNotification('⚠️ Sin Combustible', 'No tienes suficientes recursos de combustible');
+    const fuelFromResources = Math.min(fuelNeeded, gameState.resources.fuel.amount);
+    
+    if (fuelFromResources === 0) {
+        showNotification('⚠️ Sin Combustible', 'No tienes recursos de combustible');
         return;
     }
     
-    gameState.credits -= cost;
-    gameState.resources.fuel.amount -= Math.ceil(fuelNeeded / 2);
-    gameState.ship.fuel = gameState.ship.maxFuel;
-    showNotification('⛽ Reabastecimiento', 'Combustible de la nave al 100%');
+    gameState.resources.fuel.amount -= fuelFromResources;
+    gameState.ship.fuel += fuelFromResources;
+    
+    showNotification('⛽ Reabastecido', `+${Math.floor(fuelFromResources)} combustible`);
+}
+
+function toggleMarket() {
+    const panel = document.getElementById('marketPanel');
+    panel.classList.toggle('show');
 }
 
 // ==================== UI UPDATES ====================
 function updateUI() {
-    // Actualizar panel de recursos
+    // Recursos
     const resourceList = document.getElementById('resourceList');
     resourceList.innerHTML = '';
     
@@ -630,18 +761,22 @@ function updateUI() {
         const res = gameState.resources[key];
         const percentage = (res.amount / res.capacity) * 100;
         
+        const priceChange = res.price - (res.lastPrice || res.price);
+        const priceClass = priceChange > 0 ? 'price-up' : priceChange < 0 ? 'price-down' : '';
+        const priceArrow = priceChange > 0 ? '↑' : priceChange < 0 ? '↓' : '→';
+        
         const div = document.createElement('div');
         div.className = 'resource-item';
         div.innerHTML = `
             <div style="display: flex; justify-content: space-between;">
-                <span class="stat-label">${key.toUpperCase()}</span>
+                <span class="stat-label">${key.replace('_', ' ').toUpperCase()}</span>
                 <span class="stat-value">${Math.floor(res.amount)}/${res.capacity}</span>
             </div>
             <div class="resource-bar">
                 <div class="resource-fill" style="width: ${percentage}%"></div>
             </div>
-            <div style="font-size: 10px; color: #0ff; margin-top: 3px;">
-                Precio: ${res.price} cr/unidad
+            <div style="font-size: 9px; color: #0ff; margin-top: 3px;">
+                <span class="${priceClass}">${priceArrow} ${res.price}cr</span>
             </div>
         `;
         resourceList.appendChild(div);
@@ -650,83 +785,116 @@ function updateUI() {
     // Créditos
     const creditsDiv = document.createElement('div');
     creditsDiv.innerHTML = `
-        <div style="margin-top: 15px; padding: 10px; background: rgba(0,255,0,0.1); border: 2px solid #0f0;">
+        <div style="margin-top: 10px; padding: 8px; background: rgba(0,255,0,0.1); border: 2px solid #0f0;">
             <div class="stat-label">💰 CRÉDITOS</div>
-            <div class="stat-value" style="font-size: 20px;">${gameState.credits}</div>
+            <div class="stat-value" style="font-size: 18px;">${gameState.credits}</div>
         </div>
     `;
     resourceList.appendChild(creditsDiv);
     
-    // Actualizar panel de misión
+    // Estructuras
+    const structuresDiv = document.createElement('div');
+    structuresDiv.innerHTML = `
+        <div style="margin-top: 10px; padding: 5px; background: rgba(0,100,200,0.1); border: 1px solid #0ff;">
+            <div class="stat-label">🏭 ESTRUCTURAS</div>
+            <div style="font-size: 9px; margin-top: 3px;">
+                <div>Refinerías: ${gameState.structures.refinery}</div>
+                <div>Fábricas: ${gameState.structures.factory}</div>
+                <div>Almacenes: ${gameState.structures.storage}</div>
+            </div>
+        </div>
+    `;
+    resourceList.appendChild(structuresDiv);
+    
+    // Panel de misión
     const missionInfo = document.getElementById('missionInfo');
     if (gameState.missions.length > 0) {
         const mission = gameState.missions[0];
         missionInfo.innerHTML = `
             <div class="mission-item">
-                <div style="font-weight: bold; color: #0ff;">${mission.title}</div>
-                <div style="margin: 5px 0;">${mission.desc}</div>
-                <div style="color: #0f0;">Recompensa: ${mission.reward} créditos</div>
+                <div style="font-weight: bold; color: #0ff; font-size: 11px;">${mission.title}</div>
+                <div style="margin: 3px 0; font-size: 10px;">${mission.desc}</div>
+                <div style="color: #0f0; font-size: 10px;">💰 ${mission.reward} créditos</div>
             </div>
         `;
     } else {
-        missionInfo.innerHTML = '<div style="color: #888;">No hay misiones activas</div>';
+        missionInfo.innerHTML = '<div style="color: #888; font-size: 10px;">Sin misiones activas</div>';
     }
     
     // Info de la nave
     const shipInfo = document.getElementById('shipInfo');
+    const fuelPercent = (gameState.ship.fuel / gameState.ship.maxFuel) * 100;
+    const fuelColor = fuelPercent < 20 ? '#f00' : fuelPercent < 50 ? '#ff0' : '#0f0';
+    const healthColor = gameState.ship.health < 30 ? '#f00' : gameState.ship.health < 60 ? '#ff0' : '#0f0';
+    
     shipInfo.innerHTML = `
-        <div style="font-size: 11px;">
-            <div>⛽ Combustible: <span class="stat-value">${Math.floor(gameState.ship.fuel)}/${gameState.ship.maxFuel}</span></div>
-            <div>❤️ Salud: <span class="stat-value">${gameState.ship.health}%</span></div>
-            <div>👥 Tripulación: <span class="stat-value">${gameState.ship.crew}/${gameState.ship.maxCrew}</span></div>
-            <div>📦 Ubicación: <span class="stat-value">${gameState.currentPlanet.toUpperCase()}</span></div>
+        <div style="font-size: 10px;">
+            <div>⛽ <span style="color: ${fuelColor}">${Math.floor(gameState.ship.fuel)}/${gameState.ship.maxFuel}</span></div>
+            <div>❤️ <span style="color: ${healthColor}">${gameState.ship.health}%</span></div>
+            <div>👥 <span class="stat-value">${gameState.ship.crew}/${gameState.ship.maxCrew}</span></div>
+            <div>📍 <span class="stat-value">${gameState.currentPlanet.toUpperCase()}</span></div>
         </div>
     `;
     
-    // Actualizar controles
+    // Controles
     const controlButtons = document.getElementById('controlButtons');
+    const canMine = gameState.ship.fuel >= 50;
+    const canTravel = gameState.ship.fuel >= 100;
+    const canRepair = gameState.ship.health < 100 && gameState.credits >= 500;
+    const canRefuel = gameState.ship.fuel < gameState.ship.maxFuel && gameState.resources.fuel.amount > 0;
+    
     controlButtons.innerHTML = `
-        <button onclick="mineResources()">⛏️ MINAR</button>
-        <button onclick="refuelShip()">⛽ REABASTECER</button>
-        <button onclick="repairShip()">🔧 REPARAR</button>
-        <br>
-        <button onclick="buildStructure('refinery')">🏭 Refinería (2000cr)</button>
-        <button onclick="buildStructure('factory')">🏗️ Fábrica (3000cr)</button>
-        <button onclick="buildStructure('storage')">📦 Almacén (1500cr)</button>
-        <br>
-        <button onclick="travelToPlanet('mars')" ${!gameState.discoveredPlanets.includes('mars') ? '' : 'style="background: #006600;"'}>
-            🚀 Viajar a Marte
+        <button onclick="mineResources()" ${!canMine ? 'disabled' : ''}>⛏️ MINAR</button>
+        <button onclick="refuelShip()" ${!canRefuel ? 'disabled' : ''}>⛽ CARGAR</button>
+        <button onclick="repairShip()" ${!canRepair ? 'disabled' : ''}>🔧 REPARAR</button>
+        <button onclick="buildStructure('storage')">📦 Almacén</button>
+        <button onclick="buildStructure('refinery')">🏭 Refinería</button>
+        <button onclick="buildStructure('factory')">🏗️ Fábrica</button>
+        <button onclick="travelToPlanet('moon')" ${!canTravel ? 'disabled' : ''} 
+                class="button-full" style="background: ${gameState.currentPlanet === 'moon' ? '#006600' : '#003366'}">
+            🚀 ${gameState.currentPlanet === 'moon' ? '📍' : '→'} LUNA
         </button>
-        <button onclick="travelToPlanet('venus')" ${!gameState.discoveredPlanets.includes('venus') ? '' : 'style="background: #006600;"'}>
-            🚀 Viajar a Venus
+        <button onclick="travelToPlanet('mars')" ${!canTravel ? 'disabled' : ''}
+                class="button-full" style="background: ${gameState.currentPlanet === 'mars' ? '#006600' : '#003366'}">
+            🚀 ${gameState.currentPlanet === 'mars' ? '📍' : '→'} MARTE
         </button>
     `;
     
-    // Actualizar mercado
+    // Mercado
     const marketList = document.getElementById('marketList');
     marketList.innerHTML = '';
     
     Object.keys(gameState.resources).forEach(key => {
         const res = gameState.resources[key];
+        const priceChange = res.price - (res.lastPrice || res.price);
+        const priceClass = priceChange > 0 ? 'price-up' : priceChange < 0 ? 'price-down' : '';
+        const priceArrow = priceChange > 0 ? '📈' : priceChange < 0 ? '📉' : '➡️';
+        
+        const canBuy = gameState.credits >= res.price * 10 && res.amount + 10 <= res.capacity;
+        const canSell = res.amount >= 10;
+        
         const div = document.createElement('div');
         div.className = 'market-item';
         div.innerHTML = `
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span style="font-weight: bold;">${key.toUpperCase()}</span>
-                <span class="stat-value">${res.price} cr</span>
+                <span style="font-weight: bold; font-size: 11px;">${key.replace('_', ' ').toUpperCase()}</span>
+                <span class="${priceClass}" style="font-size: 11px;">${priceArrow} ${res.price}cr</span>
             </div>
-            <button onclick="buyResource('${key}')" style="font-size: 10px; padding: 5px 10px;">
-                Comprar 10 (${res.price * 10}cr)
-            </button>
-            <button onclick="sellResource('${key}')" style="font-size: 10px; padding: 5px 10px;">
-                Vender 10 (+${res.price * 10}cr)
-            </button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                <button onclick="buyResource('${key}')" ${!canBuy ? 'disabled' : ''} style="font-size: 10px; padding: 8px;">
+                    COMPRAR 10<br>(${res.price * 10}cr)
+                </button>
+                <button onclick="sellResource('${key}')" ${!canSell ? 'disabled' : ''} style="font-size: 10px; padding: 8px;">
+                    VENDER 10<br>(+${res.price * 10}cr)
+                </button>
+            </div>
         `;
         marketList.appendChild(div);
     });
     
-    // Actualizar día
+    // Actualizar contadores
     document.getElementById('dayCounter').textContent = gameState.day;
+    document.getElementById('yearCounter').textContent = gameState.year;
 }
 
 // ==================== NOTIFICACIONES ====================
@@ -740,12 +908,12 @@ function showNotification(title, text) {
         notif.className = '';
     };
     
-    // Auto-cerrar después de 5 segundos
+    // Auto-cerrar después de 4 segundos
     setTimeout(() => {
         if (notif.className === 'show') {
             notif.className = '';
         }
-    }, 5000);
+    }, 4000);
 }
 
 // ==================== GAME LOOP ====================
@@ -763,6 +931,14 @@ function init() {
     initThreeJS();
     updateUI();
     
+    // Mensaje de bienvenida con tutorial
+    setTimeout(() => {
+        showNotification(
+            '🌟 BIENVENIDO COMANDANTE',
+            'Explora el sistema solar, mina recursos, construye estructuras para producción automática y comercia en el mercado. ¡Gestiona tu economía espacial!'
+        );
+    }, 1000);
+    
     // Simular carga
     let progress = 0;
     const loadingInterval = setInterval(() => {
@@ -773,27 +949,27 @@ function init() {
             clearInterval(loadingInterval);
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
-                showNotification(
-                    '🌟 Bienvenido, Comandante',
-                    'Tu misión: explorar el sistema solar, extraer recursos y construir un imperio espacial. ¡Buena suerte!'
-                );
             }, 500);
         }
     }, 200);
     
+    // Guardar progreso con el estado correcto
+    loadGame();
+    
     animate();
 }
 
-// Iniciar el juego cuando cargue la página
-window.addEventListener('load', init);
-
-// ==================== FUNCIONES AUXILIARES ====================
+// ==================== GUARDAR/CARGAR ====================
 function saveGame() {
     try {
-        localStorage.setItem('spaceGameSave', JSON.stringify(gameState));
-        showNotification('💾 Guardado', 'Progreso guardado exitosamente');
+        const saveData = {
+            ...gameState,
+            version: '1.0'
+        };
+        localStorage.setItem('spaceGameSave', JSON.stringify(saveData));
+        console.log('Juego guardado');
     } catch (e) {
-        console.log('No se pudo guardar');
+        console.log('Error al guardar:', e);
     }
 }
 
@@ -801,13 +977,24 @@ function loadGame() {
     try {
         const saved = localStorage.getItem('spaceGameSave');
         if (saved) {
-            gameState = JSON.parse(saved);
-            showNotification('📂 Carga Completada', 'Progreso restaurado');
+            const loadedData = JSON.parse(saved);
+            // Combinar con valores por defecto para compatibilidad
+            gameState = {
+                ...gameState,
+                ...loadedData
+            };
+            console.log('Juego cargado');
         }
     } catch (e) {
-        console.log('No se pudo cargar');
+        console.log('Error al cargar:', e);
     }
 }
 
-// Guardar automáticamente cada minuto
-setInterval(saveGame, 60000);
+// Guardar automáticamente cada 30 segundos
+setInterval(saveGame, 30000);
+
+// Guardar al cerrar
+window.addEventListener('beforeunload', saveGame);
+
+// Iniciar el juego cuando cargue la página
+window.addEventListener('load', init);
