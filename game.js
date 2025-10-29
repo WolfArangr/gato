@@ -76,6 +76,11 @@ let lastTouchPos = null;
 let cameraAngle = 0;
 let cameraHeight = 50;
 let cameraDistance = 100;
+let spaceship = null;
+let shipTraveling = false;
+let travelProgress = 0;
+let travelStart = null;
+let travelTarget = null;
 
 function initThreeJS() {
     scene = new THREE.Scene();
@@ -97,6 +102,9 @@ function initThreeJS() {
     
     // Estrellas de fondo
     createStarfield();
+    
+    // Crear nave espacial
+    createSpaceship();
     
     // Crear sistema solar
     createSolarSystem();
@@ -126,6 +134,136 @@ function createStarfield() {
     const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
+}
+
+function createSpaceship() {
+    const shipGroup = new THREE.Group();
+    
+    // Cuerpo principal (cápsula alargada)
+    const bodyGeometry = new THREE.CylinderGeometry(1.2, 1.5, 8, 16);
+    const bodyTexture = new THREE.TextureLoader().load('/constelacion/estrella.png');
+    const bodyMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xf0f0f0,
+        map: bodyTexture,
+        metalness: 0.7,
+        roughness: 0.3
+    });
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.rotation.z = Math.PI / 2;
+    shipGroup.add(body);
+    
+    // Cabina frontal (esfera achatada)
+    const cockpitGeometry = new THREE.SphereGeometry(1.5, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+    const cockpitMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x4488ff,
+        transparent: true,
+        opacity: 0.7,
+        metalness: 0.8,
+        roughness: 0.1
+    });
+    const cockpit = new THREE.Mesh(cockpitGeometry, cockpitMaterial);
+    cockpit.position.x = 4;
+    cockpit.rotation.z = -Math.PI / 2;
+    shipGroup.add(cockpit);
+    
+    // Nariz puntiaguda
+    const noseGeometry = new THREE.ConeGeometry(1.2, 2, 8);
+    const noseMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xe0e0e0,
+        metalness: 0.8,
+        roughness: 0.2
+    });
+    const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+    nose.position.x = 5.5;
+    nose.rotation.z = -Math.PI / 2;
+    shipGroup.add(nose);
+    
+    // Alas (izquierda y derecha)
+    const wingGeometry = new THREE.BoxGeometry(2, 0.3, 6);
+    const wingMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xc0c0c0,
+        metalness: 0.6,
+        roughness: 0.4
+    });
+    
+    const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+    leftWing.position.set(0, 0, -3);
+    leftWing.rotation.y = -0.2;
+    shipGroup.add(leftWing);
+    
+    const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+    rightWing.position.set(0, 0, 3);
+    rightWing.rotation.y = 0.2;
+    shipGroup.add(rightWing);
+    
+    // Motores traseros (izquierdo y derecho)
+    const engineGeometry = new THREE.CylinderGeometry(0.6, 0.8, 2, 12);
+    const engineMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x404040,
+        metalness: 0.9,
+        roughness: 0.1
+    });
+    
+    const leftEngine = new THREE.Mesh(engineGeometry, engineMaterial);
+    leftEngine.position.set(-3.5, 0, -2);
+    leftEngine.rotation.z = Math.PI / 2;
+    shipGroup.add(leftEngine);
+    
+    const rightEngine = new THREE.Mesh(engineGeometry, engineMaterial);
+    rightEngine.position.set(-3.5, 0, 2);
+    rightEngine.rotation.z = Math.PI / 2;
+    shipGroup.add(rightEngine);
+    
+    // Luces de motor (efecto glow)
+    const glowGeometry = new THREE.CylinderGeometry(0.5, 0.6, 0.5, 12);
+    const glowMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x00ffff,
+        transparent: true,
+        opacity: 0.8
+    });
+    
+    const leftGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+    leftGlow.position.set(-4.5, 0, -2);
+    leftGlow.rotation.z = Math.PI / 2;
+    shipGroup.add(leftGlow);
+    
+    const rightGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+    rightGlow.position.set(-4.5, 0, 2);
+    rightGlow.rotation.z = Math.PI / 2;
+    shipGroup.add(rightGlow);
+    
+    // Luces puntuales para los motores
+    const leftLight = new THREE.PointLight(0x00ffff, 2, 20);
+    leftLight.position.set(-4.5, 0, -2);
+    shipGroup.add(leftLight);
+    
+    const rightLight = new THREE.PointLight(0x00ffff, 2, 20);
+    rightLight.position.set(-4.5, 0, 2);
+    shipGroup.add(rightLight);
+    
+    // Detalles azules en el cuerpo
+    const detailGeometry = new THREE.BoxGeometry(6, 0.15, 0.3);
+    const detailMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x0088ff,
+        emissive: 0x0044aa,
+        metalness: 0.8,
+        roughness: 0.2
+    });
+    
+    const topDetail = new THREE.Mesh(detailGeometry, detailMaterial);
+    topDetail.position.set(0, 1.3, 0);
+    shipGroup.add(topDetail);
+    
+    const bottomDetail = new THREE.Mesh(detailGeometry, detailMaterial);
+    bottomDetail.position.set(0, -1.3, 0);
+    shipGroup.add(bottomDetail);
+    
+    // Posicionar la nave inicialmente en la Tierra
+    shipGroup.scale.set(0.8, 0.8, 0.8);
+    shipGroup.position.set(GAME_CONFIG.ORBITS.EARTH.distance, 5, 0);
+    
+    spaceship = shipGroup;
+    scene.add(shipGroup);
 }
 
 function createSolarSystem() {
@@ -274,20 +412,82 @@ function updatePlanets() {
         }
     });
     
-    // Cámara sigue la Tierra
+    // Actualizar posición de la nave
+    updateSpaceship();
+    
+    // Cámara sigue la nave
     updateCamera();
 }
 
+function updateSpaceship() {
+    if (!spaceship) return;
+    
+    if (shipTraveling && travelStart && travelTarget) {
+        // Interpolar posición durante el viaje
+        travelProgress += 0.005; // Velocidad de viaje
+        
+        if (travelProgress >= 1) {
+            // Viaje completado
+            shipTraveling = false;
+            travelProgress = 0;
+            spaceship.position.copy(travelTarget.mesh.position);
+            spaceship.position.y += 5;
+        } else {
+            // Interpolación suave (ease in-out)
+            const easeProgress = travelProgress < 0.5 
+                ? 2 * travelProgress * travelProgress 
+                : 1 - Math.pow(-2 * travelProgress + 2, 2) / 2;
+            
+            spaceship.position.lerpVectors(
+                travelStart,
+                new THREE.Vector3(
+                    travelTarget.mesh.position.x,
+                    travelTarget.mesh.position.y + 5,
+                    travelTarget.mesh.position.z
+                ),
+                easeProgress
+            );
+            
+            // Orientar la nave hacia el destino
+            const direction = new THREE.Vector3()
+                .subVectors(travelTarget.mesh.position, spaceship.position)
+                .normalize();
+            
+            const angle = Math.atan2(direction.z, direction.x);
+            spaceship.rotation.y = angle - Math.PI / 2;
+            
+            // Animación de balanceo durante el viaje
+            spaceship.rotation.z = Math.sin(travelProgress * Math.PI * 4) * 0.1;
+        }
+    } else {
+        // Nave en órbita del planeta actual
+        const currentPlanetData = planets[gameState.currentPlanet];
+        if (currentPlanetData) {
+            spaceship.position.x = currentPlanetData.mesh.position.x;
+            spaceship.position.z = currentPlanetData.mesh.position.z;
+            spaceship.position.y = currentPlanetData.mesh.position.y + 5;
+            
+            // Rotación suave en órbita
+            spaceship.rotation.y += 0.002;
+            spaceship.rotation.z = 0;
+        }
+    }
+}
+
 function updateCamera() {
-    if (!planets.earth) return;
+    if (!spaceship) return;
     
-    const earthPos = planets.earth.mesh.position;
-    cameraAngle += 0.0002; // Rotación muy lenta automática
+    const targetPos = spaceship.position;
     
-    camera.position.x = earthPos.x + Math.cos(cameraAngle) * cameraDistance;
-    camera.position.z = earthPos.z + Math.sin(cameraAngle) * cameraDistance;
-    camera.position.y = earthPos.y + cameraHeight;
-    camera.lookAt(earthPos);
+    // Si está viajando, no aplicar rotación automática
+    if (!shipTraveling) {
+        cameraAngle += 0.0002;
+    }
+    
+    camera.position.x = targetPos.x + Math.cos(cameraAngle) * cameraDistance;
+    camera.position.z = targetPos.z + Math.sin(cameraAngle) * cameraDistance;
+    camera.position.y = targetPos.y + cameraHeight;
+    camera.lookAt(targetPos);
 }
 
 // ==================== EVENTOS TÁCTILES ====================
@@ -458,7 +658,7 @@ function produceResources() {
     });
     
     if (totalProduced > 0) {
-        showNotification('🏭 Producción', `Tus estructuras han producido recursos`);
+        showNotification('� Producción', `Tus estructuras han producido recursos`);
     }
 }
 
@@ -604,7 +804,15 @@ function travelToPlanet(planet) {
         return;
     }
     
+    // Iniciar viaje
     gameState.ship.fuel -= fuelCost;
+    
+    travelStart = spaceship.position.clone();
+    travelTarget = planets[planet];
+    shipTraveling = true;
+    travelProgress = 0;
+    
+    // Actualizar destino
     gameState.currentPlanet = planet;
     
     if (!gameState.discoveredPlanets.includes(planet)) {
@@ -612,7 +820,7 @@ function travelToPlanet(planet) {
         gameState.credits += 1000;
         showNotification('🎉 Descubrimiento!', `${planet.toUpperCase()} descubierto! +1000 créditos`);
     } else {
-        showNotification('🚀 Viaje', `Has viajado a ${planet.toUpperCase()}`);
+        showNotification('🚀 Viaje Iniciado', `Viajando a ${planet.toUpperCase()}...`);
     }
     
     selectedPlanet = planet;
@@ -705,7 +913,7 @@ function buildStructure(type) {
         laboratory: 'Laboratorio'
     };
     
-    showNotification('🏗️ Construido!', `${names[type]} Nivel ${gameState.structures[type]}`);
+    showNotification('🗏️ Construido!', `${names[type]} Nivel ${gameState.structures[type]}`);
 }
 
 function repairShip() {
@@ -849,7 +1057,7 @@ function updateUI() {
         <button onclick="repairShip()" ${!canRepair ? 'disabled' : ''}>🔧 REPARAR</button>
         <button onclick="buildStructure('storage')">📦 Almacén</button>
         <button onclick="buildStructure('refinery')">🏭 Refinería</button>
-        <button onclick="buildStructure('factory')">🏗️ Fábrica</button>
+        <button onclick="buildStructure('factory')">🗏️ Fábrica</button>
         <button onclick="travelToPlanet('moon')" ${!canTravel ? 'disabled' : ''} 
                 class="button-full" style="background: ${gameState.currentPlanet === 'moon' ? '#006600' : '#003366'}">
             🚀 ${gameState.currentPlanet === 'moon' ? '📍' : '→'} LUNA
