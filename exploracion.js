@@ -494,7 +494,7 @@ function createPlanet(name, data) {
         mesh,
         orbit: data.distance,
         angle: Math.random() * Math.PI * 2,
-        speed: (data.speed || 0.1) * 0.001,
+        speed: (data.speed || 0.01) * 0.001,
         rotationSpeed: 0.01
     };
 }
@@ -513,7 +513,7 @@ function createMoon(name, data) {
         mesh,
         orbit: data.distance,
         angle: Math.random() * Math.PI * 2,
-        speed: (data.speed || 0.5) * 0.001,
+        speed: (data.speed || 0.05) * 0.001,
         parent: planets[data.parent],
         tidalLock: true
     };
@@ -598,7 +598,7 @@ function updateSpaceship() {
 
     if (state.decoupled) {
         // Modo manual con joystick
-        const speed = 2;
+        const speed = 0.1;
         const cameraDir = new THREE.Vector3();
         camera.getWorldDirection(cameraDir);
         cameraDir.y = 0;
@@ -841,7 +841,7 @@ function updateUI() {
         travelStatus.textContent = 'En órbita';
     }
 
-    const timeLabels = { 1: 'x1', 60: 'x60', 3600: 'x3600' };
+    const timeLabels = { 1: 'x1', 6: 'x60', 360: 'x3600' };
     timeScaleLabel.textContent = `Tiempo: ${timeLabels[state.timeScale]}`;
 
     renderPlanetList();
