@@ -1,421 +1,294 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Explorador del Sistema Solar</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no">
+<title>Explorador del Sistema Solar</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+body {
+    font-family: 'Orbitron', sans-serif;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #000 60%, #020b18 100%);
+    color: #00ffff;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+#gameCanvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+}
+#ui {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
 
-        body {
-            font-family: 'Orbitron', sans-serif;
-            overflow: hidden;
-            background: radial-gradient(circle at center, #000 60%, #020b18 100%);
-            color: #00ffff;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            touch-action: none;
-        }
+/* ==== PANELES SUPERIORES ==== */
+#controlsPanel, #statusPanel {
+    position: absolute;
+    top: 15px;
+    background: rgba(0, 10, 20, 0.85);
+    border: 1px solid #00ffff55;
+    padding: 10px;
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+    pointer-events: all;
+    z-index: 10;
+}
+#controlsPanel {
+    left: 15px;
+    max-width: 150px;
+}
+#statusPanel {
+    right: 15px;
+    max-width: 160px;
+}
 
-        #gameCanvas {
-            display: block;
-            width: 100vw;
-            height: 100vh;
-        }
+/* Evita solapamiento en pantallas pequeñas */
+@media (max-width: 700px) {
+    #controlsPanel {
+        top: 15px;
+        left: 15px;
+        max-width: 45%;
+    }
+    #statusPanel {
+        top: auto;
+        bottom: 15px;
+        right: 15px;
+        max-width: 45%;
+    }
+}
 
-        #ui {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-        }
+/* === ENCABEZADOS === */
+#controlsPanel h3, #statusPanel h3 {
+    color: #00ffff;
+    font-size: 13px;
+    text-shadow: 0 0 8px #00ffff;
+    margin-bottom: 8px;
+}
+.status-item {
+    color: #0f0;
+    font-size: 12px;
+}
 
-        /* ===== PANEL RETRÁCTIL ===== */
-        #togglePanelBtn {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 30, 60, 0.9);
-            border: 2px solid #00ffff;
-            color: #00ffff;
-            padding: 10px 20px;
-            font-size: 14px;
-            border-radius: 10px;
-            pointer-events: all;
-            box-shadow: 0 0 10px #00ffff88;
-            transition: all 0.3s;
-        }
+/* === BOTONES DE CONTROL === */
+.control-button {
+    width: 100%;
+    background: rgba(0, 40, 60, 0.9);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 8px;
+    font-size: 11px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-bottom: 5px;
+    font-family: inherit;
+}
+.control-button:active, .control-button.active {
+    background: #00ffff;
+    color: #000;
+}
 
-        #togglePanelBtn:active {
-            background: #00ffff;
-            color: #000;
-        }
+/* === CONTROLES DE ÓRBITA === */
+#orbitControls {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: all;
+    z-index: 9;
+}
+.orbit-button {
+    width: 45px;
+    height: 45px;
+    background: rgba(0, 40, 60, 0.9);
+    border: 1px solid #00ffff;
+    border-radius: 50%;
+    color: #00ffff;
+    font-size: 22px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.orbit-button:active {
+    background: #00ffff;
+    color: #000;
+    transform: scale(0.9);
+}
 
-        #navigationPanel {
-            position: absolute;
-            bottom: -100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 10, 20, 0.95);
-            border: 2px solid #00ffff;
-            padding: 15px;
-            pointer-events: all;
-            backdrop-filter: blur(10px);
-            width: 90vw;
-            max-height: 60vh;
-            overflow-y: auto;
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-            transition: bottom 0.4s ease;
-        }
+/* === PANEL RETRÁCTIL === */
+#togglePanelBtn {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 30, 60, 0.9);
+    border: 2px solid #00ffff;
+    color: #00ffff;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 10px;
+    pointer-events: all;
+    box-shadow: 0 0 10px #00ffff88;
+    transition: all 0.3s;
+    z-index: 12;
+}
+#togglePanelBtn:active {
+    background: #00ffff;
+    color: #000;
+}
+#navigationPanel {
+    position: absolute;
+    bottom: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 10, 20, 0.95);
+    border: 2px solid #00ffff;
+    padding: 15px;
+    pointer-events: all;
+    backdrop-filter: blur(10px);
+    width: 90vw;
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    transition: bottom 0.4s ease;
+    z-index: 11;
+}
+#navigationPanel.show { bottom: 80px; }
 
-        #navigationPanel.show {
-            bottom: 80px;
-        }
+/* === JOYSTICK === */
+#joystickContainer {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 120px;
+    height: 120px;
+    pointer-events: all;
+    display: none;
+    z-index: 12;
+}
+#joystickContainer.show { display: block; }
+#joystickBase {
+    width: 100%; height: 100%;
+    background: rgba(0, 40, 80, 0.5);
+    border: 2px solid #00ffff;
+    border-radius: 50%;
+    position: relative;
+}
+#joystickStick {
+    width: 50px; height: 50px;
+    background: rgba(0, 255, 255, 0.8);
+    border: 2px solid #00ffff;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
 
-        #navigationPanel h3 {
-            color: #00ffff;
-            margin-bottom: 15px;
-            text-shadow: 0 0 8px #00ffff;
-            border-bottom: 2px solid #00ffff55;
-            padding-bottom: 6px;
-            font-size: 15px;
-            text-align: center;
-        }
-
-        .planet-group {
-            margin-bottom: 10px;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 8px;
-            background: rgba(0, 30, 60, 0.4);
-        }
-
-        .planet-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            background: rgba(0, 50, 100, 0.5);
-        }
-
-        .planet-name {
-            flex: 1;
-            color: #00ffff;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .planet-name.current {
-            color: #0f0;
-        }
-
-        .action-button {
-            background: linear-gradient(135deg, #001a33, #003355);
-            color: #00ffff;
-            border: 1px solid #00ffff88;
-            padding: 8px 14px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 12px;
-            transition: all 0.3s;
-            border-radius: 6px;
-            box-shadow: 0 0 6px rgba(0, 255, 255, 0.15);
-            margin-left: 5px;
-        }
-
-        .action-button:active {
-            background: #00ffff;
-            color: #000;
-            transform: scale(0.95);
-        }
-
-        .moon-list {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .moon-list.show {
-            max-height: 500px;
-        }
-
-        .moon-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 10px;
-            border-top: 1px solid rgba(0, 255, 255, 0.2);
-            background: rgba(0, 20, 40, 0.3);
-        }
-
-        .moon-name {
-            flex: 1;
-            color: #88ddff;
-            font-size: 12px;
-        }
-
-        .moon-name.current {
-            color: #0f0;
-        }
-
-        /* ===== MODAL ===== */
-        #infoModal {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 10, 20, 0.95);
-            border: 2px solid #00ffff;
-            padding: 20px;
-            width: 90%;
-            max-width: 500px;
-            display: none;
-            pointer-events: all;
-            z-index: 1000;
-            border-radius: 12px;
-            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
-        }
-
-        #infoModal.show {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translate(-50%, -55%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
-        }
-
-        #infoModal h2 {
-            color: #00ffff;
-            margin-bottom: 10px;
-            font-size: 18px;
-            text-shadow: 0 0 8px #00ffff;
-        }
-
-        #closeInfo {
-            margin-top: 15px;
-            width: 100%;
-            background: rgba(0, 50, 80, 0.8);
-            border: 1px solid #00ffff;
-            color: #00ffff;
-            padding: 10px;
-            font-family: inherit;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        #closeInfo:active {
-            background: #00ffff;
-            color: #000;
-        }
-
-        /* ===== ESTADO ===== */
-        #statusPanel {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0, 10, 20, 0.8);
-            border: 1px solid #00ffff55;
-            padding: 10px;
-            border-radius: 8px;
-            min-width: 160px;
-            pointer-events: none;
-            backdrop-filter: blur(6px);
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
-        }
-
-        #statusPanel h3 {
-            color: #00ffff;
-            font-size: 13px;
-            text-shadow: 0 0 8px #00ffff;
-            margin-bottom: 6px;
-        }
-
-        .status-item {
-            color: #0f0;
-            font-size: 12px;
-        }
-
-        /* ===== CONTROLES ===== */
-        #controlsPanel {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: rgba(0, 10, 20, 0.8);
-            border: 1px solid #00ffff55;
-            padding: 10px;
-            border-radius: 8px;
-            pointer-events: all;
-            backdrop-filter: blur(6px);
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
-        }
-
-        #controlsPanel h3 {
-            color: #00ffff;
-            font-size: 13px;
-            text-shadow: 0 0 8px #00ffff;
-            margin-bottom: 8px;
-        }
-
-        .control-button {
-            width: 100%;
-            background: rgba(0, 40, 60, 0.9);
-            border: 1px solid #00ffff;
-            color: #00ffff;
-            padding: 8px;
-            font-size: 11px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-bottom: 5px;
-            font-family: inherit;
-        }
-
-        .control-button:active {
-            background: #00ffff;
-            color: #000;
-        }
-
-        .control-button.active {
-            background: #00ffff;
-            color: #000;
-        }
-
-        /* ===== CONTROLES DE ÓRBITA ===== */
-        #orbitControls {
-            position: absolute;
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            pointer-events: all;
-        }
-
-        .orbit-button {
-            width: 45px;
-            height: 45px;
-            background: rgba(0, 40, 60, 0.9);
-            border: 1px solid #00ffff;
-            border-radius: 50%;
-            color: #00ffff;
-            font-size: 22px;
-            cursor: pointer;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .orbit-button:active {
-            background: #00ffff;
-            color: #000;
-            transform: scale(0.9);
-        }
-
-        /* ===== JOYSTICK VIRTUAL ===== */
-        #joystickContainer {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 120px;
-            height: 120px;
-            pointer-events: all;
-            display: none;
-        }
-
-        #joystickContainer.show {
-            display: block;
-        }
-
-        #joystickBase {
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 40, 80, 0.5);
-            border: 2px solid #00ffff;
-            border-radius: 50%;
-            position: relative;
-        }
-
-        #joystickStick {
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 255, 255, 0.8);
-            border: 2px solid #00ffff;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-        }
-    </style>
+/* === MODAL === */
+#infoModal {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 10, 20, 0.95);
+    border: 2px solid #00ffff;
+    padding: 20px;
+    width: 90%; max-width: 500px;
+    display: none;
+    pointer-events: all;
+    z-index: 1000;
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+}
+#infoModal.show { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -55%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}
+#closeInfo {
+    margin-top: 15px; width: 100%;
+    background: rgba(0, 50, 80, 0.8);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 10px;
+    font-family: inherit;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+#closeInfo:active { background: #00ffff; color: #000; }
+</style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+<canvas id="gameCanvas"></canvas>
 
-    <div id="ui">
-        <div id="statusPanel">
-            <h3>🚀 ESTADO</h3>
-            <div class="status-item">📍 <span id="currentLocation">Tierra</span></div>
-            <div class="status-item">🎯 <span id="travelStatus">En órbita</span></div>
-            <div class="status-item">⏱️ <span id="timeScale">Tiempo: x1</span></div>
-        </div>
-
-        <div id="controlsPanel">
-            <h3>⚙️ CONTROLES</h3>
-            <button class="control-button" id="decoupleBtn">🔓 Decouple</button>
-            <button class="control-button" id="timeScaleBtn">⏱️ Tiempo: x1</button>
-            <button class="control-button" id="scaleBtn">🌍 Modo Simple</button>
-        </div>
-
-        <div id="orbitControls">
-            <button class="orbit-button" id="orbitIn">+</button>
-            <button class="orbit-button" id="orbitOut">−</button>
-        </div>
-
-        <div id="joystickContainer">
-            <div id="joystickBase">
-                <div id="joystickStick"></div>
-            </div>
-        </div>
-
-        <button id="togglePanelBtn">🛰️ Panel</button>
-
-        <div id="navigationPanel">
-            <h3>🌌 NAVEGACIÓN DEL SISTEMA SOLAR</h3>
-            <div id="planetList"></div>
-        </div>
-
-        <div id="infoModal">
-            <h2 id="infoTitle"></h2>
-            <div id="infoContent"></div>
-            <button id="closeInfo">CERRAR</button>
-        </div>
+<div id="ui">
+    <div id="statusPanel">
+        <h3>🚀 ESTADO</h3>
+        <div class="status-item">📍 <span id="currentLocation">Tierra</span></div>
+        <div class="status-item">🎯 <span id="travelStatus">En órbita</span></div>
+        <div class="status-item">⏱️ <span id="timeScale">Tiempo: x1</span></div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="exploracion.js"></script>
-    <script>
-        // Panel retráctil
-        const toggleBtn = document.getElementById('togglePanelBtn');
-        const navPanel = document.getElementById('navigationPanel');
-        toggleBtn.addEventListener('click', () => {
-            navPanel.classList.toggle('show');
-        });
-    </script>
+    <div id="controlsPanel">
+        <h3>⚙️ CONTROLES</h3>
+        <button class="control-button" id="decoupleBtn">🔓 Decouple</button>
+        <button class="control-button" id="timeScaleBtn">⏱️ Tiempo: x1</button>
+        <button class="control-button" id="scaleBtn">🌍 Modo Simple</button>
+    </div>
+
+    <div id="orbitControls">
+        <button class="orbit-button" id="orbitIn">+</button>
+        <button class="orbit-button" id="orbitOut">−</button>
+    </div>
+
+    <div id="joystickContainer">
+        <div id="joystickBase"><div id="joystickStick"></div></div>
+    </div>
+
+    <button id="togglePanelBtn">🛰️ Panel</button>
+
+    <div id="navigationPanel">
+        <h3>🌌 NAVEGACIÓN DEL SISTEMA SOLAR</h3>
+        <div id="planetList"></div>
+    </div>
+
+    <div id="infoModal">
+        <h2 id="infoTitle"></h2>
+        <div id="infoContent"></div>
+        <button id="closeInfo">CERRAR</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="exploracion.js"></script>
+<script>
+const toggleBtn = document.getElementById('togglePanelBtn');
+const navPanel = document.getElementById('navigationPanel');
+toggleBtn.addEventListener('click', () => {
+    navPanel.classList.toggle('show');
+});
+</script>
 </body>
 </html>
