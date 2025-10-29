@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simulación - Sistema Solar</title>
+<style>
+  :root{
+    --bg:#020613;
+    --panel: rgba(6,12,20,0.92);
+    --muted: #9fb;
+    --accent: #7ee;
+    --card: rgba(255,255,255,0.03);
+  }
+  html,body { height:100%; margin:0; background:var(--bg); color:var(--muted); font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+  #root { display:flex; height:100vh; overflow:hidden; }
+  canvas { flex:1; display:block; background: radial-gradient(circle at 20% 10%, #001022 0%, #000 40%); }
+  #sidebar {
+    width: 340px;
+    max-width: 42%;
+    background: var(--panel);
+    color:var(--muted);
+    padding:16px;
+    box-sizing:border-box;
+    border-left: 1px solid rgba(255,255,255,0.04);
+    overflow:auto;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  h1 { font-size:18px; margin:0 0 6px 0; color:var(--accent); }
+  .controls { display:flex; gap:8px; align-items:center; }
+  .speed-control { display:flex; flex-direction:column; gap:6px; }
+  input[type="range"] { width:100%; }
+  .list { display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+  .planet-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:10px;
+    padding:10px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    border:1px solid rgba(255,255,255,0.03);
+  }
+  .planet-thumb {
+    width:48px; height:48px; border-radius:50%; overflow:hidden; flex:0 0 48px;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(255,255,255,0.03);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.4);
+  }
+  .planet-meta { flex:1; display:flex; flex-direction:column; gap:4px; }
+  .planet-title { font-weight:600; color:#dff; font-size:14px; }
+  .planet-sub { font-size:12px; color:#9fb; }
+  .planet-actions { display:flex; gap:6px; align-items:center; }
+  .btn {
+    background:var(--card);
+    border:none;
+    color:var(--muted);
+    padding:6px 8px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset;
+  }
+  .btn.primary { background: linear-gradient(90deg,#067ea2, #1aa3d1); color:#fff; font-weight:600; }
+  .sat-list { margin-top:8px; display:flex; flex-direction:column; gap:6px; padding-left:56px; }
+  .small { font-size:12px; color:#88c; }
+  .footer { margin-top:auto; font-size:12px; color:#7fb; }
+  /* hover / subtle */
+  .planet-card:hover { transform: translateY(-2px); transition: transform 0.16s; box-shadow: 0 6px 18px rgba(2,10,20,0.6); }
+  .info-text { font-size:13px; color:#9fb; }
+  .speed-value { color:var(--accent); font-weight:700; }
+  /* responsive small screens */
+  @media (max-width:760px){
+    #sidebar { width: 46%; }
+  }
+</style>
+</head>
+<body>
+<div id="root">
+  <canvas id="canvas"></canvas>
+  <div id="sidebar">
+    <h1>Sistema Solar — Visualizador</h1>
+
+    <div class="controls">
+      <div class="speed-control" style="flex:1">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="small">Velocidad de viaje</div>
+          <div class="speed-value" id="speedValue">150 px/s</div>
+        </div>
+        <input id="speedSlider" type="range" min="40" max="1200" step="10" value="150" />
+      </div>
+    </div>
+
+    <div class="info-text">Haz clic en <strong>Viajar</strong> para que la nave inicie un trayecto hacia ese cuerpo. Pulsa <strong>?</strong> para ver info (marcado con <em>wiki</em>).</div>
+
+    <div style="height:6px"></div>
+
+    <div id="list" class="list"></div>
+
+    <div class="footer">Nave: orbita el cuerpo seleccionado cuando no viaja. Texturas desde <code>/constelacion/*.png</code>.</div>
+  </div>
+</div>
+
+<script>
+/* ---------------- DATA ----------------
+   Same bodies as before with extra flags:
+     - texture: filename (will attempt to load `/constelacion/<texture>`)
+     - hasAtmosphere: whether to draw atmosphere halo
+*/
+const BODIES = [
+  { id:'sun', name:'Sol', type:'star', radius: 696340, orbit:0, parent:null, color:'#ffdd66', texture:'sun.png' },
+
+  { id:'mercury', name:'Mercurio', type:'planet', radius: 2440, orbit: 0.387, parent:'sun', color:'#bdb6a6', texture:'mercury.png', hasAtmosphere:false },
+  { id:'venus', name:'Venus', type:'planet', radius: 6052, orbit: 0.723, parent:'sun', color:'#f2d6a1', texture:'venus.png', hasAtmosphere:true },
+  { id:'earth', name:'Tierra', type:'planet', radius: 6371, orbit: 1.000, parent:'sun', color:'#5fb8ff', texture:'earth.png', hasAtmosphere:true },
+  { id:'moon', name:'Luna', type:'moon', radius: 1737, orbit: 0.00257, parent:'earth', color:'#dcdcdc', texture:'moon.png', hasAtmosphere:false },
+
+  { id:'mars', name:'Marte', type:'planet', radius: 3389, orbit: 1.524, parent:'sun', color:'#ff7b5a', texture:'mars.png', hasAtmosphere:true },
+  { id:'phobos', name:'Fobos', type:'moon', radius:11.3, orbit: 0.0000628, parent:'mars', color:'#999', texture:'phobos.png', hasAtmosphere:false },
+  { id:'deimos', name:'Deimos', type:'moon', radius:6.2, orbit: 0.000156, parent:'mars', color:'#aab', texture:'deimos.png', hasAtmosphere:false },
+
+  { id:'jupiter', name:'Júpiter', type:'planet', radius:69911, orbit: 5.203, parent:'sun', color:'#e7bf9a', texture:'jupiter.png', hasAtmosphere:true },
+  { id:'io', name:'Io', type:'moon', radius:1821, orbit: 0.00282, parent:'jupiter', color:'#f2c07b', texture:'io.png', hasAtmosphere:false },
+  { id:'europa', name:'Europa', type:'moon', radius:1560, orbit: 0.00449, parent:'jupiter', color:'#cfe7ff', texture:'europa.png', hasAtmosphere:false },
+  { id:'ganymede', name:'Ganimedes', type:'moon', radius:2634, orbit: 0.00715, parent:'jupiter', color:'#d7c9b6', texture:'ganymede.png', hasAtmosphere:false },
+  { id:'callisto', name:'Calisto', type:'moon', radius:2410, orbit: 0.0126, parent:'jupiter', color:'#b8b6b0', texture:'callisto.png', hasAtmosphere:false },
+
+  { id:'saturn', name:'Saturno', type:'planet', radius:58232, orbit: 9.537, parent:'sun', color:'#f4e1b3', texture:'saturn.png', hasAtmosphere:true },
+  { id:'titan', name:'Titán', type:'moon', radius:2575, orbit: 0.00817, parent:'saturn', color:'#e0b57a', texture:'titan.png', hasAtmosphere:true },
+
+  { id:'uranus', name:'Urano', type:'planet', radius:25362, orbit: 19.191, parent:'sun', color:'#b7f0ff', texture:'uranus.png', hasAtmosphere:true },
+  { id:'titania', name:'Titania', type:'moon', radius:788, orbit: 0.00162, parent:'uranus', color:'#c3d', texture:'titania.png', hasAtmosphere:false },
+
+  { id:'neptune', name:'Neptuno', type:'planet', radius:24622, orbit: 30.07, parent:'sun', color:'#4da3ff', texture:'neptune.png', hasAtmosphere:true },
+  { id:'triton', name:'Tritón', type:'moon', radius:1353, orbit: 0.00036, parent:'neptune', color:'#d6e9ff', texture:'triton.png', hasAtmosphere:true },
+
+  { id:'pluto', name:'Plutón', type:'dwarf', radius:1188, orbit: 39.48, parent:'sun', color:'#c6a7b6', texture:'pluto.png', hasAtmosphere:false }
+];
+
+/* ---------- CONFIG / SCALE ---------- */
+const EARTH_ORBIT_PX = 220;
+const DISTANCE_SCALE = EARTH_ORBIT_PX;
+const OUTER_COMPRESSION = 0.45;
+const SIZE_SCALE = 0.012;
+const MIN_PLANET_RADIUS_PX = 3;
+const LABEL_FONT = "12px Arial";
+
+/* ---------- Canvas / Camera ---------- */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let DPR = Math.max(1, window.devicePixelRatio || 1);
+function resize(){ DPR = Math.max(1, window.devicePixelRatio || 1); canvas.width = Math.floor(canvas.clientWidth * DPR); canvas.height = Math.floor(canvas.clientHeight * DPR); ctx.setTransform(DPR,0,0,DPR,0,0); }
+window.addEventListener('resize', resize);
+
+/* ---------- Converters ---------- */
+function orbitToPx(au){ if(au<=6) return au * DISTANCE_SCALE; return 6*DISTANCE_SCALE + (au-6)*DISTANCE_SCALE*OUTER_COMPRESSION; }
+function sizeToPx(kmRadius){ return Math.max(MIN_PLANET_RADIUS_PX, Math.sqrt(kmRadius) * SIZE_SCALE); }
+
+/* ---------- Build bodies + load textures ---------- */
+const bodies = {};
+const textures = {}; // id -> Image or null
+(function initBodies(){
+  BODIES.forEach(b=>{
+    const orbitPx = b.orbit ? orbitToPx(b.orbit) : 0;
+    const radiusPx = sizeToPx(b.radius);
+    bodies[b.id] = {
+      ...b,
+      orbitPx,
+      radiusPx,
+      angle: Math.random()*Math.PI*2,
+      orbitSpeed: (b.orbit ? (0.01 / Math.sqrt(Math.max(0.2, b.orbit))) : 0),
+      position:{ x:0,y:0 },
+      textureImg: null
+    };
+  });
+  Object.values(bodies).forEach(b=>{ if (b.type==='moon') b.orbitSpeed *= 5; });
+
+  // load textures (path /constelacion/<texture>)
+  BODIES.forEach(b=>{
+    if (!b.texture) return;
+    const img = new Image();
+    img.src = '/constelacion/' + b.texture;
+    img.onload = ()=>{ bodies[b.id].textureImg = img; console.log('Texture loaded:', b.texture); };
+    img.onerror = ()=>{ bodies[b.id].textureImg = null; console.warn('Texture not found:', b.texture); };
+  });
+})();
+
+/* ---------- Ship state ---------- */
+const ship = {
+  position: { x:0, y:0 },
+  radius: 6,
+  color: '#7ff',
+  rotation: 0,
+  speedPxPerSec: 150,
+  traveling: false,
+  travelStart: 0,
+  travelDuration: 0,
+  travelFrom: null,
+  travelTo: null
+};
+
+/* ---------- Camera ---------- */
+const camera = { x:0, y:0, smooth:0.06 };
+
+/* ---------- Selection ---------- */
+let selectedBodyId = 'earth';
+const sidebarList = document.getElementById('list');
+
+/* ---------- Populate modern sidebar ---------- */
+function populateSidebar(){
+  sidebarList.innerHTML = '';
+  // planets (sun + planets + dwarf)
+  const planets = Object.values(bodies).filter(b=>b.type === 'planet' || b.type === 'dwarf' || b.type==='star').sort((a,b)=>a.orbit - b.orbit);
+  planets.forEach(p=>{
+    const card = document.createElement('div'); card.className = 'planet-card';
+    const thumb = document.createElement('div'); thumb.className='planet-thumb';
+    // draw small canvas for thumbnail: use img if present else colored circle
+    const tcanvas = document.createElement('canvas'); tcanvas.width = 64; tcanvas.height = 64;
+    const tctx = tcanvas.getContext('2d');
+    if (p.textureImg && p.textureImg.complete) {
+      // draw centered
+      tctx.drawImage(p.textureImg, 0, 0, 64, 64);
+    } else {
+      // simple circle
+      tctx.fillStyle = p.color || '#888'; tctx.beginPath(); tctx.arc(32,32,26,0,Math.PI*2); tctx.fill();
+    }
+    thumb.appendChild(tcanvas);
+
+    const meta = document.createElement('div'); meta.className='planet-meta';
+    const title = document.createElement('div'); title.className='planet-title'; title.textContent = p.name;
+    const sub = document.createElement('div'); sub.className='planet-sub'; sub.textContent = `${p.type} — ${Math.round(p.orbit || 0)} AU`;
+    meta.appendChild(title); meta.appendChild(sub);
+
+    const actions = document.createElement('div'); actions.className='planet-actions';
+    const travelBtn = document.createElement('button'); travelBtn.className='btn primary'; travelBtn.textContent='Viajar';
+    travelBtn.onclick = ()=>selectBody(p.id);
+    const infoBtn = document.createElement('button'); infoBtn.className='btn'; infoBtn.textContent='?';
+    infoBtn.onclick = ()=>alert('wiki'); // placeholder as requested
+    actions.appendChild(travelBtn); actions.appendChild(infoBtn);
+
+    card.appendChild(thumb); card.appendChild(meta); card.appendChild(actions);
+    sidebarList.appendChild(card);
+
+    // satellites list
+    const moons = Object.values(bodies).filter(m=>m.parent === p.id).sort((a,b)=>a.orbit - b.orbit);
+    if (moons.length){
+      const sl = document.createElement('div'); sl.className='sat-list';
+      moons.forEach(m=>{
+        const mcard = document.createElement('div'); mcard.style.display='flex'; mcard.style.justifyContent='space-between'; mcard.style.alignItems='center';
+        const mtitle = document.createElement('div'); mtitle.textContent = m.name; mtitle.style.fontSize='13px';
+        const mg = document.createElement('div'); mg.style.display='flex'; mg.style.gap='6px';
+        const mtravel = document.createElement('button'); mtravel.className='btn'; mtravel.textContent='Viajar'; mtravel.onclick = ()=>selectBody(m.id);
+        const minfo = document.createElement('button'); minfo.className='btn'; minfo.textContent='?'; minfo.onclick = ()=>alert('wiki');
+        mg.appendChild(mtravel); mg.appendChild(minfo);
+        mcard.appendChild(mtitle); mcard.appendChild(mg);
+        sl.appendChild(mcard);
+      });
+      sidebarList.appendChild(sl);
+    }
+  });
+  updateSidebarActive();
+}
+
+function updateSidebarActive(){
+  const cards = sidebarList.querySelectorAll('.planet-card');
+  cards.forEach(c=>{
+    const name = c.querySelector('.planet-title')?.textContent || '';
+    c.style.outline = (name === bodies[selectedBodyId].name) ? '2px solid rgba(120,200,255,0.12)' : 'none';
+  });
+}
+
+/* ---------- Selection & Travel logic ---------- */
+function getBodyWorldPosition(b){
+  return { x: b.position.x, y: b.position.y };
+}
+function distance(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.sqrt(dx*dx+dy*dy); }
+function lerp(a,b,t){ return a + (b-a)*t; }
+function easeInOut(t){ return t<0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; }
+
+function selectBody(id){
+  selectedBodyId = id;
+  updateSidebarActive();
+  const target = bodies[id];
+  if (!target) return;
+  const targetPos = getBodyWorldPosition(target);
+  const dist = distance(ship.position, targetPos);
+  const atDestination = dist < Math.max(target.radiusPx + 8, 18);
+  if (atDestination) {
+    ship.traveling = false; ship.travelFrom = null; ship.travelTo = null; return;
+  }
+  ship.traveling = true;
+  ship.travelFrom = { x: ship.position.x, y: ship.position.y };
+  ship.travelTo = { x: targetPos.x, y: targetPos.y };
+  const duration = Math.max(600, (dist / ship.speedPxPerSec) * 1000);
+  ship.travelStart = performance.now();
+  ship.travelDuration = duration;
+}
+
+/* ---------- Compute positions (orbits) ---------- */
+function computePositions(dtSec){
+  Object.values(bodies).forEach(b=>{ if (b.orbitPx>0) b.angle += b.orbitSpeed * dtSec; });
+  const sunPos = { x:0, y:0 };
+  Object.values(bodies).forEach(b=>{
+    if (b.id === 'sun'){ b.position.x = sunPos.x; b.position.y = sunPos.y; return; }
+    if (!b.parent || b.parent==='sun'){
+      const r = b.orbitPx;
+      b.position.x = sunPos.x + Math.cos(b.angle) * r;
+      b.position.y = sunPos.y + Math.sin(b.angle) * r;
+    } else {
+      const parent = bodies[b.parent];
+      const r = b.orbitPx;
+      b.position.x = parent.position.x + Math.cos(b.angle) * r;
+      b.position.y = parent.position.y + Math.sin(b.angle) * r;
+    }
+  });
+}
+
+/* ---------- Ship update & orientation ---------- */
+function updateShip(dtSec){
+  if (ship.traveling && ship.travelFrom && ship.travelTo){
+    const now = performance.now();
+    const tRaw = (now - ship.travelStart) / ship.travelDuration;
+    const t = Math.min(1, tRaw);
+    const te = easeInOut(t);
+    ship.position.x = lerp(ship.travelFrom.x, ship.travelTo.x, te);
+    ship.position.y = lerp(ship.travelFrom.y, ship.travelTo.y, te);
+    // rotation faces travel direction
+    const dirx = ship.travelTo.x - ship.position.x;
+    const diry = ship.travelTo.y - ship.position.y;
+    ship.rotation = Math.atan2(diry, dirx);
+    if (t >= 1){
+      ship.traveling = false; ship.travelFrom = null; ship.travelTo = null;
+      const target = bodies[selectedBodyId];
+      const p = getBodyWorldPosition(target);
+      ship.position.x = p.x + (target.radiusPx + Math.max(8, ship.radius + 4));
+      ship.position.y = p.y;
+    }
+  } else {
+    // orbit around selected body smoothly; face direction of motion (tangent)
+    const target = bodies[selectedBodyId] || bodies['earth'];
+    const tNow = performance.now() * 0.0002;
+    const radius = Math.max(target.radiusPx + 16, target.radiusPx * 3 + 12);
+    const nextT = tNow + 0.02;
+    const xNow = target.position.x + Math.cos(tNow) * radius;
+    const yNow = target.position.y + Math.sin(tNow) * radius;
+    const xNext = target.position.x + Math.cos(nextT) * radius;
+    const yNext = target.position.y + Math.sin(nextT) * radius;
+    ship.position.x = xNow; ship.position.y = yNow;
+    ship.rotation = Math.atan2(yNext - yNow, xNext - xNow);
+  }
+}
+
+/* ---------- Camera ---------- */
+function updateCamera(){ camera.x += (ship.position.x - camera.x) * camera.smooth; camera.y += (ship.position.y - camera.y) * camera.smooth; }
+function worldToScreen(x,y){ const cx = canvas.clientWidth/2; const cy = canvas.clientHeight/2; return { x: cx + (x - camera.x), y: cy + (y - camera.y) }; }
+
+/* ---------- Rendering (textures, atmospheres) ---------- */
+function draw(){
+  ctx.clearRect(0,0,canvas.clientWidth, canvas.clientHeight);
+  drawStarfield();
+  // draw orbits sun-centered
+  const orbitOrder = Object.values(bodies).filter(b=>b.orbitPx>0 && (!b.parent || b.parent==='sun')).sort((a,b)=>a.orbitPx - b.orbitPx);
+  orbitOrder.forEach(o=> drawOrbit(o));
+  // moon orbits
+  Object.values(bodies).filter(b=>b.type==='moon').forEach(m=> drawOrbit(m, true));
+  // draw sun then planets then moons
+  const drawOrder = ['sun'].concat(Object.values(bodies).filter(b=>b.type==='planet' || b.type==='dwarf').sort((a,b)=>a.orbit - b.orbit).map(x=>x.id)).concat(Object.values(bodies).filter(b=>b.type==='moon').map(x=>x.id));
+  drawOrder.forEach(id=> drawBody(bodies[id]));
+  drawShip();
+  // labels
+  Object.values(bodies).forEach(b=> drawLabel(b));
+  drawHUD();
+}
+
+function drawStarfield(){
+  ctx.save(); ctx.globalAlpha = 0.12;
+  const cx = canvas.clientWidth/2, cy = canvas.clientHeight/2;
+  for (let i=0;i<90;i++){
+    const angle = (i*37.1 + performance.now()*0.00002) % (Math.PI*2);
+    const r = (i*17) % Math.max(canvas.clientWidth, canvas.clientHeight);
+    const sx = cx + Math.cos(angle)*(r*0.35) - (camera.x*0.0006*(i%3));
+    const sy = cy + Math.sin(angle)*(r*0.2) - (camera.y*0.0006*(i%3));
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fillRect(sx%canvas.clientWidth, sy%canvas.clientHeight, 1.2, 1.2);
+  }
+  ctx.restore();
+}
+
+function drawOrbit(b, isMoon=false){
+  if (b.orbitPx <= 0) return;
+  const center = (isMoon && b.parent) ? bodies[b.parent].position : {x:0,y:0};
+  const screen = worldToScreen(center.x, center.y);
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(180,220,255,0.06)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2,6]);
+  const r = b.orbitPx;
+  ctx.ellipse(screen.x, screen.y, r, r*0.6, 0, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawBody(b){
+  const pos = worldToScreen(b.position.x, b.position.y);
+  // sun glow
+  if (b.id === 'sun'){
+    ctx.save();
+    const glowR = Math.max(80, b.radiusPx*6);
+    const g = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, glowR);
+    g.addColorStop(0, 'rgba(255,220,120,0.45)');
+    g.addColorStop(0.3, 'rgba(255,190,80,0.06)');
+    g.addColorStop(1, 'rgba(255,190,80,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(pos.x,pos.y, glowR,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // Draw textured or solid body with clipping
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, b.radiusPx, 0, Math.PI*2);
+  ctx.closePath();
+  ctx.clip();
+
+  if (b.textureImg && b.textureImg.complete){
+    // draw image centered and scaled to cover circle
+    const img = b.textureImg;
+    // drawImage(img, sx, sy, sw, sh) scaled to circle diameter
+    try {
+      ctx.drawImage(img, pos.x - b.radiusPx, pos.y - b.radiusPx, b.radiusPx*2, b.radiusPx*2);
+    } catch(e){
+      ctx.fillStyle = b.color || '#888'; ctx.beginPath(); ctx.arc(pos.x,pos.y,b.radiusPx,0,Math.PI*2); ctx.fill();
+    }
+  } else {
+    ctx.fillStyle = b.color || '#888';
+    ctx.beginPath(); ctx.arc(pos.x,pos.y,b.radiusPx,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+
+  // subtle shading / rim
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.fillStyle = 'rgba(0,0,0,0.06)';
+  ctx.beginPath(); ctx.ellipse(pos.x - b.radiusPx*0.32, pos.y - b.radiusPx*0.32, b.radiusPx*0.9, b.radiusPx*0.9, 0, 0, Math.PI*2); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.restore();
+
+  // atmosphere halo if applicable
+  if (b.hasAtmosphere){
+    ctx.save();
+    const haloR = b.radiusPx * 1.9;
+    const grad = ctx.createRadialGradient(pos.x, pos.y, b.radiusPx*0.6, pos.x, pos.y, haloR);
+    grad.addColorStop(0, 'rgba(120,200,255,0.12)');
+    grad.addColorStop(0.6, 'rgba(120,200,255,0.04)');
+    grad.addColorStop(1, 'rgba(120,200,255,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, haloR, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // outline
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 0.6;
+  ctx.arc(pos.x, pos.y, b.radiusPx, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawShip(){
+  const p = worldToScreen(ship.position.x, ship.position.y);
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(ship.rotation);
+  // engine glow
+  ctx.beginPath();
+  ctx.fillStyle = 'rgba(0,200,255,0.08)';
+  ctx.ellipse(-ship.radius*1.8, 0, ship.radius*1.8, ship.radius*0.9, 0, 0, Math.PI*2);
+  ctx.fill();
+  // body
+  ctx.beginPath();
+  ctx.fillStyle = ship.color;
+  ctx.moveTo(ship.radius,0);
+  ctx.lineTo(-ship.radius, -ship.radius*0.7);
+  ctx.lineTo(-ship.radius, ship.radius*0.7);
+  ctx.closePath();
+  ctx.fill();
+  // cockpit
+  ctx.beginPath();
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.arc(ship.radius*0.2, 0, Math.max(1.6, ship.radius*0.45), 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawLabel(b){
+  const p = worldToScreen(b.position.x, b.position.y);
+  ctx.save();
+  ctx.font = LABEL_FONT;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(220,240,255,0.92)';
+  ctx.fillText(b.name, p.x, p.y - b.radiusPx - 8);
+  if (b.id === selectedBodyId){
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(120,200,255,0.18)';
+    ctx.lineWidth = 2;
+    ctx.arc(p.x, p.y, b.radiusPx + 6, 0, Math.PI*2);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawHUD(){
+  ctx.save();
+  ctx.font = "13px Arial";
+  ctx.fillStyle = 'rgba(180,240,255,0.86)';
+  ctx.fillText(`Seleccionado: ${bodies[selectedBodyId]?.name || '—'}`, 12, 20);
+  ctx.fillText(`Modo: ${ship.traveling ? 'Viajando' : 'Orbitando'}`, 12, 38);
+  ctx.fillText(`Pos: ${Math.round(ship.position.x)}, ${Math.round(ship.position.y)}`, 12, 56);
+  ctx.fillStyle = 'rgba(170,210,255,0.48)';
+  ctx.font = "12px Arial";
+  ctx.fillText('Pulsa ? en la lista para ver info (placeholder "wiki").', 12, canvas.clientHeight - 12);
+  ctx.restore();
+}
+
+/* ---------- Main loop ---------- */
+let lastTS = performance.now();
+function tick(ts){
+  const dt = Math.min(40, ts - lastTS); const dtSec = dt/1000; lastTS = ts;
+  computePositions(dtSec);
+  updateShip(dtSec);
+  updateCamera();
+  draw();
+  requestAnimationFrame(tick);
+}
+
+/* ---------- Init & UI bindings ---------- */
+function init(){
+  function fit(){ canvas.style.width = (window.innerWidth - document.getElementById('sidebar').offsetWidth) + 'px'; canvas.style.height = window.innerHeight + 'px'; resize(); }
+  window.addEventListener('resize', fit); fit();
+
+  computePositions(0.016);
+  const initial = bodies[selectedBodyId];
+  ship.position.x = initial.position.x + initial.radiusPx + 60;
+  ship.position.y = initial.position.y;
+
+  populateSidebar();
+
+  // Slider
+  const speedSlider = document.getElementById('speedSlider');
+  const speedValue = document.getElementById('speedValue');
+  speedSlider.addEventListener('input', (e)=>{
+    const v = Number(e.target.value);
+    ship.speedPxPerSec = v;
+    speedValue.textContent = `${v} px/s`;
+  });
+  speedValue.textContent = `${ship.speedPxPerSec} px/s`;
+
+  // double click to select nearest body or pan
+  canvas.addEventListener('dblclick', (e)=>{
+    const rect = canvas.getBoundingClientRect();
+    const sx = (e.clientX - rect.left);
+    const sy = (e.clientY - rect.top);
+    const worldX = (sx - canvas.clientWidth/2) + camera.x;
+    const worldY = (sy - canvas.clientHeight/2) + camera.y;
+    let nearest = null, nd = 1e9;
+    Object.values(bodies).forEach(b=>{
+      const d = Math.hypot(b.position.x - worldX, b.position.y - worldY);
+      if (d < nd) { nd = d; nearest = b; }
+    });
+    if (nearest && nd < Math.max(nearest.radiusPx + 12, 30)) selectBody(nearest.id);
+    else { camera.x = lerp(camera.x, worldX, 0.25); camera.y = lerp(camera.y, worldY, 0.25); }
+  });
+
+  requestAnimationFrame(tick);
+}
+init();
+/* ensure layout sizing */
+setTimeout(()=>{ resize(); }, 50);
+</script>
+</body>
+</html>
