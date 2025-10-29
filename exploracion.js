@@ -70,7 +70,7 @@ let lastTouchPos = null;
 let cameraAngle = 0;
 let cameraHeight = 50;
 let cameraDistance = 100;
-let minCameraDistance = 30;
+let minCameraDistance = 10;
 let maxCameraDistance = 500;
 
 function initThreeJS() {
@@ -127,7 +127,6 @@ function initThreeJS() {
             
             cameraAngle -= deltaX * 0.01;
             cameraHeight += deltaY * 0.3;
-            cameraHeight = Math.max(20, Math.min(150, cameraHeight));
             
             lastMousePos = { x: e.clientX, y: e.clientY };
         }
@@ -510,7 +509,6 @@ function onTouchMove(e) {
 
         cameraAngle -= deltaX * 0.01;
         cameraHeight += deltaY * 0.3;
-        cameraHeight = Math.max(20, Math.min(150, cameraHeight));
 
         lastTouchPos = {
             x: e.touches[0].clientX,
