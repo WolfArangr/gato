@@ -70,6 +70,8 @@ let lastTouchPos = null;
 let cameraAngle = 0;
 let cameraHeight = 50;
 let cameraDistance = 100;
+let minCameraDistance = 30;
+let maxCameraDistance = 500;
 
 function initThreeJS() {
     scene = new THREE.Scene();
@@ -98,6 +100,48 @@ function initThreeJS() {
     canvas.addEventListener('touchmove', onTouchMove, { passive: false });
     canvas.addEventListener('touchend', onTouchEnd, { passive: false });
     canvas.addEventListener('click', onMouseClick);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    
+    // Controles de zoom
+    document.getElementById('zoomIn').addEventListener('click', () => {
+        cameraDistance = Math.max(minCameraDistance, cameraDistance - 20);
+    });
+    
+    document.getElementById('zoomOut').addEventListener('click', () => {
+        cameraDistance = Math.min(maxCameraDistance, cameraDistance + 20);
+    });
+    
+    // Soporte para mouse drag
+    let isDragging = false;
+    let lastMousePos = null;
+    
+    canvas.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        lastMousePos = { x: e.clientX, y: e.clientY };
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        if (isDragging && lastMousePos) {
+            const deltaX = e.clientX - lastMousePos.x;
+            const deltaY = e.clientY - lastMousePos.y;
+            
+            cameraAngle -= deltaX * 0.01;
+            cameraHeight += deltaY * 0.3;
+            cameraHeight = Math.max(20, Math.min(150, cameraHeight));
+            
+            lastMousePos = { x: e.clientX, y: e.clientY };
+        }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+        isDragging = false;
+        lastMousePos = null;
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+        isDragging = false;
+        lastMousePos = null;
+    });
 }
 
 function createStarfield() {
@@ -516,6 +560,12 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+function onWheel(e) {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 20 : -20;
+    cameraDistance = Math.max(minCameraDistance, Math.min(maxCameraDistance, cameraDistance + delta));
+}
+
 // ==================== NAVEGACIÓN ====================
 function travelToPlanet(planetName) {
     if (!planets[planetName]) return;
@@ -584,7 +634,6 @@ function renderPlanetList() {
     const planetList = document.getElementById('planetList');
     planetList.innerHTML = '';
 
-    // Planetas principales
     const mainPlanets = ['mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
 
     mainPlanets.forEach(planetKey => {
@@ -596,50 +645,85 @@ function renderPlanetList() {
 
         const isCurrent = state.currentPlanet === planetKey;
 
-        const planetBtn = document.createElement('button');
-        planetBtn.className = 'planet-button' + (isCurrent ? ' current' : '');
-        planetBtn.innerHTML = `🪐 ${planetInfo.name}`;
-        planetBtn.onclick = () => travelToPlanet(planetKey);
+        // Cabecera del planeta
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'planet-header';
 
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'planet-name' + (isCurrent ? ' current' : '');
+        nameDiv.innerHTML = `🪐 ${planetInfo.name}`;
+
+        // Botón de viajar
+        const travelBtn = document.createElement('button');
+        travelBtn.className = 'action-button travel';
+        travelBtn.textContent = '🚀';
+        travelBtn.title = 'Viajar';
+        travelBtn.onclick = () => travelToPlanet(planetKey);
+
+        // Botón de info
         const infoBtn = document.createElement('button');
-        infoBtn.className = 'info-button';
+        infoBtn.className = 'action-button info';
         infoBtn.textContent = '?';
-        infoBtn.onclick = (e) => {
-            e.stopPropagation();
-            showInfo(planetKey);
-        };
+        infoBtn.title = 'Información';
+        infoBtn.onclick = () => showInfo(planetKey);
 
-        groupDiv.appendChild(planetBtn);
-        groupDiv.appendChild(infoBtn);
+        headerDiv.appendChild(nameDiv);
+        headerDiv.appendChild(travelBtn);
+        headerDiv.appendChild(infoBtn);
 
-        // Lunas
+        // Botón de toggle lunas (si tiene)
         if (planetData.moons && planetData.moons.length > 0) {
-            const moonDiv = document.createElement('div');
-            moonDiv.className = 'moon-buttons';
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'action-button toggle';
+            toggleBtn.textContent = `🌙 ${planetData.moons.length}`;
+            toggleBtn.title = 'Mostrar/Ocultar lunas';
+            toggleBtn.onclick = (e) => {
+                e.stopPropagation();
+                const moonList = groupDiv.querySelector('.moon-list');
+                moonList.classList.toggle('show');
+                toggleBtn.classList.toggle('active');
+            };
+            headerDiv.appendChild(toggleBtn);
+        }
+
+        groupDiv.appendChild(headerDiv);
+
+        // Lista de lunas
+        if (planetData.moons && planetData.moons.length > 0) {
+            const moonListDiv = document.createElement('div');
+            moonListDiv.className = 'moon-list';
 
             planetData.moons.forEach(moonKey => {
                 const moonInfo = PLANET_INFO[moonKey];
-                const moonBtn = document.createElement('button');
-                moonBtn.className = 'moon-button planet-button';
-                if (state.currentPlanet === moonKey) {
-                    moonBtn.classList.add('current');
-                }
-                moonBtn.innerHTML = `🌙 ${moonInfo.name}`;
-                moonBtn.onclick = () => travelToPlanet(moonKey);
+                const isMoonCurrent = state.currentPlanet === moonKey;
+
+                const moonItem = document.createElement('div');
+                moonItem.className = 'moon-item';
+
+                const moonName = document.createElement('div');
+                moonName.className = 'moon-name' + (isMoonCurrent ? ' current' : '');
+                moonName.innerHTML = `🌙 ${moonInfo.name}`;
+
+                const moonTravelBtn = document.createElement('button');
+                moonTravelBtn.className = 'action-button travel';
+                moonTravelBtn.textContent = '🚀';
+                moonTravelBtn.title = 'Viajar';
+                moonTravelBtn.onclick = () => travelToPlanet(moonKey);
 
                 const moonInfoBtn = document.createElement('button');
-                moonInfoBtn.className = 'info-button';
+                moonInfoBtn.className = 'action-button info';
                 moonInfoBtn.textContent = '?';
-                moonInfoBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    showInfo(moonKey);
-                };
+                moonInfoBtn.title = 'Información';
+                moonInfoBtn.onclick = () => showInfo(moonKey);
 
-                moonDiv.appendChild(moonBtn);
-                moonDiv.appendChild(moonInfoBtn);
+                moonItem.appendChild(moonName);
+                moonItem.appendChild(moonTravelBtn);
+                moonItem.appendChild(moonInfoBtn);
+
+                moonListDiv.appendChild(moonItem);
             });
 
-            groupDiv.appendChild(moonDiv);
+            groupDiv.appendChild(moonListDiv);
         }
 
         planetList.appendChild(groupDiv);
