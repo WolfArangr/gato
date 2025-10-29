@@ -1,7 +1,7 @@
 // ==================== CONFIGURACIÓN GLOBAL ====================
 const GAME_CONFIG = {
     // Tiempo: 1 minuto real = 1 día del juego
-    TIME_SCALE: 36000, // Segundos por frame para completar un día
+    TIME_SCALE: 60, // Segundos por frame para completar un día
     YEAR_DAYS: 365,
     
     // Órbitas realistas (en unidades arbitrarias para visualización)
