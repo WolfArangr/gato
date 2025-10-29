@@ -2,13 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Explorador Espacial - Gestión y Aventuras</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -16,12 +25,17 @@
             overflow: hidden;
             background: #000;
             color: #0f0;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
         }
         
         #gameCanvas {
             display: block;
             width: 100vw;
             height: 100vh;
+            touch-action: none;
         }
         
         #ui {
@@ -35,49 +49,65 @@
         
         .panel {
             position: absolute;
-            background: rgba(0, 20, 40, 0.85);
+            background: rgba(0, 20, 40, 0.9);
             border: 2px solid #00ffff;
-            padding: 15px;
+            padding: 10px;
             pointer-events: all;
             backdrop-filter: blur(5px);
+            font-size: 11px;
+            max-height: 40vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         #resourcePanel {
-            top: 20px;
-            left: 20px;
-            min-width: 280px;
+            top: 10px;
+            left: 10px;
+            width: calc(50% - 15px);
+            max-width: 280px;
         }
         
         #missionPanel {
-            top: 20px;
-            right: 20px;
-            min-width: 300px;
+            top: 10px;
+            right: 10px;
+            width: calc(50% - 15px);
+            max-width: 280px;
         }
         
         #controlPanel {
-            bottom: 20px;
-            left: 20px;
-            min-width: 350px;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            max-width: 100%;
         }
         
         #marketPanel {
-            bottom: 20px;
-            right: 20px;
-            min-width: 300px;
-            max-height: 400px;
-            overflow-y: auto;
+            display: none;
+        }
+        
+        #marketPanel.show {
+            display: block;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            max-height: 70vh;
+            z-index: 999;
         }
         
         .panel h3 {
             color: #00ffff;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-shadow: 0 0 10px #00ffff;
             border-bottom: 1px solid #00ffff;
-            padding-bottom: 5px;
+            padding-bottom: 3px;
+            font-size: 13px;
         }
         
         .resource-item, .mission-item {
-            margin: 8px 0;
+            margin: 6px 0;
             padding: 5px;
             background: rgba(0, 255, 255, 0.1);
             border-left: 3px solid #0f0;
@@ -85,7 +115,7 @@
         
         .resource-bar {
             width: 100%;
-            height: 8px;
+            height: 6px;
             background: #001a33;
             border: 1px solid #00ffff;
             margin-top: 3px;
@@ -102,18 +132,20 @@
             background: #003366;
             color: #00ffff;
             border: 2px solid #00ffff;
-            padding: 8px 15px;
-            margin: 5px 5px 5px 0;
+            padding: 10px 12px;
+            margin: 3px;
             cursor: pointer;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
             transition: all 0.2s;
+            touch-action: manipulation;
+            min-height: 44px;
         }
         
-        button:hover {
+        button:active {
             background: #00ffff;
             color: #000;
-            box-shadow: 0 0 15px #00ffff;
+            transform: scale(0.95);
         }
         
         button:disabled {
@@ -126,10 +158,11 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 20, 40, 0.95);
+            background: rgba(0, 20, 40, 0.98);
             border: 3px solid #0f0;
-            padding: 30px;
-            min-width: 400px;
+            padding: 20px;
+            width: 90%;
+            max-width: 350px;
             text-align: center;
             display: none;
             pointer-events: all;
@@ -154,8 +187,8 @@
         }
         
         .market-item {
-            margin: 10px 0;
-            padding: 10px;
+            margin: 8px 0;
+            padding: 8px;
             background: rgba(0, 100, 150, 0.2);
             border: 1px solid #00ffff;
         }
@@ -178,7 +211,8 @@
         }
         
         #loadingBar {
-            width: 300px;
+            width: 80%;
+            max-width: 300px;
             height: 30px;
             border: 2px solid #00ffff;
             margin-top: 20px;
@@ -193,7 +227,7 @@
         
         .stat-label {
             color: #00ffff;
-            font-size: 11px;
+            font-size: 10px;
         }
         
         .stat-value {
@@ -203,14 +237,79 @@
         
         #timeDisplay {
             position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 20, 40, 0.85);
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: rgba(0, 20, 40, 0.9);
             border: 2px solid #00ffff;
-            padding: 10px 20px;
+            padding: 8px;
             pointer-events: none;
             text-align: center;
+            font-size: 10px;
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+        
+        .button-full {
+            grid-column: 1 / -1;
+        }
+        
+        #marketToggle {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #003366;
+            border: 3px solid #00ffff;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: all;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        
+        #marketToggle:active {
+            transform: scale(0.9);
+        }
+        
+        #closeMarket {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            min-height: 40px;
+            padding: 5px;
+        }
+        
+        .control-info {
+            margin-top: 8px;
+            font-size: 9px;
+            color: #0ff;
+            text-align: center;
+        }
+        
+        @media (max-width: 600px) {
+            .panel {
+                font-size: 10px;
+            }
+            
+            .panel h3 {
+                font-size: 11px;
+            }
+            
+            button {
+                font-size: 10px;
+                padding: 8px 10px;
+            }
         }
     </style>
 </head>
@@ -218,15 +317,17 @@
     <canvas id="gameCanvas"></canvas>
     
     <div id="loadingScreen">
-        <h1 style="color: #00ffff; text-shadow: 0 0 20px #00ffff;">EXPLORADOR ESPACIAL</h1>
-        <p style="color: #0f0; margin-top: 10px;">Cargando sistemas...</p>
+        <h1 style="color: #00ffff; text-shadow: 0 0 20px #00ffff; font-size: 24px;">EXPLORADOR ESPACIAL</h1>
+        <p style="color: #0f0; margin-top: 10px; font-size: 12px;">Cargando sistemas...</p>
         <div id="loadingBar"><div id="loadingFill"></div></div>
     </div>
     
     <div id="ui">
         <div id="timeDisplay">
-            <div class="stat-label">DÍA ESPACIAL</div>
+            <div class="stat-label">DÍA</div>
             <div class="stat-value" id="dayCounter">1</div>
+            <div class="stat-label" style="margin-top: 5px;">AÑO</div>
+            <div class="stat-value" id="yearCounter">1</div>
         </div>
         
         <div id="resourcePanel" class="panel">
@@ -235,31 +336,33 @@
         </div>
         
         <div id="missionPanel" class="panel">
-            <h3>🎯 MISIÓN ACTUAL</h3>
+            <h3>🎯 ESTADO</h3>
             <div id="missionInfo"></div>
-            <div style="margin-top: 15px;">
-                <h3 style="font-size: 14px;">🚀 NAVE</h3>
+            <div style="margin-top: 10px;">
+                <h3 style="font-size: 12px;">🚀 NAVE</h3>
                 <div id="shipInfo"></div>
             </div>
         </div>
         
         <div id="controlPanel" class="panel">
-            <h3>🎮 CONTROLES</h3>
-            <div id="controlButtons"></div>
-            <div style="margin-top: 10px; font-size: 11px; color: #0ff;">
-                <div>🖱️ Click: Seleccionar planeta</div>
-                <div>🔄 Arrastrar: Rotar cámara</div>
+            <h3>🎮 ACCIONES</h3>
+            <div id="controlButtons" class="button-grid"></div>
+            <div class="control-info">
+                👆 Toca para rotar cámara • 🪐 Toca planetas para seleccionar
             </div>
         </div>
         
+        <button id="marketToggle" onclick="toggleMarket()">💰</button>
+        
         <div id="marketPanel" class="panel">
+            <button id="closeMarket" onclick="toggleMarket()">✕</button>
             <h3>💰 MERCADO GALÁCTICO</h3>
             <div id="marketList"></div>
         </div>
         
         <div id="notification">
-            <h2 id="notifTitle" style="color: #00ffff; margin-bottom: 15px;"></h2>
-            <p id="notifText" style="color: #0f0; margin-bottom: 20px;"></p>
+            <h2 id="notifTitle" style="color: #00ffff; margin-bottom: 15px; font-size: 16px;"></h2>
+            <p id="notifText" style="color: #0f0; margin-bottom: 20px; font-size: 12px;"></p>
             <button id="notifBtn">ACEPTAR</button>
         </div>
     </div>
