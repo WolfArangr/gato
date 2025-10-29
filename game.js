@@ -6,16 +6,16 @@ const GAME_CONFIG = {
     
     // Órbitas realistas (en unidades arbitrarias para visualización)
     ORBITS: {
-        EARTH: { distance: 150, speed: 1, eccentricity: 0.017 }, // 365 días
-        MOON: { distance: 15, speed: 12.37, eccentricity: 0.055 }, // ~27 días
-        MARS: { distance: 228, speed: 0.532, eccentricity: 0.093 }, // 687 días
-        VENUS: { distance: 108, speed: 1.626, eccentricity: 0.007 }, // 225 días
-        JUPITER: { distance: 520, speed: 0.084, eccentricity: 0.048 }, // 4333 días
+        EARTH: { distance: 150, speed: 0.1, eccentricity: 0.017 }, // 365 días
+        MOON: { distance: 15, speed: 1.237, eccentricity: 0.055 }, // ~27 días
+        MARS: { distance: 228, speed: 0.0532, eccentricity: 0.093 }, // 687 días
+        VENUS: { distance: 108, speed: 0.1626, eccentricity: 0.007 }, // 225 días
+        JUPITER: { distance: 520, speed: 0.0084, eccentricity: 0.048 }, // 4333 días
     },
     
     // Tamaños para visualización
     SIZES: {
-        SUN: 60,
+        SUN: 40,
         EARTH: 6,
         MOON: 2,
         MARS: 3,
