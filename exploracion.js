@@ -1,7 +1,7 @@
-// exploracion.js - Sistema Solar Simplificado
+// exploracion.js - Sistema Solar Mejorado
 
 // ==================== CONFIGURACIÓN GLOBAL ====================
-const SOLAR_SYSTEM = {
+const SOLAR_SYSTEM_SIMPLE = {
     sun: { distance: 0, size: 40, texture: 'estrella.png', color: 0xffffaa, moons: [] },
     mercury: { distance: 580, size: 2.4, texture: 'planeta3.png', color: 0x8c7853, speed: 0.241, moons: [] },
     venus: { distance: 1080, size: 6, texture: 'luna5.png', color: 0xffc649, speed: 0.1626, moons: [] },
@@ -26,29 +26,55 @@ const SOLAR_SYSTEM = {
     triton: { distance: 55, size: 1.3, texture: 'luna3.png', color: 0x99ccff, speed: 0.7, parent: 'neptune' }
 };
 
+// Escala realista (distancias en millones de km / 10, tamaños en km / 100)
+const SOLAR_SYSTEM_REALISTIC = {
+    sun: { distance: 0, size: 6.96, texture: 'estrella.png', color: 0xffffaa, moons: [] },
+    mercury: { distance: 5791, size: 0.024, texture: 'planeta3.png', color: 0x8c7853, speed: 0.241, moons: [] },
+    venus: { distance: 10820, size: 0.061, texture: 'luna5.png', color: 0xffc649, speed: 0.1626, moons: [] },
+    earth: { distance: 14960, size: 0.064, texture: 'planeta1.png', color: 0x2233ff, speed: 0.1, moons: ['moon'] },
+    moon: { distance: 3.844, size: 0.017, texture: 'luna1.png', color: 0xaaaaaa, speed: 1.237, parent: 'earth' },
+    mars: { distance: 22794, size: 0.034, texture: 'planeta2.png', color: 0xdc4c3c, speed: 0.0532, moons: ['phobos', 'deimos'] },
+    phobos: { distance: 0.094, size: 0.0001, texture: 'luna1.png', color: 0x998877, speed: 2.5, parent: 'mars' },
+    deimos: { distance: 0.234, size: 0.00006, texture: 'luna1.png', color: 0xaa9988, speed: 1.8, parent: 'mars' },
+    jupiter: { distance: 77857, size: 0.699, texture: 'luna2.png', color: 0xc88b3a, speed: 0.0084, moons: ['io', 'europa', 'ganymede', 'callisto'] },
+    io: { distance: 4.218, size: 0.018, texture: 'luna4.png', color: 0xffff00, speed: 0.8, parent: 'jupiter' },
+    europa: { distance: 6.711, size: 0.016, texture: 'luna3.png', color: 0xccddff, speed: 0.6, parent: 'jupiter' },
+    ganymede: { distance: 10.704, size: 0.026, texture: 'luna1.png', color: 0x998866, speed: 0.4, parent: 'jupiter' },
+    callisto: { distance: 18.827, size: 0.024, texture: 'luna1.png', color: 0x776655, speed: 0.3, parent: 'jupiter' },
+    saturn: { distance: 142672, size: 0.583, texture: 'planeta3.png', color: 0xfad5a5, speed: 0.0034, moons: ['titan', 'rhea', 'iapetus'] },
+    titan: { distance: 12.218, size: 0.026, texture: 'luna5.png', color: 0xffaa66, speed: 0.5, parent: 'saturn' },
+    rhea: { distance: 5.271, size: 0.008, texture: 'luna1.png', color: 0xaaaaaa, speed: 0.7, parent: 'saturn' },
+    iapetus: { distance: 35.61, size: 0.007, texture: 'luna1.png', color: 0x666666, speed: 0.3, parent: 'saturn' },
+    uranus: { distance: 287099, size: 0.254, texture: 'luna3.png', color: 0x4fd0e8, speed: 0.0012, moons: ['titania', 'oberon'] },
+    titania: { distance: 4.359, size: 0.008, texture: 'luna1.png', color: 0x99bbcc, speed: 0.6, parent: 'uranus' },
+    oberon: { distance: 5.835, size: 0.008, texture: 'luna1.png', color: 0x8899aa, speed: 0.5, parent: 'uranus' },
+    neptune: { distance: 449504, size: 0.246, texture: 'luna2.png', color: 0x4169e1, speed: 0.0006, moons: ['triton'] },
+    triton: { distance: 3.548, size: 0.014, texture: 'luna3.png', color: 0x99ccff, speed: 0.7, parent: 'neptune' }
+};
+
 const PLANET_INFO = {
-    sun: { name: 'Sol', info: 'wiki' },
-    mercury: { name: 'Mercurio', info: 'wiki' },
-    venus: { name: 'Venus', info: 'wiki' },
-    earth: { name: 'Tierra', info: 'wiki' },
-    moon: { name: 'Luna', info: 'wiki' },
-    mars: { name: 'Marte', info: 'wiki' },
-    phobos: { name: 'Fobos', info: 'wiki' },
-    deimos: { name: 'Deimos', info: 'wiki' },
-    jupiter: { name: 'Júpiter', info: 'wiki' },
-    io: { name: 'Ío', info: 'wiki' },
-    europa: { name: 'Europa', info: 'wiki' },
-    ganymede: { name: 'Ganimedes', info: 'wiki' },
-    callisto: { name: 'Calisto', info: 'wiki' },
-    saturn: { name: 'Saturno', info: 'wiki' },
-    titan: { name: 'Titán', info: 'wiki' },
-    rhea: { name: 'Rea', info: 'wiki' },
-    iapetus: { name: 'Jápeto', info: 'wiki' },
-    uranus: { name: 'Urano', info: 'wiki' },
-    titania: { name: 'Titania', info: 'wiki' },
-    oberon: { name: 'Oberón', info: 'wiki' },
-    neptune: { name: 'Neptuno', info: 'wiki' },
-    triton: { name: 'Tritón', info: 'wiki' }
+    sun: { name: 'Sol', info: 'Estrella central del Sistema Solar, contiene el 99.86% de la masa total del sistema.' },
+    mercury: { name: 'Mercurio', info: 'El planeta más cercano al Sol y el más pequeño del Sistema Solar.' },
+    venus: { name: 'Venus', info: 'El planeta más caliente del Sistema Solar debido a su densa atmósfera de CO₂.' },
+    earth: { name: 'Tierra', info: 'Nuestro hogar, el único planeta conocido con vida.' },
+    moon: { name: 'Luna', info: 'El único satélite natural de la Tierra.' },
+    mars: { name: 'Marte', info: 'El planeta rojo, objetivo principal de la exploración espacial.' },
+    phobos: { name: 'Fobos', info: 'La luna más grande de Marte, con forma irregular.' },
+    deimos: { name: 'Deimos', info: 'La luna más pequeña de Marte.' },
+    jupiter: { name: 'Júpiter', info: 'El gigante gaseoso más grande del Sistema Solar.' },
+    io: { name: 'Ío', info: 'La luna más volcánicamente activa del Sistema Solar.' },
+    europa: { name: 'Europa', info: 'Luna con océano subsuperficial, candidata para vida extraterrestre.' },
+    ganymede: { name: 'Ganimedes', info: 'La luna más grande del Sistema Solar, mayor que Mercurio.' },
+    callisto: { name: 'Calisto', info: 'Una de las lunas galileanas de Júpiter.' },
+    saturn: { name: 'Saturno', info: 'Famoso por su espectacular sistema de anillos.' },
+    titan: { name: 'Titán', info: 'La única luna con atmósfera densa, contiene lagos de metano.' },
+    rhea: { name: 'Rea', info: 'La segunda luna más grande de Saturno.' },
+    iapetus: { name: 'Jápeto', info: 'Luna con dos caras: una clara y otra oscura.' },
+    uranus: { name: 'Urano', info: 'El gigante de hielo que rota de lado.' },
+    titania: { name: 'Titania', info: 'La luna más grande de Urano.' },
+    oberon: { name: 'Oberón', info: 'Una de las cinco lunas principales de Urano.' },
+    neptune: { name: 'Neptuno', info: 'El planeta más alejado del Sol, con los vientos más rápidos.' },
+    triton: { name: 'Tritón', info: 'Luna que orbita en dirección contraria a la rotación de Neptuno.' }
 };
 
 // ==================== ESTADO ====================
@@ -58,8 +84,16 @@ let state = {
     traveling: false,
     travelStartTime: null,
     travelDuration: 0,
-    travelOrigin: null
+    travelOrigin: null,
+    decoupled: false,
+    timeScale: 1, // 1, 60, 3600
+    realisticMode: false,
+    orbitDistance: 100,
+    minOrbitDistance: 20,
+    maxOrbitDistance: 500
 };
+
+let SOLAR_SYSTEM = SOLAR_SYSTEM_SIMPLE;
 
 // ==================== THREE.JS SETUP ====================
 let scene, camera, renderer;
@@ -69,14 +103,16 @@ let touchStartPos = null;
 let lastTouchPos = null;
 let cameraAngle = 0;
 let cameraHeight = 50;
-let cameraDistance = 100;
-let minCameraDistance = 10;
-let maxCameraDistance = 500;
+
+// Control manual
+let shipVelocity = new THREE.Vector3(0, 0, 0);
+let joystickActive = false;
+let joystickDelta = { x: 0, y: 0 };
 
 function initThreeJS() {
     scene = new THREE.Scene();
 
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 50000);
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000000);
     camera.position.set(100, 50, 100);
     camera.lookAt(0, 0, 0);
 
@@ -102,14 +138,27 @@ function initThreeJS() {
     canvas.addEventListener('click', onMouseClick);
     canvas.addEventListener('wheel', onWheel, { passive: false });
     
-    // Controles de zoom
-    document.getElementById('zoomIn').addEventListener('click', () => {
-        cameraDistance = Math.max(minCameraDistance, cameraDistance - 20);
+    // Controles de órbita
+    document.getElementById('orbitIn').addEventListener('click', () => {
+        if (!state.decoupled) {
+            state.orbitDistance = Math.max(state.minOrbitDistance, state.orbitDistance - 20);
+        }
     });
     
-    document.getElementById('zoomOut').addEventListener('click', () => {
-        cameraDistance = Math.min(maxCameraDistance, cameraDistance + 20);
+    document.getElementById('orbitOut').addEventListener('click', () => {
+        if (!state.decoupled) {
+            state.orbitDistance = Math.min(state.maxOrbitDistance, state.orbitDistance + 20);
+        }
     });
+    
+    // Botón Decouple
+    document.getElementById('decoupleBtn').addEventListener('click', toggleDecouple);
+    
+    // Botón escala de tiempo
+    document.getElementById('timeScaleBtn').addEventListener('click', cycleTimeScale);
+    
+    // Botón modo realista/simple
+    document.getElementById('scaleBtn').addEventListener('click', toggleScaleMode);
     
     // Soporte para mouse drag
     let isDragging = false;
@@ -125,8 +174,10 @@ function initThreeJS() {
             const deltaX = e.clientX - lastMousePos.x;
             const deltaY = e.clientY - lastMousePos.y;
             
-            cameraAngle -= deltaX * 0.01;
-            cameraHeight += deltaY * 0.3;
+            if (!state.decoupled) {
+                cameraAngle -= deltaX * 0.01;
+                cameraHeight += deltaY * 0.3;
+            }
             
             lastMousePos = { x: e.clientX, y: e.clientY };
         }
@@ -141,6 +192,122 @@ function initThreeJS() {
         isDragging = false;
         lastMousePos = null;
     });
+
+    // Joystick virtual
+    setupJoystick();
+}
+
+function setupJoystick() {
+    const joystickBase = document.getElementById('joystickBase');
+    const joystickStick = document.getElementById('joystickStick');
+    const joystickContainer = document.getElementById('joystickContainer');
+
+    let joystickCenter = { x: 0, y: 0 };
+
+    const updateJoystickCenter = () => {
+        const rect = joystickBase.getBoundingClientRect();
+        joystickCenter = {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+        };
+    };
+
+    joystickBase.addEventListener('touchstart', (e) => {
+        if (!state.decoupled) return;
+        e.preventDefault();
+        joystickActive = true;
+        updateJoystickCenter();
+    });
+
+    joystickBase.addEventListener('touchmove', (e) => {
+        if (!state.decoupled || !joystickActive) return;
+        e.preventDefault();
+
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - joystickCenter.x;
+        const deltaY = touch.clientY - joystickCenter.y;
+
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const maxDistance = 35;
+
+        let finalX = deltaX;
+        let finalY = deltaY;
+
+        if (distance > maxDistance) {
+            finalX = (deltaX / distance) * maxDistance;
+            finalY = (deltaY / distance) * maxDistance;
+        }
+
+        joystickStick.style.transform = `translate(calc(-50% + ${finalX}px), calc(-50% + ${finalY}px))`;
+
+        joystickDelta.x = finalX / maxDistance;
+        joystickDelta.y = finalY / maxDistance;
+    });
+
+    joystickBase.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        joystickActive = false;
+        joystickStick.style.transform = 'translate(-50%, -50%)';
+        joystickDelta = { x: 0, y: 0 };
+    });
+}
+
+function toggleDecouple() {
+    state.decoupled = !state.decoupled;
+    const btn = document.getElementById('decoupleBtn');
+    const joystick = document.getElementById('joystickContainer');
+    
+    if (state.decoupled) {
+        btn.textContent = '🔓 Decoupled';
+        btn.classList.add('active');
+        joystick.classList.add('show');
+        shipVelocity.set(0, 0, 0);
+    } else {
+        btn.textContent = '🔒 Coupled';
+        btn.classList.remove('active');
+        joystick.classList.remove('show');
+        shipVelocity.set(0, 0, 0);
+    }
+}
+
+function cycleTimeScale() {
+    const scales = [1, 60, 3600];
+    const currentIndex = scales.indexOf(state.timeScale);
+    const nextIndex = (currentIndex + 1) % scales.length;
+    state.timeScale = scales[nextIndex];
+    
+    const btn = document.getElementById('timeScaleBtn');
+    const labels = ['x1', 'x60', 'x3600'];
+    btn.textContent = `⏱️ Tiempo: ${labels[nextIndex]}`;
+    
+    updateUI();
+}
+
+function toggleScaleMode() {
+    state.realisticMode = !state.realisticMode;
+    const btn = document.getElementById('scaleBtn');
+    
+    if (state.realisticMode) {
+        btn.textContent = '🔬 Modo Realista';
+        SOLAR_SYSTEM = SOLAR_SYSTEM_REALISTIC;
+    } else {
+        btn.textContent = '🌍 Modo Simple';
+        SOLAR_SYSTEM = SOLAR_SYSTEM_SIMPLE;
+    }
+    
+    // Reconstruir sistema solar
+    Object.keys(planets).forEach(key => {
+        if (planets[key].mesh) {
+            scene.remove(planets[key].mesh);
+        }
+        if (planets[key].rings) {
+            scene.remove(planets[key].rings);
+        }
+    });
+    
+    planets = {};
+    createSolarSystem();
+    updateUI();
 }
 
 function createStarfield() {
@@ -149,9 +316,9 @@ function createStarfield() {
     const positions = new Float32Array(starCount * 3);
 
     for (let i = 0; i < starCount * 3; i += 3) {
-        positions[i] = (Math.random() - 0.5) * 50000;
-        positions[i + 1] = (Math.random() - 0.5) * 50000;
-        positions[i + 2] = (Math.random() - 0.5) * 50000;
+        positions[i] = (Math.random() - 0.5) * 500000;
+        positions[i + 1] = (Math.random() - 0.5) * 500000;
+        positions[i + 2] = (Math.random() - 0.5) * 500000;
     }
 
     starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -289,7 +456,7 @@ function createSolarSystem() {
     scene.add(sun);
     planets.sun = { mesh: sun, orbit: 0, angle: 0, speed: 0 };
 
-    const sunLight = new THREE.PointLight(0xffffee, 2, 50000);
+    const sunLight = new THREE.PointLight(0xffffee, 2, 500000);
     sunLight.position.set(0, 0, 0);
     scene.add(sunLight);
 
@@ -300,15 +467,13 @@ function createSolarSystem() {
         const body = SOLAR_SYSTEM[key];
         
         if (body.parent) {
-            // Es una luna
             createMoon(key, body);
         } else {
-            // Es un planeta
             createPlanet(key, body);
         }
     });
 
-    // Cinturón de asteroides entre Marte y Júpiter
+    // Cinturón de asteroides
     createAsteroidBelt();
     
     // Anillos de Saturno
@@ -355,6 +520,9 @@ function createMoon(name, data) {
 }
 
 function createAsteroidBelt() {
+    const beltDistance = state.realisticMode ? 35000 : 3500;
+    const beltWidth = state.realisticMode ? 8000 : 800;
+    
     for (let i = 0; i < 200; i++) {
         const size = Math.random() * 0.8 + 0.2;
         const geometry = new THREE.SphereGeometry(size, 8, 8);
@@ -362,7 +530,7 @@ function createAsteroidBelt() {
         const asteroid = new THREE.Mesh(geometry, material);
 
         const angle = Math.random() * Math.PI * 2;
-        const radius = 3500 + Math.random() * 800;
+        const radius = beltDistance + Math.random() * beltWidth;
         asteroid.position.x = Math.cos(angle) * radius;
         asteroid.position.z = Math.sin(angle) * radius;
         asteroid.position.y = (Math.random() - 0.5) * 50;
@@ -389,13 +557,14 @@ function createSaturnRings() {
 }
 
 function updatePlanets() {
+    const timeMultiplier = state.timeScale;
+    
     Object.keys(planets).forEach(key => {
         const planet = planets[key];
 
         if (planet.parent) {
-            // Luna orbitando su planeta
             const parentPos = planet.parent.mesh.position;
-            planet.angle += planet.speed;
+            planet.angle += planet.speed * timeMultiplier;
 
             planet.mesh.position.x = parentPos.x + Math.cos(planet.angle) * planet.orbit;
             planet.mesh.position.z = parentPos.z + Math.sin(planet.angle) * planet.orbit;
@@ -405,17 +574,15 @@ function updatePlanets() {
                 planet.mesh.lookAt(parentPos);
             }
         } else if (planet.orbit > 0) {
-            // Planeta orbitando el sol
-            planet.angle += planet.speed;
+            planet.angle += planet.speed * timeMultiplier;
 
             planet.mesh.position.x = Math.cos(planet.angle) * planet.orbit;
             planet.mesh.position.z = Math.sin(planet.angle) * planet.orbit;
 
             if (planet.rotationSpeed) {
-                planet.mesh.rotation.y += planet.rotationSpeed;
+                planet.mesh.rotation.y += planet.rotationSpeed * timeMultiplier;
             }
             
-            // Actualizar anillos de Saturno
             if (key === 'saturn' && planet.rings) {
                 planet.rings.position.copy(planet.mesh.position);
             }
@@ -429,7 +596,33 @@ function updatePlanets() {
 function updateSpaceship() {
     if (!spaceship) return;
 
-    if (state.traveling && state.travelStartTime && state.travelDuration) {
+    if (state.decoupled) {
+        // Modo manual con joystick
+        const speed = 2;
+        const cameraDir = new THREE.Vector3();
+        camera.getWorldDirection(cameraDir);
+        cameraDir.y = 0;
+        cameraDir.normalize();
+
+        const cameraRight = new THREE.Vector3();
+        cameraRight.crossVectors(cameraDir, new THREE.Vector3(0, 1, 0)).normalize();
+
+        const forwardMove = cameraDir.multiplyScalar(-joystickDelta.y * speed);
+        const rightMove = cameraRight.multiplyScalar(joystickDelta.x * speed);
+
+        shipVelocity.add(forwardMove);
+        shipVelocity.add(rightMove);
+
+        shipVelocity.multiplyScalar(0.95);
+
+        spaceship.position.add(shipVelocity);
+
+        if (shipVelocity.length() > 0.1) {
+            const angle = Math.atan2(shipVelocity.z, shipVelocity.x);
+            spaceship.rotation.y = angle - Math.PI / 2;
+        }
+
+    } else if (state.traveling && state.travelStartTime && state.travelDuration) {
         const now = Date.now();
         const elapsed = now - state.travelStartTime;
         const t = Math.min(1, elapsed / state.travelDuration);
@@ -458,7 +651,7 @@ function updateSpaceship() {
         const currentPlanetData = planets[state.currentPlanet];
         if (currentPlanetData) {
             const t = Date.now() * 0.00005;
-            const radius = 20 + currentPlanetData.mesh.geometry.parameters.radius;
+            const radius = state.orbitDistance + currentPlanetData.mesh.geometry.parameters.radius;
             spaceship.position.x = currentPlanetData.mesh.position.x + Math.cos(t) * radius;
             spaceship.position.z = currentPlanetData.mesh.position.z + Math.sin(t) * radius;
             spaceship.position.y = currentPlanetData.mesh.position.y + 3;
@@ -478,13 +671,21 @@ function updateCamera() {
 
     const targetPos = spaceship.position;
 
-    if (!state.traveling) {
-        cameraAngle += 0.0002;
-    }
+    if (state.decoupled) {
+        // En modo manual, la cámara orbita libremente sin cambiar distancia
+        camera.position.x = targetPos.x + Math.cos(cameraAngle) * state.orbitDistance;
+        camera.position.z = targetPos.z + Math.sin(cameraAngle) * state.orbitDistance;
+        camera.position.y = targetPos.y + cameraHeight;
+    } else {
+        if (!state.traveling) {
+            cameraAngle += 0.0002;
+        }
 
-    camera.position.x = targetPos.x + Math.cos(cameraAngle) * cameraDistance;
-    camera.position.z = targetPos.z + Math.sin(cameraAngle) * cameraDistance;
-    camera.position.y = targetPos.y + cameraHeight;
+        camera.position.x = targetPos.x + Math.cos(cameraAngle) * state.orbitDistance;
+        camera.position.z = targetPos.z + Math.sin(cameraAngle) * state.orbitDistance;
+        camera.position.y = targetPos.y + cameraHeight;
+    }
+    
     camera.lookAt(targetPos);
 }
 
@@ -507,8 +708,15 @@ function onTouchMove(e) {
         const deltaX = e.touches[0].clientX - lastTouchPos.x;
         const deltaY = e.touches[0].clientY - lastTouchPos.y;
 
-        cameraAngle -= deltaX * 0.01;
-        cameraHeight += deltaY * 0.3;
+        if (state.decoupled) {
+            // En modo decoupled, solo rotar cámara
+            cameraAngle -= deltaX * 0.01;
+            cameraHeight += deltaY * 0.3;
+        } else {
+            // En modo normal, rotar cámara
+            cameraAngle -= deltaX * 0.01;
+            cameraHeight += deltaY * 0.3;
+        }
 
         lastTouchPos = {
             x: e.touches[0].clientX,
@@ -561,7 +769,7 @@ function onWindowResize() {
 function onWheel(e) {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 20 : -20;
-    cameraDistance = Math.max(minCameraDistance, Math.min(maxCameraDistance, cameraDistance + delta));
+    state.orbitDistance = Math.max(state.minOrbitDistance, Math.min(state.maxOrbitDistance, state.orbitDistance + delta));
 }
 
 // ==================== NAVEGACIÓN ====================
@@ -574,6 +782,11 @@ function travelToPlanet(planetName) {
 
     if (state.traveling) {
         return;
+    }
+
+    // Activar modo coupled automáticamente al viajar
+    if (state.decoupled) {
+        toggleDecouple();
     }
 
     const originVec = spaceship.position.clone();
@@ -615,15 +828,21 @@ function closeInfo() {
 function updateUI() {
     const currentLoc = document.getElementById('currentLocation');
     const travelStatus = document.getElementById('travelStatus');
+    const timeScaleLabel = document.getElementById('timeScale');
 
     currentLoc.textContent = PLANET_INFO[state.currentPlanet]?.name || state.currentPlanet;
 
     if (state.traveling) {
         const remaining = Math.max(0, state.travelDuration - (Date.now() - state.travelStartTime));
         travelStatus.textContent = `Viajando a ${PLANET_INFO[state.targetPlanet]?.name} (${Math.ceil(remaining / 1000)}s)`;
+    } else if (state.decoupled) {
+        travelStatus.textContent = 'Vuelo libre';
     } else {
         travelStatus.textContent = 'En órbita';
     }
+
+    const timeLabels = { 1: 'x1', 60: 'x60', 3600: 'x3600' };
+    timeScaleLabel.textContent = `Tiempo: ${timeLabels[state.timeScale]}`;
 
     renderPlanetList();
 }
@@ -643,7 +862,6 @@ function renderPlanetList() {
 
         const isCurrent = state.currentPlanet === planetKey;
 
-        // Cabecera del planeta
         const headerDiv = document.createElement('div');
         headerDiv.className = 'planet-header';
 
@@ -651,17 +869,15 @@ function renderPlanetList() {
         nameDiv.className = 'planet-name' + (isCurrent ? ' current' : '');
         nameDiv.innerHTML = `🪐 ${planetInfo.name}`;
 
-        // Botón de viajar
         const travelBtn = document.createElement('button');
         travelBtn.className = 'action-button travel';
         travelBtn.textContent = '🚀';
         travelBtn.title = 'Viajar';
         travelBtn.onclick = () => travelToPlanet(planetKey);
 
-        // Botón de info
         const infoBtn = document.createElement('button');
         infoBtn.className = 'action-button info';
-        infoBtn.textContent = '?';
+        infoBtn.textContent = 'ℹ️';
         infoBtn.title = 'Información';
         infoBtn.onclick = () => showInfo(planetKey);
 
@@ -669,7 +885,6 @@ function renderPlanetList() {
         headerDiv.appendChild(travelBtn);
         headerDiv.appendChild(infoBtn);
 
-        // Botón de toggle lunas (si tiene)
         if (planetData.moons && planetData.moons.length > 0) {
             const toggleBtn = document.createElement('button');
             toggleBtn.className = 'action-button toggle';
@@ -686,7 +901,6 @@ function renderPlanetList() {
 
         groupDiv.appendChild(headerDiv);
 
-        // Lista de lunas
         if (planetData.moons && planetData.moons.length > 0) {
             const moonListDiv = document.createElement('div');
             moonListDiv.className = 'moon-list';
@@ -710,7 +924,7 @@ function renderPlanetList() {
 
                 const moonInfoBtn = document.createElement('button');
                 moonInfoBtn.className = 'action-button info';
-                moonInfoBtn.textContent = '?';
+                moonInfoBtn.textContent = 'ℹ️';
                 moonInfoBtn.title = 'Información';
                 moonInfoBtn.onclick = () => showInfo(moonKey);
 
