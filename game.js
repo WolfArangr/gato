@@ -1,7 +1,7 @@
 // ==================== CONFIGURACIÓN GLOBAL ====================
 const GAME_CONFIG = {
     // Tiempo: 1 minuto real = 1 día del juego
-    TIME_SCALE: 1 / 60, // Segundos por frame para completar un día
+    TIME_SCALE: 3600 / 365, // Segundos por frame para completar un día
     YEAR_DAYS: 365,
     
     // Órbitas realistas (en unidades arbitrarias para visualización)
@@ -15,12 +15,12 @@ const GAME_CONFIG = {
     
     // Tamaños para visualización
     SIZES: {
-        SUN: 20,
-        EARTH: 5,
-        MOON: 1.5,
+        SUN: 60,
+        EARTH: 6,
+        MOON: 2,
         MARS: 3,
-        VENUS: 4.5,
-        JUPITER: 12,
+        VENUS: 6,
+        JUPITER: 18,
     }
 };
 
