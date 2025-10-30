@@ -96,7 +96,7 @@ let state = {
     timeScale: 1, // 1, 60, 3600
     realisticMode: false,
     orbitDistance: 100,
-    minOrbitDistance: 20,
+    minOrbitDistance: 0,
     maxOrbitDistance: 500
 };
 
