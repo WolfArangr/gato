@@ -28,29 +28,36 @@ const SOLAR_SYSTEM_SIMPLE = {
 
 // Escala realista (distancias en millones de km / 10, tamaños en km / 100)
 const SOLAR_SYSTEM_REALISTIC = {
-    sun: { distance: 0, size: 6.96, texture: 'estrella.png', color: 0xffffaa, moons: [] },
-    mercury: { distance: 5791, size: 0.024, texture: 'planeta3.png', color: 0x8c7853, speed: 0.241, moons: [] },
-    venus: { distance: 10820, size: 0.061, texture: 'luna5.png', color: 0xffc649, speed: 0.1626, moons: [] },
-    earth: { distance: 14960, size: 0.064, texture: 'planeta1.png', color: 0x2233ff, speed: 0.1, moons: ['moon'] },
-    moon: { distance: 3.844, size: 0.017, texture: 'luna1.png', color: 0xaaaaaa, speed: 1.237, parent: 'earth' },
-    mars: { distance: 22794, size: 0.034, texture: 'planeta2.png', color: 0xdc4c3c, speed: 0.0532, moons: ['phobos', 'deimos'] },
-    phobos: { distance: 0.094, size: 0.0001, texture: 'luna1.png', color: 0x998877, speed: 2.5, parent: 'mars' },
-    deimos: { distance: 0.234, size: 0.00006, texture: 'luna1.png', color: 0xaa9988, speed: 1.8, parent: 'mars' },
-    jupiter: { distance: 77857, size: 0.699, texture: 'luna2.png', color: 0xc88b3a, speed: 0.0084, moons: ['io', 'europa', 'ganymede', 'callisto'] },
-    io: { distance: 4.218, size: 0.018, texture: 'luna4.png', color: 0xffff00, speed: 0.8, parent: 'jupiter' },
-    europa: { distance: 6.711, size: 0.016, texture: 'luna3.png', color: 0xccddff, speed: 0.6, parent: 'jupiter' },
-    ganymede: { distance: 10.704, size: 0.026, texture: 'luna1.png', color: 0x998866, speed: 0.4, parent: 'jupiter' },
-    callisto: { distance: 18.827, size: 0.024, texture: 'luna1.png', color: 0x776655, speed: 0.3, parent: 'jupiter' },
-    saturn: { distance: 142672, size: 0.583, texture: 'planeta3.png', color: 0xfad5a5, speed: 0.0034, moons: ['titan', 'rhea', 'iapetus'] },
-    titan: { distance: 12.218, size: 0.026, texture: 'luna5.png', color: 0xffaa66, speed: 0.5, parent: 'saturn' },
-    rhea: { distance: 5.271, size: 0.008, texture: 'luna1.png', color: 0xaaaaaa, speed: 0.7, parent: 'saturn' },
-    iapetus: { distance: 35.61, size: 0.007, texture: 'luna1.png', color: 0x666666, speed: 0.3, parent: 'saturn' },
-    uranus: { distance: 287099, size: 0.254, texture: 'luna3.png', color: 0x4fd0e8, speed: 0.0012, moons: ['titania', 'oberon'] },
-    titania: { distance: 4.359, size: 0.008, texture: 'luna1.png', color: 0x99bbcc, speed: 0.6, parent: 'uranus' },
-    oberon: { distance: 5.835, size: 0.008, texture: 'luna1.png', color: 0x8899aa, speed: 0.5, parent: 'uranus' },
-    neptune: { distance: 449504, size: 0.246, texture: 'luna2.png', color: 0x4169e1, speed: 0.0006, moons: ['triton'] },
-    triton: { distance: 3.548, size: 0.014, texture: 'luna3.png', color: 0x99ccff, speed: 0.7, parent: 'neptune' }
+    sun: { distance: 0, size: 696, texture: 'estrella.png', color: 0xffffaa, moons: [] },
+
+    mercury: { distance: 57910, size: 2.44, texture: 'planeta3.png', color: 0x8c7853, speed: 0.241, moons: [] },
+    venus: { distance: 108200, size: 6.05, texture: 'luna5.png', color: 0xffc649, speed: 0.1626, moons: [] },
+    earth: { distance: 149600, size: 6.37, texture: 'planeta1.png', color: 0x2233ff, speed: 0.1, moons: ['moon'] },
+    moon: { distance: 0.384, size: 1.74, texture: 'luna1.png', color: 0xaaaaaa, speed: 1.237, parent: 'earth' },
+
+    mars: { distance: 227900, size: 3.39, texture: 'planeta2.png', color: 0xdc4c3c, speed: 0.0532, moons: ['phobos', 'deimos'] },
+    phobos: { distance: 0.0094, size: 0.000011, texture: 'luna1.png', color: 0x998877, speed: 2.5, parent: 'mars' },
+    deimos: { distance: 0.0234, size: 0.000006, texture: 'luna1.png', color: 0xaa9988, speed: 1.8, parent: 'mars' },
+
+    jupiter: { distance: 778500, size: 69.9, texture: 'luna2.png', color: 0xc88b3a, speed: 0.0084, moons: ['io', 'europa', 'ganymede', 'callisto'] },
+    io: { distance: 0.4218, size: 1.82, texture: 'luna4.png', color: 0xffff00, speed: 0.8, parent: 'jupiter' },
+    europa: { distance: 0.6711, size: 1.56, texture: 'luna3.png', color: 0xccddff, speed: 0.6, parent: 'jupiter' },
+    ganymede: { distance: 1.0704, size: 2.63, texture: 'luna1.png', color: 0x998866, speed: 0.4, parent: 'jupiter' },
+    callisto: { distance: 1.8827, size: 2.41, texture: 'luna1.png', color: 0x776655, speed: 0.3, parent: 'jupiter' },
+
+    saturn: { distance: 1427000, size: 58.2, texture: 'planeta3.png', color: 0xfad5a5, speed: 0.0034, moons: ['titan', 'rhea', 'iapetus'] },
+    titan: { distance: 1.222, size: 2.57, texture: 'luna5.png', color: 0xffaa66, speed: 0.5, parent: 'saturn' },
+    rhea: { distance: 0.527, size: 0.763, texture: 'luna1.png', color: 0xaaaaaa, speed: 0.7, parent: 'saturn' },
+    iapetus: { distance: 3.561, size: 0.734, texture: 'luna1.png', color: 0x666666, speed: 0.3, parent: 'saturn' },
+
+    uranus: { distance: 2871000, size: 25.4, texture: 'luna3.png', color: 0x4fd0e8, speed: 0.0012, moons: ['titania', 'oberon'] },
+    titania: { distance: 0.436, size: 0.789, texture: 'luna1.png', color: 0x99bbcc, speed: 0.6, parent: 'uranus' },
+    oberon: { distance: 0.584, size: 0.761, texture: 'luna1.png', color: 0x8899aa, speed: 0.5, parent: 'uranus' },
+
+    neptune: { distance: 4495000, size: 24.6, texture: 'luna2.png', color: 0x4169e1, speed: 0.0006, moons: ['triton'] },
+    triton: { distance: 0.355, size: 1.35, texture: 'luna3.png', color: 0x99ccff, speed: 0.7, parent: 'neptune' }
 };
+
 
 const PLANET_INFO = {
     sun: { name: 'Sol', info: 'Estrella central del Sistema Solar, contiene el 99.86% de la masa total del sistema.' },
