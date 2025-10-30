@@ -35,7 +35,6 @@ body {
     pointer-events: none;
 }
 
-/* ==== PANELES SUPERIORES ==== */
 #controlsPanel, #statusPanel {
     position: absolute;
     top: 15px;
@@ -54,10 +53,9 @@ body {
 }
 #statusPanel {
     right: 15px;
-    max-width: 160px;
+    max-width: 180px;
 }
 
-/* Evita solapamiento en pantallas pequeñas */
 @media (max-width: 700px) {
     #controlsPanel {
         top: 15px;
@@ -72,7 +70,6 @@ body {
     }
 }
 
-/* === ENCABEZADOS === */
 #controlsPanel h3, #statusPanel h3 {
     color: #00ffff;
     font-size: 13px;
@@ -81,10 +78,10 @@ body {
 }
 .status-item {
     color: #0f0;
-    font-size: 12px;
+    font-size: 11px;
+    margin-bottom: 3px;
 }
 
-/* === BOTONES DE CONTROL === */
 .control-button {
     width: 100%;
     background: rgba(0, 40, 60, 0.9);
@@ -103,7 +100,6 @@ body {
     color: #000;
 }
 
-/* === CONTROLES DE ÓRBITA === */
 #orbitControls {
     position: absolute;
     top: 50%;
@@ -135,7 +131,6 @@ body {
     transform: scale(0.9);
 }
 
-/* === PANEL RETRÁCTIL === */
 #togglePanelBtn {
     position: absolute;
     bottom: 20px;
@@ -176,7 +171,6 @@ body {
 }
 #navigationPanel.show { bottom: 80px; }
 
-/* === JOYSTICK === */
 #joystickContainer {
     position: absolute;
     bottom: 20px;
@@ -206,7 +200,6 @@ body {
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
 }
 
-/* === MODAL === */
 #infoModal {
     position: absolute;
     top: 50%; left: 50%;
@@ -238,6 +231,70 @@ body {
     transition: 0.3s;
 }
 #closeInfo:active { background: #00ffff; color: #000; }
+
+.planet-group {
+    margin-bottom: 12px;
+    border: 1px solid #00ffff33;
+    border-radius: 6px;
+    padding: 8px;
+    background: rgba(0, 20, 40, 0.3);
+}
+.planet-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.planet-name {
+    flex: 1;
+    color: #00ffff;
+    font-size: 14px;
+}
+.planet-name.current {
+    color: #00ff00;
+    font-weight: bold;
+}
+.action-button {
+    background: rgba(0, 40, 60, 0.9);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: inherit;
+}
+.action-button:active {
+    background: #00ffff;
+    color: #000;
+}
+.moon-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s;
+    margin-top: 8px;
+}
+.moon-list.show {
+    max-height: 500px;
+}
+.moon-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    margin-top: 4px;
+    background: rgba(0, 30, 50, 0.5);
+    border-radius: 4px;
+}
+.moon-name {
+    flex: 1;
+    color: #88ddff;
+    font-size: 12px;
+}
+.moon-name.current {
+    color: #00ff00;
+    font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -249,13 +306,15 @@ body {
         <div class="status-item">📍 <span id="currentLocation">Tierra</span></div>
         <div class="status-item">🎯 <span id="travelStatus">En órbita</span></div>
         <div class="status-item">⏱️ <span id="timeScale">Tiempo: x1</span></div>
+        <div class="status-item">🕐 <span id="gameClock">00:00:00</span></div>
     </div>
 
     <div id="controlsPanel">
         <h3>⚙️ CONTROLES</h3>
-        <button class="control-button" id="decoupleBtn">🔓 Decouple</button>
+        <button class="control-button" id="viewModeBtn">🌍 Modo Planeta</button>
         <button class="control-button" id="timeScaleBtn">⏱️ Tiempo: x1</button>
         <button class="control-button" id="scaleBtn">🌍 Modo Simple</button>
+        <button class="control-button" id="topViewBtn">🛰️ Vista Superior</button>
     </div>
 
     <div id="orbitControls">
