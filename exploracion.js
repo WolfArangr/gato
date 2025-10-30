@@ -27,16 +27,62 @@ const SOLAR_SYSTEM_SIMPLE = {
     triton: { distance: 55, size: 1.3, texture: 'luna3.png', color: 0x99ccff, speed: 0.7, parent: 'neptune' }
 };
 
-const SOLAR_SYSTEM_REALISTIC = { /* ... (igual que antes) ... */ };
-// Por brevedad no repito todo aquí, mantén tu objeto realista como en el original.
-let SOLAR_SYSTEM = SOLAR_SYSTEM_SIMPLE;
+// Escala realista (distancias en millones de km / 10, tamaños en km / 100)
+const SOLAR_SYSTEM_REALISTIC = {
+    sun: { distance: 0, size: 696, texture: 'estrella.png', color: 0xffffaa, moons: [] },
+
+    mercury: { distance: 57910, size: 2.44, texture: 'planeta3.png', color: 0x8c7853, speed: 0.241, moons: [] },
+    venus: { distance: 108200, size: 6.05, texture: 'luna5.png', color: 0xffc649, speed: 0.1626, moons: [] },
+    earth: { distance: 149600, size: 6.37, texture: 'planeta1.png', color: 0x2233ff, speed: 0.1, moons: ['moon'] },
+    moon: { distance: 0.384, size: 1.74, texture: 'luna1.png', color: 0xaaaaaa, speed: 1.237, parent: 'earth' },
+
+    mars: { distance: 227900, size: 3.39, texture: 'planeta2.png', color: 0xdc4c3c, speed: 0.0532, moons: ['phobos', 'deimos'] },
+    phobos: { distance: 0.0094, size: 0.000011, texture: 'luna1.png', color: 0x998877, speed: 2.5, parent: 'mars' },
+    deimos: { distance: 0.0234, size: 0.000006, texture: 'luna1.png', color: 0xaa9988, speed: 1.8, parent: 'mars' },
+
+    jupiter: { distance: 778500, size: 69.9, texture: 'luna2.png', color: 0xc88b3a, speed: 0.0084, moons: ['io', 'europa', 'ganymede', 'callisto'] },
+    io: { distance: 0.4218, size: 1.82, texture: 'luna4.png', color: 0xffff00, speed: 0.8, parent: 'jupiter' },
+    europa: { distance: 0.6711, size: 1.56, texture: 'luna3.png', color: 0xccddff, speed: 0.6, parent: 'jupiter' },
+    ganymede: { distance: 1.0704, size: 2.63, texture: 'luna1.png', color: 0x998866, speed: 0.4, parent: 'jupiter' },
+    callisto: { distance: 1.8827, size: 2.41, texture: 'luna1.png', color: 0x776655, speed: 0.3, parent: 'jupiter' },
+
+    saturn: { distance: 1427000, size: 58.2, texture: 'planeta3.png', color: 0xfad5a5, speed: 0.0034, moons: ['titan', 'rhea', 'iapetus'] },
+    titan: { distance: 1.222, size: 2.57, texture: 'luna5.png', color: 0xffaa66, speed: 0.5, parent: 'saturn' },
+    rhea: { distance: 0.527, size: 0.763, texture: 'luna1.png', color: 0xaaaaaa, speed: 0.7, parent: 'saturn' },
+    iapetus: { distance: 3.561, size: 0.734, texture: 'luna1.png', color: 0x666666, speed: 0.3, parent: 'saturn' },
+
+    uranus: { distance: 2871000, size: 25.4, texture: 'luna3.png', color: 0x4fd0e8, speed: 0.0012, moons: ['titania', 'oberon'] },
+    titania: { distance: 0.436, size: 0.789, texture: 'luna1.png', color: 0x99bbcc, speed: 0.6, parent: 'uranus' },
+    oberon: { distance: 0.584, size: 0.761, texture: 'luna1.png', color: 0x8899aa, speed: 0.5, parent: 'uranus' },
+
+    neptune: { distance: 4495000, size: 24.6, texture: 'luna2.png', color: 0x4169e1, speed: 0.0006, moons: ['triton'] },
+    triton: { distance: 0.355, size: 1.35, texture: 'luna3.png', color: 0x99ccff, speed: 0.7, parent: 'neptune' }
+};
+
 
 const PLANET_INFO = {
     sun: { name: 'Sol', info: 'Estrella central del Sistema Solar, contiene el 99.86% de la masa total del sistema.' },
     mercury: { name: 'Mercurio', info: 'El planeta más cercano al Sol y el más pequeño del Sistema Solar.' },
     venus: { name: 'Venus', info: 'El planeta más caliente del Sistema Solar debido a su densa atmósfera de CO₂.' },
     earth: { name: 'Tierra', info: 'Nuestro hogar, el único planeta conocido con vida.' },
-    // ... resto igual ...
+    moon: { name: 'Luna', info: 'El único satélite natural de la Tierra.' },
+    mars: { name: 'Marte', info: 'El planeta rojo, objetivo principal de la exploración espacial.' },
+    phobos: { name: 'Fobos', info: 'La luna más grande de Marte, con forma irregular.' },
+    deimos: { name: 'Deimos', info: 'La luna más pequeña de Marte.' },
+    jupiter: { name: 'Júpiter', info: 'El gigante gaseoso más grande del Sistema Solar.' },
+    io: { name: 'Ío', info: 'La luna más volcánicamente activa del Sistema Solar.' },
+    europa: { name: 'Europa', info: 'Luna con océano subsuperficial, candidata para vida extraterrestre.' },
+    ganymede: { name: 'Ganimedes', info: 'La luna más grande del Sistema Solar, mayor que Mercurio.' },
+    callisto: { name: 'Calisto', info: 'Una de las lunas galileanas de Júpiter.' },
+    saturn: { name: 'Saturno', info: 'Famoso por su espectacular sistema de anillos.' },
+    titan: { name: 'Titán', info: 'La única luna con atmósfera densa, contiene lagos de metano.' },
+    rhea: { name: 'Rea', info: 'La segunda luna más grande de Saturno.' },
+    iapetus: { name: 'Jápeto', info: 'Luna con dos caras: una clara y otra oscura.' },
+    uranus: { name: 'Urano', info: 'El gigante de hielo que rota de lado.' },
+    titania: { name: 'Titania', info: 'La luna más grande de Urano.' },
+    oberon: { name: 'Oberón', info: 'Una de las cinco lunas principales de Urano.' },
+    neptune: { name: 'Neptuno', info: 'El planeta más alejado del Sol, con los vientos más rápidos.' },
+    triton: { name: 'Tritón', info: 'Luna que orbita en dirección contraria a la rotación de Neptuno.' }
 };
 
 // ==================== ESTADO ====================
