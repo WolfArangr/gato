@@ -1,24 +1,4 @@
 // exploracion.js - Sistema Solar Mejorado
-
-// ==================== ESTADO ====================
-let state = {
-    currentPlanet: 'earth',
-    targetPlanet: null,
-    traveling: false,
-    travelStartTime: null,
-    travelDuration: 0,
-    travelOrigin: null,
-    shipMode: false,
-    timeScale: 1,
-    realisticMode: false,
-    cameraDistance: 100,
-    minCameraDistance: 5,
-    maxCameraDistance: 500,
-    topView: false,
-    gameStartTime: Date.now(),
-    realTimeElapsed: 0
-};
-
 const SOLAR_SYSTEM_SIMPLE = {
     sun: { distance: 0, size: 40, texture: 'estrella.png', color: 0xffffaa, moons: [] },
     mercury: { distance: 580, size: 2.4, texture: 'planeta3.png', color: 0x8c7853, speed: 0.241, moons: [], orbitalPeriod: 88 },
@@ -93,6 +73,26 @@ const PLANET_INFO = {
     neptune: { name: 'Neptuno', info: 'El planeta más alejado del Sol, con los vientos más rápidos.' },
     triton: { name: 'Tritón', info: 'Luna que orbita en dirección contraria a la rotación de Neptuno.' }
 };
+// ==================== ESTADO ====================
+let state = {
+    currentPlanet: 'earth',
+    targetPlanet: null,
+    traveling: false,
+    travelStartTime: null,
+    travelDuration: 0,
+    travelOrigin: null,
+    shipMode: false,
+    timeScale: 1,
+    realisticMode: false,
+    cameraDistance: 100,
+    minCameraDistance: 5,
+    maxCameraDistance: 500,
+    topView: false,
+    gameStartTime: Date.now(),
+    realTimeElapsed: 0
+};
+
+
 
 let SOLAR_SYSTEM = SOLAR_SYSTEM_SIMPLE;
 let scene, camera, renderer;
