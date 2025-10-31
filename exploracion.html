@@ -46,11 +46,24 @@ body {
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
     pointer-events: all;
     z-index: 10;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
 }
+
 #controlsPanel {
     left: 15px;
     max-width: 150px;
 }
+
+#controlsPanel.collapsed {
+    max-height: 40px;
+}
+
+#controlsPanel.collapsed .control-content {
+    opacity: 0;
+    pointer-events: none;
+}
+
 #statusPanel {
     right: 15px;
     max-width: 180px;
@@ -75,7 +88,13 @@ body {
     font-size: 13px;
     text-shadow: 0 0 8px #00ffff;
     margin-bottom: 8px;
+    cursor: pointer;
 }
+
+.control-content {
+    transition: opacity 0.3s ease;
+}
+
 .status-item {
     color: #0f0;
     font-size: 11px;
@@ -100,35 +119,22 @@ body {
     color: #000;
 }
 
-#orbitControls {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    pointer-events: all;
-    z-index: 9;
-}
 .orbit-button {
-    width: 45px;
-    height: 45px;
+    width: 100%;
     background: rgba(0, 40, 60, 0.9);
     border: 1px solid #00ffff;
-    border-radius: 50%;
     color: #00ffff;
-    font-size: 22px;
+    padding: 8px;
+    font-size: 18px;
+    border-radius: 6px;
     cursor: pointer;
     transition: 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-bottom: 5px;
+    font-family: inherit;
 }
 .orbit-button:active {
     background: #00ffff;
     color: #000;
-    transform: scale(0.9);
 }
 
 #togglePanelBtn {
@@ -295,6 +301,21 @@ body {
     color: #00ff00;
     font-weight: bold;
 }
+
+.body-label {
+    position: absolute;
+    color: #00ffff;
+    font-size: 12px;
+    text-shadow: 0 0 4px #000, 0 0 8px #00ffff;
+    pointer-events: none;
+    white-space: nowrap;
+    user-select: none;
+    z-index: 5;
+    background: rgba(0, 10, 20, 0.6);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
 </style>
 </head>
 <body>
@@ -310,16 +331,16 @@ body {
     </div>
 
     <div id="controlsPanel">
-        <h3>⚙️ CONTROLES</h3>
-        <button class="control-button" id="viewModeBtn">🌍 Modo Planeta</button>
-        <button class="control-button" id="timeScaleBtn">⏱️ Tiempo: x1</button>
-        <button class="control-button" id="scaleBtn">🌍 Modo Simple</button>
-        <button class="control-button" id="topViewBtn">🛰️ Vista Superior</button>
-    </div>
-
-    <div id="orbitControls">
-        <button class="orbit-button" id="orbitIn">+</button>
-        <button class="orbit-button" id="orbitOut">−</button>
+        <h3 id="controlsHeader">⚙️ CONTROLES</h3>
+        <div class="control-content">
+            <button class="control-button" id="viewModeBtn">🌍 Modo Planeta</button>
+            <button class="control-button" id="timeScaleBtn">⏱️ Tiempo: x1</button>
+            <button class="control-button" id="scaleBtn">🌌 Modo Simple</button>
+            <button class="control-button" id="topViewBtn">🛰️ Vista Superior</button>
+            <button class="control-button" id="labelsBtn">🏷️ Etiquetas: ON</button>
+            <button class="orbit-button" id="orbitIn">+</button>
+            <button class="orbit-button" id="orbitOut">−</button>
+        </div>
     </div>
 
     <div id="joystickContainer">
@@ -342,12 +363,1094 @@ body {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
-<script src="exploracion.js"></script>
+<script>
+// exploracion.js - Sistema Solar Mejorado
+const SOLAR_SYSTEM_SIMPLE = {
+    sun: { distance: 0, size: 40, texture: 'estrella.png', color: 0xffffaa, moons: [] },
+    mercury: { distance: 580, size: 2.4, texture: 'planeta3.png', color: 0x8c7853, speed: 0.241, moons: [], orbitalPeriod: 88 },
+    venus: { distance: 1080, size: 6, texture: 'luna5.png', color: 0xffc649, speed: 0.1626, moons: [], orbitalPeriod: 225 },
+    earth: { distance: 1500, size: 6, texture: 'planeta1.png', color: 0x2233ff, speed: 0.1, moons: ['moon'], orbitalPeriod: 365 },
+    moon: { distance: 150, size: 2, texture: 'luna1.png', color: 0xaaaaaa, speed: 1.237, parent: 'earth', orbitalPeriod: 27.3 },
+    mars: { distance: 2280, size: 3.2, texture: 'planeta2.png', color: 0xdc4c3c, speed: 0.0532, moons: ['phobos', 'deimos'], orbitalPeriod: 687 },
+    phobos: { distance: 35, size: 0.8, texture: 'luna1.png', color: 0x998877, speed: 2.5, parent: 'mars', orbitalPeriod: 0.32 },
+    deimos: { distance: 60, size: 0.6, texture: 'luna1.png', color: 0xaa9988, speed: 1.8, parent: 'mars', orbitalPeriod: 1.26 },
+    jupiter: { distance: 5200, size: 18, texture: 'luna2.png', color: 0xc88b3a, speed: 0.0084, moons: ['io', 'europa', 'ganymede', 'callisto'], orbitalPeriod: 4333 },
+    io: { distance: 70, size: 1.8, texture: 'luna4.png', color: 0xffff00, speed: 0.8, parent: 'jupiter', orbitalPeriod: 1.77 },
+    europa: { distance: 95, size: 1.5, texture: 'luna3.png', color: 0xccddff, speed: 0.6, parent: 'jupiter', orbitalPeriod: 3.55 },
+    ganymede: { distance: 120, size: 2.5, texture: 'luna1.png', color: 0x998866, speed: 0.4, parent: 'jupiter', orbitalPeriod: 7.15 },
+    callisto: { distance: 150, size: 2.3, texture: 'luna1.png', color: 0x776655, speed: 0.3, parent: 'jupiter', orbitalPeriod: 16.7 },
+    saturn: { distance: 9540, size: 16, texture: 'planeta3.png', color: 0xfad5a5, speed: 0.0034, moons: ['titan', 'rhea', 'iapetus'], orbitalPeriod: 10759 },
+    titan: { distance: 100, size: 2.5, texture: 'luna5.png', color: 0xffaa66, speed: 0.5, parent: 'saturn', orbitalPeriod: 15.9 },
+    rhea: { distance: 70, size: 1.2, texture: 'luna1.png', color: 0xaaaaaa, speed: 0.7, parent: 'saturn', orbitalPeriod: 4.5 },
+    iapetus: { distance: 200, size: 1.1, texture: 'luna1.png', color: 0x666666, speed: 0.3, parent: 'saturn', orbitalPeriod: 79.3 },
+    uranus: { distance: 19180, size: 8, texture: 'luna3.png', color: 0x4fd0e8, speed: 0.0012, moons: ['titania', 'oberon'], orbitalPeriod: 30687 },
+    titania: { distance: 60, size: 1.2, texture: 'luna1.png', color: 0x99bbcc, speed: 0.6, parent: 'uranus', orbitalPeriod: 8.7 },
+    oberon: { distance: 80, size: 1.1, texture: 'luna1.png', color: 0x8899aa, speed: 0.5, parent: 'uranus', orbitalPeriod: 13.5 },
+    neptune: { distance: 30070, size: 7.8, texture: 'luna2.png', color: 0x4169e1, speed: 0.0006, moons: ['triton'], orbitalPeriod: 60190 },
+    triton: { distance: 55, size: 1.3, texture: 'luna3.png', color: 0x99ccff, speed: 0.7, parent: 'neptune', orbitalPeriod: 5.9 }
+};
+
+const SOLAR_SYSTEM_REALISTIC = {
+    sun: { distance: 0, size: 696, texture: 'estrella.png', color: 0xffffaa, moons: [] },
+    mercury: { distance: 57910, size: 2.44, texture: 'planeta3.png', color: 0x8c7853, speed: 0.241, moons: [], orbitalPeriod: 88 },
+    venus: { distance: 108200, size: 6.05, texture: 'luna5.png', color: 0xffc649, speed: 0.1626, moons: [], orbitalPeriod: 225 },
+    earth: { distance: 149600, size: 6.37, texture: 'planeta1.png', color: 0x2233ff, speed: 0.1, moons: ['moon'], orbitalPeriod: 365 },
+    moon: { distance: 0.384, size: 1.74, texture: 'luna1.png', color: 0xaaaaaa, speed: 1.237, parent: 'earth', orbitalPeriod: 27.3 },
+    mars: { distance: 227900, size: 3.39, texture: 'planeta2.png', color: 0xdc4c3c, speed: 0.0532, moons: ['phobos', 'deimos'], orbitalPeriod: 687 },
+    phobos: { distance: 0.0094, size: 0.000011, texture: 'luna1.png', color: 0x998877, speed: 2.5, parent: 'mars', orbitalPeriod: 0.32 },
+    deimos: { distance: 0.0234, size: 0.000006, texture: 'luna1.png', color: 0xaa9988, speed: 1.8, parent: 'mars', orbitalPeriod: 1.26 },
+    jupiter: { distance: 778500, size: 69.9, texture: 'luna2.png', color: 0xc88b3a, speed: 0.0084, moons: ['io', 'europa', 'ganymede', 'callisto'], orbitalPeriod: 4333 },
+    io: { distance: 0.4218, size: 1.82, texture: 'luna4.png', color: 0xffff00, speed: 0.8, parent: 'jupiter', orbitalPeriod: 1.77 },
+    europa: { distance: 0.6711, size: 1.56, texture: 'luna3.png', color: 0xccddff, speed: 0.6, parent: 'jupiter', orbitalPeriod: 3.55 },
+    ganymede: { distance: 1.0704, size: 2.63, texture: 'luna1.png', color: 0x998866, speed: 0.4, parent: 'jupiter', orbitalPeriod: 7.15 },
+    callisto: { distance: 1.8827, size: 2.41, texture: 'luna1.png', color: 0x776655, speed: 0.3, parent: 'jupiter', orbitalPeriod: 16.7 },
+    saturn: { distance: 1427000, size: 58.2, texture: 'planeta3.png', color: 0xfad5a5, speed: 0.0034, moons: ['titan', 'rhea', 'iapetus'], orbitalPeriod: 10759 },
+    titan: { distance: 1.222, size: 2.57, texture: 'luna5.png', color: 0xffaa66, speed: 0.5, parent: 'saturn', orbitalPeriod: 15.9 },
+    rhea: { distance: 0.527, size: 0.763, texture: 'luna1.png', color: 0xaaaaaa, speed: 0.7, parent: 'saturn', orbitalPeriod: 4.5 },
+    iapetus: { distance: 3.561, size: 0.734, texture: 'luna1.png', color: 0x666666, speed: 0.3, parent: 'saturn', orbitalPeriod: 79.3 },
+    uranus: { distance: 2871000, size: 25.4, texture: 'luna3.png', color: 0x4fd0e8, speed: 0.0012, moons: ['titania', 'oberon'], orbitalPeriod: 30687 },
+    titania: { distance: 0.436, size: 0.789, texture: 'luna1.png', color: 0x99bbcc, speed: 0.6, parent: 'uranus', orbitalPeriod: 8.7 },
+    oberon: { distance: 0.584, size: 0.761, texture: 'luna1.png', color: 0x8899aa, speed: 0.5, parent: 'uranus', orbitalPeriod: 13.5 },
+    neptune: { distance: 4495000, size: 24.6, texture: 'luna2.png', color: 0x4169e1, speed: 0.0006, moons: ['triton'], orbitalPeriod: 60190 },
+    triton: { distance: 0.355, size: 1.35, texture: 'luna3.png', color: 0x99ccff, speed: 0.7, parent: 'neptune', orbitalPeriod: 5.9 }
+};
+
+const PLANET_INFO = {
+    sun: { name: 'Sol', info: 'Estrella central del Sistema Solar, contiene el 99.86% de la masa total del sistema.' },
+    mercury: { name: 'Mercurio', info: 'El planeta más cercano al Sol y el más pequeño del Sistema Solar.' },
+    venus: { name: 'Venus', info: 'El planeta más caliente del Sistema Solar debido a su densa atmósfera de CO₂.' },
+    earth: { name: 'Tierra', info: 'Nuestro hogar, el único planeta conocido con vida.' },
+    moon: { name: 'Luna', info: 'El único satélite natural de la Tierra.' },
+    mars: { name: 'Marte', info: 'El planeta rojo, objetivo principal de la exploración espacial.' },
+    phobos: { name: 'Fobos', info: 'La luna más grande de Marte, con forma irregular.' },
+    deimos: { name: 'Deimos', info: 'La luna más pequeña de Marte.' },
+    jupiter: { name: 'Júpiter', info: 'El gigante gaseoso más grande del Sistema Solar.' },
+    io: { name: 'Ío', info: 'La luna más volcánicamente activa del Sistema Solar.' },
+    europa: { name: 'Europa', info: 'Luna con océano subsuperficial, candidata para vida extraterrestre.' },
+    ganymede: { name: 'Ganimedes', info: 'La luna más grande del Sistema Solar, mayor que Mercurio.' },
+    callisto: { name: 'Calisto', info: 'Una de las lunas galileanas de Júpiter.' },
+    saturn: { name: 'Saturno', info: 'Famoso por su espectacular sistema de anillos.' },
+    titan: { name: 'Titán', info: 'La única luna con atmósfera densa, contiene lagos de metano.' },
+    rhea: { name: 'Rea', info: 'La segunda luna más grande de Saturno.' },
+    iapetus: { name: 'Jápeto', info: 'Luna con dos caras: una clara y otra oscura.' },
+    uranus: { name: 'Urano', info: 'El gigante de hielo que rota de lado.' },
+    titania: { name: 'Titania', info: 'La luna más grande de Urano.' },
+    oberon: { name: 'Oberón', info: 'Una de las cinco lunas principales de Urano.' },
+    neptune: { name: 'Neptuno', info: 'El planeta más alejado del Sol, con los vientos más rápidos.' },
+    triton: { name: 'Tritón', info: 'Luna que orbita en dirección contraria a la rotación de Neptuno.' }
+};
+
+// Factor de escala temporal: 1 día real = 5 minutos en x1
+const TIME_SCALE_FACTOR = 0.00035;
+
+let state = {
+    currentPlanet: 'earth',
+    targetPlanet: null,
+    traveling: false,
+    travelStartTime: null,
+    travelDuration: 0,
+    travelOrigin: null,
+    shipMode: false,
+    timeScale: 1,
+    realisticMode: false,
+    cameraDistance: 100,
+    minCameraDistance: 5,
+    maxCameraDistance: 500,
+    topView: false,
+    gameStartTime: Date.now(),
+    simulatedTime: Date.now(),
+    showLabels: true
+};
+
+let SOLAR_SYSTEM = SOLAR_SYSTEM_SIMPLE;
+let scene, camera, renderer;
+let planets = {};
+let spaceship = null;
+let touchStartPos = null;
+let lastTouchPos = null;
+let cameraAngle = 0;
+let cameraElevation = 30;
+let shipVelocity = new THREE.Vector3(0, 0, 0);
+let joystickActive = false;
+let joystickDelta = { x: 0, y: 0 };
+let orbitLines = [];
+let pinchDistance = null;
+let labelElements = {};
+
+function initThreeJS() {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000000);
+    camera.position.set(100, 50, 100);
+    camera.lookAt(0, 0, 0);
+
+    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const ambientLight = new THREE.AmbientLight(0x222244, 0.3);
+    scene.add(ambientLight);
+
+    createStarfield();
+    createSpaceship();
+    createSolarSystem();
+
+    window.addEventListener('resize', onWindowResize);
+
+    const canvas = document.getElementById('gameCanvas');
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', onTouchEnd, { passive: false });
+    canvas.addEventListener('click', onMouseClick);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    
+    document.getElementById('orbitIn').addEventListener('click', () => {
+        state.cameraDistance = Math.max(state.minCameraDistance, state.cameraDistance - 20);
+    });
+    
+    document.getElementById('orbitOut').addEventListener('click', () => {
+        state.cameraDistance = Math.min(state.maxCameraDistance, state.cameraDistance + 20);
+    });
+    
+    document.getElementById('viewModeBtn').addEventListener('click', toggleViewMode);
+    document.getElementById('timeScaleBtn').addEventListener('click', cycleTimeScale);
+    document.getElementById('scaleBtn').addEventListener('click', toggleScaleMode);
+    document.getElementById('topViewBtn').addEventListener('click', toggleTopView);
+    document.getElementById('labelsBtn').addEventListener('click', toggleLabels);
+    
+    let isDragging = false;
+    let lastMousePos = null;
+    
+    canvas.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        lastMousePos = { x: e.clientX, y: e.clientY };
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        if (isDragging && lastMousePos) {
+            const deltaX = e.clientX - lastMousePos.x;
+            const deltaY = e.clientY - lastMousePos.y;
+            cameraAngle -= deltaX * 0.01;
+            cameraElevation = Math.max(-80, Math.min(80, cameraElevation + deltaY * 0.2));
+            lastMousePos = { x: e.clientX, y: e.clientY };
+        }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+        isDragging = false;
+        lastMousePos = null;
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+        isDragging = false;
+        lastMousePos = null;
+    });
+
+    setupJoystick();
+}
+
+function setupJoystick() {
+    const joystickBase = document.getElementById('joystickBase');
+    const joystickStick = document.getElementById('joystickStick');
+    let joystickCenter = { x: 0, y: 0 };
+
+    const updateJoystickCenter = () => {
+        const rect = joystickBase.getBoundingClientRect();
+        joystickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    };
+
+    joystickBase.addEventListener('touchstart', (e) => {
+        if (!state.shipMode) return;
+        e.preventDefault();
+        joystickActive = true;
+        updateJoystickCenter();
+    });
+
+    joystickBase.addEventListener('touchmove', (e) => {
+        if (!state.shipMode || !joystickActive) return;
+        e.preventDefault();
+
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - joystickCenter.x;
+        const deltaY = touch.clientY - joystickCenter.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const maxDistance = 35;
+
+        let finalX = deltaX;
+        let finalY = deltaY;
+
+        if (distance > maxDistance) {
+            finalX = (deltaX / distance) * maxDistance;
+            finalY = (deltaY / distance) * maxDistance;
+        }
+
+        joystickStick.style.transform = `translate(calc(-50% + ${finalX}px), calc(-50% + ${finalY}px))`;
+        joystickDelta.x = finalX / maxDistance;
+        joystickDelta.y = finalY / maxDistance;
+    });
+
+    joystickBase.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        joystickActive = false;
+        joystickStick.style.transform = 'translate(-50%, -50%)';
+        joystickDelta = { x: 0, y: 0 };
+    });
+}
+
+function toggleViewMode() {
+    state.shipMode = !state.shipMode;
+    const btn = document.getElementById('viewModeBtn');
+    const joystick = document.getElementById('joystickContainer');
+    
+    if (state.shipMode) {
+        btn.textContent = '🚀 Modo Nave';
+        btn.classList.add('active');
+        joystick.classList.add('show');
+        shipVelocity.set(0, 0, 0);
+    } else {
+        btn.textContent = '🌍 Modo Planeta';
+        btn.classList.remove('active');
+        joystick.classList.remove('show');
+        shipVelocity.set(0, 0, 0);
+    }
+}
+
+function cycleTimeScale() {
+    const scales = [1, 60, 3600];
+    const currentIndex = scales.indexOf(state.timeScale);
+    const nextIndex = (currentIndex + 1) % scales.length;
+    state.timeScale = scales[nextIndex];
+    
+    const btn = document.getElementById('timeScaleBtn');
+    const labels = ['x1', 'x60', 'x3600'];
+    btn.textContent = `⏱️ Tiempo: ${labels[nextIndex]}`;
+    
+    updateUI();
+}
+
+function toggleScaleMode() {
+    state.realisticMode = !state.realisticMode;
+    const btn = document.getElementById('scaleBtn');
+    
+    if (state.realisticMode) {
+        btn.textContent = '🔬 Modo Realista';
+        SOLAR_SYSTEM = SOLAR_SYSTEM_REALISTIC;
+    } else {
+        btn.textContent = '🌌 Modo Simple';
+        SOLAR_SYSTEM = SOLAR_SYSTEM_SIMPLE;
+    }
+    
+    Object.keys(planets).forEach(key => {
+        if (planets[key].mesh) scene.remove(planets[key].mesh);
+        if (planets[key].rings) scene.remove(planets[key].rings);
+    });
+    
+    orbitLines.forEach(line => scene.remove(line));
+    orbitLines = [];
+    
+    Object.keys(labelElements).forEach(key => {
+        if (labelElements[key]) {
+            document.body.removeChild(labelElements[key]);
+        }
+    });
+    labelElements = {};
+    
+    planets = {};
+    createSolarSystem();
+    updateUI();
+}
+
+function toggleTopView() {
+    state.topView = !state.topView;
+    const btn = document.getElementById('topViewBtn');
+    
+    if (state.topView) {
+        btn.textContent = '👁️ Vista Normal';
+        btn.classList.add('active');
+        createOrbitLines();
+    } else {
+        btn.textContent = '🛰️ Vista Superior';
+        btn.classList.remove('active');
+        orbitLines.forEach(line => scene.remove(line));
+        orbitLines = [];
+    }
+}
+
+function toggleLabels() {
+    state.showLabels = !state.showLabels;
+    const btn = document.getElementById('labelsBtn');
+    btn.textContent = state.showLabels ? '🏷️ Etiquetas: ON' : '🏷️ Etiquetas: OFF';
+    
+    Object.keys(labelElements).forEach(key => {
+        if (labelElements[key]) {
+            labelElements[key].style.display = state.showLabels ? 'block' : 'none';
+        }
+    });
+}
+
+function createOrbitLines() {
+    orbitLines.forEach(line => scene.remove(line));
+    orbitLines = [];
+    
+    Object.keys(SOLAR_SYSTEM).forEach(key => {
+        const body = SOLAR_SYSTEM[key];
+        if (body.distance > 0 && !body.parent) {
+            const points = [];
+            for (let i = 0; i <= 64; i++) {
+                const angle = (i / 64) * Math.PI * 2;
+                points.push(new THREE.Vector3(
+                    Math.cos(angle) * body.distance,
+                    0,
+                    Math.sin(angle) * body.distance
+                ));
+            }
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.3 });
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            orbitLines.push(line);
+        }
+    });
+}
+
+function createStarfield() {
+    const starGeometry = new THREE.BufferGeometry();
+    const starCount = 8000;
+    const positions = new Float32Array(starCount * 3);
+
+    for (let i = 0; i < starCount * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 500000;
+        positions[i + 1] = (Math.random() - 0.5) * 500000;
+        positions[i + 2] = (Math.random() - 0.5) * 500000;
+    }
+
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    scene.add(stars);
+}
+
+function createSpaceship() {
+    const loader = new THREE.OBJLoader();
+    
+    loader.load('constelacion/nave.obj', (obj) => {
+        obj.scale.set(0.5, 0.5, 0.5);
+        obj.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+                child.material = new THREE.MeshStandardMaterial({
+                    color: 0xf0f0f0,
+                    metalness: 0.7,
+                    roughness: 0.3
+                });
+            }
+        });
+        spaceship = obj;
+        spaceship.position.set(SOLAR_SYSTEM.earth.distance, 5, 0);
+        scene.add(spaceship);
+        console.log('Nave OBJ cargada correctamente');
+    }, 
+    (xhr) => {
+        console.log((xhr.loaded / xhr.total * 100) + '% cargado');
+    },
+    (error) => {
+        console.log('Error cargando OBJ:', error);
+        console.log('Usando modelo fallback');
+        createFallbackSpaceship();
+    });
+}
+
+function createFallbackSpaceship() {
+    const shipGroup = new THREE.Group();
+    
+    const bodyGeometry = new THREE.CylinderGeometry(0.6, 0.75, 4, 16);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xf0f0f0, metalness: 0.7, roughness: 0.3 });
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.rotation.z = Math.PI / 2;
+    shipGroup.add(body);
+
+    const cockpitGeometry = new THREE.SphereGeometry(0.75, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+    const cockpitMaterial = new THREE.MeshStandardMaterial({ color: 0x4488ff, transparent: true, opacity: 0.7, metalness: 0.8, roughness: 0.1 });
+    const cockpit = new THREE.Mesh(cockpitGeometry, cockpitMaterial);
+    cockpit.position.x = 2;
+    cockpit.rotation.z = -Math.PI / 2;
+    shipGroup.add(cockpit);
+
+    const noseGeometry = new THREE.ConeGeometry(0.6, 1, 8);
+    const noseMaterial = new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.8, roughness: 0.2 });
+    const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+    nose.position.x = 2.75;
+    nose.rotation.z = -Math.PI / 2;
+    shipGroup.add(nose);
+
+    const wingGeometry = new THREE.BoxGeometry(1, 0.15, 3);
+    const wingMaterial = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 0.6, roughness: 0.4 });
+
+    const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+    leftWing.position.set(0, 0, -1.5);
+    leftWing.rotation.y = -0.2;
+    shipGroup.add(leftWing);
+
+    const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+    rightWing.position.set(0, 0, 1.5);
+    rightWing.rotation.y = 0.2;
+    shipGroup.add(rightWing);
+
+    const engineGeometry = new THREE.CylinderGeometry(0.3, 0.4, 1, 12);
+    const engineMaterial = new THREE.MeshStandardMaterial({ color: 0x404040, metalness: 0.9, roughness: 0.1 });
+
+    const leftEngine = new THREE.Mesh(engineGeometry, engineMaterial);
+    leftEngine.position.set(-1.75, 0, -1);
+    leftEngine.rotation.z = Math.PI / 2;
+    shipGroup.add(leftEngine);
+
+    const rightEngine = new THREE.Mesh(engineGeometry, engineMaterial);
+    rightEngine.position.set(-1.75, 0, 1);
+    rightEngine.rotation.z = Math.PI / 2;
+    shipGroup.add(rightEngine);
+
+    const leftLight = new THREE.PointLight(0x00ffff, 2, 20);
+    leftLight.position.set(-2.25, 0, -1);
+    shipGroup.add(leftLight);
+
+    const rightLight = new THREE.PointLight(0x00ffff, 2, 20);
+    rightLight.position.set(-2.25, 0, 1);
+    shipGroup.add(rightLight);
+
+    shipGroup.scale.set(1, 1, 1);
+    shipGroup.position.set(SOLAR_SYSTEM.earth.distance, 5, 0);
+
+    spaceship = shipGroup;
+    scene.add(shipGroup);
+}
+
+function createLabel(name) {
+    const label = document.createElement('div');
+    label.className = 'body-label';
+    label.textContent = PLANET_INFO[name]?.name || name;
+    label.style.display = state.showLabels ? 'block' : 'none';
+    document.body.appendChild(label);
+    return label;
+}
+
+function updateLabels() {
+    if (!state.showLabels) return;
+    
+    Object.keys(planets).forEach(key => {
+        const planet = planets[key];
+        if (!planet.mesh) return;
+        
+        if (!labelElements[key]) {
+            labelElements[key] = createLabel(key);
+        }
+        
+        const vector = planet.mesh.position.clone();
+        vector.project(camera);
+        
+        const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+        
+        const label = labelElements[key];
+        
+        if (vector.z < 1) {
+            label.style.left = x + 'px';
+            label.style.top = (y - 20) + 'px';
+            
+            const distance = camera.position.distanceTo(planet.mesh.position);
+            const maxDist = state.realisticMode ? 200000 : 20000;
+            const opacity = Math.max(0, Math.min(1, 1 - (distance / maxDist)));
+            label.style.opacity = opacity;
+            
+            const minSize = 10;
+            const maxSize = 14;
+            const size = minSize + (maxSize - minSize) * opacity;
+            label.style.fontSize = size + 'px';
+        } else {
+            label.style.opacity = '0';
+        }
+    });
+}
+
+function createSolarSystem() {
+    const sunData = SOLAR_SYSTEM.sun;
+    const sunGeometry = new THREE.SphereGeometry(sunData.size, 32, 32);
+    const sunMaterial = new THREE.MeshBasicMaterial({ color: sunData.color });
+    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    sun.userData = { name: 'sun', type: 'star' };
+    scene.add(sun);
+    planets.sun = { mesh: sun, orbit: 0, angle: 0, speed: 0 };
+
+    const sunLight = new THREE.PointLight(0xffffee, 2, 500000);
+    sunLight.position.set(0, 0, 0);
+    scene.add(sunLight);
+
+    Object.keys(SOLAR_SYSTEM).forEach(key => {
+        if (key === 'sun') return;
+        const body = SOLAR_SYSTEM[key];
+        if (body.parent) {
+            createMoon(key, body);
+        } else {
+            createPlanet(key, body);
+        }
+    });
+
+    createAsteroidBelt();
+    createSaturnRings();
+}
+
+function createPlanet(name, data) {
+    const geometry = new THREE.SphereGeometry(data.size, 32, 32);
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(`constelacion/${data.texture}`);
+    const material = new THREE.MeshStandardMaterial({ map: texture });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    mesh.userData = { name, type: 'planet' };
+    scene.add(mesh);
+
+    const speedFactor = (365 / data.orbitalPeriod) * TIME_SCALE_FACTOR;
+    
+    planets[name] = {
+        mesh,
+        orbit: data.distance,
+        angle: Math.random() * Math.PI * 2,
+        speed: speedFactor,
+        rotationSpeed: TIME_SCALE_FACTOR * 10
+    };
+}
+
+function createMoon(name, data) {
+    const geometry = new THREE.SphereGeometry(data.size, 32, 32);
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(`constelacion/${data.texture}`);
+    const material = new THREE.MeshStandardMaterial({ map: texture });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    mesh.userData = { name, type: 'moon' };
+    scene.add(mesh);
+
+    const speedFactor = (27.3 / data.orbitalPeriod) * TIME_SCALE_FACTOR;
+
+    planets[name] = {
+        mesh,
+        orbit: data.distance,
+        angle: Math.random() * Math.PI * 2,
+        speed: speedFactor,
+        parent: planets[data.parent],
+        tidalLock: true
+    };
+}
+
+function createAsteroidBelt() {
+    const beltDistance = state.realisticMode ? 35000 : 3500;
+    const beltWidth = state.realisticMode ? 8000 : 800;
+    
+    for (let i = 0; i < 200; i++) {
+        const size = Math.random() * 0.8 + 0.2;
+        const geometry = new THREE.SphereGeometry(size, 8, 8);
+        const material = new THREE.MeshStandardMaterial({ color: 0x888888 });
+        const asteroid = new THREE.Mesh(geometry, material);
+
+        const angle = Math.random() * Math.PI * 2;
+        const radius = beltDistance + Math.random() * beltWidth;
+        asteroid.position.x = Math.cos(angle) * radius;
+        asteroid.position.z = Math.sin(angle) * radius;
+        asteroid.position.y = (Math.random() - 0.5) * 50;
+
+        asteroid.userData = { name: 'asteroid', type: 'asteroid' };
+        scene.add(asteroid);
+    }
+}
+
+function createSaturnRings() {
+    const saturnData = SOLAR_SYSTEM.saturn;
+    const ringGeometry = new THREE.RingGeometry(saturnData.size * 1.5, saturnData.size * 2.5, 64);
+    const ringMaterial = new THREE.MeshBasicMaterial({
+        color: 0xc9b37a,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.6
+    });
+    const rings = new THREE.Mesh(ringGeometry, ringMaterial);
+    rings.rotation.x = Math.PI / 2;
+    
+    planets.saturn.rings = rings;
+    scene.add(rings);
+}
+
+function updatePlanets() {
+    const deltaTime = 16.67;
+    const timeMultiplier = state.timeScale;
+    
+    state.simulatedTime += deltaTime * timeMultiplier;
+    
+    Object.keys(planets).forEach(key => {
+        const planet = planets[key];
+
+        if (planet.parent) {
+            const parentPos = planet.parent.mesh.position;
+            planet.angle += planet.speed * timeMultiplier;
+
+            planet.mesh.position.x = parentPos.x + Math.cos(planet.angle) * planet.orbit;
+            planet.mesh.position.z = parentPos.z + Math.sin(planet.angle) * planet.orbit;
+            planet.mesh.position.y = parentPos.y;
+
+            if (planet.tidalLock) {
+                planet.mesh.lookAt(parentPos);
+            }
+        } else if (planet.orbit > 0) {
+            planet.angle += planet.speed * timeMultiplier;
+
+            planet.mesh.position.x = Math.cos(planet.angle) * planet.orbit;
+            planet.mesh.position.z = Math.sin(planet.angle) * planet.orbit;
+
+            if (planet.rotationSpeed) {
+                planet.mesh.rotation.y += planet.rotationSpeed * timeMultiplier;
+            }
+            
+            if (key === 'saturn' && planet.rings) {
+                planet.rings.position.copy(planet.mesh.position);
+            }
+        }
+    });
+
+    updateSpaceship();
+    updateCamera();
+    updateLabels();
+    checkCollisions();
+}
+
+function checkCollisions() {
+    if (!spaceship || !state.shipMode) return;
+    
+    const currentBodyData = planets[state.currentPlanet];
+    if (!currentBodyData) return;
+    
+    const bodyPos = currentBodyData.mesh.position;
+    const shipPos = spaceship.position;
+    const distance = shipPos.distanceTo(bodyPos);
+    const bodyRadius = currentBodyData.mesh.geometry.parameters.radius;
+    
+    if (distance < bodyRadius + 10) {
+        state.cameraDistance = Math.max(state.cameraDistance, bodyRadius + 15);
+    }
+}
+
+function updateSpaceship() {
+    if (!spaceship) return;
+
+    if (state.shipMode && (joystickDelta.x !== 0 || joystickDelta.y !== 0)) {
+        const speed = 0.15;
+        const cameraDir = new THREE.Vector3();
+        camera.getWorldDirection(cameraDir);
+        cameraDir.y = 0;
+        cameraDir.normalize();
+
+        const cameraRight = new THREE.Vector3();
+        cameraRight.crossVectors(cameraDir, new THREE.Vector3(0, 1, 0)).normalize();
+
+        const forwardMove = cameraDir.multiplyScalar(-joystickDelta.y * speed);
+        const rightMove = cameraRight.multiplyScalar(joystickDelta.x * speed);
+
+        shipVelocity.add(forwardMove);
+        shipVelocity.add(rightMove);
+        shipVelocity.multiplyScalar(0.95);
+        spaceship.position.add(shipVelocity);
+
+        if (shipVelocity.length() > 0.01) {
+            const targetDir = shipVelocity.clone().normalize();
+            const targetAngle = Math.atan2(targetDir.z, targetDir.x);
+            spaceship.rotation.y = targetAngle - Math.PI / 2;
+        }
+
+    } else if (state.traveling && state.travelStartTime && state.travelDuration) {
+        const now = Date.now();
+        const elapsed = now - state.travelStartTime;
+        const t = Math.min(1, elapsed / state.travelDuration);
+
+        const origin = state.travelOrigin;
+        const target = planets[state.targetPlanet].mesh;
+
+        const destVec = new THREE.Vector3(target.position.x, target.position.y + 5, target.position.z);
+        spaceship.position.lerpVectors(origin, destVec, easeInOut(t));
+
+        const dir = new THREE.Vector3().subVectors(destVec, spaceship.position).normalize();
+        const angle = Math.atan2(dir.z, dir.x);
+        spaceship.rotation.y = angle - Math.PI / 2;
+        spaceship.rotation.z = Math.sin(t * Math.PI * 4) * 0.05;
+
+        if (t >= 1) {
+            state.traveling = false;
+            state.travelStartTime = null;
+            state.travelDuration = 0;
+            state.travelOrigin = null;
+            state.currentPlanet = state.targetPlanet;
+            state.targetPlanet = null;
+            updateUI();
+        }
+    } else {
+        const currentPlanetData = planets[state.currentPlanet];
+        if (currentPlanetData) {
+            const orbitSpeed = state.shipMode ? 0 : 0.00005;
+            const t = Date.now() * orbitSpeed;
+            const radius = state.cameraDistance / 2 + currentPlanetData.mesh.geometry.parameters.radius;
+            
+            if (state.shipMode) {
+                shipVelocity.multiplyScalar(0.98);
+                spaceship.position.add(shipVelocity);
+            } else {
+                spaceship.position.x = currentPlanetData.mesh.position.x + Math.cos(t) * radius;
+                spaceship.position.z = currentPlanetData.mesh.position.z + Math.sin(t) * radius;
+                spaceship.position.y = currentPlanetData.mesh.position.y + 3;
+                
+                const tangentDir = new THREE.Vector3(-Math.sin(t), 0, Math.cos(t));
+                const angle = Math.atan2(tangentDir.z, tangentDir.x);
+                spaceship.rotation.y = angle - Math.PI / 2;
+            }
+            spaceship.rotation.z = 0;
+        }
+    }
+}
+
+function easeInOut(x) {
+    return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+}
+
+function updateCamera() {
+    if (!spaceship) return;
+
+    if (state.topView) {
+        const maxDist = state.realisticMode ? 500000 : 50000;
+        camera.position.set(0, maxDist, 0);
+        camera.lookAt(0, 0, 0);
+        return;
+    }
+
+    const targetPos = state.shipMode ? spaceship.position : planets[state.currentPlanet]?.mesh.position || spaceship.position;
+
+    if (!state.traveling && !state.shipMode) {
+        cameraAngle += 0.0002;
+    }
+
+    const elevRad = (cameraElevation * Math.PI) / 180;
+    const horizontalDist = state.cameraDistance * Math.cos(elevRad);
+    const verticalDist = state.cameraDistance * Math.sin(elevRad);
+
+    camera.position.x = targetPos.x + Math.cos(cameraAngle) * horizontalDist;
+    camera.position.z = targetPos.z + Math.sin(cameraAngle) * horizontalDist;
+    camera.position.y = targetPos.y + verticalDist;
+    
+    camera.lookAt(targetPos);
+}
+
+function onTouchStart(e) {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        pinchDistance = Math.sqrt(dx * dx + dy * dy);
+    } else if (e.touches.length === 1) {
+        touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() };
+        lastTouchPos = { ...touchStartPos };
+    }
+}
+
+function onTouchMove(e) {
+    e.preventDefault();
+    if (e.touches.length === 2 && pinchDistance !== null) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const newDistance = Math.sqrt(dx * dx + dy * dy);
+        const delta = pinchDistance - newDistance;
+        
+        state.cameraDistance = Math.max(state.minCameraDistance, Math.min(state.maxCameraDistance, state.cameraDistance + delta * 0.5));
+        pinchDistance = newDistance;
+    } else if (e.touches.length === 1 && lastTouchPos) {
+        const deltaX = e.touches[0].clientX - lastTouchPos.x;
+        const deltaY = e.touches[0].clientY - lastTouchPos.y;
+
+        cameraAngle -= deltaX * 0.01;
+        cameraElevation = Math.max(-80, Math.min(80, cameraElevation + deltaY * 0.2));
+
+        lastTouchPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+}
+
+function onTouchEnd(e) {
+    e.preventDefault();
+
+    if (e.touches.length < 2) {
+        pinchDistance = null;
+    }
+
+    if (touchStartPos && Date.now() - touchStartPos.time < 200) {
+        const deltaX = Math.abs(e.changedTouches[0].clientX - touchStartPos.x);
+        const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartPos.y);
+
+        if (deltaX < 10 && deltaY < 10) {
+            onMouseClick(e.changedTouches[0]);
+        }
+    }
+
+    touchStartPos = null;
+    lastTouchPos = null;
+}
+
+function onMouseClick(e) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    const mouse = {
+        x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        y: -((e.clientY - rect.top) / rect.height) * 2 + 1
+    };
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(scene.children);
+    if (intersects.length > 0) {
+        const obj = intersects[0].object;
+        if (obj.userData.type === 'planet' || obj.userData.type === 'moon') {
+            travelToPlanet(obj.userData.name);
+        }
+    }
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onWheel(e) {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 20 : -20;
+    state.cameraDistance = Math.max(state.minCameraDistance, Math.min(state.maxCameraDistance, state.cameraDistance + delta));
+}
+
+function travelToPlanet(planetName) {
+    if (!planets[planetName]) return;
+    if (planetName === state.currentPlanet && !state.traveling) return;
+    if (state.traveling) return;
+
+    if (state.shipMode) {
+        toggleViewMode();
+    }
+
+    const originVec = spaceship.position.clone();
+    const targetPlanet = planets[planetName];
+    const dist = originVec.distanceTo(new THREE.Vector3(
+        targetPlanet.mesh.position.x,
+        targetPlanet.mesh.position.y,
+        targetPlanet.mesh.position.z
+    ));
+    
+    let durationMs = state.realisticMode ? (dist / 50000) * 1000 * state.timeScale : dist * 10;
+    durationMs = Math.max(durationMs, 3000);
+    durationMs = Math.min(durationMs, 30000);
+
+    state.traveling = true;
+    state.travelOrigin = originVec;
+    state.targetPlanet = planetName;
+    state.travelStartTime = Date.now();
+    state.travelDuration = durationMs;
+
+    updateUI();
+}
+
+function showInfo(bodyName) {
+    const info = PLANET_INFO[bodyName];
+    if (!info) return;
+
+    const modal = document.getElementById('infoModal');
+    document.getElementById('infoTitle').textContent = info.name;
+    document.getElementById('infoContent').innerHTML = `<p>${info.info}</p>`;
+    modal.classList.add('show');
+}
+
+function closeInfo() {
+    document.getElementById('infoModal').classList.remove('show');
+}
+
+function formatRealDateTime() {
+    const date = new Date(state.simulatedTime);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${hours}:${minutes}:${seconds} - ${day}/${month}/${year}`;
+}
+
+function formatRealTime(milliseconds) {
+    const days = milliseconds / (1000 * 60 * 60 * 24);
+    if (days < 1) {
+        const hours = Math.floor(days * 24);
+        return `${hours}h`;
+    } else if (days < 7) {
+        return `${Math.floor(days)}d`;
+    } else if (days < 30) {
+        return `${Math.floor(days / 7)}sem`;
+    } else if (days < 365) {
+        return `${Math.floor(days / 30)}m`;
+    } else {
+        return `${Math.floor(days / 365)}a`;
+    }
+}
+
+function updateUI() {
+    const currentLoc = document.getElementById('currentLocation');
+    const travelStatus = document.getElementById('travelStatus');
+    const timeScaleLabel = document.getElementById('timeScale');
+    const gameClock = document.getElementById('gameClock');
+
+    currentLoc.textContent = PLANET_INFO[state.currentPlanet]?.name || state.currentPlanet;
+
+    if (state.traveling) {
+        const remaining = Math.max(0, state.travelDuration - (Date.now() - state.travelStartTime));
+        if (state.realisticMode) {
+            const realTime = (remaining / state.timeScale);
+            travelStatus.textContent = `Viajando a ${PLANET_INFO[state.targetPlanet]?.name} (${formatRealTime(realTime)})`;
+        } else {
+            travelStatus.textContent = `Viajando a ${PLANET_INFO[state.targetPlanet]?.name} (${Math.ceil(remaining / 1000)}s)`;
+        }
+    } else if (state.shipMode) {
+        travelStatus.textContent = 'Vuelo libre';
+    } else {
+        travelStatus.textContent = 'En órbita';
+    }
+
+    const timeLabels = { 1: 'x1', 60: 'x60', 3600: 'x3600' };
+    timeScaleLabel.textContent = `Tiempo: ${timeLabels[state.timeScale]}`;
+    
+    gameClock.textContent = formatRealDateTime();
+
+    renderPlanetList();
+}
+
+function renderPlanetList() {
+    const planetList = document.getElementById('planetList');
+    planetList.innerHTML = '';
+
+    const mainPlanets = ['mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
+
+    mainPlanets.forEach(planetKey => {
+        const planetData = SOLAR_SYSTEM[planetKey];
+        const planetInfo = PLANET_INFO[planetKey];
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'planet-group';
+
+        const isCurrent = state.currentPlanet === planetKey;
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'planet-header';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'planet-name' + (isCurrent ? ' current' : '');
+        nameDiv.innerHTML = `🪐 ${planetInfo.name}`;
+
+        const travelBtn = document.createElement('button');
+        travelBtn.className = 'action-button travel';
+        travelBtn.textContent = '🚀';
+        travelBtn.title = 'Viajar';
+        travelBtn.onclick = () => travelToPlanet(planetKey);
+
+        const infoBtn = document.createElement('button');
+        infoBtn.className = 'action-button info';
+        infoBtn.textContent = 'ℹ️';
+        infoBtn.title = 'Información';
+        infoBtn.onclick = () => showInfo(planetKey);
+
+        headerDiv.appendChild(nameDiv);
+        headerDiv.appendChild(travelBtn);
+        headerDiv.appendChild(infoBtn);
+
+        if (planetData.moons && planetData.moons.length > 0) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'action-button toggle';
+            toggleBtn.textContent = `🌙 ${planetData.moons.length}`;
+            toggleBtn.title = 'Mostrar/Ocultar lunas';
+            toggleBtn.onclick = (e) => {
+                e.stopPropagation();
+                const moonList = groupDiv.querySelector('.moon-list');
+                moonList.classList.toggle('show');
+                toggleBtn.classList.toggle('active');
+            };
+            headerDiv.appendChild(toggleBtn);
+        }
+
+        groupDiv.appendChild(headerDiv);
+
+        if (planetData.moons && planetData.moons.length > 0) {
+            const moonListDiv = document.createElement('div');
+            moonListDiv.className = 'moon-list';
+
+            planetData.moons.forEach(moonKey => {
+                const moonInfo = PLANET_INFO[moonKey];
+                const isMoonCurrent = state.currentPlanet === moonKey;
+
+                const moonItem = document.createElement('div');
+                moonItem.className = 'moon-item';
+
+                const moonName = document.createElement('div');
+                moonName.className = 'moon-name' + (isMoonCurrent ? ' current' : '');
+                moonName.innerHTML = `🌙 ${moonInfo.name}`;
+
+                const moonTravelBtn = document.createElement('button');
+                moonTravelBtn.className = 'action-button travel';
+                moonTravelBtn.textContent = '🚀';
+                moonTravelBtn.title = 'Viajar';
+                moonTravelBtn.onclick = () => travelToPlanet(moonKey);
+
+                const moonInfoBtn = document.createElement('button');
+                moonInfoBtn.className = 'action-button info';
+                moonInfoBtn.textContent = 'ℹ️';
+                moonInfoBtn.title = 'Información';
+                moonInfoBtn.onclick = () => showInfo(moonKey);
+
+                moonItem.appendChild(moonName);
+                moonItem.appendChild(moonTravelBtn);
+                moonItem.appendChild(moonInfoBtn);
+
+                moonListDiv.appendChild(moonItem);
+            });
+
+            groupDiv.appendChild(moonListDiv);
+        }
+
+        planetList.appendChild(groupDiv);
+    });
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    updatePlanets();
+    renderer.render(scene, camera);
+}
+
+function init() {
+    initThreeJS();
+    updateUI();
+    animate();
+
+    document.getElementById('closeInfo').onclick = closeInfo;
+    
+    setInterval(updateUI, 100);
+}
+
+window.addEventListener('load', init);
+</script>
 <script>
 const toggleBtn = document.getElementById('togglePanelBtn');
 const navPanel = document.getElementById('navigationPanel');
 toggleBtn.addEventListener('click', () => {
     navPanel.classList.toggle('show');
+});
+
+// Panel retráctil
+const controlsPanel = document.getElementById('controlsPanel');
+const controlsHeader = document.getElementById('controlsHeader');
+controlsHeader.addEventListener('click', () => {
+    controlsPanel.classList.toggle('collapsed');
 });
 </script>
 </body>
