@@ -249,6 +249,7 @@
                 <div class="toolbar">
                     <button class="btn" onclick="insertTag('h1')">H1</button>
                     <button class="btn" onclick="insertTag('p')">Párrafo</button>
+                    <button class="btn" onclick="autoParagraphs()">Auto-Párrafos</button>
                     <button class="btn" onclick="insertTag('blockquote')">Cita</button>
                     <button class="btn" onclick="insertTag('ul')">Lista</button>
                     <button class="btn" onclick="insertTag('li')">Item</button>
@@ -303,41 +304,84 @@
             previewArea.innerHTML = this.value || '<p style="color: #666;">La vista previa aparecerá aquí...</p>';
         });
 
+        // Auto-generar párrafos desde texto plano
+        function autoParagraphs() {
+            const text = contentArea.value.trim();
+            if (!text.includes('<')) {
+                // Es texto plano, convertir a párrafos
+                const paragraphs = text
+                    .split('\n\n')
+                    .filter(p => p.trim())
+                    .map(p => `<p>${p.trim().replace(/\n/g, ' ')}</p>`)
+                    .join('\n');
+                contentArea.value = paragraphs;
+                previewArea.innerHTML = paragraphs;
+            }
+        }
+
         function insertTag(tag) {
+            // Forzar el foco en el textarea
+            contentArea.focus();
+            
             const start = contentArea.selectionStart;
             const end = contentArea.selectionEnd;
             const selectedText = contentArea.value.substring(start, end);
             let newText;
+            let cursorOffset = 0;
+
+            console.log('Texto seleccionado:', selectedText, 'Longitud:', selectedText.length);
 
             switch(tag) {
                 case 'h1':
                     newText = `<h1>${selectedText || 'TÍTULO'}</h1>`;
+                    cursorOffset = selectedText ? newText.length : 4;
                     break;
                 case 'p':
                     newText = `<p>${selectedText || 'Párrafo'}</p>`;
+                    cursorOffset = selectedText ? newText.length : 3;
                     break;
                 case 'blockquote':
                     newText = `<blockquote>\n    "${selectedText || 'Cita textual'}"<br>\n    — Autor, <em>Obra</em> (Año)\n</blockquote>`;
+                    cursorOffset = selectedText ? newText.length : 20;
                     break;
                 case 'ul':
-                    newText = `<ul>\n    <li>${selectedText || 'Item'}</li>\n</ul>`;
+                    // Separar por saltos de línea
+                    if (selectedText.length > 0) {
+                        const items = selectedText
+                            .split('\n')
+                            .filter(line => line.trim().length > 0)
+                            .map(line => `    <li>${line.trim()}</li>`)
+                            .join('\n');
+                        newText = `<ul>\n${items}\n</ul>`;
+                        cursorOffset = newText.length;
+                    } else {
+                        newText = `<ul>\n    <li>Item</li>\n</ul>`;
+                        cursorOffset = 13;
+                    }
                     break;
                 case 'li':
                     newText = `<li>${selectedText || 'Item'}</li>`;
+                    cursorOffset = selectedText ? newText.length : 4;
                     break;
                 case 'em':
                     newText = `<em>${selectedText || 'texto'}</em>`;
+                    cursorOffset = selectedText ? newText.length : 4;
                     break;
                 case 'br':
                     newText = '<br>';
+                    cursorOffset = newText.length;
                     break;
             }
 
-            contentArea.value = contentArea.value.substring(0, start) + newText + contentArea.value.substring(end);
-            contentArea.focus();
+            const newValue = contentArea.value.substring(0, start) + newText + contentArea.value.substring(end);
+            contentArea.value = newValue;
+            
+            // Restaurar posición del cursor sin scroll
+            const newCursorPos = start + cursorOffset;
+            contentArea.setSelectionRange(newCursorPos, newCursorPos);
             
             // Actualizar preview
-            previewArea.innerHTML = contentArea.value;
+            previewArea.innerHTML = newValue;
         }
 
         function generateOutput() {
