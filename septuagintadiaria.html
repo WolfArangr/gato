@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cita Bíblica Diaria - Septuaginta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background: linear-gradient(135deg, #2c1810 0%, #4a3428 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #2c1810;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: linear-gradient(to bottom, #f4e8d0 0%, #e8d7b8 100%);
+            border: 3px solid #8b6f47;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 80px rgba(139, 111, 71, 0.1);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(139, 111, 71, 0.03) 2px,
+                    rgba(139, 111, 71, 0.03) 4px
+                );
+            pointer-events: none;
+        }
+
+        .papyrus-texture {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #8b6f47;
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: #5c4033;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .day-number {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            color: #8b6f47;
+            font-weight: 600;
+        }
+
+        .verse-section {
+            margin-bottom: 35px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.3);
+            border-left: 4px solid #8b6f47;
+            border-radius: 4px;
+        }
+
+        .verse-label {
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            color: #5c4033;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .verse-original {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: #3a2817;
+            margin-bottom: 20px;
+            font-style: italic;
+            text-align: justify;
+        }
+
+        .verse-translation {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            color: #4a3428;
+            text-align: justify;
+        }
+
+        .verse-reference {
+            text-align: right;
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            color: #8b6f47;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            color: #5c4033;
+            font-weight: 600;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #8b6f47;
+            padding-bottom: 8px;
+        }
+
+        .section-content {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #3a2817;
+            text-align: justify;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #8b6f47;
+            font-size: 0.9rem;
+            color: #8b6f47;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .day-number {
+                font-size: 1rem;
+            }
+
+            .verse-original,
+            .verse-translation {
+                font-size: 1.1rem;
+            }
+
+            .section-content {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .verse-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="papyrus-texture">
+            <div class="header">
+                <h1>Cita Bíblica Diaria - Septuaginta</h1>
+                <div class="day-number" id="dayNumber">Cargando día...</div>
+            </div>
+
+            <div class="verse-section">
+                <div class="verse-label">Texto Original (Griego)</div>
+                <div class="verse-original" id="verseOriginal">
+                    Ἐν ἀρχῇ ἐποίησεν ὁ θεὸς τὸν οὐρανὸν καὶ τὴν γῆν
+                </div>
+                
+                <div class="verse-label">Traducción al Español</div>
+                <div class="verse-translation" id="verseTranslation">
+                    En el principio creó Dios el cielo y la tierra
+                </div>
+                
+                <div class="verse-reference" id="verseReference">
+                    Génesis 1:1
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Interpretación y Lección</div>
+                <div class="section-content" id="interpretation">
+                    Este versículo fundamental establece el principio de toda la narrativa bíblica: Dios como creador supremo. La lección central es el reconocimiento de un origen divino del universo, invitando a la reflexión sobre nuestro lugar en la creación. La intencionalidad del texto es presentar a Dios como la fuente primordial de todo lo existente, estableciendo una cosmovisión teocéntrica que permea toda la tradición judeocristiana.
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Contexto Histórico</div>
+                <div class="section-content" id="historicalContext">
+                    Este versículo proviene del relato de la creación en el Génesis, que forma parte del Pentateuco. Históricamente, fue escrito durante el exilio babilónico (siglo VI a.C.) o poco después, cuando el pueblo judío necesitaba reafirmar su identidad y fe. El texto responde a las cosmogonías mesopotámicas contemporáneas, pero presenta una visión única: un solo Dios todopoderoso que crea mediante su palabra, sin lucha ni conflicto, contrastando con los mitos politeístas de creación mediante batallas entre dioses.
+                </div>
+            </div>
+
+            <div class="footer">
+                Septuaginta - Traducción de los Setenta (LXX)
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadDailyVerse() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            const dayOfYear = Math.floor(diff / oneDay);
+            
+            document.getElementById('dayNumber').textContent = `Día ${dayOfYear} del año`;
+
+            try {
+                const response = await fetch('citabiblia.json');
+                const data = await response.json();
+                
+                const verseData = data[dayOfYear] || data[1];
+                
+                if (verseData) {
+                    document.getElementById('verseOriginal').textContent = verseData.original;
+                    document.getElementById('verseTranslation').textContent = verseData.traduccion;
+                    document.getElementById('verseReference').textContent = verseData.referencia;
+                    document.getElementById('interpretation').textContent = verseData.interpretacion;
+                    document.getElementById('historicalContext').textContent = verseData.contextoHistorico;
+                }
+            } catch (error) {
+                console.log('No se pudo cargar el archivo JSON, mostrando contenido por defecto');
+            }
+        }
+
+        loadDailyVerse();
+    </script>
+</body>
+</html>
