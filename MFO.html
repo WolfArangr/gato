@@ -4,125 +4,163 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Horario Zwilling - MFO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { 
-            font-family: Arial, Helvetica, sans-serif; 
-            margin: 20px; 
-            background: #f8f8f8; 
-            color: #333; 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: #f9f9f9; 
+            color: #222; 
         }
         header { 
             text-align: center; 
-            padding: 40px 20px; /* Más padding para el logo */
-            background: #B22222; 
+            padding: 50px 20px; 
+            background: linear-gradient(135deg, #B22222 0%, #8B0000 100%); /* Gradiente rojo Zwilling */
             color: white; 
-            border-radius: 12px; 
-            margin-bottom: 30px; 
-            box-shadow: 0 4px 15px rgba(178,34,34,0.3);
+            border-radius: 0 0 24px 24px; 
+            margin-bottom: 40px; 
+            box-shadow: 0 10px 30px rgba(178,34,34,0.3);
         }
-        header .logo {
-            max-width: 400px; /* Tamaño máximo guapo */
-            width: 90%; /* Responsive en móvil */
+        .logo-container {
+            margin-bottom: 25px;
+        }
+        .logo {
+            max-width: 420px; /* Tamaño perfecto */
+            width: 90%;
             height: auto;
-            margin-bottom: 20px;
+            filter: brightness(0) invert(1); /* Hace el logo blanco puro para que resalte en rojo */
+            transition: transform 0.3s ease;
+        }
+        .logo:hover {
+            transform: scale(1.05);
         }
         header h1 {
             margin: 0;
-            font-size: 2.5em;
-            font-weight: bold;
+            font-size: 2.8em;
+            font-weight: 700;
+            letter-spacing: 1px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { 
+            max-width: 1300px; 
+            margin: 0 auto; 
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
         select, button { 
-            padding: 12px; 
-            margin: 8px 5px; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            border: 1px solid #ccc;
+            padding: 14px 20px; 
+            border-radius: 12px; 
+            font-size: 1em; 
+            border: 2px solid #ddd;
+            background: white;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            min-width: 180px;
+        }
+        select:hover, button:hover {
+            border-color: #B22222;
+            box-shadow: 0 4px 15px rgba(178,34,34,0.2);
         }
         button { 
             background: #B22222; 
             color: white; 
             border: none; 
-            cursor: pointer; 
-            font-weight: bold;
+            font-weight: 600;
         }
         button:hover { background: #900000; }
         table { 
             width: 100%; 
-            border-collapse: collapse; 
-            margin: 30px 0; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            margin: 40px 0; 
             background: white; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
-            border-radius: 12px; 
+            border-radius: 16px; 
             overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
         th { 
             background: #B22222; 
             color: white; 
-            padding: 15px; 
+            padding: 16px; 
+            font-weight: 600;
             font-size: 1.1em;
         }
         td { 
-            border: 1px solid #ddd; 
-            padding: 12px; 
+            border: 1px solid #eee; 
+            padding: 14px; 
             vertical-align: top; 
-            height: 130px; 
-            background: #fff;
+            min-height: 140px;
+            transition: background 0.2s;
+        }
+        td:hover {
+            background: #fafafa;
         }
         .day-number { 
-            font-weight: bold; 
-            font-size: 1.3em; 
+            font-weight: 700; 
+            font-size: 1.5em; 
             color: #B22222; 
-            margin-bottom: 10px; 
+            margin-bottom: 12px; 
         }
         .shift { 
-            background: #f5f5f5; 
-            margin: 5px 0; 
-            padding: 8px; 
-            border-radius: 8px; 
+            background: #fff0f0; /* Rojo muy suave */
+            margin: 6px 0; 
+            padding: 10px; 
+            border-radius: 10px; 
             font-size: 0.95em; 
-            border-left: 4px solid #ccc;
+            border-left: 5px solid #B22222;
+            box-shadow: 0 2px 6px rgba(178,34,34,0.1);
         }
         .highlight { 
             background: #ffebee !important; 
-            border-left: 5px solid #B22222 !important; 
-            font-weight: bold; 
-            box-shadow: 0 2px 8px rgba(178,34,34,0.2);
+            border-left: 6px solid #B22222 !important; 
+            font-weight: 600; 
         }
-        #week-view td { height: auto; min-height: 110px; }
+        #week-view td { min-height: 120px; }
         @media (max-width: 768px) {
-            td { height: auto; font-size: 13px; padding: 10px; }
-            select, button { width: 100%; margin: 10px 0; }
-            header h1 { font-size: 2em; }
-            header .logo { max-width: 300px; }
+            header { padding: 40px 15px; }
+            .logo { max-width: 320px; }
+            header h1 { font-size: 2.2em; }
+            .controls { flex-direction: column; }
+            select, button { width: 100%; }
+            td { padding: 12px; min-height: auto; }
         }
     </style>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
     <header>
-        <img src="https://www.dg.de/media/images/org/henckels_ja2.png" alt="Logo Zwilling" class="logo">
+        <div class="logo-container">
+            <img src="https://www.dg.de/media/images/org/henckels_ja2.png" alt="Zwilling J.A. Henckels" class="logo">
+        </div>
         <h1>Horario Zwilling - MFO</h1>
     </header>
+
     <div class="container">
-        <div>
-            <label>Mes: </label>
-            <select id="month-select"></select>
-
-            <label>Empleado: </label>
-            <select id="employee-select"><option value="todos">Todos</option></select>
-
-            <label>Semana: </label>
-            <select id="week-select" disabled></select>
+        <div class="controls">
+            <label>Mes: <select id="month-select"></select></label>
+            <label>Empleado: <select id="employee-select"><option value="todos">Todos</option></select></label>
+            <label>Semana: <select id="week-select" disabled></select></label>
         </div>
 
-        <div style="margin: 30px 0;">
+        <div style="text-align: center; margin: 30px 0;">
             <button onclick="downloadImage('month-view')">📥 Descargar Mes (PNG)</button>
             <button onclick="downloadImage('week-view')">📥 Descargar Semana (PNG)</button>
         </div>
 
-        <div id="month-view"><h2>Overview del Mes</h2><table id="month-table"></table></div>
-        <div id="week-view"><h2>Overview de la Semana</h2><table id="week-table"></table></div>
+        <div id="month-view">
+            <h2 style="text-align:center; color:#B22222; font-weight:600;">Overview del Mes</h2>
+            <table id="month-table"></table>
+        </div>
+
+        <div id="week-view">
+            <h2 style="text-align:center; color:#B22222; font-weight:600;">Overview de la Semana</h2>
+            <table id="week-table"></table>
+        </div>
     </div>
 
     <script>
