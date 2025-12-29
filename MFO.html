@@ -3,30 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendario de Trabajo - Tienda</title>
+    <title>Horario Zwilling - MFO</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; color: #333; }
-        header { text-align: center; padding: 20px; background: #007bff; color: white; border-radius: 8px; margin-bottom: 20px; }
+        body { 
+            font-family: Arial, Helvetica, sans-serif; 
+            margin: 20px; 
+            background: #f8f8f8; 
+            color: #333; 
+        }
+        header { 
+            text-align: center; 
+            padding: 30px; 
+            background: #B22222; /* Rojo Zwilling clásico */
+            color: white; 
+            border-radius: 12px; 
+            margin-bottom: 30px; 
+            box-shadow: 0 4px 15px rgba(178,34,34,0.3);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
         .container { max-width: 1200px; margin: 0 auto; }
-        select, button { padding: 10px; margin: 8px 5px; border-radius: 6px; font-size: 16px; }
-        button { background: #28a745; color: white; border: none; cursor: pointer; }
-        button:hover { background: #218838; }
-        table { width: 100%; border-collapse: collapse; margin: 30px 0; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
-        th { background: #007bff; color: white; padding: 12px; }
-        td { border: 1px solid #ddd; padding: 10px; vertical-align: top; height: 120px; }
-        .day-number { font-weight: bold; font-size: 1.2em; margin-bottom: 8px; }
-        .shift { background: #e9ecef; margin: 4px 0; padding: 6px; border-radius: 6px; font-size: 0.9em; }
-        .highlight { background: #fff3cd !important; border-left: 4px solid #ffc107; font-weight: bold; }
-        #week-view td { height: auto; min-height: 100px; }
+        select, button { 
+            padding: 12px; 
+            margin: 8px 5px; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            border: 1px solid #ccc;
+        }
+        button { 
+            background: #B22222; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold;
+        }
+        button:hover { background: #900000; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 30px 0; 
+            background: white; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
+            border-radius: 12px; 
+            overflow: hidden; 
+        }
+        th { 
+            background: #B22222; 
+            color: white; 
+            padding: 15px; 
+            font-size: 1.1em;
+        }
+        td { 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            vertical-align: top; 
+            height: 130px; 
+            background: #fff;
+        }
+        .day-number { 
+            font-weight: bold; 
+            font-size: 1.3em; 
+            color: #B22222; 
+            margin-bottom: 10px; 
+        }
+        .shift { 
+            background: #f5f5f5; 
+            margin: 5px 0; 
+            padding: 8px; 
+            border-radius: 8px; 
+            font-size: 0.95em; 
+            border-left: 4px solid #ccc;
+        }
+        .highlight { 
+            background: #ffebee !important; /* Rojo muy claro Zwilling */
+            border-left: 5px solid #B22222 !important; 
+            font-weight: bold; 
+            box-shadow: 0 2px 8px rgba(178,34,34,0.2);
+        }
+        #week-view td { height: auto; min-height: 110px; }
         @media (max-width: 768px) {
-            td { height: auto; font-size: 13px; padding: 8px; }
-            select, button { width: 100%; margin: 8px 0; }
+            td { height: auto; font-size: 13px; padding: 10px; }
+            select, button { width: 100%; margin: 10px 0; }
+            header h1 { font-size: 2em; }
         }
     </style>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
-    <header><h1>Calendario de Trabajo - Tienda</h1></header>
+    <header>
+        <h1>Horario Zwilling - MFO</h1>
+    </header>
     <div class="container">
         <div>
             <label>Mes: </label>
@@ -39,7 +108,7 @@
             <select id="week-select" disabled></select>
         </div>
 
-        <div style="margin: 20px 0;">
+        <div style="margin: 30px 0;">
             <button onclick="downloadImage('month-view')">📥 Descargar Mes (PNG)</button>
             <button onclick="downloadImage('week-view')">📥 Descargar Semana (PNG)</button>
         </div>
@@ -114,7 +183,7 @@
 
                 for (const file of mdFiles) {
                     try {
-                        const rawRes = await fetch(file.download_url + '?t=' + Date.now()); // evita caché
+                        const rawRes = await fetch(file.download_url + '?t=' + Date.now());
                         const text = await rawRes.text();
                         parseSchedule(text, monthStr);
                     } catch (e) {
@@ -168,7 +237,6 @@
                 const shiftLine = lines[i + 1] || '';
                 if (!shiftLine) continue;
 
-                // Regex ultra-tolerante para el maldito "\-" y cualquier guion + espacios
                 const timeMatch = shiftLine.match(/(?:Image\s*)?(\d{1,2}:\d{2})\s*([\\\-–—\s]+)\s*(\d{1,2}:\d{2})/i);
 
                 if (!timeMatch) {
@@ -328,7 +396,7 @@
 
         function downloadImage(viewId) {
             const element = document.getElementById(viewId);
-            const filename = viewId === 'month-view' ? 'calendario-mes.png' : 'calendario-semana.png';
+            const filename = viewId === 'month-view' ? 'horario-zwilling-mes.png' : 'horario-zwilling-semana.png';
             html2canvas(element, {scale: 2}).then(canvas => {
                 const a = document.createElement('a');
                 a.download = filename;
