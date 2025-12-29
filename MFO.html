@@ -77,9 +77,10 @@
                 months = data.filter(item => item.type === 'dir').map(item => item.name.toLowerCase());
 
                 months.sort((a, b) => {
-                    const [ma, ya] = a.match(/([a-z]+)(\d+)/i);
-                    const [mb, yb] = b.match(/([a-z]+)(\d+)/i);
-                    return (parseInt(ya) * 12 + monthMap[ma]) - (parseInt(yb) * 12 + monthMap[mb]);
+                    const ma = a.match(/([a-z]+)(\d+)/i);
+                    const mb = b.match(/([a-z]+)(\d+)/i);
+                    if (!ma || !mb) return 0;
+                    return (parseInt(ma[2]) * 12 + monthMap[ma[1]]) - (parseInt(mb[2]) * 12 + monthMap[mb[1]]);
                 });
 
                 months.forEach(m => {
@@ -95,7 +96,7 @@
                 }
             } catch (err) {
                 console.error('Error cargando meses:', err);
-                alert('Error cargando carpetas. Revisa consola.');
+                alert('Error cargando carpetas. Revisa la consola (F12).');
             }
         }
 
@@ -113,7 +114,7 @@
 
                 for (const file of mdFiles) {
                     try {
-                        const rawRes = await fetch(file.download_url);
+                        const rawRes = await fetch(file.download_url + '?t=' + Date.now()); // evita caché
                         const text = await rawRes.text();
                         parseSchedule(text, monthStr);
                     } catch (e) {
@@ -129,66 +130,201 @@
             }
         }
 
-        // El resto del código (parseSchedule, populateEmployees, populateWeeks, displayCalendar, displayWeek, downloadImage)
-        // es exactamente el mismo que en la versión anterior que te di (el parser reforzado).
+        function parseSchedule(text, monthStr) {
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length < 3) return;
 
-     function parseSchedule(text, monthStr) {
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    if (lines.length < 3) return;
+            let name = null;
+            for (let i = 0; i < Math.min(5, lines.length); i++) {
+                const match = lines[i].match(/Hola\s+([^,]+),/i);
+                if (match) {
+                    name = match[1].trim();
+                    break;
+                }
+            }
+            if (!name) {
+                console.warn('Nombre no encontrado en el archivo');
+                return;
+            }
 
-    let name = null;
-    for (let i = 0; i < Math.min(5, lines.length); i++) {
-        const match = lines[i].match(/Hola\s+([^,]+),/i);
-        if (match) {
-            name = match[1].trim();
-            break;
+            if (!employees.includes(name)) employees.push(name);
+            if (!shifts[name]) shifts[name] = {};
+
+            const match = monthStr.match(/([a-z]+)(\d+)/i);
+            if (!match) return;
+            const monthName = match[1].toLowerCase();
+            const year = parseInt(match[2]);
+            const monthNum = monthMap[monthName];
+            if (!monthNum) return;
+
+            for (let i = 0; i < lines.length; i++) {
+                const dayLine = lines[i];
+                const dayMatch = dayLine.match(/^([a-záéíóú]+)\s+(\d{1,2})\s*,\s*([a-záéíóú]+)/i);
+                if (!dayMatch) continue;
+
+                const dayNum = parseInt(dayMatch[2]);
+                const date = `${year}-${monthNum.toString().padStart(2,'0')}-${dayNum.toString().padStart(2,'0')}`;
+
+                const shiftLine = lines[i + 1] || '';
+                if (!shiftLine) continue;
+
+                // Regex ultra-tolerante para el maldito "\-" y cualquier guion + espacios
+                const timeMatch = shiftLine.match(/(?:Image\s*)?(\d{1,2}:\d{2})\s*([\\\-–—\s]+)\s*(\d{1,2}:\d{2})/i);
+
+                if (!timeMatch) {
+                    console.warn(`Horario no reconocido: "${shiftLine}"`);
+                    continue;
+                }
+
+                const time = `${timeMatch[1].trim()} - ${timeMatch[3].trim()}`;
+                shifts[name][date] = time;
+                console.log(`✓ ${name}: ${date} → ${time}`);
+                i++;
+            }
         }
-    }
-    if (!name) {
-        console.warn('Nombre no encontrado en el archivo');
-        return;
-    }
 
-    if (!employees.includes(name)) employees.push(name);
-    if (!shifts[name]) shifts[name] = {};
-
-    const match = monthStr.match(/([a-z]+)(\d+)/i);
-    if (!match) return;
-    const monthName = match[1].toLowerCase();
-    const year = parseInt(match[2]);
-    const monthNum = monthMap[monthName];
-    if (!monthNum) return;
-
-    for (let i = 0; i < lines.length; i++) {
-        const dayLine = lines[i];
-
-        // Más flexible: acepta "Sábado 03, Enero" o "Sábado 3, Enero"
-        const dayMatch = dayLine.match(/^([a-záéíóú]+)\s+(\d{1,2})\s*,\s*([a-záéíóú]+)/i);
-        if (!dayMatch) continue;
-
-        const dayNum = parseInt(dayMatch[2]);
-        const date = `${year}-${monthNum.toString().padStart(2,'0')}-${dayNum.toString().padStart(2,'0')}`;
-
-        // Siguiente línea: el horario
-        const shiftLine = lines[i + 1] || '';
-        if (!shiftLine) continue;
-
-        // Regex ultra-tolerante: acepta "Image", "\-", "-", "–", "—", espacios extras, etc.
-        const timeMatch = shiftLine.match(/(?:Image\s*)?(?:\\-|\-\–\—)?\s*(\d{1,2}:\d{2})\s*[\-\\–—\s]+\s*(\d{1,2}:\d{2})/i);
-        
-        if (!timeMatch) {
-            console.warn(`Horario no reconocido en línea: "${shiftLine}"`);
-            continue;
+        function populateEmployees() {
+            employeeSelect.innerHTML = '<option value="todos">Todos</option>';
+            employees.sort().forEach(emp => {
+                const opt = document.createElement('option');
+                opt.value = emp;
+                opt.textContent = emp;
+                employeeSelect.appendChild(opt);
+            });
         }
 
-        const time = `${timeMatch[1].trim()} - ${timeMatch[2].trim()}`;
-        shifts[name][date] = time;
-        console.log(`✓ ${name}: ${date} → ${time}`);
-        i++; // saltamos la línea del horario
-    }
-}
+        function populateWeeks() {
+            weekSelect.innerHTML = '';
+            weekSelect.disabled = false;
 
-        // ... (el resto de funciones iguales: populateEmployees, populateWeeks, displayCalendar, displayWeek, downloadImage)
+            const match = currentMonth.match(/([a-z]+)(\d+)/i);
+            const year = parseInt(match[2]);
+            const monthNum = monthMap[match[1].toLowerCase()];
+            const daysInMonth = new Date(year, monthNum, 0).getDate();
+
+            let week = 1;
+            let day = 1;
+            while (day <= daysInMonth) {
+                const end = Math.min(day + 6, daysInMonth);
+                const opt = document.createElement('option');
+                opt.value = week;
+                opt.textContent = `Semana ${week} (${day}-${end})`;
+                weekSelect.appendChild(opt);
+                day = end + 1;
+                week++;
+            }
+            selectedWeek = 1;
+            displayWeek();
+        }
+
+        function displayCalendar() {
+            const table = document.getElementById('month-table');
+            table.innerHTML = '';
+
+            const thead = document.createElement('thead');
+            const hr = document.createElement('tr');
+            dayHeaders.forEach(d => {
+                const th = document.createElement('th');
+                th.textContent = d;
+                hr.appendChild(th);
+            });
+            thead.appendChild(hr);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+
+            const match = currentMonth.match(/([a-z]+)(\d+)/i);
+            const year = parseInt(match[2]);
+            const month = monthMap[match[1].toLowerCase()] - 1;
+
+            const firstDay = new Date(year, month, 1);
+            const offset = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+            let current = new Date(firstDay);
+            current.setDate(current.getDate() - offset);
+
+            const lastDay = new Date(year, month + 1, 0);
+
+            while (current <= lastDay) {
+                const row = document.createElement('tr');
+                for (let i = 0; i < 7; i++) {
+                    const td = document.createElement('td');
+                    if (current.getMonth() === month) {
+                        const dateStr = current.toISOString().split('T')[0];
+                        const div = document.createElement('div');
+                        div.className = 'day-number';
+                        div.textContent = current.getDate();
+                        td.appendChild(div);
+
+                        Object.keys(shifts).forEach(emp => {
+                            if (selectedEmployee !== 'todos' && selectedEmployee !== emp) return;
+                            const time = shifts[emp][dateStr];
+                            if (time) {
+                                const p = document.createElement('p');
+                                p.className = 'shift';
+                                if (selectedEmployee === emp) p.classList.add('highlight');
+                                p.textContent = `${emp}: ${time}`;
+                                td.appendChild(p);
+                            }
+                        });
+                    }
+                    row.appendChild(td);
+                    current.setDate(current.getDate() + 1);
+                }
+                tbody.appendChild(row);
+            }
+            table.appendChild(tbody);
+        }
+
+        function displayWeek() {
+            const table = document.getElementById('week-table');
+            table.innerHTML = '';
+
+            const thead = document.createElement('thead');
+            const hr = document.createElement('tr');
+            dayHeaders.forEach(d => {
+                const th = document.createElement('th');
+                th.textContent = d;
+                hr.appendChild(th);
+            });
+            thead.appendChild(hr);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            const row = document.createElement('tr');
+
+            const match = currentMonth.match(/([a-z]+)(\d+)/i);
+            const year = parseInt(match[2]);
+            const month = monthMap[match[1].toLowerCase()] - 1;
+            const startDay = (selectedWeek - 1) * 7 + 1;
+            let current = new Date(year, month, startDay);
+
+            for (let i = 0; i < 7; i++) {
+                const td = document.createElement('td');
+                if (current.getMonth() === month && current.getDate() >= 1) {
+                    const dateStr = current.toISOString().split('T')[0];
+                    const div = document.createElement('div');
+                    div.className = 'day-number';
+                    div.textContent = current.getDate();
+                    td.appendChild(div);
+
+                    Object.keys(shifts).forEach(emp => {
+                        if (selectedEmployee !== 'todos' && selectedEmployee !== emp) return;
+                        const time = shifts[emp][dateStr];
+                        if (time) {
+                            const p = document.createElement('p');
+                            p.className = 'shift';
+                            if (selectedEmployee === emp) p.classList.add('highlight');
+                            p.textContent = `${emp}: ${time}`;
+                            td.appendChild(p);
+                        }
+                    });
+                }
+                row.appendChild(td);
+                current.setDate(current.getDate() + 1);
+            }
+            tbody.appendChild(row);
+            table.appendChild(tbody);
+        }
 
         function downloadImage(viewId) {
             const element = document.getElementById(viewId);
