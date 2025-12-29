@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Trabajo - MFO</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 8px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        select, button {
+            padding: 8px;
+            margin: 10px 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        td {
+            height: 100px;
+            min-width: 100px;
+        }
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .shift {
+            margin: 2px 0;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .highlight {
+            background-color: #ffff99;
+        }
+        #week-view table td {
+            height: auto;
+            min-height: 80px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        @media (max-width: 768px) {
+            td {
+                height: auto;
+                font-size: 12px;
+                padding: 4px;
+            }
+            select, button {
+                width: 100%;
+                margin: 5px 0;
+            }
+            #month-view table {
+                font-size: 12px;
+            }
+            #week-view table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Calendario de Trabajo - Tienda</h1>
+    </header>
+    <div class="container">
+        <label for="month-select">Selecciona Mes:</label>
+        <select id="month-select"></select>
+        
+        <label for="employee-select">Selecciona Empleado:</label>
+        <select id="employee-select">
+            <option value="todos">Todos</option>
+        </select>
+        
+        <label for="week-select">Selecciona Semana:</label>
+        <select id="week-select" disabled></select>
+        
+        <button onclick="downloadImage('month-view', 'calendario-mes.png')">Descargar Overview Mensual</button>
+        <button onclick="downloadImage('week-view', 'calendario-semana.png')">Descargar Overview Semanal</button>
+        
+        <div id="month-view">
+            <h2>Overview del Mes</h2>
+            <table id="month-table"></table>
+        </div>
+        
+        <div id="week-view">
+            <h2>Overview de la Semana</h2>
+            <table id="week-table"></table>
+        </div>
+    </div>
+
+    <script>
+        // Replace with your GitHub username and repository name
+        const owner = 'yourusername';
+        const repo = 'yourrepo';
+        const path = 'MFO';
+
+        const monthMap = {
+            'enero': 1,
+            'febrero': 2,
+            'marzo': 3,
+            'abril': 4,
+            'mayo': 5,
+            'junio': 6,
+            'julio': 7,
+            'agosto': 8,
+            'septiembre': 9,
+            'octubre': 10,
+            'noviembre': 11,
+            'diciembre': 12
+        };
+
+        const dayHeaders = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+        let months = [];
+        let currentMonth = null;
+        let employees = [];
+        let shifts = {}; // {employee: {date: 'start - end'}}
+        let selectedEmployee = 'todos';
+        let selectedWeek = null;
+
+        const monthSelect = document.getElementById('month-select');
+        const employeeSelect = document.getElementById('employee-select');
+        const weekSelect = document.getElementById('week-select');
+
+        async function loadMonths() {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`);
+                const data = await res.json();
+                months = data.filter(d => d.type === 'dir').map(d => d.name);
+                months.sort((a, b) => {
+                    const [ma, ya] = a.match(/([a-z]+)(\d+)/).slice(1);
+                    const [mb, yb] = b.match(/([a-z]+)(\d+)/).slice(1);
+                    const da = parseInt(ya) * 12 + monthMap[ma];
+                    const db = parseInt(yb) * 12 + monthMap[mb];
+                    return da - db;
+                });
+                months.forEach(m => {
+                    const option = document.createElement('option');
+                    option.value = m;
+                    option.textContent = m.charAt(0).toUpperCase() + m.slice(1);
+                    monthSelect.appendChild(option);
+                });
+                if (months.length > 0) {
+                    monthSelect.value = months[months.length - 1];
+                    loadData(months[months.length - 1]);
+                }
+            } catch (error) {
+                console.error('Error loading months:', error);
+            }
+        }
+
+        async function loadData(monthStr) {
+            currentMonth = monthStr;
+            employees = [];
+            shifts = {};
+            const folder = `${path}/${monthStr}`;
+            try {
+                const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}`);
+                const files = await res.json();
+                const mdFiles = files.filter(f => f.name.endsWith('.md'));
+                await Promise.all(mdFiles.map(async file => {
+                    const rawRes = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/${folder}/${file.name}`);
+                    const text = await rawRes.text();
+                    parseSchedule(text, monthStr);
+                }));
+                populateEmployees();
+                displayCalendar();
+                populateWeeks();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function parseSchedule(text, monthStr) {
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+            if (lines.length < 3) return;
+            const nameMatch = lines[0].match(/Hola (.*),/);
+            if (!nameMatch) return;
+            const name = nameMatch[1].trim();
+            if (!employees.includes(name)) employees.push(name);
+
+            const [monthName, yearStr] = monthStr.match(/([a-z]+)(\d+)/).slice(1);
+            const monthNum = monthMap[monthName];
+            if (!monthNum) return;
+
+            for (let i = 2; i < lines.length; i += 2) {
+                const dayLine = lines[i];
+                const shiftLine = lines[i + 1];
+                if (!dayLine || !shiftLine) continue;
+
+                const dayMatch = dayLine.match(/^(\w+) (\d+), (\w+)$/);
+                if (!dayMatch) continue;
+                const [, , dayStr, ] = dayMatch;
+                const day = parseInt(dayStr);
+                const date = `${yearStr}-${monthNum.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+                const shiftMatch = shiftLine.match(/^Image ([\d:]+)\s*-\s*([\d:]+)/);
+                if (!shiftMatch) continue;
+                const [, start, end] = shiftMatch;
+                const time = `${start} - ${end}`;
+
+                if (!shifts[name]) shifts[name] = {};
+                shifts[name][date] = time;
+            }
+        }
+
+        function populateEmployees() {
+            employeeSelect.innerHTML = '<option value="todos">Todos</option>';
+            employees.sort().forEach(emp => {
+                const option = document.createElement('option');
+                option.value = emp;
+                option.textContent = emp;
+                employeeSelect.appendChild(option);
+            });
+            selectedEmployee = 'todos';
+        }
+
+        function populateWeeks() {
+            weekSelect.innerHTML = '';
+            const [monthName, yearStr] = currentMonth.match(/([a-z]+)(\d+)/).slice(1);
+            const monthNum = monthMap[monthName];
+            const firstDay = new Date(parseInt(yearStr), monthNum - 1, 1);
+            const lastDay = new Date(parseInt(yearStr), monthNum, 0);
+            const numDays = lastDay.getDate();
+            let weekNum = 1;
+            let startDate = 1;
+            while (startDate <= numDays) {
+                const endDate = Math.min(startDate + 6, numDays);
+                const option = document.createElement('option');
+                option.value = weekNum;
+                option.textContent = `Semana ${weekNum} (${startDate}-${endDate})`;
+                weekSelect.appendChild(option);
+                startDate = endDate + 1;
+                weekNum++;
+            }
+            weekSelect.disabled = false;
+            selectedWeek = 1;
+            displayWeek();
+        }
+
+        function displayCalendar() {
+            const table = document.getElementById('month-table');
+            table.innerHTML = '';
+            const thead = document.createElement('thead');
+            const tr = document.createElement('tr');
+            dayHeaders.forEach(day => {
+                const th = document.createElement('th');
+                th.textContent = day;
+                tr.appendChild(th);
+            });
+            thead.appendChild(tr);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            const [monthName, yearStr] = currentMonth.match(/([a-z]+)(\d+)/).slice(1);
+            const year = parseInt(yearStr);
+            const month = monthMap[monthName] - 1;
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            let currentDate = new Date(firstDay);
+            currentDate.setDate(currentDate.getDate() - (currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1));
+
+            while (currentDate <= lastDay) {
+                const row = document.createElement('tr');
+                for (let i = 0; i < 7; i++) {
+                    const td = document.createElement('td');
+                    if (currentDate.getMonth() === month) {
+                        const dayNum = currentDate.getDate();
+                        const dateStr = currentDate.toISOString().split('T')[0];
+                        const divNum = document.createElement('div');
+                        divNum.className = 'day-number';
+                        divNum.textContent = dayNum;
+                        td.appendChild(divNum);
+
+                        Object.keys(shifts).forEach(emp => {
+                            if (selectedEmployee !== 'todos' && selectedEmployee !== emp) return;
+                            const time = shifts[emp][dateStr];
+                            if (time) {
+                                const p = document.createElement('p');
+                                p.className = 'shift';
+                                if (selectedEmployee === emp && selectedEmployee !== 'todos') {
+                                    p.classList.add('highlight');
+                                }
+                                p.textContent = `${emp}: ${time}`;
+                                td.appendChild(p);
+                            }
+                        });
+                    }
+                    row.appendChild(td);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                tbody.appendChild(row);
+            }
+            table.appendChild(tbody);
+        }
+
+        function displayWeek() {
+            const table = document.getElementById('week-table');
+            table.innerHTML = '';
+            const thead = document.createElement('thead');
+            const tr = document.createElement('tr');
+            dayHeaders.forEach(day => {
+                const th = document.createElement('th');
+                th.textContent = day;
+                tr.appendChild(th);
+            });
+            thead.appendChild(tr);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            const row = document.createElement('tr');
+            const [monthName, yearStr] = currentMonth.match(/([a-z]+)(\d+)/).slice(1);
+            const year = parseInt(yearStr);
+            const month = monthMap[monthName] - 1;
+            const startDay = (selectedWeek - 1) * 7 + 1;
+            let currentDate = new Date(year, month, startDay);
+
+            for (let i = 0; i < 7; i++) {
+                const td = document.createElement('td');
+                if (currentDate.getMonth() === month) {
+                    const dayNum = currentDate.getDate();
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    const divNum = document.createElement('div');
+                    divNum.className = 'day-number';
+                    divNum.textContent = dayNum;
+                    td.appendChild(divNum);
+
+                    Object.keys(shifts).forEach(emp => {
+                        if (selectedEmployee !== 'todos' && selectedEmployee !== emp) return;
+                        const time = shifts[emp][dateStr];
+                        if (time) {
+                            const p = document.createElement('p');
+                            p.className = 'shift';
+                            if (selectedEmployee === emp && selectedEmployee !== 'todos') {
+                                p.classList.add('highlight');
+                            }
+                            p.textContent = `${emp}: ${time}`;
+                            td.appendChild(p);
+                        }
+                    });
+                }
+                row.appendChild(td);
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            tbody.appendChild(row);
+            table.appendChild(tbody);
+        }
+
+        function downloadImage(elementId, filename) {
+            html2canvas(document.getElementById(elementId)).then(canvas => {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        monthSelect.addEventListener('change', (e) => {
+            loadData(e.target.value);
+        });
+
+        employeeSelect.addEventListener('change', (e) => {
+            selectedEmployee = e.target.value;
+            displayCalendar();
+            displayWeek();
+        });
+
+        weekSelect.addEventListener('change', (e) => {
+            selectedWeek = parseInt(e.target.value);
+            displayWeek();
+        });
+
+        loadMonths();
+    </script>
+</body>
+</html>
