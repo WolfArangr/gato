@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chess Tic Tac Toe</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: #fff;
+            margin: 0;
+            padding: 10px;
+        }
+        #game {
+            max-width: 100vw;
+            margin: auto;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(4, 25vw);
+            margin: auto;
+        }
+        .cell {
+            width: 25vw;
+            height: 25vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18vw;
+            cursor: pointer;
+        }
+        .hand {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .hand-piece {
+            font-size: 10vw;
+            margin: 5px;
+            cursor: pointer;
+            background: #333;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        button {
+            background: #444;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #message {
+            font-size: 20px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="board"></div>
+        <div id="white-hand" class="hand"></div>
+        <div id="black-hand" class="hand"></div>
+        <div id="message"></div>
+        <button id="mode">Play vs Bot</button>
+        <button id="restart">Restart</button>
+    </div>
+    <script>
+        const symbols = {
+            white: {
+                'N': '♘',
+                'R': '♖',
+                'B': '♗',
+                'P': '♙'
+            },
+            black: {
+                'N': '♞',
+                'R': '♜',
+                'B': '♝',
+                'P': '♟'
+            }
+        };
+
+        let board;
+        let hands;
+        let phase;
+        let turn;
+        let selected = null;
+        let isBot = false;
+
+        function init() {
+            board = Array(4).fill().map(() => Array(4).fill(null));
+            hands = {
+                white: ['N', 'R', 'B', 'P'],
+                black: ['N', 'R', 'B', 'P']
+            };
+            phase = 'placement';
+            turn = 'white';
+            selected = null;
+            render();
+        }
+
+        function render() {
+            const boardDiv = document.getElementById('board');
+            boardDiv.innerHTML = '';
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.style.backgroundColor = (r + c) % 2 === 0 ? '#f0d9b5' : '#b58863';
+                    const piece = board[r][c];
+                    if (piece) {
+                        cell.innerHTML = symbols[piece.player][piece.type];
+                    }
+                    cell.addEventListener('click', onCellClick);
+                    boardDiv.appendChild(cell);
+                }
+            }
+            renderHand('white');
+            renderHand('black');
+            document.getElementById('message').innerText = `${turn.charAt(0).toUpperCase() + turn.slice(1)}'s turn`;
+            document.getElementById('mode').innerText = isBot ? 'Play vs Player' : 'Play vs Bot';
+        }
+
+        function renderHand(player) {
+            const handDiv = document.getElementById(player + '-hand');
+            handDiv.innerHTML = player.charAt(0).toUpperCase() + player.slice(1) + ' hand: ';
+            for (let type of hands[player]) {
+                const p = document.createElement('span');
+                p.className = 'hand-piece';
+                p.innerHTML = symbols[player][type];
+                p.dataset.type = type;
+                p.dataset.player = player;
+                p.addEventListener('click', onHandClick);
+                handDiv.appendChild(p);
+            }
+        }
+
+        function onHandClick(e) {
+            if (e.target.dataset.player !== turn) return;
+            selected = { mode: 'place', type: e.target.dataset.type };
+        }
+
+        function onCellClick(e) {
+            const r = parseInt(e.target.dataset.row);
+            const c = parseInt(e.target.dataset.col);
+            if (selected) {
+                if (selected.mode === 'place') {
+                    if (board[r][c] !== null) return;
+                    let invalid = false;
+                    if (phase === 'placement') {
+                        const temp = board.map(row => row.slice());
+                        temp[r][c] = { player: turn, type: selected.type };
+                        if (checkWin(turn, temp)) {
+                            alert('Cannot place to immediately win');
+                            return;
+                        }
+                    }
+                    board[r][c] = { player: turn, type: selected.type };
+                    hands[turn] = hands[turn].filter(t => t !== selected.type);
+                    selected = null;
+                    if (phase === 'placement' && hands.white.length === 0 && hands.black.length === 0) {
+                        phase = 'main';
+                    }
+                    if (phase !== 'placement' && checkWin(turn, board)) {
+                        document.getElementById('message').innerText = `${turn} wins!`;
+                        alert(`${turn} wins!`);
+                        // Game over, but continue for simplicity
+                    }
+                    switchTurn();
+                } else if (selected.mode === 'move') {
+                    const [sr, sc] = selected.pos;
+                    if (isValidMove(sr, sc, r, c)) {
+                        const captured = board[r][c];
+                        if (captured) {
+                            hands[captured.player].push(captured.type);
+                        }
+                        board[r][c] = board[sr][sc];
+                        board[sr][sc] = null;
+                        selected = null;
+                        if (checkWin(turn, board)) {
+                            document.getElementById('message').innerText = `${turn} wins!`;
+                            alert(`${turn} wins!`);
+                        }
+                        switchTurn();
+                    }
+                }
+            } else {
+                if (phase === 'main' && board[r][c] && board[r][c].player === turn) {
+                    selected = { mode: 'move', pos: [r, c] };
+                }
+            }
+        }
+
+        function switchTurn() {
+            turn = turn === 'white' ? 'black' : 'white';
+            render();
+            if (isBot && turn === 'black') {
+                botMove();
+            }
+        }
+
+        function checkWin(player, b = board) {
+            // rows
+            for (let r = 0; r < 4; r++) {
+                if (b[r].every(cell => cell && cell.player === player)) return true;
+            }
+            // columns
+            for (let c = 0; c < 4; c++) {
+                if ([0,1,2,3].every(rr => b[rr][c] && b[rr][c].player === player)) return true;
+            }
+            // main diag
+            if ([0,1,2,3].every(i => b[i][i] && b[i][i].player === player)) return true;
+            // anti diag
+            if ([0,1,2,3].every(i => b[i][3 - i] && b[i][3 - i].player === player)) return true;
+            return false;
+        }
+
+        function isValidMove(sr, sc, tr, tc) {
+            const valids = getValidMoves(sr, sc);
+            return valids.some(([vr, vc]) => vr === tr && vc === tc);
+        }
+
+        function getValidMoves(r, c) {
+            const piece = board[r][c];
+            if (!piece) return [];
+            const player = piece.player;
+            const type = piece.type;
+            const moves = [];
+            if (type === 'N') {
+                const deltas = [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]];
+                for (let [dr, dc] of deltas) {
+                    const nr = r + dr, nc = c + dc;
+                    if (nr >= 0 && nr < 4 && nc >= 0 && nc < 4) {
+                        const target = board[nr][nc];
+                        if (!target || target.player !== player) {
+                            moves.push([nr, nc]);
+                        }
+                    }
+                }
+            } else if (type === 'R' || type === 'B') {
+                const dirs = type === 'R' ? [[0,1],[0,-1],[1,0],[-1,0]] : [[1,1],[1,-1],[-1,1],[-1,-1]];
+                for (let [dr, dc] of dirs) {
+                    for (let dist = 1; dist < 4; dist++) {
+                        const nr = r + dist * dr, nc = c + dist * dc;
+                        if (nr < 0 || nr >= 4 || nc < 0 || nc >= 4) break;
+                        const target = board[nr][nc];
+                        if (target && target.player === player) break;
+                        moves.push([nr, nc]);
+                        if (target) break;
+                    }
+                }
+            } else if (type === 'P') {
+                const dir = player === 'white' ? -1 : 1;
+                let nr = r + dir, nc = c;
+                if (nr >= 0 && nr < 4 && board[nr][nc] === null) {
+                    moves.push([nr, nc]);
+                }
+                const caps = [[dir, 1], [dir, -1]];
+                for (let [dr, dc] of caps) {
+                    nr = r + dr, nc = c + dc;
+                    if (nr >= 0 && nr < 4 && nc >= 0 && nc < 4 && board[nr][nc] && board[nr][nc].player !== player) {
+                        moves.push([nr, nc]);
+                    }
+                }
+            }
+            return moves;
+        }
+
+        function botMove() {
+            if (phase === 'placement') {
+                const types = hands.black;
+                if (types.length === 0) {
+                    switchTurn();
+                    return;
+                }
+                const type = types[Math.floor(Math.random() * types.length)];
+                const possibles = [];
+                for (let rr = 0; rr < 4; rr++) {
+                    for (let cc = 0; cc < 4; cc++) {
+                        if (board[rr][cc] === null) {
+                            const temp = board.map(row => row.slice());
+                            temp[rr][cc] = { player: 'black', type };
+                            if (!checkWin('black', temp)) {
+                                possibles.push([rr, cc]);
+                            }
+                        }
+                    }
+                }
+                if (possibles.length > 0) {
+                    const [pr, pc] = possibles[Math.floor(Math.random() * possibles.length)];
+                    board[pr][pc] = { player: 'black', type };
+                    hands.black = hands.black.filter(t => t !== type);
+                    if (hands.white.length === 0 && hands.black.length === 0) {
+                        phase = 'main';
+                    }
+                    switchTurn();
+                }
+            } else {
+                // Try place to win
+                const types = hands.black;
+                let done = false;
+                if (types.length > 0) {
+                    for (let t of types) {
+                        for (let rr = 0; rr < 4; rr++) {
+                            for (let cc = 0; cc < 4; cc++) {
+                                if (board[rr][cc] === null) {
+                                    const temp = board.map(row => row.slice());
+                                    temp[rr][cc] = { player: 'black', type: t };
+                                    if (checkWin('black', temp)) {
+                                        board[rr][cc] = { player: 'black', type: t };
+                                        hands.black = hands.black.filter(tt => tt !== t);
+                                        document.getElementById('message').innerText = 'black wins!';
+                                        alert('black wins!');
+                                        switchTurn();
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Try move to win
+                const ownPos = [];
+                for (let rr = 0; rr < 4; rr++) {
+                    for (let cc = 0; cc < 4; cc++) {
+                        if (board[rr][cc] && board[rr][cc].player === 'black') {
+                            ownPos.push([rr, cc]);
+                        }
+                    }
+                }
+                for (let [sr, sc] of ownPos) {
+                    const valids = getValidMoves(sr, sc);
+                    for (let [tr, tc] of valids) {
+                        const temp = board.map(row => row.slice());
+                        const captured = temp[tr][tc];
+                        temp[tr][tc] = temp[sr][sc];
+                        temp[sr][sc] = null;
+                        if (checkWin('black', temp)) {
+                            board[tr][tc] = board[sr][sc];
+                            board[sr][sc] = null;
+                            if (captured) {
+                                hands[captured.player].push(captured.type);
+                            }
+                            document.getElementById('message').innerText = 'black wins!';
+                            alert('black wins!');
+                            switchTurn();
+                            return;
+                        }
+                    }
+                }
+                // Random capture
+                let captures = [];
+                for (let [sr, sc] of ownPos) {
+                    const valids = getValidMoves(sr, sc);
+                    for (let [tr, tc] of valids) {
+                        if (board[tr][tc]) {
+                            captures.push({ from: [sr, sc], to: [tr, tc] });
+                        }
+                    }
+                }
+                if (captures.length > 0) {
+                    const act = captures[Math.floor(Math.random() * captures.length)];
+                    const [sr, sc] = act.from;
+                    const [tr, tc] = act.to;
+                    const captured = board[tr][tc];
+                    board[tr][tc] = board[sr][sc];
+                    board[sr][sc] = null;
+                    hands[captured.player].push(captured.type);
+                    switchTurn();
+                    return;
+                }
+                // Random move
+                let moves = [];
+                for (let [sr, sc] of ownPos) {
+                    const valids = getValidMoves(sr, sc);
+                    for (let [tr, tc] of valids) {
+                        if (!board[tr][tc]) {
+                            moves.push({ from: [sr, sc], to: [tr, tc] });
+                        }
+                    }
+                }
+                if (moves.length > 0) {
+                    const act = moves[Math.floor(Math.random() * moves.length)];
+                    const [sr, sc] = act.from;
+                    const [tr, tc] = act.to;
+                    board[tr][tc] = board[sr][sc];
+                    board[sr][sc] = null;
+                    switchTurn();
+                    return;
+                }
+                // Random place
+                if (types.length > 0) {
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    let empties = [];
+                    for (let rr = 0; rr < 4; rr++) {
+                        for (let cc = 0; cc < 4; cc++) {
+                            if (board[rr][cc] === null) {
+                                empties.push([rr, cc]);
+                            }
+                        }
+                    }
+                    if (empties.length > 0) {
+                        const [pr, pc] = empties[Math.floor(Math.random() * empties.length)];
+                        board[pr][pc] = { player: 'black', type };
+                        hands.black = hands.black.filter(t => t !== type);
+                        switchTurn();
+                        return;
+                    }
+                }
+                // No action
+                switchTurn();
+            }
+        }
+
+        document.getElementById('mode').addEventListener('click', () => {
+            isBot = !isBot;
+            render();
+        });
+
+        document.getElementById('restart').addEventListener('click', init);
+
+        init();
+    </script>
+</body>
+</html>
