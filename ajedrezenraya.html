@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chess Tic Tac Toe</title>
+    <title>Ajedrez en Raya</title>
     <style>
         * {
             margin: 0;
@@ -116,23 +116,21 @@
         </div>
         <div id="white-hand" class="hand"></div>
         <div id="black-hand" class="hand"></div>
-        <div id="message">White's turn</div>
-        <button id="mode">Play vs Bot</button>
-        <button id="restart">Restart</button>
+        <div id="message">Turno de las blancas</div>
+        <button id="mode">Jugar contra Bot</button>
+        <button id="restart">Reiniciar</button>
     </div>
     <script>
         const symbols = {
             white: { N: '♘', R: '♖', B: '♗', P: '♙' },
             black: { N: '♞', R: '♜', B: '♝', P: '♟' }
         };
-
         let board = [];
         let hands = { white: [], black: [] };
         let phase = 'placement';
         let turn = 'white';
         let selected = null;
         let isBot = false;
-
         function init() {
             board = Array.from({length: 4}, () => Array(4).fill(null));
             hands = {
@@ -144,13 +142,11 @@
             selected = null;
             render();
         }
-
         function checkPhaseTransition() {
             if (phase === 'placement' && hands.white.length === 0 && hands.black.length === 0) {
                 phase = 'main';
             }
         }
-
         function render() {
             const boardDiv = document.getElementById('board');
             boardDiv.innerHTML = '';
@@ -175,23 +171,19 @@
                     boardDiv.appendChild(cell);
                 }
             }
-
             renderHand('white');
             renderHand('black');
-
-            let msg = `${turn.charAt(0).toUpperCase() + turn.slice(1)}'s turn`;
-            if (phase === 'placement') msg += ' — select piece below → tap empty square';
-            else msg += ' — tap your piece → tap destination';
+            let msg = `Turno de las ${turn === 'white' ? 'blancas' : 'negras'}`;
+            if (phase === 'placement') msg += ' — selecciona pieza abajo → toca casilla vacía';
+            else msg += ' — toca tu pieza → toca destino';
             document.getElementById('message').textContent = msg;
-
-            document.getElementById('mode').textContent = isBot ? 'Play vs Player' : 'Play vs Bot';
+            document.getElementById('mode').textContent = isBot ? 'Jugar contra Jugador' : 'Jugar contra Bot';
         }
-
         function renderHand(player) {
             const handDiv = document.getElementById(player + '-hand');
-            handDiv.innerHTML = `<strong>${player.toUpperCase()} hand:</strong>`;
+            handDiv.innerHTML = `<strong>Mano de ${player === 'white' ? 'BLANCAS' : 'NEGRAS'}:</strong>`;
             if (hands[player].length === 0) {
-                handDiv.innerHTML += ' (all placed)';
+                handDiv.innerHTML += ' (todas colocadas)';
                 return;
             }
             hands[player].forEach(type => {
@@ -210,29 +202,24 @@
                 handDiv.appendChild(p);
             });
         }
-
         function onHandClick(e) {
             if (e.currentTarget.dataset.player !== turn) return;
             selected = { mode: 'place', type: e.currentTarget.dataset.type };
-            document.getElementById('message').textContent = `Place ${selected.type} on an empty square`;
+            document.getElementById('message').textContent = `Coloca ${selected.type} en una casilla vacía`;
         }
-
         function onCellClick(e) {
             const r = parseInt(e.currentTarget.dataset.row);
             const c = parseInt(e.currentTarget.dataset.col);
-
             if (selected?.mode === 'place') {
                 if (board[r][c]) return;
-
                 const temp = board.map(row => row.slice());
                 temp[r][c] = { player: turn, type: selected.type };
                 if (phase === 'placement' && checkWin(turn, temp)) {
-                    alert('Cannot place there — it would win immediately!');
+                    alert('¡No puedes colocar ahí — ganaría inmediatamente!');
                     selected = null;
                     render();
                     return;
                 }
-
                 board[r][c] = { player: turn, type: selected.type };
                 hands[turn] = hands[turn].filter(t => t !== selected.type);
                 selected = null;
@@ -240,7 +227,6 @@
                 checkAndEndTurn();
                 return;
             }
-
             if (phase === 'main') {
                 if (selected?.mode === 'move') {
                     const [sr, sc] = selected.pos;
@@ -257,45 +243,40 @@
                     }
                     return;
                 }
-
                 if (board[r][c]?.player === turn) {
                     selected = { mode: 'move', pos: [r, c] };
-                    document.getElementById('message').textContent = `Selected ${board[r][c].type} — tap destination`;
+                    document.getElementById('message').textContent = `Seleccionada ${board[r][c].type} — toca destino`;
                 }
             }
         }
-
         function checkAndEndTurn() {
             if (checkWin(turn)) {
-                document.getElementById('message').textContent = turn.toUpperCase() + ' WINS!';
-                alert(turn.toUpperCase() + ' wins!');
+                document.getElementById('message').textContent = `${turn.toUpperCase()} GANA!`;
+                alert(`${turn === 'white' ? 'BLANCAS' : 'NEGRAS'} gana!`);
                 return;
             }
             turn = turn === 'white' ? 'black' : 'white';
             render();
             if (isBot && turn === 'black') setTimeout(botMove, 1000);
         }
-
         function checkWin(player, b = board) {
-            // rows
+            // filas
             for (let i = 0; i < 4; i++) if (b[i].every(c => c && c.player === player)) return true;
-            // columns
+            // columnas
             for (let i = 0; i < 4; i++) if (b.every(row => row[i] && row[i].player === player)) return true;
-            // diags
-            if (b[0][0] && b[1][1] && b[2][2] && b[3][3] && 
+            // diagonales
+            if (b[0][0] && b[1][1] && b[2][2] && b[3][3] &&
                 [b[0][0], b[1][1], b[2][2], b[3][3]].every(p => p.player === player)) return true;
-            if (b[0][3] && b[1][2] && b[2][1] && b[3][0] && 
+            if (b[0][3] && b[1][2] && b[2][1] && b[3][0] &&
                 [b[0][3], b[1][2], b[2][1], b[3][0]].every(p => p.player === player)) return true;
             return false;
         }
-
         function getValidMoves(r, c) {
             const p = board[r][c];
             if (!p) return [];
             const {player, type} = p;
             const opp = player === 'white' ? 'black' : 'white';
             const moves = [];
-
             if (type === 'N') {
                 const d = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
                 d.forEach(([dr,dc]) => {
@@ -339,11 +320,9 @@
             }
             return moves;
         }
-
         function isValidMove(sr, sc, tr, tc) {
             return getValidMoves(sr, sc).some(([vr,vc]) => vr===tr && vc===tc);
         }
-
         function animateBotMove(from, to, place = false) {
             setTimeout(() => {
                 if (place) {
@@ -362,11 +341,9 @@
                 }
             }, 100);
         }
-
         function botMove() {
             let action = null;
-
-            // win by place
+            // ganar colocando
             if (hands.black.length > 0) {
                 for (let type of hands.black) {
                     for (let r=0; r<4; r++) for (let c=0; c<4; c++) if (!board[r][c]) {
@@ -380,8 +357,7 @@
                     if (action) break;
                 }
             }
-
-            // win by move
+            // ganar moviendo
             if (!action) {
                 const pieces = [];
                 for (let r=0; r<4; r++) for (let c=0; c<4; c++) if (board[r][c]?.player==='black') pieces.push([r,c]);
@@ -399,8 +375,7 @@
                     if (action) break;
                 }
             }
-
-            // random place
+            // colocación aleatoria
             if (!action && hands.black.length > 0) {
                 const empties = [];
                 for (let r=0; r<4; r++) for (let c=0; c<4; c++) if (!board[r][c]) empties.push([r,c]);
@@ -409,8 +384,7 @@
                               type: hands.black[Math.floor(Math.random()*hands.black.length)]};
                 }
             }
-
-            // random move
+            // movimiento aleatorio
             if (!action) {
                 const pieces = [];
                 for (let r=0; r<4; r++) for (let c=0; c<4; c++) if (board[r][c]?.player==='black') pieces.push([r,c]);
@@ -418,7 +392,6 @@
                 for (let [sr,sc] of pieces) opts.push(...getValidMoves(sr,sc).map(to=>({from:[sr,sc],to})));
                 if (opts.length) action = {kind:'move', ...opts[Math.floor(Math.random()*opts.length)]};
             }
-
             if (action) {
                 if (action.kind === 'place') {
                     animateBotMove(null, action.pos, true);
@@ -428,8 +401,8 @@
                         checkPhaseTransition();
                         render();
                         if (checkWin('black')) {
-                            document.getElementById('message').textContent = 'BLACK WINS!';
-                            alert('Black wins!');
+                            document.getElementById('message').textContent = '¡NEGRAS GANA!';
+                            alert('¡Negras gana!');
                         } else turn = 'white';
                     }, 800);
                 } else {
@@ -442,8 +415,8 @@
                         checkPhaseTransition();
                         render();
                         if (checkWin('black')) {
-                            document.getElementById('message').textContent = 'BLACK WINS!';
-                            alert('Black wins!');
+                            document.getElementById('message').textContent = '¡NEGRAS GANA!';
+                            alert('¡Negras gana!');
                         } else turn = 'white';
                     }, 800);
                 }
@@ -452,10 +425,8 @@
                 render();
             }
         }
-
         document.getElementById('mode').addEventListener('click', () => { isBot = !isBot; render(); });
         document.getElementById('restart').addEventListener('click', init);
-
         init();
     </script>
 </body>
