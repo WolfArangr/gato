@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master's Dashboard - Sistema GATO</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Cinzel', serif;
+            background-color: #f4e8d4;
+            color: #3e2a1a;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            gap: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            max-width: 2000px;
+            gap: 20px;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #8b5a2b;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            min-width: 320px;
+            height: fit-content;
+        }
+        
+        h1, h2 {
+            text-align: center;
+            color: #8b5a2b;
+            border-bottom: 2px solid #d4a76a;
+            padding-bottom: 10px;
+        }
+        
+        button {
+            background: #d4a76a;
+            color: #3e2a1a;
+            border: 1px solid #8b5a2b;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #8b5a2b;
+            color: #fff;
+        }
+        
+        input, select {
+            background: #f4e8d4;
+            border: 1px solid #8b5a2b;
+            padding: 5px;
+            margin: 4px;
+            font-family: 'Cinzel', serif;
+        }
+        
+        .pj-card {
+            border: 1px solid #d4a76a;
+            padding: 12px;
+            margin: 12px 0;
+            background: #fff;
+            border-radius: 6px;
+        }
+        
+        .log-entry {
+            border-bottom: 1px solid #d4a76a;
+            padding: 6px;
+            font-size: 0.9em;
+        }
+        
+        #log {
+            max-height: 420px;
+            overflow-y: auto;
+            border: 1px solid #8b5a2b;
+            padding: 10px;
+            background: #f4e8d4;
+        }
+        
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f4e8d4; }
+        ::-webkit-scrollbar-thumb { background: #8b5a2b; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section" id="pjs-section">
+            <h1>Personajes</h1>
+            <button onclick="loadPresets()">Cargar Presets Pregenerados (13 PJs)</button>
+            <button onclick="addPJ()">Añadir PJ Manual</button>
+            <div id="pjs-list"></div>
+        </div>
+        
+        <div class="section" id="library-section">
+            <h1>Biblioteca de Objetos</h1>
+            <input type="text" id="new-item-name" placeholder="Nombre del Objeto">
+            <select id="new-item-size">
+                <option value="pequeño">Pequeño</option>
+                <option value="mediano">Mediano</option>
+                <option value="grande">Grande</option>
+            </select>
+            <button onclick="addItemToLibrary()">Añadir</button>
+            <div id="library-list"></div>
+        </div>
+        
+        <div class="section" id="log-section">
+            <h1>Historial</h1>
+            <div id="log"></div>
+            <button onclick="clearLog()">Limpiar Log</button>
+        </div>
+        
+        <div class="section" id="save-load-section">
+            <h1>Guardar / Cargar</h1>
+            <button onclick="saveData()">Descargar Datos (JSON)</button>
+            <input type="file" id="load-file" accept=".json">
+            <button onclick="loadData()">Cargar Datos</button>
+        </div>
+    </div>
+
+    <script>
+        let pjs = [];
+        let library = [];
+        let log = [];
+
+        const baseXP = 1000;
+        function getXPForLevel(level) {
+            if (level <= 1) return 0;
+            return baseXP * Math.pow(2, level - 2);
+        }
+        function getTotalXPForLevel(level) {
+            let total = 0;
+            for (let i = 2; i <= level; i++) total += getXPForLevel(i);
+            return total;
+        }
+
+        function calcPVMax(pj) {
+            return 10 + (pj.attrs?.R || 5) + (pj.level * 2);
+        }
+
+        // Presets de los 13 personajes
+        const presets = [
+            { mote: "Vagabundo harapiento con amnesia", realName: "", prof: "No se acuerda", attrs: {F:7,P:7,R:7,C:7,I:7,A:7,S:1}, inventory: [{name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Ojo de Halcón", realName: "", attrs: {F:4,P:8,R:6,C:3,I:5,A:7,S:5}, inventory: [{name:"Arco largo (D4 + P)", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Cuchilla", realName: "", attrs: {F:7,P:5,R:5,C:4,I:4,A:7,S:6}, inventory: [{name:"Espada corta curva de hoja negra (D6 + F)", size:"mediano"}], money:20 },
+            { mote: "Martillo de la Forja", realName: "", attrs: {F:8,P:4,R:7,C:5,I:6,A:3,S:4}, inventory: [{name:"Martillo de forja pesado", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Eco del Valle", realName: "", attrs: {F:3,P:6,R:5,C:7,I:5,A:8,S:4}, inventory: [{name:"Capa impermeable", size:"mediano"}, {name:"Bolsa de cuero grande", size:"grande"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Ojo de Lobo", realName: "", attrs: {F:5,P:7,R:6,C:4,I:5,A:6,S:7}, inventory: [{name:"Ballesta ligera (D4 + P)", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Alma de Hierro", realName: "", attrs: {F:7,P:5,R:8,C:6,I:4,A:5,S:3}, inventory: [{name:"Espada de una mano (D6 + F)", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Susurro", realName: "", attrs: {F:3,P:6,R:4,C:8,I:7,A:7,S:5}, inventory: [{name:"Cuchillo largo (D4 + F)", size:"pequeño"}, {name:"Bolsa de cuero grande", size:"grande"}], money:20 },
+            { mote: "Dedos de Seda", realName: "", attrs: {F:2,P:6,R:4,C:5,I:6,A:9,S:8}, inventory: [{name:"Navaja plegable (D4, indetectable)", size:"pequeño"}, {name:"Set de ganzúas", size:"pequeño"}], money:20 },
+            { mote: "Corazón de Roca", realName: "", attrs: {F:8,P:5,R:7,C:4,I:5,A:4,S:6}, inventory: [{name:"Pico", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Cuervo", realName: "", attrs: {F:6,P:7,R:6,C:3,I:4,A:6,S:7}, inventory: [{name:"Arco corto (D4 + P)", size:"mediano"}, {name:"Lanza larga (D6)", size:"grande"}, {name:"Cuchillo largo de caza (D4 + F)", size:"pequeño"}], money:20 },
+            { mote: "Manos de Madera", realName: "", attrs: {F:6,P:5,R:6,C:5,I:7,A:4,S:5}, inventory: [{name:"Martillo de carpintero", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Halcón Sombrío", realName: "", attrs: {F:4,P:7,R:5,C:3,I:4,A:8,S:8}, inventory: [{name:"Arco recurvo (D6 + P)", size:"mediano"}, {name:"Cuchillo largo de caza (D4 + F)", size:"pequeño"}, {name:"Bolsa de cuero", size:"mediano"}], money:20 }
+        ];
+
+        function loadPresets() {
+            presets.forEach(preset => {
+                if (pjs.some(p => p.mote === preset.mote)) return; // Evitar duplicados
+                const pj = {
+                    mote: preset.mote,
+                    realName: preset.realName || "",
+                    attrs: { ...preset.attrs },
+                    level: 1,
+                    xp: 0,
+                    pvCurrent: 0,
+                    money: preset.money || 20,
+                    inventory: preset.inventory.map(i => ({...i}))
+                };
+                pj.pvMax = calcPVMax(pj);
+                pj.pvCurrent = pj.pvMax;
+                pjs.push(pj);
+                addToLog(`Preset cargado: ${pj.mote}`);
+            });
+            renderPJs();
+        }
+
+        function addPJ() {
+            const name = prompt('Nombre / Mote del PJ:') || 'Nuevo PJ';
+            const pj = {
+                mote: name,
+                realName: "",
+                attrs: {F:5,P:5,R:5,C:5,I:5,A:5,S:5},
+                level: 1,
+                xp: 0,
+                pvCurrent: 0,
+                money: 20,
+                inventory: []
+            };
+            pj.pvMax = calcPVMax(pj);
+            pj.pvCurrent = pj.pvMax;
+            pjs.push(pj);
+            addToLog(`Añadido PJ: ${name}`);
+            renderPJs();
+        }
+
+        function renderPJs() {
+            const list = document.getElementById('pjs-list');
+            list.innerHTML = '';
+            pjs.forEach((pj, idx) => {
+                const card = document.createElement('div');
+                card.className = 'pj-card';
+                card.innerHTML = `
+                    <h2>${pj.mote} ${pj.realName ? `(${pj.realName})` : ''} (Nv ${pj.level})</h2>
+                    <label>Nombre real: <input type="text" value="${pj.realName}" onchange="updateRealName(${idx}, this.value)"></label>
+                    
+                    <p>XP: ${pj.xp} / ${getTotalXPForLevel(pj.level + 1)} 
+                        <button onclick="addXP(${idx}, 100)">+100</button>
+                        <button onclick="addXP(${idx}, 500)">+500</button>
+                        <button onclick="addXP(${idx}, 1000)">+1000</button>
+                        <input type="number" id="custom-xp-${idx}" placeholder="Custom" style="width:60px;">
+                        <button onclick="addCustomXP(${idx})">→</button>
+                    </p>
+                    
+                    <p>PV: ${pj.pvCurrent} / ${pj.pvMax}
+                        <button onclick="adjustPV(${idx}, 1)">+1</button>
+                        <button onclick="adjustPV(${idx}, -1)">-1</button>
+                        <button onclick="resetPV(${idx})">Reset</button>
+                    </p>
+                    
+                    <p>Dinero: ${pj.money} dov.
+                        <button onclick="adjustMoney(${idx}, 10)">+10</button>
+                        <button onclick="adjustMoney(${idx}, -10)">-10</button>
+                    </p>
+                    
+                    <h3>Atributos</h3>
+                    ${Object.entries(pj.attrs).map(([k,v]) => `
+                        <p>${k}: ${v}
+                            <button onclick="adjustAttr(${idx}, '${k}', 1)">+</button>
+                            <button onclick="adjustAttr(${idx}, '${k}', -1)">-</button>
+                        </p>
+                    `).join('')}
+                    
+                    <h3>Inventario</h3>
+                    <ul>${pj.inventory.map((it,i) => `<li>${it.name} (${it.size}) <button onclick="removeItem(${idx}, ${i})">X</button></li>`).join('')}</ul>
+                    <select id="lib-sel-${idx}">
+                        ${library.map(it => `<option value="${it.name}">${it.name} (${it.size})</option>`).join('')}
+                    </select>
+                    <button onclick="addItemFromLibrary(${idx})">Añadir de biblio</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function updateRealName(idx, value) {
+            pjs[idx].realName = value;
+            renderPJs();
+        }
+
+        function addXP(idx, amt) {
+            pjs[idx].xp += amt;
+            addToLog(`+${amt} XP → ${pjs[idx].mote}`);
+            checkLevelUp(idx);
+            renderPJs();
+        }
+
+        function addCustomXP(idx) {
+            const val = parseInt(document.getElementById(`custom-xp-${idx}`).value) || 0;
+            if (val) addXP(idx, val);
+            document.getElementById(`custom-xp-${idx}`).value = '';
+        }
+
+        function checkLevelUp(idx) {
+            const pj = pjs[idx];
+            while (pj.xp >= getTotalXPForLevel(pj.level + 1) && pj.level < 20) {
+                pj.level++;
+                pj.pvMax = calcPVMax(pj);
+                pj.pvCurrent = pj.pvMax;
+                addToLog(`${pj.mote} → Nivel ${pj.level}! Asigna +1 atributo (no S).`);
+            }
+        }
+
+        function adjustPV(idx, delta) {
+            pjs[idx].pvCurrent = Math.max(0, pjs[idx].pvCurrent + delta);
+            addToLog(`PV ${pjs[idx].mote} ${delta > 0 ? '+' : ''}${delta}`);
+            renderPJs();
+        }
+
+        function resetPV(idx) {
+            pjs[idx].pvCurrent = pjs[idx].pvMax;
+            addToLog(`Reset PV → ${pjs[idx].mote}`);
+            renderPJs();
+        }
+
+        function adjustMoney(idx, delta) {
+            pjs[idx].money += delta;
+            addToLog(`Dinero ${pjs[idx].mote} ${delta > 0 ? '+' : ''}${delta}`);
+            renderPJs();
+        }
+
+        function adjustAttr(idx, attr, delta) {
+            if (attr === 'S' && delta > 0) {
+                alert('No se puede subir Suerte al subir nivel.');
+                return;
+            }
+            pjs[idx].attrs[attr] = (pjs[idx].attrs[attr] || 5) + delta;
+            if (attr === 'R') pjs[idx].pvMax = calcPVMax(pjs[idx]);
+            addToLog(`${attr} ${pjs[idx].mote} ${delta > 0 ? '+' : ''}${delta}`);
+            renderPJs();
+        }
+
+        function addItemToLibrary() {
+            const name = document.getElementById('new-item-name').value.trim();
+            const size = document.getElementById('new-item-size').value;
+            if (!name) return;
+            library.push({name, size});
+            addToLog(`Objeto añadido a biblio: ${name} (${size})`);
+            renderLibrary();
+            renderPJs();
+            document.getElementById('new-item-name').value = '';
+        }
+
+        function renderLibrary() {
+            document.getElementById('library-list').innerHTML = 
+                '<ul>' + library.map(it => `<li>${it.name} (${it.size}) <button onclick="removeFromLibrary('${it.name.replace(/'/g,"\\'")}')">X</button></li>`).join('') + '</ul>';
+        }
+
+        function removeFromLibrary(name) {
+            library = library.filter(it => it.name !== name);
+            renderLibrary();
+            renderPJs();
+        }
+
+        function addItemFromLibrary(idx) {
+            const sel = document.getElementById(`lib-sel-${idx}`);
+            const name = sel.value;
+            const item = library.find(it => it.name === name);
+            if (item) {
+                pjs[idx].inventory.push({...item});
+                addToLog(`+ ${name} → ${pjs[idx].mote}`);
+                renderPJs();
+            }
+        }
+
+        function removeItem(idx, itemIdx) {
+            const itemName = pjs[idx].inventory[itemIdx].name;
+            pjs[idx].inventory.splice(itemIdx, 1);
+            addToLog(`- ${itemName} de ${pjs[idx].mote}`);
+            renderPJs();
+        }
+
+        function addToLog(msg) {
+            log.push(`${new Date().toLocaleTimeString()}: ${msg}`);
+            document.getElementById('log').innerHTML = log.map(e => `<div class="log-entry">${e}</div>`).join('');
+            document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+        }
+
+        function clearLog() {
+            log = [];
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function saveData() {
+            const data = {pjs, library, log};
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'gato-master-save.json';
+            a.click();
+        }
+
+        function loadData() {
+            const file = document.getElementById('load-file').files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    pjs = data.pjs || [];
+                    library = data.library || [];
+                    log = data.log || [];
+                    pjs.forEach(pj => {
+                        pj.pvMax = calcPVMax(pj);
+                        pj.pvCurrent = Math.min(pj.pvCurrent || pj.pvMax, pj.pvMax);
+                    });
+                    renderPJs();
+                    renderLibrary();
+                    addToLog('Partida cargada correctamente');
+                } catch(err) {
+                    alert('Error al cargar el JSON');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Init
+        renderPJs();
+        renderLibrary();
+        addToLog('Dashboard iniciado. Usa "Cargar Presets" para los 13 personajes.');
+    </script>
+</body>
+</html>
