@@ -12,29 +12,109 @@
             background-color: #f4e8d4;
             color: #3e2a1a;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             display: flex;
-            flex-direction: row;
-            overflow-x: auto;
+            flex-direction: column;
+            overflow: auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: center;
             gap: 20px;
+            padding: 10px;
+            background: rgba(139, 90, 43, 0.2);
+            border-bottom: 2px solid #8b5a2b;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .toggle-btn {
+            background: #d4a76a;
+            color: #3e2a1a;
+            border: 1px solid #8b5a2b;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+        }
+        
+        .toggle-btn:hover {
+            background: #8b5a2b;
+            color: #fff;
         }
         
         .container {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             width: 100%;
-            max-width: 2000px;
+            padding: 20px;
             gap: 20px;
         }
         
-        .section {
+        #pjs-section {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #8b5a2b;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            width: 100%;
+        }
+        
+        #pjs-list {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-around;
+        }
+        
+        .pj-card {
+            border: 1px solid #d4a76a;
+            padding: 12px;
+            margin: 0;
+            background: #fff;
+            border-radius: 6px;
+            min-width: 280px;
+            max-width: 400px;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-hidden {
+            display: none;
             background: rgba(255, 255, 255, 0.8);
             border: 2px solid #8b5a2b;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             min-width: 320px;
-            height: fit-content;
+            position: fixed;
+            top: 50px;
+            left: 20px;
+            z-index: 5;
+            width: 400px;
+            max-height: 80vh;
+            overflow: auto;
+        }
+        
+        #library-section {
+            left: 20px;
+        }
+        
+        #log-section {
+            left: 450px;
+        }
+        
+        #save-load-section {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #8b5a2b;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            width: fit-content;
+            margin: 0 auto;
         }
         
         h1, h2 {
@@ -42,6 +122,7 @@
             color: #8b5a2b;
             border-bottom: 2px solid #d4a76a;
             padding-bottom: 10px;
+            margin-top: 0;
         }
         
         button {
@@ -67,14 +148,6 @@
             font-family: 'Cinzel', serif;
         }
         
-        .pj-card {
-            border: 1px solid #d4a76a;
-            padding: 12px;
-            margin: 12px 0;
-            background: #fff;
-            border-radius: 6px;
-        }
-        
         .log-entry {
             border-bottom: 1px solid #d4a76a;
             padding: 6px;
@@ -82,7 +155,7 @@
         }
         
         #log {
-            max-height: 420px;
+            max-height: 300px;
             overflow-y: auto;
             border: 1px solid #8b5a2b;
             padding: 10px;
@@ -95,38 +168,43 @@
     </style>
 </head>
 <body>
+    <div class="header">
+        <button class="toggle-btn" onclick="toggleSection('library-section')">Biblioteca</button>
+        <button class="toggle-btn" onclick="toggleSection('log-section')">Historial</button>
+    </div>
+    
     <div class="container">
-        <div class="section" id="pjs-section">
+        <div id="pjs-section">
             <h1>Personajes</h1>
             <button onclick="loadPresets()">Cargar Presets Pregenerados (13 PJs)</button>
             <button onclick="addPJ()">Añadir PJ Manual</button>
             <div id="pjs-list"></div>
         </div>
         
-        <div class="section" id="library-section">
-            <h1>Biblioteca de Objetos</h1>
-            <input type="text" id="new-item-name" placeholder="Nombre del Objeto">
-            <select id="new-item-size">
-                <option value="pequeño">Pequeño</option>
-                <option value="mediano">Mediano</option>
-                <option value="grande">Grande</option>
-            </select>
-            <button onclick="addItemToLibrary()">Añadir</button>
-            <div id="library-list"></div>
-        </div>
-        
-        <div class="section" id="log-section">
-            <h1>Historial</h1>
-            <div id="log"></div>
-            <button onclick="clearLog()">Limpiar Log</button>
-        </div>
-        
-        <div class="section" id="save-load-section">
+        <div id="save-load-section">
             <h1>Guardar / Cargar</h1>
             <button onclick="saveData()">Descargar Datos (JSON)</button>
             <input type="file" id="load-file" accept=".json">
             <button onclick="loadData()">Cargar Datos</button>
         </div>
+    </div>
+    
+    <div id="library-section" class="section-hidden">
+        <h1>Biblioteca de Objetos</h1>
+        <input type="text" id="new-item-name" placeholder="Nombre del Objeto">
+        <select id="new-item-size">
+            <option value="pequeño">Pequeño</option>
+            <option value="mediano">Mediano</option>
+            <option value="grande">Grande</option>
+        </select>
+        <button onclick="addItemToLibrary()">Añadir</button>
+        <div id="library-list"></div>
+    </div>
+    
+    <div id="log-section" class="section-hidden">
+        <h1>Historial</h1>
+        <div id="log"></div>
+        <button onclick="clearLog()">Limpiar Log</button>
     </div>
 
     <script>
@@ -149,26 +227,26 @@
             return 10 + (pj.attrs?.R || 5) + (pj.level * 2);
         }
 
-        // Presets de los 13 personajes
+        // Presets de los 13 personajes con objetos corregidos
         const presets = [
-            { mote: "Vagabundo harapiento con amnesia", realName: "", prof: "No se acuerda", attrs: {F:7,P:7,R:7,C:7,I:7,A:7,S:1}, inventory: [{name:"Cuchillo", size:"pequeño"}], money:20 },
-            { mote: "Ojo de Halcón", realName: "", attrs: {F:4,P:8,R:6,C:3,I:5,A:7,S:5}, inventory: [{name:"Arco largo (D4 + P)", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Vagabundo harapiento con amnesia", realName: "", attrs: {F:7,P:7,R:7,C:7,I:7,A:7,S:1}, inventory: [{name:"Cuchillo (D6)", size:"pequeño"}], money:20 },
+            { mote: "Ojo de Halcón", realName: "", attrs: {F:4,P:8,R:6,C:3,I:5,A:7,S:5}, inventory: [{name:"Arco largo (D4 + P)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
             { mote: "Cuchilla", realName: "", attrs: {F:7,P:5,R:5,C:4,I:4,A:7,S:6}, inventory: [{name:"Espada corta curva de hoja negra (D6 + F)", size:"mediano"}], money:20 },
-            { mote: "Martillo de la Forja", realName: "", attrs: {F:8,P:4,R:7,C:5,I:6,A:3,S:4}, inventory: [{name:"Martillo de forja pesado", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
-            { mote: "Eco del Valle", realName: "", attrs: {F:3,P:6,R:5,C:7,I:5,A:8,S:4}, inventory: [{name:"Capa impermeable", size:"mediano"}, {name:"Bolsa de cuero grande", size:"grande"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
-            { mote: "Ojo de Lobo", realName: "", attrs: {F:5,P:7,R:6,C:4,I:5,A:6,S:7}, inventory: [{name:"Ballesta ligera (D4 + P)", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
-            { mote: "Alma de Hierro", realName: "", attrs: {F:7,P:5,R:8,C:6,I:4,A:5,S:3}, inventory: [{name:"Espada de una mano (D6 + F)", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Martillo de la Forja", realName: "", attrs: {F:8,P:4,R:7,C:5,I:6,A:3,S:4}, inventory: [{name:"Martillo de forja pesado (F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
+            { mote: "Eco del Valle", realName: "", attrs: {F:3,P:6,R:5,C:7,I:5,A:8,S:4}, inventory: [{name:"Capa impermeable", size:"mediano"}, {name:"Bolsa de cuero grande", size:"grande"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
+            { mote: "Ojo de Lobo", realName: "", attrs: {F:5,P:7,R:6,C:4,I:5,A:6,S:7}, inventory: [{name:"Ballesta ligera (D4 + P)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
+            { mote: "Alma de Hierro", realName: "", attrs: {F:7,P:5,R:8,C:6,I:4,A:5,S:3}, inventory: [{name:"Espada de una mano (D6 + F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
             { mote: "Susurro", realName: "", attrs: {F:3,P:6,R:4,C:8,I:7,A:7,S:5}, inventory: [{name:"Cuchillo largo (D4 + F)", size:"pequeño"}, {name:"Bolsa de cuero grande", size:"grande"}], money:20 },
             { mote: "Dedos de Seda", realName: "", attrs: {F:2,P:6,R:4,C:5,I:6,A:9,S:8}, inventory: [{name:"Navaja plegable (D4, indetectable)", size:"pequeño"}, {name:"Set de ganzúas", size:"pequeño"}], money:20 },
-            { mote: "Corazón de Roca", realName: "", attrs: {F:8,P:5,R:7,C:4,I:5,A:4,S:6}, inventory: [{name:"Pico", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Corazón de Roca", realName: "", attrs: {F:8,P:5,R:7,C:4,I:5,A:4,S:6}, inventory: [{name:"Pico (F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
             { mote: "Cuervo", realName: "", attrs: {F:6,P:7,R:6,C:3,I:4,A:6,S:7}, inventory: [{name:"Arco corto (D4 + P)", size:"mediano"}, {name:"Lanza larga (D6)", size:"grande"}, {name:"Cuchillo largo de caza (D4 + F)", size:"pequeño"}], money:20 },
-            { mote: "Manos de Madera", realName: "", attrs: {F:6,P:5,R:6,C:5,I:7,A:4,S:5}, inventory: [{name:"Martillo de carpintero", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Manos de Madera", realName: "", attrs: {F:6,P:5,R:6,C:5,I:7,A:4,S:5}, inventory: [{name:"Martillo de carpintero (F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
             { mote: "Halcón Sombrío", realName: "", attrs: {F:4,P:7,R:5,C:3,I:4,A:8,S:8}, inventory: [{name:"Arco recurvo (D6 + P)", size:"mediano"}, {name:"Cuchillo largo de caza (D4 + F)", size:"pequeño"}, {name:"Bolsa de cuero", size:"mediano"}], money:20 }
         ];
 
         function loadPresets() {
             presets.forEach(preset => {
-                if (pjs.some(p => p.mote === preset.mote)) return; // Evitar duplicados
+                if (pjs.some(p => p.mote === preset.mote)) return;
                 const pj = {
                     mote: preset.mote,
                     realName: preset.realName || "",
@@ -184,6 +262,16 @@
                 pjs.push(pj);
                 addToLog(`Preset cargado: ${pj.mote}`);
             });
+            // Añadir objetos iniciales a la biblioteca si no existen
+            const uniqueItems = new Set();
+            presets.flatMap(p => p.inventory).forEach(item => {
+                const key = `${item.name}|${item.size}`;
+                if (!uniqueItems.has(key) && !library.some(libItem => libItem.name === item.name && libItem.size === item.size)) {
+                    uniqueItems.add(key);
+                    library.push({name: item.name, size: item.size});
+                }
+            });
+            renderLibrary();
             renderPJs();
         }
 
@@ -353,8 +441,9 @@
 
         function addToLog(msg) {
             log.push(`${new Date().toLocaleTimeString()}: ${msg}`);
-            document.getElementById('log').innerHTML = log.map(e => `<div class="log-entry">${e}</div>`).join('');
-            document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+            const logDiv = document.getElementById('log');
+            if (logDiv) logDiv.innerHTML = log.map(e => `<div class="log-entry">${e}</div>`).join('');
+            if (logDiv) logDiv.scrollTop = logDiv.scrollHeight;
         }
 
         function clearLog() {
@@ -394,6 +483,15 @@
                 }
             };
             reader.readAsText(file);
+        }
+
+        function toggleSection(id) {
+            const section = document.getElementById(id);
+            if (section.style.display === 'block') {
+                section.style.display = 'none';
+            } else {
+                section.style.display = 'block';
+            }
         }
 
         // Init
