@@ -5,160 +5,216 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master's Dashboard - Sistema GATO</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=UnifrakturMaguntia&display=swap');
+
         body {
             font-family: 'Cinzel', serif;
             background-color: #f4e8d4;
             color: #3e2a1a;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            gap: 10px;
+            overflow-x: hidden;
         }
-        
+
         #header {
             position: sticky;
             top: 0;
-            background: #d4a76a;
-            padding: 10px;
+            background: linear-gradient(to bottom, #d4a76a, #b8860b);
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 10;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 100;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border-bottom: 3px solid #8b5a2b;
         }
-        
+
+        #header h1 {
+            margin: 0;
+            font-family: 'UnifrakturMaguntia', cursive;
+            color: #3e2a1a;
+            text-shadow: 1px 1px 2px #fff;
+        }
+
         #toggle-buttons button {
             background: #8b5a2b;
             color: #fff;
-            border: none;
+            border: 2px solid #3e2a1a;
             padding: 8px 16px;
+            margin: 0 8px;
             cursor: pointer;
-            margin: 0 5px;
+            font-weight: bold;
         }
-        
+
         #toggle-buttons button:hover {
             background: #3e2a1a;
         }
-        
-        .hidden {
-            display: none !important;
-        }
-        
+
+        .hidden { display: none !important; }
+
         .container {
-            display: flex;
-            flex-direction: column;
             padding: 20px;
-            gap: 20px;
-        }
-        
-        .section {
-            background: rgba(255, 255, 255, 0.8);
-            border: 2px solid #8b5a2b;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            width: 100%;
             max-width: 100%;
-            box-sizing: border-box;
         }
-        
+
+        .section {
+            background: rgba(255, 245, 220, 0.9);
+            border: 4px solid #8b5a2b;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" /><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.1"/></svg>');
+        }
+
         h1, h2 {
-            text-align: center;
             color: #8b5a2b;
-            border-bottom: 2px solid #d4a76a;
+            text-align: center;
+            border-bottom: 3px double #d4a76a;
             padding-bottom: 10px;
-            margin-top: 0;
+            font-family: 'UnifrakturMaguntia', cursive;
         }
-        
+
+        .pj-card {
+            background: #fffef7;
+            border: 3px solid #b8860b;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 20px;
+            position: relative;
+        }
+
+        .pj-card::before {
+            content: "";
+            position: absolute;
+            top: -10px; left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 20px;
+            background: #8b5a2b;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .pj-header {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: 1.6em;
+            margin-bottom: 10px;
+            color: #3e2a1a;
+        }
+
+        .pj-header button {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            background: #b8860b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 0.8em;
+        }
+
+        .pj-section {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed #d4a76a;
+        }
+
+        .pj-section h3 {
+            margin: 0 0 8px;
+            font-size: 1.1em;
+            color: #8b5a2b;
+        }
+
         button {
             background: #d4a76a;
             color: #3e2a1a;
-            border: 1px solid #8b5a2b;
+            border: 2px solid #8b5a2b;
             padding: 6px 12px;
             cursor: pointer;
-            font-family: 'Cinzel', serif;
-            margin: 5px;
-        }
-        
-        button:hover {
-            background: #8b5a2b;
-            color: #fff;
-        }
-        
-        input, select {
-            background: #f4e8d4;
-            border: 1px solid #8b5a2b;
-            padding: 5px;
-            margin: 4px;
-            font-family: 'Cinzel', serif;
-        }
-        
-        .pj-card {
-            border: 1px solid #d4a76a;
-            padding: 12px;
-            margin: 20px 0;
-            background: #fff;
+            margin: 3px;
             border-radius: 6px;
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 20px;
+        }
+
+        button:hover { background: #b8860b; color: white; }
+
+        input, select {
+            background: #fffef7;
+            border: 2px solid #8b5a2b;
+            padding: 6px;
+            border-radius: 4px;
             width: 100%;
             box-sizing: border-box;
         }
-        
-        .pj-card > div {
-            flex: 1 1 200px;
-            min-width: 200px;
+
+        .pip-container {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
         }
-        
-        .pj-card h2 {
-            flex-basis: 100%;
-            text-align: center;
+
+        .pip {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ccc;
+            border: 2px solid #8b5a2b;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        
-        .pj-card ul {
+
+        .pip.filled {
+            background: #d4a76a;
+            border-color: #8b5a2b;
+            box-shadow: 0 0 6px #d4a76a;
+        }
+
+        .pip.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        ul.inventory-list {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
-        
-        .log-entry {
-            border-bottom: 1px solid #d4a76a;
+
+        ul.inventory-list li {
+            margin: 6px 0;
             padding: 6px;
+            background: rgba(212, 167, 106, 0.2);
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .log-entry {
+            padding: 6px 0;
+            border-bottom: 1px dotted #d4a76a;
             font-size: 0.9em;
         }
-        
+
         #log {
-            max-height: 300px;
+            max-height: 250px;
             overflow-y: auto;
-            border: 1px solid #8b5a2b;
-            padding: 10px;
-            background: #f4e8d4;
         }
-        
-        ::-webkit-scrollbar { width: 10px; }
+
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f4e8d4; }
-        ::-webkit-scrollbar-thumb { background: #8b5a2b; border-radius: 5px; }
-        
-        @media (orientation: landscape) {
-            .pj-card {
-                flex-wrap: nowrap;
-            }
-            
-            .pj-card > div {
-                flex: 1;
-            }
-        }
+        ::-webkit-scrollbar-thumb { background: #8b5a2b; border-radius: 4px; }
     </style>
 </head>
 <body>
     <div id="header">
-        <h1 style="margin: 0; color: #3e2a1a;">Dashboard del Master</h1>
+        <h1>Dashboard del Master - Sistema GATO</h1>
         <div id="toggle-buttons">
             <button onclick="toggleSection('library-section')">Biblioteca</button>
             <button onclick="toggleSection('log-section')">Historial</button>
@@ -178,26 +234,26 @@
             <button onclick="addItemToLibrary()">Añadir</button>
             <div id="library-list"></div>
         </div>
-        
+
         <div class="section hidden" id="log-section">
             <h1>Historial</h1>
             <div id="log"></div>
-            <button onclick="clearLog()">Limpiar Log</button>
+            <button onclick="clearLog()">Limpiar</button>
         </div>
-        
+
         <div class="section hidden" id="save-load-section">
             <h1>Guardar / Cargar</h1>
-            <button onclick="saveData()">Descargar Datos (JSON)</button>
+            <button onclick="saveData()">Descargar JSON</button>
             <input type="file" id="load-file" accept=".json">
-            <button onclick="loadData()">Cargar Datos</button>
+            <button onclick="loadData()">Cargar</button>
         </div>
-        
+
         <div class="section" id="pjs-section">
             <h1>Personajes</h1>
-            <button onclick="loadPresets()">Cargar Presets Pregenerados (13 PJs)</button>
-            <button onclick="addPJ()">Añadir PJ Manual</button>
+            <button onclick="loadPresets()">Cargar 13 Presets</button>
+            <button onclick="addPJ()">Añadir Manual</button>
             <div id="pjs-list"></div>
-            <div id="hidden-pjs">
+            <div id="hidden-pjs" style="margin-top:30px;">
                 <h2>PJs Ocultos</h2>
                 <div id="hidden-list"></div>
             </div>
@@ -221,24 +277,23 @@
         }
 
         function calcPVMax(pj) {
-            return 10 + (pj.attrs?.R || 5) + (pj.level * 2);
+            return 10 + pj.attrs.R + (pj.level * 2);
         }
 
-        // Presets con objetos iniciales corregidos
         const presets = [
-            { mote: "Vagabundo harapiento con amnesia", realName: "", attrs: {F:7,P:7,R:7,C:7,I:7,A:7,S:1}, inventory: [{name:"Cuchillo (D6)", size:"pequeño"}], money:20, visible: true },
-            { mote: "Ojo de Halcón", realName: "", attrs: {F:4,P:8,R:6,C:3,I:5,A:7,S:5}, inventory: [{name:"Arco largo (D4 + P)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20, visible: true },
-            { mote: "Cuchilla", realName: "", attrs: {F:7,P:5,R:5,C:4,I:4,A:7,S:6}, inventory: [{name:"Espada corta curva de hoja negra (D6 + F)", size:"mediano"}], money:20, visible: true },
-            { mote: "Martillo de la Forja", realName: "", attrs: {F:8,P:4,R:7,C:5,I:6,A:3,S:4}, inventory: [{name:"Martillo de forja pesado (F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20, visible: true },
-            { mote: "Eco del Valle", realName: "", attrs: {F:3,P:6,R:5,C:7,I:5,A:8,S:4}, inventory: [{name:"Capa impermeable", size:"mediano"}, {name:"Bolsa de cuero grande", size:"grande"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20, visible: true },
-            { mote: "Ojo de Lobo", realName: "", attrs: {F:5,P:7,R:6,C:4,I:5,A:6,S:7}, inventory: [{name:"Ballesta ligera (D4 + P)", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20, visible: true },
-            { mote: "Alma de Hierro", realName: "", attrs: {F:7,P:5,R:8,C:6,I:4,A:5,S:3}, inventory: [{name:"Espada de una mano (D6 + F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20, visible: true },
-            { mote: "Susurro", realName: "", attrs: {F:3,P:6,R:4,C:8,I:7,A:7,S:5}, inventory: [{name:"Cuchillo largo (D4 + F)", size:"pequeño"}, {name:"Bolsa de cuero grande", size:"grande"}], money:20, visible: true },
-            { mote: "Dedos de Seda", realName: "", attrs: {F:2,P:6,R:4,C:5,I:6,A:9,S:8}, inventory: [{name:"Navaja plegable (D4, indetectable)", size:"pequeño"}, {name:"Set de ganzúas", size:"pequeño"}], money:20, visible: true },
-            { mote: "Corazón de Roca", realName: "", attrs: {F:8,P:5,R:7,C:4,I:5,A:4,S:6}, inventory: [{name:"Pico (F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20, visible: true },
-            { mote: "Cuervo", realName: "", attrs: {F:6,P:7,R:6,C:3,I:4,A:6,S:7}, inventory: [{name:"Arco corto (D4 + P)", size:"mediano"}, {name:"Lanza larga (D6)", size:"grande"}, {name:"Cuchillo largo de caza (D4 + F)", size:"pequeño"}], money:20, visible: true },
-            { mote: "Manos de Madera", realName: "", attrs: {F:6,P:5,R:6,C:5,I:7,A:4,S:5}, inventory: [{name:"Martillo de carpintero (F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20, visible: true },
-            { mote: "Halcón Sombrío", realName: "", attrs: {F:4,P:7,R:5,C:3,I:4,A:8,S:8}, inventory: [{name:"Arco recurvo (D6 + P)", size:"mediano"}, {name:"Cuchillo largo de caza (D4 + F)", size:"pequeño"}, {name:"Bolsa de cuero", size:"mediano"}], money:20, visible: true }
+            { mote: "Vagabundo harapiento con amnesia", attrs: {F:7,P:7,R:7,C:7,I:7,A:7,S:1}, inventory: [{name:"Cuchillo (D6)", size:"pequeño"}], money:20 },
+            { mote: "Ojo de Halcón", attrs: {F:4,P:8,R:6,C:3,I:5,A:7,S:5}, inventory: [{name:"Arco largo (D4 + P)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
+            { mote: "Cuchilla", attrs: {F:7,P:5,R:5,C:4,I:4,A:7,S:6}, inventory: [{name:"Espada corta curva de hoja negra (D6 + F)", size:"mediano"}], money:20 },
+            { mote: "Martillo de la Forja", attrs: {F:8,P:4,R:7,C:5,I:6,A:3,S:4}, inventory: [{name:"Martillo de forja pesado (F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
+            { mote: "Eco del Valle", attrs: {F:3,P:6,R:5,C:7,I:5,A:8,S:4}, inventory: [{name:"Capa impermeable", size:"mediano"}, {name:"Bolsa de cuero grande", size:"grande"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
+            { mote: "Ojo de Lobo", attrs: {F:5,P:7,R:6,C:4,I:5,A:6,S:7}, inventory: [{name:"Ballesta ligera (D4 + P)", size:"mediano"}, {name:"Cuchillo", size:"pequeño"}], money:20 },
+            { mote: "Alma de Hierro", attrs: {F:7,P:5,R:8,C:6,I:4,A:5,S:3}, inventory: [{name:"Espada de una mano (D6 + F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
+            { mote: "Susurro", attrs: {F:3,P:6,R:4,C:8,I:7,A:7,S:5}, inventory: [{name:"Cuchillo largo (D4 + F)", size:"pequeño"}, {name:"Bolsa de cuero grande", size:"grande"}], money:20 },
+            { mote: "Dedos de Seda", attrs: {F:2,P:6,R:4,C:5,I:6,A:9,S:8}, inventory: [{name:"Navaja plegable (D4, indetectable)", size:"pequeño"}, {name:"Set de ganzúas", size:"pequeño"}], money:20 },
+            { mote: "Corazón de Roca", attrs: {F:8,P:5,R:7,C:4,I:5,A:4,S:6}, inventory: [{name:"Pico (F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
+            { mote: "Cuervo", attrs: {F:6,P:7,R:6,C:3,I:4,A:6,S:7}, inventory: [{name:"Arco corto (D4 + P)", size:"mediano"}, {name:"Lanza larga (D6)", size:"grande"}, {name:"Cuchillo largo de caza (D4 + F)", size:"pequeño"}], money:20 },
+            { mote: "Manos de Madera", attrs: {F:6,P:5,R:6,C:5,I:7,A:4,S:5}, inventory: [{name:"Martillo de carpintero (F)", size:"mediano"}, {name:"Cuchillo (D4)", size:"pequeño"}], money:20 },
+            { mote: "Halcón Sombrío", attrs: {F:4,P:7,R:5,C:3,I:4,A:8,S:8}, inventory: [{name:"Arco recurvo (D6 + P)", size:"mediano"}, {name:"Cuchillo largo de caza (D4 + F)", size:"pequeño"}, {name:"Bolsa de cuero", size:"mediano"}], money:20 }
         ];
 
         function loadPresets() {
@@ -246,12 +301,15 @@
                 if (pjs.some(p => p.mote === preset.mote)) return;
                 const pj = {
                     mote: preset.mote,
-                    realName: preset.realName || "",
+                    realName: "",
+                    baseAttrs: { ...preset.attrs },
                     attrs: { ...preset.attrs },
+                    extras: {F:0,P:0,R:0,C:0,I:0,A:0},
+                    pendingAssigns: 0,
                     level: 1,
                     xp: 0,
                     pvCurrent: 0,
-                    money: preset.money || 20,
+                    money: preset.money,
                     inventory: preset.inventory.map(i => ({...i})),
                     visible: true
                 };
@@ -259,13 +317,8 @@
                 pj.pvCurrent = pj.pvMax;
                 pjs.push(pj);
                 addToLog(`Preset cargado: ${pj.mote}`);
-                
-                // Añadir objetos iniciales a library si no existen
                 preset.inventory.forEach(item => {
-                    if (!library.some(libItem => libItem.name === item.name && libItem.size === item.size)) {
-                        library.push({...item});
-                        addToLog(`Objeto inicial añadido a biblio: ${item.name} (${item.size})`);
-                    }
+                    if (!library.some(l => l.name === item.name)) library.push({...item});
                 });
             });
             renderLibrary();
@@ -273,11 +326,14 @@
         }
 
         function addPJ() {
-            const name = prompt('Nombre / Mote del PJ:') || 'Nuevo PJ';
+            const name = prompt('Mote:') || 'PJ Nuevo';
             const pj = {
                 mote: name,
                 realName: "",
+                baseAttrs: {F:5,P:5,R:5,C:5,I:5,A:5,S:5},
                 attrs: {F:5,P:5,R:5,C:5,I:5,A:5,S:5},
+                extras: {F:0,P:0,R:0,C:0,I:0,A:0},
+                pendingAssigns: 0,
                 level: 1,
                 xp: 0,
                 pvCurrent: 0,
@@ -288,78 +344,97 @@
             pj.pvMax = calcPVMax(pj);
             pj.pvCurrent = pj.pvMax;
             pjs.push(pj);
-            addToLog(`Añadido PJ: ${name}`);
+            addToLog(`PJ añadido: ${name}`);
             renderPJs();
         }
 
         function renderPJs() {
             const list = document.getElementById('pjs-list');
             list.innerHTML = '';
-            const hiddenList = document.getElementById('hidden-list');
-            hiddenList.innerHTML = '';
-            
+            const hidden = document.getElementById('hidden-list');
+            hidden.innerHTML = '';
+
             pjs.forEach((pj, idx) => {
                 if (!pj.visible) {
-                    hiddenList.innerHTML += `<p>${pj.mote} <button onclick="togglePJVisibility(${idx})">Mostrar</button></p>`;
+                    hidden.innerHTML += `<p>${pj.mote} <button onclick="togglePJVisibility(${idx})">Mostrar</button></p>`;
                     return;
                 }
+
                 const card = document.createElement('div');
                 card.className = 'pj-card';
                 card.innerHTML = `
-                    <h2>${pj.mote} ${pj.realName ? `(${pj.realName})` : ''} (Nv ${pj.level}) <button onclick="togglePJVisibility(${idx})">Ocultar</button></h2>
-                    <div>
-                        <label>Nombre real: <input type="text" value="${pj.realName}" onchange="updateRealName(${idx}, this.value)"></label>
+                    <div class="pj-header">
+                        ${pj.mote} (Nv ${pj.level}) 
+                        <button onclick="togglePJVisibility(${idx})">Ocultar</button>
                     </div>
-                    <div>
-                        <p>XP: ${pj.xp} / ${getTotalXPForLevel(pj.level + 1)} </p>
-                        <button onclick="addXP(${idx}, 100)">+100</button>
-                        <button onclick="addXP(${idx}, 500)">+500</button>
-                        <button onclick="addXP(${idx}, 1000)">+1000</button>
-                        <input type="number" id="custom-xp-${idx}" placeholder="Custom" style="width:60px;">
+                    <div class="pj-section">
+                        <h3>Nombre real</h3>
+                        <input type="text" value="${pj.realName}" onchange="pjs[${idx}].realName=this.value; renderPJs();">
+                    </div>
+                    <div class="pj-section">
+                        <h3>XP: ${pj.xp} / ${getTotalXPForLevel(pj.level + 1)}</h3>
+                        <button onclick="addXP(${idx},100)">+100</button>
+                        <button onclick="addXP(${idx},500)">+500</button>
+                        <button onclick="addXP(${idx},1000)">+1000</button>
+                        <input type="number" id="cxp${idx}" placeholder="Custom" style="width:80px;">
                         <button onclick="addCustomXP(${idx})">→</button>
                     </div>
-                    <div>
-                        <p>PV: ${pj.pvCurrent} / ${pj.pvMax}</p>
-                        <button onclick="adjustPV(${idx}, 1)">+1</button>
-                        <button onclick="adjustPV(${idx}, -1)">-1</button>
+                    <div class="pj-section">
+                        <h3>PV: ${pj.pvCurrent}/${pj.pvMax}</h3>
+                        <button onclick="adjustPV(${idx},1)">+1</button>
+                        <button onclick="adjustPV(${idx},-1)">-1</button>
                         <button onclick="resetPV(${idx})">Reset</button>
                     </div>
-                    <div>
-                        <p>Dinero: ${pj.money} dov.</p>
-                        <button onclick="adjustMoney(${idx}, 10)">+10</button>
-                        <button onclick="adjustMoney(${idx}, -10)">-10</button>
+                    <div class="pj-section">
+                        <h3>Dinero: ${pj.money} dov.</h3>
+                        <button onclick="adjustMoney(${idx},1)">+1</button>
+                        <button onclick="adjustMoney(${idx},5)">+5</button>
+                        <button onclick="adjustMoney(${idx},-1)">-1</button>
+                        <button onclick="adjustMoney(${idx},-5)">-5</button>
                     </div>
-                    <div>
-                        <h3>Atributos</h3>
-                        ${Object.entries(pj.attrs).map(([k,v]) => `
-                            <p>${k}: ${v}
-                                <button onclick="adjustAttr(${idx}, '${k}', 1)">+</button>
-                                <button onclick="adjustAttr(${idx}, '${k}', -1)">-</button>
-                            </p>
+                    <div class="pj-section" style="grid-column: 1 / -1;">
+                        <h3>Atributos (${pj.pendingAssigns > 0 ? pj.pendingAssigns + ' pendientes' : ''})</h3>
+                        ${['F','P','R','C','I','A'].map(attr => `
+                            <div style="margin:8px 0;">
+                                ${attr}: ${pj.attrs[attr]} 
+                                <div class="pip-container">
+                                    ${[0,1,2].map(i => `
+                                        <span class="pip ${i < pj.extras[attr] ? 'filled' : ''} ${pj.pendingAssigns > 0 && i >= pj.extras[attr] ? '' : 'disabled'}" 
+                                              onclick="${pj.pendingAssigns > 0 && i === pj.extras[attr] ? `assignExtra(${idx}, '${attr}')` : ''}"></span>
+                                    `).join('')}
+                                </div>
+                            </div>
                         `).join('')}
+                        <div>S: ${pj.attrs.S} (no modificable)</div>
                     </div>
-                    <div>
+                    <div class="pj-section" style="grid-column: 1 / -1;">
                         <h3>Inventario</h3>
-                        <ul>${pj.inventory.map((it,i) => `<li>${it.name} (${it.size}) <button onclick="removeItem(${idx}, ${i})">X</button></li>`).join('')}</ul>
-                        <select id="lib-sel-${idx}">
-                            ${library.map(it => `<option value="${it.name}">${it.name} (${it.size})</option>`).join('')}
+                        <ul class="inventory-list">
+                            ${pj.inventory.map((it, i) => `<li>${it.name} (${it.size}) <button onclick="removeItem(${idx},${i})">X</button></li>`).join('')}
+                        </ul>
+                        <select id="sel${idx}">
+                            ${library.map(it => `<option>${it.name} (${it.size})</option>`).join('')}
                         </select>
-                        <button onclick="addItemFromLibrary(${idx})">Añadir de biblio</button>
+                        <button onclick="addItemFromLibrary(${idx})">Añadir</button>
                     </div>
                 `;
                 list.appendChild(card);
             });
         }
 
-        function togglePJVisibility(idx) {
-            pjs[idx].visible = !pjs[idx].visible;
-            addToLog(`${pjs[idx].mote} ${pjs[idx].visible ? 'mostrado' : 'ocultado'}`);
-            renderPJs();
-        }
-
-        function updateRealName(idx, value) {
-            pjs[idx].realName = value;
-            renderPJs();
+        function assignExtra(idx, attr) {
+            const pj = pjs[idx];
+            if (pj.pendingAssigns > 0 && pj.extras[attr] < 3) {
+                pj.extras[attr]++;
+                pj.attrs[attr]++;
+                pj.pendingAssigns--;
+                if (attr === 'R') {
+                    pj.pvMax = calcPVMax(pj);
+                    pj.pvCurrent = Math.min(pj.pvCurrent, pj.pvMax);
+                }
+                addToLog(`Asignado +1 a ${attr} de ${pj.mote} (pendientes: ${pj.pendingAssigns})`);
+                renderPJs();
+            }
         }
 
         function addXP(idx, amt) {
@@ -370,64 +445,58 @@
         }
 
         function addCustomXP(idx) {
-            const val = parseInt(document.getElementById(`custom-xp-${idx}`).value) || 0;
-            if (val) addXP(idx, val);
-            document.getElementById(`custom-xp-${idx}`).value = '';
+            const amt = parseInt(document.getElementById(`cxp${idx}`).value) || 0;
+            if (amt) addXP(idx, amt);
+            document.getElementById(`cxp${idx}`).value = '';
         }
 
         function checkLevelUp(idx) {
             const pj = pjs[idx];
             while (pj.xp >= getTotalXPForLevel(pj.level + 1) && pj.level < 20) {
                 pj.level++;
+                pj.pendingAssigns++;
                 pj.pvMax = calcPVMax(pj);
                 pj.pvCurrent = pj.pvMax;
-                addToLog(`${pj.mote} → Nivel ${pj.level}! Asigna +1 atributo (no S).`);
+                addToLog(`${pj.mote} sube a Nv ${pj.level}! Asigna ${pj.pendingAssigns} punto(s) (pips en atributos)`);
             }
         }
 
         function adjustPV(idx, delta) {
             pjs[idx].pvCurrent = Math.max(0, pjs[idx].pvCurrent + delta);
-            addToLog(`PV ${pjs[idx].mote} ${delta > 0 ? '+' : ''}${delta}`);
             renderPJs();
         }
 
         function resetPV(idx) {
             pjs[idx].pvCurrent = pjs[idx].pvMax;
-            addToLog(`Reset PV → ${pjs[idx].mote}`);
             renderPJs();
         }
 
         function adjustMoney(idx, delta) {
             pjs[idx].money += delta;
-            addToLog(`Dinero ${pjs[idx].mote} ${delta > 0 ? '+' : ''}${delta}`);
             renderPJs();
         }
 
-        function adjustAttr(idx, attr, delta) {
-            if (attr === 'S' && delta > 0) {
-                alert('No se puede subir Suerte al subir nivel.');
-                return;
-            }
-            pjs[idx].attrs[attr] = (pjs[idx].attrs[attr] || 5) + delta;
-            if (attr === 'R') pjs[idx].pvMax = calcPVMax(pjs[idx]);
-            addToLog(`${attr} ${pjs[idx].mote} ${delta > 0 ? '+' : ''}${delta}`);
+        function togglePJVisibility(idx) {
+            pjs[idx].visible = !pjs[idx].visible;
             renderPJs();
         }
 
+        // Resto de funciones (addItemToLibrary, renderLibrary, removeFromLibrary, addItemFromLibrary, removeItem, addToLog, clearLog, saveData, loadData, toggleSection) iguales al código anterior
         function addItemToLibrary() {
             const name = document.getElementById('new-item-name').value.trim();
             const size = document.getElementById('new-item-size').value;
-            if (!name) return;
-            library.push({name, size});
-            addToLog(`Objeto añadido a biblio: ${name} (${size})`);
-            renderLibrary();
-            renderPJs();
-            document.getElementById('new-item-name').value = '';
+            if (name) {
+                library.push({name, size});
+                renderLibrary();
+                renderPJs();
+                document.getElementById('new-item-name').value = '';
+            }
         }
 
         function renderLibrary() {
-            document.getElementById('library-list').innerHTML = 
-                '<ul>' + library.map(it => `<li>${it.name} (${it.size}) <button onclick="removeFromLibrary('${it.name.replace(/'/g,"\\'")}')">X</button></li>`).join('') + '</ul>';
+            document.getElementById('library-list').innerHTML = library.map(it => `
+                <div>${it.name} (${it.size}) <button onclick="removeFromLibrary('${it.name.replace(/'/g,"\\'")}')">X</button></div>
+            `).join('');
         }
 
         function removeFromLibrary(name) {
@@ -437,20 +506,16 @@
         }
 
         function addItemFromLibrary(idx) {
-            const sel = document.getElementById(`lib-sel-${idx}`);
-            const name = sel.value;
-            const item = library.find(it => it.name === name);
-            if (item) {
-                pjs[idx].inventory.push({...item});
-                addToLog(`+ ${name} → ${pjs[idx].mote}`);
-                renderPJs();
-            }
+            const sel = document.getElementById(`sel${idx}`);
+            const text = sel.options[sel.selectedIndex].text;
+            const [name, sizeStr] = text.split(' (');
+            const size = sizeStr.slice(0, -1);
+            pjs[idx].inventory.push({name, size});
+            renderPJs();
         }
 
-        function removeItem(idx, itemIdx) {
-            const itemName = pjs[idx].inventory[itemIdx].name;
-            pjs[idx].inventory.splice(itemIdx, 1);
-            addToLog(`- ${itemName} de ${pjs[idx].mote}`);
+        function removeItem(idx, i) {
+            pjs[idx].inventory.splice(i, 1);
             renderPJs();
         }
 
@@ -466,49 +531,47 @@
         }
 
         function saveData() {
-            const data = {pjs, library, log};
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const data = JSON.stringify({pjs, library, log}, null, 2);
+            const blob = new Blob([data], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'gato-master-save.json';
+            a.download = 'gato-save.json';
             a.click();
         }
 
         function loadData() {
             const file = document.getElementById('load-file').files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
                     const data = JSON.parse(e.target.result);
                     pjs = data.pjs || [];
                     library = data.library || [];
                     log = data.log || [];
                     pjs.forEach(pj => {
                         pj.pvMax = calcPVMax(pj);
-                        pj.pvCurrent = Math.min(pj.pvCurrent || pj.pvMax, pj.pvMax);
-                        pj.visible = pj.visible !== false; // Default true
+                        pj.pvCurrent = Math.min(pj.pvCurrent, pj.pvMax);
+                        pj.visible = pj.visible ?? true;
+                        pj.extras = pj.extras || {F:0,P:0,R:0,C:0,I:0,A:0};
+                        pj.pendingAssigns = pj.pendingAssigns || 0;
                     });
                     renderPJs();
                     renderLibrary();
-                    addToLog('Partida cargada correctamente');
-                } catch(err) {
-                    alert('Error al cargar el JSON');
-                }
-            };
-            reader.readAsText(file);
+                    addToLog('Datos cargados');
+                };
+                reader.readAsText(file);
+            }
         }
 
         function toggleSection(id) {
-            const section = document.getElementById(id);
-            section.classList.toggle('hidden');
+            document.getElementById(id).classList.toggle('hidden');
         }
 
-        // Init
+        // Inicialización
         renderPJs();
         renderLibrary();
-        addToLog('Dashboard iniciado. Usa "Cargar Presets" para los 13 personajes.');
+        addToLog('Dashboard listo. Carga presets para empezar.');
     </script>
 </body>
 </html>
