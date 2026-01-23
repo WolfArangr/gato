@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Creador de Personajes - Sistema GATO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4e8d3;
+            font-family: 'Cinzel', serif;
+            color: #3e2723;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #creator {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border: 2px solid #8d6e63;
+            border-radius: 10px;
+            width: 600px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        input, textarea, select {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #8d6e63;
+            border-radius: 5px;
+            font-family: 'Cinzel', serif;
+        }
+        textarea {
+            height: 100px;
+        }
+        #attributes {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        #attributes input {
+            width: auto;
+        }
+        button {
+            background-color: #6d4c41;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #5d4037;
+        }
+        #sheet {
+            width: 500px; /* Approx A5 width */
+            height: 707px; /* Approx A5 height (1:1.414 ratio) */
+            background-color: #fff3e0;
+            border: 4px solid #8d6e63;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            font-size: 12px;
+            page-break-inside: avoid;
+        }
+        #sheet::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/paper.png');
+            opacity: 0.2;
+        }
+        #sheet h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        #sheet .section {
+            margin-bottom: 15px;
+        }
+        #sheet .label {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 5px;
+        }
+        #sheet .content {
+            border-bottom: 1px dotted #8d6e63;
+            min-height: 20px;
+        }
+        #sheet .long-content {
+            min-height: 60px;
+        }
+        #sheet .inventory {
+            min-height: 150px;
+            border: 1px solid #8d6e63;
+            padding: 10px;
+        }
+        #sheet .attributes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        #sheet .attr {
+            text-align: center;
+        }
+        #sheet .attr-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        #sheet .pips {
+            display: flex;
+            justify-content: center;
+        }
+        #sheet .pip {
+            width: 20px;
+            height: 20px;
+            margin: 5px;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            background-color: #fff;
+            border: 1px solid #3e2723;
+        }
+        .locked {
+            color: red;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="creator">
+        <h2>Creador de Personajes - Sistema GATO</h2>
+        <select id="moteSelect" onchange="loadCharacter()">
+            <option value="0">0. Vagabundo harapiento con amnesia</option>
+            <option value="1">1. Ojo de Halcón</option>
+            <option value="2">2. Cuchilla</option>
+            <option value="3">3. Martillo de la Forja</option>
+            <option value="4">4. Eco del Valle</option>
+            <option value="5">5. Ojo de Lobo</option>
+            <option value="6">6. Alma de Hierro</option>
+            <option value="7">7. Susurro</option>
+            <option value="8">8. Dedos de Seda</option>
+            <option value="9">9. Corazón de Roca</option>
+            <option value="10">10. Cuervo</option>
+            <option value="11">11. Manos de Madera</option>
+            <option value="12">12. Halcón Sombrío</option>
+        </select>
+        <input type="text" id="realName" placeholder="Nombre del Personaje (ej: Claudio Gátez)">
+        <input type="text" id="profession" placeholder="Profesión">
+        <textarea id="history" placeholder="Historia"></textarea>
+        <input type="text" id="object" placeholder="Objeto propio">
+        <input type="text" id="ability" placeholder="Habilidad única">
+        <textarea id="secret" placeholder="Secreto sobre el incendio (bloqueado)" disabled></textarea>
+        <input type="password" id="password" placeholder="Contraseña única para revelar secreto" oninput="checkPassword()">
+        <div id="attributes">
+            <label>O (Fuerza): <input type="number" id="s" min="1" max="10"></label>
+            <label>O (Percepción): <input type="number" id="p" min="1" max="10"></label>
+            <label>O (Resistencia): <input type="number" id="e" min="1" max="10"></label>
+            <label>O (Carisma): <input type="number" id="c" min="1" max="10"></label>
+            <label>O (Inteligencia): <input type="number" id="i" min="1" max="10"></label>
+            <label>O (Agilidad): <input type="number" id="a" min="1" max="10"></label>
+            <label>O (Suerte): <input type="number" id="l" min="1" max="10"></label>
+        </div>
+        <button onclick="generateSheet()">Generar Ficha</button>
+    </div>
+    <div id="sheet" style="display: none;"></div>
+    <button onclick="downloadImage()" style="display: none;" id="downloadBtn">Descargar como Imagen</button>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        const characters = [
+            { id: 0, mote: "Vagabundo harapiento con amnesia", prof: "No se acuerda", hist: "Despertó en la parte de atrás de la posada con un cuchillo en la mano.", obj: "Cuchillo.", ability: "No lo sabe.", secret: "El olor de las cenizas le resulta familiar.", password: "vagabundo" , attr: {s:5, p:5, e:5, c:5, i:5, a:5, l:5}},
+            { id: 1, mote: "Ojo de Halcón", prof: "Cazador y rastreador de bosques", hist: "Pasó años sobreviviendo solo en los bosques del norte. Se encontraba en la posada buscando un refugio temporal tras capturar una presa especialmente escurridiza.", obj: "Arco largo, cuchillo.", ability: "Puede orientarse y rastrear en terrenos difíciles", secret: "Vio humo subir desde el granero antes de la explosión; cree que alguien entró con un barril sospechoso, pero no sabe quién.", password: "ojodehalcon" , attr: {s:4, p:8, e:6, c:3, i:5, a:7, l:5}},
+            { id: 2, mote: "Cuchilla", prof: "Bandolero reformado, ahora mercenario a sueldo", hist: "Se alojaba en la posada para cobrar una deuda a un viejo conocido que también estaba allí.", obj: "Espada corta curva de hoja negra", ability: "Capaz de encontrar puntos débiles en oponentes y estructuras", secret: "Escuchó una conversación acalorada sobre seguros justo antes del fuego, sospechando que fue intencionado.", password: "cuchilla" , attr: {s:7, p:5, e:5, c:4, i:4, a:7, l:6}},
+            { id: 3, mote: "Martillo de la Forja", prof: "Herrero itinerante", hist: "Buscaba reparar herramientas de la aldea vecina y decidió pasar la noche en la posada para descansar.", obj: "Martillo de forja pesado, cuchillo.", ability: "Puede reparar objetos y reconocer metales", secret: "Olió una sustancia extraña cerca de la chimenea, cree que alguien la colocó a propósito.", password: "martillodelaforja" , attr: {s:8, p:4, e:7, c:5, i:6, a:3, l:4}},
+            { id: 4, mote: "Eco del Valle", prof: "Mensajero y explorador", hist: "Transportaba un mensaje importante que debía entregar al pueblo vecino. Llegó antes del fuego buscando refugio.", obj: "Capa impermeable, bolsa de cuero grande, cuchillo.", ability: "Conocimiento del mapa con detalle.", secret: "Vio a alguien extraño salir corriendo de la posada minutos antes del incendio; no sabe su identidad.", password: "ecodelvalle" , attr: {s:3, p:6, e:5, c:7, i:5, a:8, l:4}},
+            { id: 5, mote: "Ojo de Lobo", prof: "Guardabosques del reino", hist: "Patrullaba la zona y se detuvo en la posada para vigilar el territorio.", obj: "Ballesta ligera, cuchillo", ability: "Puede detectar rastros y emboscadas", secret: "Notó que la puerta trasera estaba abierta y con huellas de barro fresco; cree que alguien escapó por allí hacia el sur.", password: "ojodelobo" , attr: {s:5, p:7, e:6, c:4, i:5, a:6, l:7}},
+            { id: 6, mote: "Alma de Hierro", prof: "Soldado veterano", hist: "Tras años en la guerra, buscaba un respiro y alojamiento temporal antes de continuar su viaje.", obj: "Espada de una mano, cuchillo.", ability: "Intimidar y mantener la calma bajo presión", secret: "Escuchó pasos y murmullos antes del fuego, pero el pasillo estaba vacío; cree que alguien saboteó la posada.", password: "almadehierro" , attr: {s:7, p:5, e:8, c:6, i:4, a:5, l:3}},
+            { id: 7, mote: "Susurro", prof: "Espía o informante de comerciantes", hist: "Recogía información en el pueblo para sus contratantes. Se alojó en la posada mientras recopilaba datos.", obj: "Cuchillo largo, bolsa de cuero grande.", ability: "Puede escuchar conversaciones discretamente, leer los labios y descifrar mensajes.", secret: "Observó a un huésped que parecía manipular la chimenea; sospecha de su implicación.", password: "susurro" , attr: {s:3, p:6, e:4, c:8, i:7, a:7, l:5}},
+            { id: 8, mote: "Dedos de Seda", prof: "Ladrón reformado", hist: "Intentaba dejar atrás la vida criminal y buscaba trabajo honesto en el pueblo.", obj: "Navaja plegable, set de ganzúas.", ability: "Abrir cerraduras", secret: "Notó que la caja de suministros estaba abierta antes del fuego; piensa que alguien aprovechó para encubrir un robo.", password: "dedosdeseda" , attr: {s:2, p:6, e:4, c:5, i:6, a:9, l:8}},
+            { id: 9, mote: "Corazón de Roca", prof: "Minero y buscador de gemas", hist: "Venía de las minas cercanas donde encontró una veta de oro, buscando un lugar para vender su hallazgo.", obj: "Pico, cuchillo.", ability: "Detectar minerales y puntos débiles en estructuras", secret: "Se dio cuenta de que alguien vertió aceite cerca del almacén; cree que fue premeditado.", password: "corazonderoca" , attr: {s:8, p:5, e:7, c:4, i:5, a:4, l:6}},
+            { id: 10, mote: "Cuervo", prof: "Cazador de bestias", hist: "Persigue a un lobo gigante que aterrorizaba la zona; se alojó para descansar.", obj: "Arco corto, lanza larga, cuchillo largo de caza.", ability: "Capacidad de rastrear presas y animales salvajes", secret: "Vio huellas extrañas cerca del establo antes del fuego; alguien pasó por allí antes del desastre.", password: "cuervo" , attr: {s:6, p:7, e:6, c:3, i:4, a:6, l:7}},
+            { id: 11, mote: "Manos de Madera", prof: "Carpintero y constructor", hist: "Trabajaba en un encargo en el pueblo y necesitaba alojamiento tras el trabajo.", obj: "Martillo de carpintero, cuchillo.", ability: "Reconocer estructuras y puntos débiles en edificaciones", secret: "Notó un derrumbe reciente en la cocina de la posada que parecía manipulado; cree que facilitó la propagación del fuego.", password: "manosdemadera" , attr: {s:6, p:5, e:6, c:5, i:7, a:4, l:5}},
+            { id: 12, mote: "Halcón Sombrío", prof: "Cazador furtivo de animales grandes", hist: "Se escondía del guardia local por una infracción menor; la posada era su refugio temporal.", obj: "Arco recurvo, cuchillo largo de caza, bolsa de cuero.", ability: "Movimiento silencioso y evitar ser detectado", secret: "Escuchó un estallido metálico justo antes de que se declarara el fuego; piensa que alguien con conocimientos de alquimia provocó el incendio.", password: "halconsombrio" , attr: {s:4, p:7, e:5, c:3, i:4, a:8, l:8}},
+            { id: 13, mote: "Comodín", prof: "", hist: "", obj: "", ability: "", secret: "", password: "comodin" , attr: {s:5, p:5, e:5, c:5, i:5, a:5, l:5}}
+        ];
+
+        let selectedId = 0;
+
+        function loadCharacter() {
+            selectedId = parseInt(document.getElementById("moteSelect").value);
+            const char = characters.find(c => c.id === selectedId);
+            document.getElementById("realName").value = "";
+            document.getElementById("profession").value = char.prof;
+            document.getElementById("history").value = char.hist;
+            document.getElementById("object").value = char.obj;
+            document.getElementById("ability").value = char.ability;
+            document.getElementById("secret").value = "";
+            document.getElementById("secret").disabled = true;
+            document.getElementById("password").value = "";
+
+            document.getElementById("s").value = char.attr.s;
+            document.getElementById("p").value = char.attr.p;
+            document.getElementById("e").value = char.attr.e;
+            document.getElementById("c").value = char.attr.c;
+            document.getElementById("i").value = char.attr.i;
+            document.getElementById("a").value = char.attr.a;
+            document.getElementById("l").value = char.attr.l;
+
+            const isCustom = selectedId === 13;
+            document.getElementById("realName").disabled = false; // Always editable
+            document.getElementById("profession").disabled = !isCustom;
+            document.getElementById("history").disabled = !isCustom;
+            document.getElementById("object").disabled = !isCustom;
+            document.getElementById("ability").disabled = !isCustom;
+            document.getElementById("secret").disabled = !isCustom;
+            document.getElementById("s").disabled = !isCustom;
+            document.getElementById("p").disabled = !isCustom;
+            document.getElementById("e").disabled = !isCustom;
+            document.getElementById("c").disabled = !isCustom;
+            document.getElementById("i").disabled = !isCustom;
+            document.getElementById("a").disabled = !isCustom;
+            document.getElementById("l").disabled = !isCustom;
+        }
+
+        function checkPassword() {
+            const char = characters.find(c => c.id === selectedId);
+            const input = document.getElementById("password").value.toLowerCase();
+            if (input === char.password) {
+                document.getElementById("secret").value = char.secret;
+                document.getElementById("secret").disabled = selectedId === 13;
+            }
+        }
+
+        function generateSheet() {
+            const char = characters.find(c => c.id === selectedId);
+            const realName = document.getElementById("realName").value || "________________";
+            const mote = char.mote;
+            const prof = document.getElementById("profession").value;
+            const hist = document.getElementById("history").value;
+            const obj = document.getElementById("object").value;
+            const ability = document.getElementById("ability").value;
+            const s = parseInt(document.getElementById("s").value);
+            const p = parseInt(document.getElementById("p").value);
+            const e = parseInt(document.getElementById("e").value);
+            const c = parseInt(document.getElementById("c").value);
+            const i = parseInt(document.getElementById("i").value);
+            const a = parseInt(document.getElementById("a").value);
+            const l = parseInt(document.getElementById("l").value);
+            const pv = (e * 10) + 20;
+            const coins = Math.floor(Math.random() * 21) + 10;
+
+            const sheet = document.getElementById("sheet");
+            sheet.innerHTML = `
+                <h1>Ficha de Personaje</h1>
+                <div class="section">
+                    <div class="label">Nombre:</div>
+                    <div class="content">${realName}</div>
+                </div>
+                <div class="section">
+                    <div class="label">Mote:</div>
+                    <div class="content">${mote}</div>
+                </div>
+                <div class="section">
+                    <div class="label">Profesión:</div>
+                    <div class="content">${prof}</div>
+                </div>
+                <div class="section">
+                    <div class="label">Historia:</div>
+                    <div class="content long-content">${hist}</div>
+                </div>
+                <div class="section">
+                    <div class="label">Inventario:</div>
+                    <div class="content">${obj}</div>
+                </div>
+                <div class="section">
+                    <div class="label">Habilidad única:</div>
+                    <div class="content">${ability}</div>
+                </div>
+                <div class="section">
+                    <div class="label">Puntos de Vida (PV):</div>
+                    <div class="content">${pv}</div>
+                </div>
+                <div class="section">
+                    <div class="label">Atributos:</div>
+                    <div class="attributes">
+                        <div class="attr">
+                            <div>O (Fuerza): <span class="attr-value">${s}</span></div>
+                            <div class="pips"><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+                        </div>
+                        <div class="attr">
+                            <div>O (Percepción): <span class="attr-value">${p}</span></div>
+                            <div class="pips"><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+                        </div>
+                        <div class="attr">
+                            <div>O (Resistencia): <span class="attr-value">${e}</span></div>
+                            <div class="pips"><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+                        </div>
+                        <div class="attr">
+                            <div>O (Carisma): <span class="attr-value">${c}</span></div>
+                            <div class="pips"><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+                        </div>
+                        <div class="attr">
+                            <div>O (Inteligencia): <span class="attr-value">${i}</span></div>
+                            <div class="pips"><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+                        </div>
+                        <div class="attr">
+                            <div>O (Agilidad): <span class="attr-value">${a}</span></div>
+                            <div class="pips"><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="label">Inventario:</div>
+                    <div class="inventory">
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                        - <br>
+                    </div>
+                </div>
+            `;
+            sheet.style.display = "block";
+            document.getElementById("downloadBtn").style.display = "block";
+        }
+
+        function downloadImage() {
+            html2canvas(document.getElementById("sheet"), {scale: 2}).then(canvas => { // Higher scale for better resolution
+                const link = document.createElement('a');
+                link.download = 'ficha_personaje.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        // Load default
+        loadCharacter();
+    </script>
+</body>
+</html>
