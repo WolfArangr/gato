@@ -12,17 +12,17 @@
             color: #2c1b0f;
             line-height: 1.75;
             margin: 0;
-            padding: 30px;
+            padding: 40px;
             background-color: #f5e8c7;
         }
         #book {
             max-width: 920px;
             margin: 0 auto;
-            background: rgba(245, 232, 199, 0.95);
-            padding: 65px 75px;
+            background: rgba(245, 232, 199, 0.96);
+            padding: 70px 80px;
             border: 12px solid #6b4c2e;
             border-image: url('border-medieval.png') 30 round;
-            box-shadow: inset 0 0 45px rgba(0,0,0,0.25);
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
         }
         #title-page {
             text-align: center;
@@ -30,81 +30,75 @@
         }
         h1.main-title {
             font-family: 'MedievalSharp', cursive;
-            font-size: 5.2em;
+            font-size: 5.4em;
             color: #8b0000;
             margin: 20px 0 10px;
-            text-shadow: 3px 3px 8px rgba(0,0,0,0.35);
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
         }
         h1.author {
             font-family: 'MedievalSharp', cursive;
-            font-size: 2.6em;
+            font-size: 2.7em;
             color: #3d2b1f;
-            margin: 0 0 90px;
+            margin: 0 0 100px;
             border-bottom: 4px double #8b4513;
             padding-bottom: 30px;
         }
         h2.chapter-num {
             font-family: 'MedievalSharp', cursive;
-            font-size: 2.9em;
+            font-size: 3em;
             color: #b22222;
             text-align: center;
-            margin: 100px 0 8px;
+            margin: 110px 0 10px;
             border-bottom: 2px solid #8b4513;
             padding-bottom: 12px;
         }
         h2.chapter-title {
             font-family: 'MedievalSharp', cursive;
-            font-size: 2.4em;
+            font-size: 2.5em;
             color: #4b2e1a;
             text-align: center;
-            margin: 0 0 55px;
+            margin: 0 0 60px;
         }
         p {
             text-align: justify !important;
-            text-justify: inter-word;
             hyphens: auto;
             -webkit-hyphens: auto;
             -ms-hyphens: auto;
-            text-indent: 2.8em;
-            margin: 1.5em 0;
-            font-size: 1.22em;
+            text-indent: 3em;
+            margin: 1.6em 0;
+            font-size: 1.25em;
         }
-        /* DROP CAP - más fuerte y con !important */
-        .chapter-first-p {
-            margin-top: 0.3em !important;
-        }
+        /* Drop cap reforzado */
         .chapter-first-p::first-letter {
             font-family: 'MedievalSharp', cursive !important;
-            font-size: 5em !important;
+            font-size: 5.2em !important;
             color: #8b0000 !important;
             float: left !important;
-            margin: 0 14px 6px 0 !important;
-            line-height: 0.58 !important;
+            margin: 0 16px 8px 0 !important;
+            line-height: 0.55 !important;
             font-weight: bold !important;
         }
-        /* Limpiar cualquier interferencia inline en la primera letra */
-        .chapter-first-p > span:first-child,
-        .chapter-first-p span[style] {
+        /* Limpiar spans que interfieran */
+        .chapter-first-p > span:first-child {
             font-size: inherit !important;
-            line-height: inherit !important;
             float: none !important;
             margin: 0 !important;
         }
         hr {
             border: none;
             border-top: 3px double #8b4513;
-            margin: 80px auto;
-            width: 40%;
+            margin: 90px auto;
+            width: 35%;
         }
         #loading {
             text-align: center;
             font-style: italic;
             color: #444;
-            padding: 160px 0;
-            font-size: 1.4em;
+            padding: 180px 0;
+            font-size: 1.5em;
         }
-        /* Ocultar basura del export */
-        .c2, .c3, .c8, .c11, h1.c2, p.c0.c11, p:empty, span:empty, h1:empty, br {
+        /* Ocultar elementos vacíos o innecesarios */
+        .c3, .c5, p.c1.c5, p:empty, span:empty, br:only-child {
             display: none !important;
         }
     </style>
@@ -136,8 +130,8 @@
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = doc.body.innerHTML;
 
-                // Procesar capítulos
-                const chapterHeaders = tempDiv.querySelectorAll('h1.c4, h1.c5');
+                // Procesar encabezados de capítulo
+                const chapterHeaders = tempDiv.querySelectorAll('h1.c2, h1.c4, h1.c5');
                 chapterHeaders.forEach(header => {
                     let text = header.textContent.trim();
                     if (!text) { header.remove(); return; }
@@ -149,6 +143,9 @@
                         [chapterNum, chapterSub] = text.split(' - ');
                         chapterNum = chapterNum.trim();
                         chapterSub = chapterSub.trim();
+                    } else if (text.includes('Capítulo I')) {
+                        chapterNum = 'Capítulo I';
+                        chapterSub = text.replace('Capítulo I', '').trim();
                     }
 
                     const h2Num = document.createElement('h2');
@@ -164,44 +161,40 @@
                     }
 
                     header.remove();
+                });
 
-                    // Marcar primer párrafo
-                    let nextP = h2Num.nextElementSibling;
-                    while (nextP && nextP.tagName !== 'P') {
-                        nextP = nextP.nextElementSibling;
+                // Marcar y limpiar primer párrafo de cada capítulo
+                const paragraphs = tempDiv.querySelectorAll('p.c1');
+                let isAfterChapter = false;
+                paragraphs.forEach(p => {
+                    if (p.previousElementSibling && p.previousElementSibling.tagName === 'H2') {
+                        isAfterChapter = true;
                     }
-                    if (nextP && nextP.tagName === 'P' && nextP.textContent.trim()) {
-                        nextP.classList.add('chapter-first-p');
+                    if (isAfterChapter && p.textContent.trim()) {
+                        p.classList.add('chapter-first-p');
 
-                        // Si aún hay span en la primera letra, extraerla
-                        if (nextP.firstElementChild && nextP.firstElementChild.tagName === 'SPAN' &&
-                            nextP.firstElementChild.textContent.trim().length === 1) {
-                            const span = nextP.firstElementChild;
+                        // Extraer inicial si está en <span>
+                        if (p.firstChild && p.firstChild.tagName === 'SPAN' &&
+                            p.firstChild.textContent.trim().length === 1) {
+                            const span = p.firstChild;
                             const letter = span.textContent;
                             span.remove();
-                            nextP.insertBefore(document.createTextNode(letter), nextP.firstChild);
+                            p.insertBefore(document.createTextNode(letter), p.firstChild);
                         }
+
+                        isAfterChapter = false; // Solo el primero
                     }
                 });
 
-                // Limpieza agresiva
-                tempDiv.querySelectorAll('h1.c2, .c2, .c3, .c8, .c11, p:empty, span:empty, br:only-child').forEach(el => el.remove());
-
-                // Quitar restos de título principal
-                tempDiv.querySelectorAll('span.c5, span.c14, span.c7, span.c13').forEach(el => {
-                    const t = el.textContent.trim().toLowerCase();
-                    if (t.includes('errantes') || t.includes('kurghaimat') || t.includes('edvard')) {
-                        let p = el.closest('h1') || el.parentElement;
-                        if (p) p.remove();
-                    }
-                });
+                // Limpieza final
+                tempDiv.querySelectorAll('p.c1.c5, p:empty, .c3, .c5, span:empty, br:only-child').forEach(el => el.remove());
 
                 contentDiv.innerHTML = tempDiv.innerHTML;
                 loading.remove();
 
             } catch (err) {
-                contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:160px 0;">
-                    Error: ${err.message}<br>Verifica que el archivo se llame exactamente "LosErrantesdeKurghaimat.html"
+                contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:180px 0;">
+                    Error: ${err.message}<br>Asegúrate de que el archivo se llame exactamente "LosErrantesdeKurghaimat.html"
                 </p>`;
             }
         });
