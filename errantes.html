@@ -3,124 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Errantes - Crónica Medieval</title>
-    <!-- Google Fonts para estilo medieval -->
-    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <title>Los Errantes de Kurghaimat</title>
+    <!-- Fuentes del documento original + fallback -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         body {
-            background: url('parchment.jpg') repeat; /* Reemplaza con tu imagen de pergamino, o quita esta línea */
-            font-family: 'Cinzel', serif; /* Fuente principal, como un libro antiguo */
-            color: #3d2b1f; /* Marrón oscuro para tinta */
-            line-height: 1.6;
+            background: url('parchment.jpg') repeat fixed; /* textura pergamino - quita si no tienes */
+            font-family: 'EB Garamond', serif;
+            color: #2c1b0f; /* marrón tinta antigua */
+            line-height: 1.7;
             margin: 0;
-            padding: 20px;
+            padding: 30px;
+            background-color: #f5e8c7; /* fallback pergamino claro */
         }
         #book {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.8); /* Capa semi-transparente para legibilidad */
-            padding: 40px;
-            border: 10px solid #8b4513; /* Borde de madera/marrón */
-            border-image: url('border-medieval.png') 30 round; /* Opcional: imagen de borde ornamental, quita si no tienes */
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: rgba(245, 232, 199, 0.92); /* pergamino semi-transparente */
+            padding: 50px 60px;
+            border: 12px solid #6b4c2e;
+            border-image: url('border-medieval.png') 30 round; /* borde ornamental - quita si no tienes */
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.3), 0 0 30px rgba(0,0,0,0.4);
         }
-        h1, h2 {
-            font-family: 'UnifrakturMaguntia', cursive; /* Fuente gótica para títulos */
+        h1.main-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 4.5em;
+            color: #8b0000;
             text-align: center;
-            color: #b22222; /* Rojo sangre para énfasis */
+            margin: 80px 0 40px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        h1.author {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.2em;
+            color: #3d2b1f;
+            text-align: center;
+            margin: 20px 0 60px;
+            border-bottom: 3px double #8b4513;
+            padding-bottom: 15px;
+        }
+        h2 {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.4em;
+            color: #b22222;
+            text-align: center;
+            margin: 60px 0 30px;
             border-bottom: 2px solid #8b4513;
             padding-bottom: 10px;
-            margin-top: 50px;
         }
         h2::before {
-            content: "✠ "; /* Cruz medieval o icono (puedes cambiar por una imagen) */
-            color: #ffd700; /* Dorado */
+            content: "✦ "; /* ornamento medieval, o cambia por ★ o imagen */
+            color: #d4af37;
+        }
+        h2.subtitle {
+            font-size: 1.8em;
+            color: #4b2e1a;
+            margin-top: -20px;
+            margin-bottom: 40px;
         }
         p {
-            text-indent: 2em; /* Sangría de párrafo como en libros antiguos */
-            margin: 15px 0;
+            text-indent: 2.5em;
+            margin: 1.2em 0;
+            font-size: 1.15em;
         }
-        p:first-letter {
-            font-size: 3em; /* Drop cap */
-            font-family: 'UnifrakturMaguntia', cursive;
-            color: #b22222;
+        p:first-of-type::first-letter,
+        p:not(:first-child)::first-letter {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 3.8em;
+            color: #8b0000;
             float: left;
-            margin: 0 5px 0 0;
-            line-height: 0.8;
+            margin: 0 8px 0 0;
+            line-height: 0.75;
         }
-        /* Estilo para página de título */
-        #title-page {
-            text-align: center;
-            margin-bottom: 50px;
+        hr {
+            border: none;
+            border-top: 2px double #8b4513;
+            margin: 50px auto;
+            width: 60%;
         }
-        #title-page h1 {
-            font-size: 3em;
-            margin: 100px 0 50px;
-        }
-        /* Loader mientras carga */
         #loading {
             text-align: center;
-            padding: 50px;
             font-style: italic;
+            color: #666;
+            padding: 100px 0;
+            font-size: 1.3em;
         }
+        .empty { display: none; } /* oculta vacíos */
     </style>
 </head>
 <body>
     <div id="book">
-        <div id="title-page">
-            <!-- Si el título no está en el contenido, puedes ponerlo aquí manualmente, e.g.: <h1>Errantes</h1> <p>Por Eduardo</p> -->
-            <!-- De lo contrario, el JS lo detectará si es el primer elemento grande -->
-        </div>
+        <div id="title-page"></div>
         <div id="content">
-            <div id="loading">Cargando la crónica medieval...</div>
+            <div id="loading">Cargando la crónica de los Errantes de Kurghaimat...</div>
         </div>
     </div>
+
     <script>
-        // JS para cargar el contenido y procesarlo
         document.addEventListener('DOMContentLoaded', async () => {
             const contentDiv = document.getElementById('content');
+            const titlePage = document.getElementById('title-page');
             const loading = document.getElementById('loading');
-            
+
             try {
-                // Carga el archivo LosErrantesdeKurghaimat.html
-                const response = await fetch('LosErrantesdeKurghaimat.html');
-                if (!response.ok) throw new Error('Error al cargar el contenido');
+                const response = await fetch('LosErrantesdeKurghaimat.html'); // ← cambia aquí si usas otro nombre
+                if (!response.ok) throw new Error('No se encontró el contenido');
                 const html = await response.text();
-                
-                // Parsea el HTML cargado
+
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
-                
-                // Extrae el body (o todo el contenido)
-                const bodyContent = doc.body.innerHTML;
-                
-                // Inyecta en #content
-                contentDiv.innerHTML = bodyContent;
-                loading.remove(); // Quita el loader
-                
-                // Procesa capítulos y título
-                const paragraphs = contentDiv.querySelectorAll('p, span, div'); // Google Docs usa varios tags, así que ampliamos
-                let isFirstTitle = true;
-                paragraphs.forEach(el => {
-                    const text = el.textContent.trim();
-                    if (text.startsWith('Capitulo ') && /\d/.test(text)) { // Detecta capítulos
+
+                // Extraer solo el body real
+                let bodyContent = doc.body.innerHTML;
+
+                // Limpiar: quitar <h1> vacíos iniciales y elementos sin texto
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = bodyContent;
+
+                // Mover título principal y autor a title-page
+                const mainTitle = tempDiv.querySelector('span.c5, span.c14, .c5, .c14'); // "KURGHAIMAT" grande
+                const subTitle = tempDiv.querySelector('span.c14'); // "LOS ERRANTES DE"
+                const author = tempDiv.querySelector('span.c7'); // "EDVARD ARANGR"
+
+                if (mainTitle || subTitle) {
+                    const h1 = document.createElement('h1');
+                    h1.className = 'main-title';
+                    h1.innerHTML = (subTitle ? subTitle.textContent + ' ' : '') + (mainTitle ? mainTitle.textContent : 'Los Errantes de Kurghaimat');
+                    titlePage.appendChild(h1);
+                }
+                if (author) {
+                    const hAuthor = document.createElement('h1');
+                    hAuthor.className = 'author';
+                    hAuthor.textContent = author.textContent;
+                    titlePage.appendChild(hAuthor);
+                }
+
+                // Procesar capítulos y subtítulos
+                const headers = tempDiv.querySelectorAll('h1.c4');
+                headers.forEach(h => {
+                    const text = h.textContent.trim();
+                    if (text.includes('Cap') || text.includes('Capítulo')) {
                         const h2 = document.createElement('h2');
                         h2.textContent = text;
-                        el.parentNode.replaceChild(h2, el);
-                    } else if (isFirstTitle && text.toLowerCase().includes('errantes') && el.tagName === 'P') { // Detecta título aproximado (ajusta si necesitas)
-                        const h1 = document.createElement('h1');
-                        h1.textContent = text;
-                        document.getElementById('title-page').appendChild(h1);
-                        el.remove(); // Mueve a title-page y quita del content
-                        isFirstTitle = false;
+                        h.parentNode.replaceChild(h2, h);
+                    } else if (text && !text.includes('EDVARD')) { // subtítulo como "Las Llamas..."
+                        const h2sub = document.createElement('h2');
+                        h2sub.className = 'subtitle';
+                        h2sub.textContent = text;
+                        h.parentNode.replaceChild(h2sub, h);
                     }
                 });
-                
-                // Añade clases a párrafos para styling
-                contentDiv.querySelectorAll('p').forEach(p => p.classList.add('medieval-paragraph'));
-                
-            } catch (error) {
-                contentDiv.innerHTML = '<p style="color: red;">Error al cargar el contenido: ' + error.message + '</p>';
+
+                // Quitar elementos vacíos y <h1> sin contenido
+                tempDiv.querySelectorAll('h1.c2, h1:empty, p.c0.c11, .c11').forEach(el => el.remove());
+
+                // Inyectar el contenido limpio
+                contentDiv.innerHTML = tempDiv.innerHTML;
+                loading.remove();
+
+                // Drop caps mejorados (solo en p con texto)
+                contentDiv.querySelectorAll('p').forEach(p => {
+                    if (p.textContent.trim()) p.classList.add('medieval-p');
+                });
+
+            } catch (err) {
+                contentDiv.innerHTML = `<p style="color:red; text-align:center; font-size:1.3em;">Error al cargar: ${err.message}<br>Verifica que 'errantes-content.html' esté en la misma carpeta.</p>`;
             }
         });
     </script>
