@@ -22,7 +22,7 @@
             padding: 60px 70px;
             border: 12px solid #6b4c2e;
             border-image: url('border-medieval.png') 30 round;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.25), 0 0 30px rgba(0,0,0,0.35);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.25);
         }
         #title-page {
             text-align: center;
@@ -33,7 +33,7 @@
             font-size: 5em;
             color: #8b0000;
             margin: 30px 0 15px;
-            text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
         }
         h1.author {
             font-family: 'MedievalSharp', cursive;
@@ -43,59 +43,57 @@
             border-bottom: 4px double #8b4513;
             padding-bottom: 25px;
         }
-        h2.chapter-title {
+        h2.chapter-num {
             font-family: 'MedievalSharp', cursive;
-            font-size: 2.6em;
+            font-size: 2.8em;
             color: #b22222;
             text-align: center;
-            margin: 90px 0 10px;
+            margin: 90px 0 5px;
             border-bottom: 2px solid #8b4513;
-            padding-bottom: 12px;
+            padding-bottom: 10px;
         }
-        h2.chapter-subtitle {
+        h2.chapter-title {
             font-family: 'MedievalSharp', cursive;
-            font-size: 2.1em;
+            font-size: 2.3em;
             color: #4b2e1a;
             text-align: center;
-            margin: -5px 0 50px;
+            margin: 0 0 50px;
         }
         p {
             text-indent: 2.8em;
             margin: 1.4em 0;
             font-size: 1.2em;
         }
-        /* Drop cap fuerte y solo en primer párrafo de capítulo */
-        .chapter-first-p {
-            margin-top: 0.4em !important;
-        }
+        /* Drop cap */
         .chapter-first-p::first-letter {
             font-family: 'MedievalSharp', cursive;
-            font-size: 4.5em;
+            font-size: 4.8em;
             color: #8b0000;
             float: left;
-            margin: 0 12px 0 0;
-            line-height: 0.65;
+            margin: 2px 14px 4px 0;
+            line-height: 0.6;
             font-weight: bold;
         }
-        /* Eliminar cualquier formato inline que rompa el dropcap */
-        .chapter-first-p span[style*="font-size"] {
+        /* Forzar limpieza de spans grandes en la primera letra */
+        .chapter-first-p > span:first-child {
             font-size: inherit !important;
+            font-family: inherit !important;
         }
         hr {
             border: none;
             border-top: 3px double #8b4513;
             margin: 70px auto;
-            width: 45%;
+            width: 40%;
         }
         #loading {
             text-align: center;
             font-style: italic;
             color: #555;
-            padding: 140px 0;
+            padding: 150px 0;
             font-size: 1.4em;
         }
-        /* Ocultar elementos basura del export */
-        .c2, .c8, .c11, h1.c2, p.c0.c11, p:empty, span:empty, div:empty, h1:empty, br:only-child {
+        /* Ocultar elementos vacíos o innecesarios del export */
+        .c2, .c3, .c8, .c11, h1.c2, p.c0.c11, p:empty, span:empty, h1:empty, br {
             display: none !important;
         }
     </style>
@@ -107,7 +105,7 @@
             <h1 class="author">Edvard Arangr</h1>
         </div>
         <div id="content">
-            <div id="loading">Cargando la crónica...</div>
+            <div id="loading">Cargando la crónica medieval...</div>
         </div>
     </div>
 
@@ -118,7 +116,7 @@
 
             try {
                 const response = await fetch('LosErrantesdeKurghaimat.html');
-                if (!response.ok) throw new Error('Archivo no encontrado: LosErrantesdeKurghaimat.html');
+                if (!response.ok) throw new Error('No se encuentra el archivo');
                 const html = await response.text();
 
                 const parser = new DOMParser();
@@ -127,67 +125,71 @@
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = doc.body.innerHTML;
 
-                // Procesar encabezados de capítulo
-                const headers = tempDiv.querySelectorAll('h1.c4');
-                let previousWasChapter = false;
-
-                headers.forEach(h => {
-                    const text = h.textContent.trim();
+                // Procesar capítulos
+                const chapterHeaders = tempDiv.querySelectorAll('h1.c4, h1.c5'); // c5 en tu último snippet
+                chapterHeaders.forEach(header => {
+                    let text = header.textContent.trim();
                     if (!text) {
-                        h.remove();
+                        header.remove();
                         return;
                     }
 
-                    if (text.toLowerCase().includes('capítulo') || text.toLowerCase().includes('capitulo')) {
-                        const h2 = document.createElement('h2');
-                        h2.className = 'chapter-title';
-                        h2.textContent = text;
-                        h.parentNode.replaceChild(h2, h);
-                        previousWasChapter = true;
-                    } else if (previousWasChapter) {
-                        // El siguiente después de "Capítulo I" suele ser el subtítulo
-                        const h2sub = document.createElement('h2');
-                        h2sub.className = 'chapter-subtitle';
-                        h2sub.textContent = text;
-                        h.parentNode.replaceChild(h2sub, h);
-                        previousWasChapter = false;
+                    // Separar número y subtítulo si vienen juntos
+                    let chapterNum = text;
+                    let chapterSub = '';
 
-                        // Marcar el siguiente párrafo para dropcap
-                        let next = h2sub.nextElementSibling;
-                        while (next && next.tagName !== 'P') {
-                            next = next.nextElementSibling;
+                    if (text.includes(' - ')) {
+                        [chapterNum, chapterSub] = text.split(' - ');
+                        chapterNum = chapterNum.trim();
+                        chapterSub = chapterSub.trim();
+                    }
+
+                    // Crear h2 para número de capítulo
+                    const h2Num = document.createElement('h2');
+                    h2Num.className = 'chapter-num';
+                    h2Num.textContent = chapterNum;
+                    header.parentNode.insertBefore(h2Num, header);
+
+                    // Crear h2 para subtítulo si existe
+                    if (chapterSub) {
+                        const h2Sub = document.createElement('h2');
+                        h2Sub.className = 'chapter-title';
+                        h2Sub.textContent = chapterSub;
+                        header.parentNode.insertBefore(h2Sub, header.nextSibling);
+                    }
+
+                    header.remove(); // Quitamos el original
+
+                    // Marcar el siguiente párrafo válido para dropcap
+                    let nextP = h2Num.nextElementSibling;
+                    while (nextP && nextP.tagName !== 'P') {
+                        nextP = nextP.nextElementSibling;
+                    }
+                    if (nextP && nextP.tagName === 'P' && nextP.textContent.trim().length > 0) {
+                        nextP.classList.add('chapter-first-p');
+
+                        // Extraer la primera letra si está en span (el caso típico de Google)
+                        const firstChild = nextP.firstChild;
+                        if (firstChild && firstChild.nodeType === 1 && firstChild.tagName === 'SPAN' &&
+                            firstChild.textContent.trim().length === 1 && firstChild.nextSibling &&
+                            (firstChild.nextSibling.nodeType === 3 || firstChild.nextSibling.tagName === 'SPAN')) {
+                            const letterSpan = firstChild;
+                            const letter = letterSpan.textContent.trim();
+                            letterSpan.remove();
+                            // Insertar la letra como texto plano al principio
+                            nextP.insertBefore(document.createTextNode(letter), nextP.firstChild);
                         }
-                        if (next && next.tagName === 'P' && next.textContent.trim()) {
-                            next.classList.add('chapter-first-p');
-                            // Mover la primera letra fuera de spans raros si es necesario
-                            if (next.firstChild && next.firstChild.tagName === 'SPAN') {
-                                const span = next.firstChild;
-                                if (span.textContent.trim().length === 1) {
-                                    const letter = span.textContent;
-                                    span.remove();
-                                    next.innerHTML = letter + next.innerHTML;
-                                }
-                            }
-                        }
-                    } else {
-                        // Otros encabezados raros → ignorar o convertir a subtítulo
-                        const h2sub = document.createElement('h2');
-                        h2sub.className = 'chapter-subtitle';
-                        h2sub.textContent = text;
-                        h.parentNode.replaceChild(h2sub, h);
                     }
                 });
 
-                // Limpieza final muy agresiva
-                tempDiv.querySelectorAll(
-                    'h1.c2, .c2, .c8, .c11, p.c0.c11, p:empty, span:empty, div:empty, h1:empty, br'
-                ).forEach(el => el.remove());
+                // Limpieza final
+                tempDiv.querySelectorAll('h1.c2, .c2, .c3, .c8, .c11, p:empty, span:empty, br:only-child').forEach(el => el.remove());
 
-                // Eliminar cualquier resto de título/autor que se cuele
-                tempDiv.querySelectorAll('span.c5, span.c14, span.c13, span.c7, span.c3').forEach(el => {
-                    const t = el.textContent.trim().toLowerCase();
-                    if (t.includes('errantes') || t.includes('kurghaimat') || t.includes('edvard') || !t) {
-                        let parent = el.closest('h1') || el.parentElement;
+                // Eliminar cualquier resto de título principal que se cuele
+                tempDiv.querySelectorAll('span.c5, span.c14, span.c7, span.c13').forEach(el => {
+                    const txt = el.textContent.trim().toLowerCase();
+                    if (txt.includes('errantes') || txt.includes('kurghaimat') || txt.includes('edvard')) {
+                        let parent = el.closest('h1') || el;
                         if (parent) parent.remove();
                     }
                 });
@@ -196,8 +198,8 @@
                 loading.remove();
 
             } catch (err) {
-                contentDiv.innerHTML = `<p style="color:#8b0000; text-align:center; font-size:1.4em; padding:140px 0;">
-                    Error: ${err.message}<br>Comprueba que el archivo se llame exactamente <strong>LosErrantesdeKurghaimat.html</strong>
+                contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:150px 0;">
+                    Error: ${err.message}<br>Comprueba que el archivo se llame exactamente "LosErrantesdeKurghaimat.html"
                 </p>`;
             }
         });
