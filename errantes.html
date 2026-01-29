@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Los Errantes de Kurghaimat</title>
-    <!-- Fuentes del documento original -->
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         body {
@@ -14,101 +13,102 @@
             line-height: 1.7;
             margin: 0;
             padding: 30px;
-            background-color: #f5e8c7; /* fallback */
+            background-color: #f5e8c7; /* fallback si no hay imagen */
         }
         #book {
             max-width: 900px;
             margin: 0 auto;
             background: rgba(245, 232, 199, 0.92);
-            padding: 50px 60px;
+            padding: 60px 70px;
             border: 12px solid #6b4c2e;
             border-image: url('border-medieval.png') 30 round;
             box-shadow: inset 0 0 40px rgba(0,0,0,0.3), 0 0 30px rgba(0,0,0,0.4);
         }
+        #title-page {
+            text-align: center;
+            margin-bottom: 80px;
+        }
         h1.main-title {
             font-family: 'MedievalSharp', cursive;
-            font-size: 4.5em;
+            font-size: 4.8em;
             color: #8b0000;
-            text-align: center;
-            margin: 80px 0 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin: 40px 0 20px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.25);
         }
         h1.author {
             font-family: 'MedievalSharp', cursive;
-            font-size: 2.2em;
+            font-size: 2.4em;
             color: #3d2b1f;
-            text-align: center;
-            margin: 0 0 60px;
+            margin: 0 0 70px;
             border-bottom: 3px double #8b4513;
-            padding-bottom: 15px;
+            padding-bottom: 20px;
         }
         h2 {
             font-family: 'MedievalSharp', cursive;
-            font-size: 2.4em;
+            font-size: 2.5em;
             color: #b22222;
             text-align: center;
-            margin: 70px 0 20px;
+            margin: 80px 0 30px;
             border-bottom: 2px solid #8b4513;
-            padding-bottom: 10px;
-        }
-        h2::before {
-            content: "✦ ";
-            color: #d4af37;
+            padding-bottom: 12px;
         }
         h2.subtitle {
-            font-size: 1.9em;
+            font-size: 2.0em;
             color: #4b2e1a;
-            margin: -10px 0 40px;
+            margin: -15px 0 50px;
         }
         p {
             text-indent: 2.5em;
-            margin: 1.2em 0;
-            font-size: 1.15em;
+            margin: 1.3em 0;
+            font-size: 1.18em;
         }
-        /* Drop cap SOLO en el primer párrafo después de un capítulo */
-        .chapter-start:first-of-type::first-letter {
+        /* Drop cap SOLO en el primer párrafo después de cada capítulo */
+        .chapter-first-p:first-letter {
             font-family: 'MedievalSharp', cursive;
-            font-size: 3.8em;
+            font-size: 4.2em;
             color: #8b0000;
             float: left;
-            margin: 0 8px 0 0;
-            line-height: 0.75;
+            margin: 4px 10px 0 0;
+            line-height: 0.7;
         }
         hr {
             border: none;
             border-top: 2px double #8b4513;
-            margin: 50px auto;
-            width: 60%;
+            margin: 60px auto;
+            width: 50%;
         }
         #loading {
             text-align: center;
             font-style: italic;
-            color: #666;
-            padding: 100px 0;
+            color: #555;
+            padding: 120px 0;
             font-size: 1.3em;
         }
-        .empty, h1.c2, p.c0.c11, .c11 {
-            display: none; /* oculta vacíos y líneas innecesarias */
+        /* Ocultar basura del export */
+        .c2, .c8, .c11, h1.c2, p.c0.c11, p:empty, h1:empty, .empty {
+            display: none !important;
         }
     </style>
 </head>
 <body>
     <div id="book">
-        <div id="title-page"></div>
+        <div id="title-page">
+            <h1 class="main-title">Los Errantes de Kurghaimat</h1>
+            <h1 class="author">Edvard Arangr</h1>
+        </div>
         <div id="content">
-            <div id="loading">Cargando la crónica de los Errantes de Kurghaimat...</div>
+            <div id="loading">Cargando la crónica...</div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const contentDiv = document.getElementById('content');
-            const titlePage = document.getElementById('title-page');
             const loading = document.getElementById('loading');
 
             try {
                 const response = await fetch('LosErrantesdeKurghaimat.html');
-                if (!response.ok) throw new Error('No se encontró el archivo LosErrantesdeKurghaimat.html');
+                if (!response.ok) throw new Error('No se encuentra LosErrantesdeKurghaimat.html');
                 const html = await response.text();
 
                 const parser = new DOMParser();
@@ -118,56 +118,31 @@
                 tempDiv.innerHTML = doc.body.innerHTML;
 
                 // ───────────────────────────────────────────────
-                // 1. Título principal (evitar duplicados)
-                // ───────────────────────────────────────────────
-                let titleText = 'Los Errantes de Kurghaimat';
-                const bigSpans = tempDiv.querySelectorAll('span.c5, span.c14, .c5, .c14');
-                if (bigSpans.length > 0) {
-                    titleText = Array.from(bigSpans)
-                        .map(s => s.textContent.trim())
-                        .filter(t => t)
-                        .join(' ')
-                        .replace(/\s+/g, ' ')
-                        .trim();
-                }
-
-                const h1 = document.createElement('h1');
-                h1.className = 'main-title';
-                h1.textContent = titleText;
-                titlePage.appendChild(h1);
-
-                // Autor (solo una vez)
-                const authorEl = tempDiv.querySelector('span.c7, .c7');
-                if (authorEl && authorEl.textContent.trim()) {
-                    const hAuthor = document.createElement('h1');
-                    hAuthor.className = 'author';
-                    hAuthor.textContent = authorEl.textContent.trim();
-                    titlePage.appendChild(hAuthor);
-                }
-
-                // ───────────────────────────────────────────────
-                // 2. Procesar capítulos y subtítulos
+                // Procesar capítulos y subtítulos
                 // ───────────────────────────────────────────────
                 const headers = tempDiv.querySelectorAll('h1.c4');
                 headers.forEach(h => {
                     const text = h.textContent.trim();
-                    if (!text) return;
+                    if (!text) {
+                        h.remove();
+                        return;
+                    }
 
-                    if (text.includes('Cap') || text.includes('Capítulo')) {
+                    if (text.toLowerCase().includes('capítulo') || text.toLowerCase().includes('capitulo')) {
                         const h2 = document.createElement('h2');
                         h2.textContent = text;
                         h.parentNode.replaceChild(h2, h);
 
-                        // Marcar el siguiente párrafo como inicio de capítulo (para drop cap)
-                        let nextP = h2.nextElementSibling;
-                        while (nextP && nextP.tagName !== 'P') {
-                            nextP = nextP.nextElementSibling;
+                        // Buscar el siguiente párrafo real y marcarlo para dropcap
+                        let next = h2.nextElementSibling;
+                        while (next && next.tagName !== 'P') {
+                            next = next.nextElementSibling;
                         }
-                        if (nextP && nextP.tagName === 'P') {
-                            nextP.classList.add('chapter-start');
+                        if (next && next.tagName === 'P' && next.textContent.trim()) {
+                            next.classList.add('chapter-first-p');
                         }
                     } else {
-                        // Subtítulo (ej. "Las Llamas del Destino")
+                        // Subtítulo (Las Llamas del Destino, etc.)
                         const h2sub = document.createElement('h2');
                         h2sub.className = 'subtitle';
                         h2sub.textContent = text;
@@ -176,16 +151,30 @@
                 });
 
                 // ───────────────────────────────────────────────
-                // 3. Limpieza final
+                // Limpieza agresiva del export de Google Docs
                 // ───────────────────────────────────────────────
-                tempDiv.querySelectorAll('h1.c2, h1:empty, .c2, .c8, .c11, p:empty').forEach(el => el.remove());
+                tempDiv.querySelectorAll(
+                    'h1.c2, .c2, .c8, .c11, p.c0.c11, p:empty, span:empty, div:empty, h1:empty, br'
+                ).forEach(el => el.remove());
 
-                // Inyectar contenido limpio
+                // Quitar también cualquier párrafo o span que solo tenga el título/autor (ya lo tenemos arriba)
+                tempDiv.querySelectorAll('h1.c4, span.c5, span.c14, span.c7, span.c13, span.c3').forEach(el => {
+                    const t = el.textContent.trim().toLowerCase();
+                    if (t.includes('errantes') || t.includes('kurghaimat') || t.includes('edvard') || t.includes('arangr')) {
+                        let parent = el.closest('h1') || el.parentElement;
+                        if (parent) parent.remove();
+                    }
+                });
+
+                // Inyectar el contenido ya limpio
                 contentDiv.innerHTML = tempDiv.innerHTML;
                 loading.remove();
 
             } catch (err) {
-                contentDiv.innerHTML = `<p style="color:red; text-align:center; font-size:1.3em;">Error: ${err.message}<br>Asegúrate de que "LosErrantesdeKurghaimat.html" esté en la misma carpeta que esta página.</p>`;
+                contentDiv.innerHTML = `<p style="color:#8b0000; text-align:center; font-size:1.4em; padding:100px 0;">
+                    Error al cargar el documento: ${err.message}<br>
+                    Asegúrate de que el archivo se llame exactamente <strong>LosErrantesdeKurghaimat.html</strong> y esté en la misma carpeta.
+                </p>`;
             }
         });
     </script>
