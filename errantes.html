@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Errantes - Crónica Medieval</title>
+    <!-- Google Fonts para estilo medieval -->
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: url('parchment.jpg') repeat; /* Reemplaza con tu imagen de pergamino, o quita esta línea */
+            font-family: 'Cinzel', serif; /* Fuente principal, como un libro antiguo */
+            color: #3d2b1f; /* Marrón oscuro para tinta */
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        #book {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.8); /* Capa semi-transparente para legibilidad */
+            padding: 40px;
+            border: 10px solid #8b4513; /* Borde de madera/marrón */
+            border-image: url('border-medieval.png') 30 round; /* Opcional: imagen de borde ornamental, quita si no tienes */
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        h1, h2 {
+            font-family: 'UnifrakturMaguntia', cursive; /* Fuente gótica para títulos */
+            text-align: center;
+            color: #b22222; /* Rojo sangre para énfasis */
+            border-bottom: 2px solid #8b4513;
+            padding-bottom: 10px;
+            margin-top: 50px;
+        }
+        h2::before {
+            content: "✠ "; /* Cruz medieval o icono (puedes cambiar por una imagen) */
+            color: #ffd700; /* Dorado */
+        }
+        p {
+            text-indent: 2em; /* Sangría de párrafo como en libros antiguos */
+            margin: 15px 0;
+        }
+        p:first-letter {
+            font-size: 3em; /* Drop cap */
+            font-family: 'UnifrakturMaguntia', cursive;
+            color: #b22222;
+            float: left;
+            margin: 0 5px 0 0;
+            line-height: 0.8;
+        }
+        /* Estilo para página de título */
+        #title-page {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        #title-page h1 {
+            font-size: 3em;
+            margin: 100px 0 50px;
+        }
+        /* Loader mientras carga */
+        #loading {
+            text-align: center;
+            padding: 50px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="book">
+        <div id="title-page">
+            <!-- Si el título no está en el contenido, puedes ponerlo aquí manualmente, e.g.: <h1>Errantes</h1> <p>Por Eduardo</p> -->
+            <!-- De lo contrario, el JS lo detectará si es el primer elemento grande -->
+        </div>
+        <div id="content">
+            <div id="loading">Cargando la crónica medieval...</div>
+        </div>
+    </div>
+    <script>
+        // JS para cargar el contenido y procesarlo
+        document.addEventListener('DOMContentLoaded', async () => {
+            const contentDiv = document.getElementById('content');
+            const loading = document.getElementById('loading');
+            
+            try {
+                // Carga el archivo LosErrantesdeKurghaimat.html
+                const response = await fetch('LosErrantesdeKurghaimat.html');
+                if (!response.ok) throw new Error('Error al cargar el contenido');
+                const html = await response.text();
+                
+                // Parsea el HTML cargado
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Extrae el body (o todo el contenido)
+                const bodyContent = doc.body.innerHTML;
+                
+                // Inyecta en #content
+                contentDiv.innerHTML = bodyContent;
+                loading.remove(); // Quita el loader
+                
+                // Procesa capítulos y título
+                const paragraphs = contentDiv.querySelectorAll('p, span, div'); // Google Docs usa varios tags, así que ampliamos
+                let isFirstTitle = true;
+                paragraphs.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (text.startsWith('Capitulo ') && /\d/.test(text)) { // Detecta capítulos
+                        const h2 = document.createElement('h2');
+                        h2.textContent = text;
+                        el.parentNode.replaceChild(h2, el);
+                    } else if (isFirstTitle && text.toLowerCase().includes('errantes') && el.tagName === 'P') { // Detecta título aproximado (ajusta si necesitas)
+                        const h1 = document.createElement('h1');
+                        h1.textContent = text;
+                        document.getElementById('title-page').appendChild(h1);
+                        el.remove(); // Mueve a title-page y quita del content
+                        isFirstTitle = false;
+                    }
+                });
+                
+                // Añade clases a párrafos para styling
+                contentDiv.querySelectorAll('p').forEach(p => p.classList.add('medieval-paragraph'));
+                
+            } catch (error) {
+                contentDiv.innerHTML = '<p style="color: red;">Error al cargar el contenido: ' + error.message + '</p>';
+            }
+        });
+    </script>
+</body>
+</html>
