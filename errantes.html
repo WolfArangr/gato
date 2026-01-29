@@ -13,79 +13,89 @@
             line-height: 1.7;
             margin: 0;
             padding: 30px;
-            background-color: #f5e8c7; /* fallback si no hay imagen */
+            background-color: #f5e8c7;
         }
         #book {
             max-width: 900px;
             margin: 0 auto;
-            background: rgba(245, 232, 199, 0.92);
+            background: rgba(245, 232, 199, 0.94);
             padding: 60px 70px;
             border: 12px solid #6b4c2e;
             border-image: url('border-medieval.png') 30 round;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.3), 0 0 30px rgba(0,0,0,0.4);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.25), 0 0 30px rgba(0,0,0,0.35);
         }
         #title-page {
             text-align: center;
-            margin-bottom: 80px;
+            margin-bottom: 90px;
         }
         h1.main-title {
             font-family: 'MedievalSharp', cursive;
-            font-size: 4.8em;
+            font-size: 5em;
             color: #8b0000;
-            margin: 40px 0 20px;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.25);
+            margin: 30px 0 15px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
         }
         h1.author {
             font-family: 'MedievalSharp', cursive;
-            font-size: 2.4em;
-            color: #3d2b1f;
-            margin: 0 0 70px;
-            border-bottom: 3px double #8b4513;
-            padding-bottom: 20px;
-        }
-        h2 {
-            font-family: 'MedievalSharp', cursive;
             font-size: 2.5em;
+            color: #3d2b1f;
+            margin: 0 0 80px;
+            border-bottom: 4px double #8b4513;
+            padding-bottom: 25px;
+        }
+        h2.chapter-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.6em;
             color: #b22222;
             text-align: center;
-            margin: 80px 0 30px;
+            margin: 90px 0 10px;
             border-bottom: 2px solid #8b4513;
             padding-bottom: 12px;
         }
-        h2.subtitle {
-            font-size: 2.0em;
+        h2.chapter-subtitle {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.1em;
             color: #4b2e1a;
-            margin: -15px 0 50px;
+            text-align: center;
+            margin: -5px 0 50px;
         }
         p {
-            text-indent: 2.5em;
-            margin: 1.3em 0;
-            font-size: 1.18em;
+            text-indent: 2.8em;
+            margin: 1.4em 0;
+            font-size: 1.2em;
         }
-        /* Drop cap SOLO en el primer párrafo después de cada capítulo */
-        .chapter-first-p:first-letter {
+        /* Drop cap fuerte y solo en primer párrafo de capítulo */
+        .chapter-first-p {
+            margin-top: 0.4em !important;
+        }
+        .chapter-first-p::first-letter {
             font-family: 'MedievalSharp', cursive;
-            font-size: 4.2em;
+            font-size: 4.5em;
             color: #8b0000;
             float: left;
-            margin: 4px 10px 0 0;
-            line-height: 0.7;
+            margin: 0 12px 0 0;
+            line-height: 0.65;
+            font-weight: bold;
+        }
+        /* Eliminar cualquier formato inline que rompa el dropcap */
+        .chapter-first-p span[style*="font-size"] {
+            font-size: inherit !important;
         }
         hr {
             border: none;
-            border-top: 2px double #8b4513;
-            margin: 60px auto;
-            width: 50%;
+            border-top: 3px double #8b4513;
+            margin: 70px auto;
+            width: 45%;
         }
         #loading {
             text-align: center;
             font-style: italic;
             color: #555;
-            padding: 120px 0;
-            font-size: 1.3em;
+            padding: 140px 0;
+            font-size: 1.4em;
         }
-        /* Ocultar basura del export */
-        .c2, .c8, .c11, h1.c2, p.c0.c11, p:empty, h1:empty, .empty {
+        /* Ocultar elementos basura del export */
+        .c2, .c8, .c11, h1.c2, p.c0.c11, p:empty, span:empty, div:empty, h1:empty, br:only-child {
             display: none !important;
         }
     </style>
@@ -108,7 +118,7 @@
 
             try {
                 const response = await fetch('LosErrantesdeKurghaimat.html');
-                if (!response.ok) throw new Error('No se encuentra LosErrantesdeKurghaimat.html');
+                if (!response.ok) throw new Error('Archivo no encontrado: LosErrantesdeKurghaimat.html');
                 const html = await response.text();
 
                 const parser = new DOMParser();
@@ -117,10 +127,10 @@
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = doc.body.innerHTML;
 
-                // ───────────────────────────────────────────────
-                // Procesar capítulos y subtítulos
-                // ───────────────────────────────────────────────
+                // Procesar encabezados de capítulo
                 const headers = tempDiv.querySelectorAll('h1.c4');
+                let previousWasChapter = false;
+
                 headers.forEach(h => {
                     const text = h.textContent.trim();
                     if (!text) {
@@ -130,50 +140,64 @@
 
                     if (text.toLowerCase().includes('capítulo') || text.toLowerCase().includes('capitulo')) {
                         const h2 = document.createElement('h2');
+                        h2.className = 'chapter-title';
                         h2.textContent = text;
                         h.parentNode.replaceChild(h2, h);
+                        previousWasChapter = true;
+                    } else if (previousWasChapter) {
+                        // El siguiente después de "Capítulo I" suele ser el subtítulo
+                        const h2sub = document.createElement('h2');
+                        h2sub.className = 'chapter-subtitle';
+                        h2sub.textContent = text;
+                        h.parentNode.replaceChild(h2sub, h);
+                        previousWasChapter = false;
 
-                        // Buscar el siguiente párrafo real y marcarlo para dropcap
-                        let next = h2.nextElementSibling;
+                        // Marcar el siguiente párrafo para dropcap
+                        let next = h2sub.nextElementSibling;
                         while (next && next.tagName !== 'P') {
                             next = next.nextElementSibling;
                         }
                         if (next && next.tagName === 'P' && next.textContent.trim()) {
                             next.classList.add('chapter-first-p');
+                            // Mover la primera letra fuera de spans raros si es necesario
+                            if (next.firstChild && next.firstChild.tagName === 'SPAN') {
+                                const span = next.firstChild;
+                                if (span.textContent.trim().length === 1) {
+                                    const letter = span.textContent;
+                                    span.remove();
+                                    next.innerHTML = letter + next.innerHTML;
+                                }
+                            }
                         }
                     } else {
-                        // Subtítulo (Las Llamas del Destino, etc.)
+                        // Otros encabezados raros → ignorar o convertir a subtítulo
                         const h2sub = document.createElement('h2');
-                        h2sub.className = 'subtitle';
+                        h2sub.className = 'chapter-subtitle';
                         h2sub.textContent = text;
                         h.parentNode.replaceChild(h2sub, h);
                     }
                 });
 
-                // ───────────────────────────────────────────────
-                // Limpieza agresiva del export de Google Docs
-                // ───────────────────────────────────────────────
+                // Limpieza final muy agresiva
                 tempDiv.querySelectorAll(
                     'h1.c2, .c2, .c8, .c11, p.c0.c11, p:empty, span:empty, div:empty, h1:empty, br'
                 ).forEach(el => el.remove());
 
-                // Quitar también cualquier párrafo o span que solo tenga el título/autor (ya lo tenemos arriba)
-                tempDiv.querySelectorAll('h1.c4, span.c5, span.c14, span.c7, span.c13, span.c3').forEach(el => {
+                // Eliminar cualquier resto de título/autor que se cuele
+                tempDiv.querySelectorAll('span.c5, span.c14, span.c13, span.c7, span.c3').forEach(el => {
                     const t = el.textContent.trim().toLowerCase();
-                    if (t.includes('errantes') || t.includes('kurghaimat') || t.includes('edvard') || t.includes('arangr')) {
+                    if (t.includes('errantes') || t.includes('kurghaimat') || t.includes('edvard') || !t) {
                         let parent = el.closest('h1') || el.parentElement;
                         if (parent) parent.remove();
                     }
                 });
 
-                // Inyectar el contenido ya limpio
                 contentDiv.innerHTML = tempDiv.innerHTML;
                 loading.remove();
 
             } catch (err) {
-                contentDiv.innerHTML = `<p style="color:#8b0000; text-align:center; font-size:1.4em; padding:100px 0;">
-                    Error al cargar el documento: ${err.message}<br>
-                    Asegúrate de que el archivo se llame exactamente <strong>LosErrantesdeKurghaimat.html</strong> y esté en la misma carpeta.
+                contentDiv.innerHTML = `<p style="color:#8b0000; text-align:center; font-size:1.4em; padding:140px 0;">
+                    Error: ${err.message}<br>Comprueba que el archivo se llame exactamente <strong>LosErrantesdeKurghaimat.html</strong>
                 </p>`;
             }
         });
