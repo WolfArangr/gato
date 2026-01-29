@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <title>🐈 GATO.red</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(96, 165, 250, 0.15) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .article-content p,
+        .article-content li,
+        .article-content blockquote,
+        .article-content ul,
+        .article-content ol {
+            font-family: 'Merriweather', serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            padding: 100px 0 60px;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 6.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff 0%, #3b82f6 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: -3px;
+            position: relative;
+            animation: logoFloat 4s ease-in-out infinite;
+            text-shadow: 0 0 50px rgba(59, 130, 246, 0.3);
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .logo::before {
+            content: '🐈';
+            position: absolute;
+            left: 0px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 3rem;
+            animation: catWiggle 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.4));
+        }
+
+        @keyframes catWiggle {
+            0%, 100% { transform: translateY(-50%) rotate(0deg); }
+            25% { transform: translateY(-50%) rotate(-5deg); }
+            75% { transform: translateY(-50%) rotate(5deg); }
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            animation: underlinePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes underlinePulse {
+            0%, 100% { opacity: 0.5; transform: translateX(-50%) scaleX(1); }
+            50% { opacity: 1; transform: translateX(-50%) scaleX(1.2); }
+        }
+
+        .boton-tarot {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 20px;
+            background-color: #6a1b9a;  /* púrpura místico */
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff, #3b82f6);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .boton-tarot:hover {
+            background-color: #4a148c;  /* más oscuro al pasar el mouse */
+        }
+
+        .tagline {
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #94a3b8 0%, #3b82f6 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            animation: taglineFade 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        @keyframes taglineFade {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .tagline::before {
+            content: '✨';
+            position: absolute;
+            left: -30px;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        .tagline::after {
+            content: '✨';
+            position: absolute;
+            right: -30px;
+            animation: sparkle 2s ease-in-out infinite 1s;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .search-container {
+            margin: 50px 0;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 24px;
+            border: none;
+            border-radius: 16px;
+            background: rgba(15, 15, 15, 0.8);
+            backdrop-filter: blur(20px);
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input::placeholder {
+            color: #64748b;
+        }
+
+        .search-input:focus {
+            background: rgba(20, 20, 20, 0.9);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 8px 30px rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 12px 24px;
+            background: rgba(15, 15, 15, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-tab:hover {
+            background: rgba(30, 30, 30, 0.8);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .filter-tab.active {
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border-color: transparent;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .article-audio-player {
+            margin-top: 10px;
+            padding: 12px 40px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(25px);
+            color: #e2e8f0;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .article-audio-player:hover {
+            background: rgba(30, 41, 59, 0.9);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .article-audio-player h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .article-audio-player audio {
+            width: 100%;
+            height: 32px;
+            filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.2));
+            outline: none;
+            border-radius: 8px;
+        }
+
+        .articles-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin: 60px 0;
+        }
+
+        .article-card {
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .article-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+            transition: left 0.8s ease;
+        }
+
+        .article-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, #06b6d4, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .article-card:hover::before {
+            left: 100%;
+        }
+
+        .article-card:hover::after {
+            opacity: 1;
+        }
+
+        .article-card:hover {
+            transform: translateY(-4px);
+            background: rgba(20, 20, 20, 0.8);
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.1);
+        }
+
+        .article-card.expanded {
+            transform: none;
+            box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .article-preview {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .article-category {
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .article-date {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            line-height: 1.3;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            flex-shrink: 0;
+        }
+
+        .article-excerpt {
+            color: #94a3b8;
+            line-height: 1.7;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+            flex-grow: 1;
+        }
+
+        .article-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            flex-shrink: 0;
+        }
+
+        .read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 20px;
+            background: rgba(15, 15, 15, 0.8);
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .read-more::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .read-more:hover::before {
+            left: 0;
+        }
+
+        .read-more:hover {
+            border-color: transparent;
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 1.2rem;
+            color: #64748b;
+        }
+
+        .no-articles {
+            text-align: center;
+            padding: 60px;
+            font-size: 1.2rem;
+            color: #64748b;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin: 50px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: rgba(15, 15, 15, 0.6);
+            padding: 24px;
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            min-width: 140px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            background: rgba(20, 20, 20, 0.8);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-4px);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 900;
+            display: block;
+            background: linear-gradient(135deg, #ffffff, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .article-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            margin-top: 0;
+            padding: 0 32px;
+            background: rgba(5, 5, 5, 0.8);
+            border-radius: 0 0 20px 20px;
+            margin: 0 -32px -32px -32px;
+            backdrop-filter: blur(30px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .article-content.expanded {
+            max-height: none;
+            opacity: 1;
+            padding: 40px 32px;
+            margin-top: 24px;
+        }
+
+        .article-content h1, .article-content h2, .article-content h3 {
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .article-content h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+        }
+
+        .article-content h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        .article-content h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .article-content p {
+            color: #cbd5e1;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .article-content blockquote {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            padding: 20px 30px;
+            margin: 30px 0;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            backdrop-filter: blur(10px);
+        }
+
+        .article-content blockquote p {
+            margin-bottom: 0;
+            color: inherit;
+        }
+
+        .article-content ul, .article-content ol {
+            color: #cbd5e1;
+            line-height: 1.8;
+            margin: 20px 0;
+            padding-left: 30px;
+            font-size: 1.05rem;
+        }
+
+        .article-content ul {
+            list-style-type: disc;
+        }
+
+        .article-content ol {
+            list-style-type: decimal;
+        }
+
+        .article-content li {
+            margin-bottom: 12px;
+            color: #cbd5e1;
+        }
+
+        .article-content li::marker {
+            color: #3b82f6;
+        }
+
+        .close-article {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 16px;
+            background: rgba(15, 15, 15, 0.6);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+
+        .close-article:hover {
+            background: rgba(25, 25, 25, 0.8);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        footer {
+            text-align: center;
+            padding: 50px 0;
+            color: #64748b;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 4rem;
+                letter-spacing: -2px;
+            }
+
+            .logo::before {
+                left: -60px;
+                font-size: 2.5rem;
+            }
+
+            .tagline {
+                font-size: 1.1rem;
+                letter-spacing: 3px;
+            }
+
+            .tagline::before, .tagline::after {
+                display: none;
+            }
+
+            .filter-tabs { gap: 6px; }
+
+            .filter-tab { padding: 10px 18px; font-size: 0.85rem; }
+
+            .stats { gap: 20px; }
+
+            .article-card { padding: 24px; }
+
+            .search-input { padding: 16px 20px; }
+
+            .article-content { padding: 0 24px; margin: 0 -24px -24px -24px; }
+
+            .article-content.expanded { padding: 32px 24px; }
+
+            .article-content h1 { font-size: 2rem; }
+
+            .article-meta { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+            .articles-container { grid-template-columns: 1fr; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 15, 15, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">GATO.red</h1>
+            <p class="tagline">Una especie de blog</p>
+        </header>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Busca artículos..." id="searchInput">
+            </div>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <span class="stat-number" id="totalArticles">0</span>
+                <span class="stat-label">Artículos</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="totalCategories">0</span>
+                <span class="stat-label">Categorias</span>
+            </div>
+        </div>
+
+        <div class="filter-tabs" id="filterTabs">
+            <button class="filter-tab active" data-filter="all">Todo</button>
+        </div>
+
+        <div class="articles-container" id="articlesGrid">
+            <div class="loading">Cargando...</div>
+        </div>
+
+        <footer>
+            <a href="https://hits.sh/gato.red/"><img alt="Hits" src="https://hits.sh/gato.red.svg?style=for-the-badge&label=Gatos%20lectores%20%F0%9F%90%88&color=007ec6"/></a>
+            <br>
+            <a href="miyutarot.html" class="boton-tarot">CONOCE TU FORTUNA...</a>
+            <p>&copy; 2025 El Gato Media - An IHTC Company.</p>
+        </footer>
+    </div>
+
+    <script>
+        class BlogManager {
+            constructor() {
+                this.articles = [];
+                this.filteredArticles = [];
+                this.categories = new Set();
+                this.languages = new Set();
+                this.currentFilter = 'all';
+                this.searchTerm = '';
+
+                this.init();
+            }
+
+            async init() {
+                await this.loadArticlesFromJSON();
+                this.setupEventListeners();
+                this.updateStats();
+                this.renderFilterTabs();
+                this.filterAndRenderArticles();
+
+                // Detecta ?articulo=slug y lo abre
+                setTimeout(() => {
+                    const params = new URLSearchParams(window.location.search);
+                    const slug = params.get("articulo");
+
+                    if (slug) {
+                        const index = this.articles.findIndex(a => a.slug === slug);
+                        if (index !== -1) {
+                            const articleId = `article-${index}`;
+                            toggleArticle(articleId, slug);
+                        }
+                    }
+                }, 100);
+            }
+
+            async loadArticlesFromJSON() {
+                try {
+                    const response = await fetch('gatiarticulos.json');
+                    if (!response.ok) {
+                        throw new Error('Failed to load articles');
+                    }
+                    this.articles = await response.json();
+                    this.articles.forEach(article => {
+                        this.languages.add(article.language);
+                        this.categories.add(article.category);
+                    });
+                } catch (error) {
+                    console.error('Error loading articles:', error);
+                    document.getElementById('articlesGrid').innerHTML = '<div class="no-articles">Error al cargar los artículos. Por favor, intenta más tarde.</div>';
+                }
+            }
+
+            setupEventListeners() {
+                const searchInput = document.getElementById('searchInput');
+                searchInput.addEventListener('input', (e) => {
+                    this.searchTerm = e.target.value.toLowerCase();
+                    this.filterAndRenderArticles();
+                });
+
+                document.getElementById('filterTabs').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('filter-tab')) {
+                        document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentFilter = e.target.getAttribute('data-filter');
+                        this.filterAndRenderArticles();
+                    }
+                });
+            }
+
+            updateStats() {
+                document.getElementById('totalArticles').textContent = this.articles.length;
+                document.getElementById('totalCategories').textContent = this.categories.size;
+            }
+
+            renderFilterTabs() {
+                const tabsContainer = document.getElementById('filterTabs');
+                const allCategories = Array.from(new Set(this.articles.map(a => a.fullCategory))).sort();
+
+                let tabsHTML = '<button class="filter-tab active" data-filter="all">Todo</button>';
+                allCategories.forEach(category => {
+                    tabsHTML += `<button class="filter-tab" data-filter="${category}">${category}</button>`;
+                });
+
+                tabsContainer.innerHTML = tabsHTML;
+            }
+
+            filterAndRenderArticles() {
+                this.filteredArticles = this.articles.filter(article => {
+                    const matchesFilter = this.currentFilter === 'all' || article.fullCategory === this.currentFilter;
+                    const matchesSearch = this.searchTerm === '' ||
+                        article.title.toLowerCase().includes(this.searchTerm) ||
+                        article.excerpt.toLowerCase().includes(this.searchTerm) ||
+                        article.category.toLowerCase().includes(this.searchTerm);
+
+                    return matchesFilter && matchesSearch;
+                });
+
+                this.renderArticles();
+            }
+
+            renderArticles() {
+                const grid = document.getElementById('articlesGrid');
+
+                if (this.filteredArticles.length === 0) {
+                    grid.innerHTML = '<div class="no-articles">No se han encontrado artículos con esas características.</div>';
+                    return;
+                }
+
+                let articlesHTML = '';
+                this.filteredArticles.forEach((article, index) => {
+                    const articleId = `article-${index}`;
+                    articlesHTML += `
+                        <article class="article-card fade-in" data-slug="${article.slug}" style="animation-delay: ${index * 0.1}s">
+                            <div class="article-meta">
+                                <span class="article-category">${article.fullCategory}</span>
+                                <span class="article-date">${article.date}</span>
+                            </div>
+                            <h2 class="article-title">${article.title}</h2>
+                            <p class="article-excerpt">${article.excerpt}</p>
+                            <button class="read-more" onclick="toggleArticle('${articleId}', '${article.slug}')">
+                                Leer →
+                            </button>
+                            <div class="article-content" id="${articleId}">
+                                <button class="close-article" onclick="toggleArticle('${articleId}')">← Volver</button>
+                                ${article.content}
+                            </div>
+                        </article>
+                    `;
+                });
+
+                grid.innerHTML = articlesHTML;
+            }
+        }
+
+        function toggleArticle(articleId, slug = null) {
+            const content = document.getElementById(articleId);
+            const isExpanded = content.classList.contains('expanded');
+
+            document.querySelectorAll('.article-content.expanded').forEach(el => {
+                if (el.id !== articleId) {
+                    el.classList.remove('expanded');
+                }
+            });
+
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                history.replaceState(null, '', window.location.pathname);
+            } else {
+                content.classList.add('expanded');
+                content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (slug) {
+                    history.replaceState(null, '', `?articulo=${slug}`);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new BlogManager();
+        });
+    </script>
+</body>
+</html>
