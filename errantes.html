@@ -12,9 +12,10 @@
             color: #2c1b0f;
             line-height: 1.75;
             margin: 0;
-            padding: 40px;
+            padding: 20px;
             background-color: #f5e8c7;
         }
+
         #book {
             max-width: 920px;
             margin: 0 auto;
@@ -24,10 +25,12 @@
             border-image: url('border-medieval.png') 30 round;
             box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
         }
+
         #title-page {
             text-align: center;
             margin-bottom: 100px;
         }
+
         h1.main-title {
             font-family: 'MedievalSharp', cursive;
             font-size: 5.4em;
@@ -35,6 +38,7 @@
             margin: 20px 0 10px;
             text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
         }
+
         h1.author {
             font-family: 'MedievalSharp', cursive;
             font-size: 2.7em;
@@ -43,6 +47,7 @@
             border-bottom: 4px double #8b4513;
             padding-bottom: 30px;
         }
+
         h2.chapter-num {
             font-family: 'MedievalSharp', cursive;
             font-size: 3em;
@@ -52,6 +57,7 @@
             border-bottom: 2px solid #8b4513;
             padding-bottom: 12px;
         }
+
         h2.chapter-title {
             font-family: 'MedievalSharp', cursive;
             font-size: 2.5em;
@@ -59,8 +65,9 @@
             text-align: center;
             margin: 0 0 60px;
         }
+
         p {
-            text-align: justify !important;
+            text-align: justify;
             hyphens: auto;
             -webkit-hyphens: auto;
             -ms-hyphens: auto;
@@ -68,7 +75,8 @@
             margin: 1.6em 0;
             font-size: 1.25em;
         }
-        /* Drop cap reforzado */
+
+        /* Drop cap */
         .chapter-first-p::first-letter {
             font-family: 'MedievalSharp', cursive !important;
             font-size: 5.2em !important;
@@ -78,18 +86,14 @@
             line-height: 0.55 !important;
             font-weight: bold !important;
         }
-        /* Limpiar spans que interfieran */
-        .chapter-first-p > span:first-child {
-            font-size: inherit !important;
-            float: none !important;
-            margin: 0 !important;
-        }
+
         hr {
             border: none;
             border-top: 3px double #8b4513;
             margin: 90px auto;
             width: 35%;
         }
+
         #loading {
             text-align: center;
             font-style: italic;
@@ -97,9 +101,97 @@
             padding: 180px 0;
             font-size: 1.5em;
         }
-        /* Ocultar elementos vacíos o innecesarios */
+
+        /* Ocultar basura */
         .c3, .c5, p.c1.c5, p:empty, span:empty, br:only-child {
             display: none !important;
+        }
+
+        /* ───────────────────────────────────────────────
+           RESPONSIVE DESIGN
+        ─────────────────────────────────────────────── */
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            #book {
+                padding: 35px 25px;
+                border-width: 8px;
+                max-width: 95%;
+                box-shadow: inset 0 0 25px rgba(0,0,0,0.15);
+            }
+
+            h1.main-title {
+                font-size: 3.8em;
+                margin: 15px 0 8px;
+            }
+
+            h1.author {
+                font-size: 2.1em;
+                margin-bottom: 60px;
+                padding-bottom: 20px;
+            }
+
+            h2.chapter-num {
+                font-size: 2.4em;
+                margin: 70px 0 8px;
+            }
+
+            h2.chapter-title {
+                font-size: 2.0em;
+                margin-bottom: 40px;
+            }
+
+            p {
+                font-size: 1.15em;
+                text-indent: 2.2em;
+                margin: 1.4em 0;
+            }
+
+            .chapter-first-p::first-letter {
+                font-size: 4.0em !important;
+                margin: 0 12px 6px 0 !important;
+                line-height: 0.6 !important;
+            }
+
+            hr {
+                width: 50%;
+                margin: 60px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #book {
+                padding: 25px 18px;
+            }
+
+            h1.main-title {
+                font-size: 3.2em;
+            }
+
+            h1.author {
+                font-size: 1.9em;
+            }
+
+            h2.chapter-num {
+                font-size: 2.1em;
+            }
+
+            h2.chapter-title {
+                font-size: 1.8em;
+            }
+
+            p {
+                font-size: 1.08em;
+                text-indent: 2em;
+            }
+
+            .chapter-first-p::first-letter {
+                font-size: 3.5em !important;
+                margin: 0 10px 5px 0 !important;
+            }
         }
     </style>
 </head>
@@ -182,7 +274,7 @@
                             p.insertBefore(document.createTextNode(letter), p.firstChild);
                         }
 
-                        isAfterChapter = false; // Solo el primero
+                        isAfterChapter = false;
                     }
                 });
 
