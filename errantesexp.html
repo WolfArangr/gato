@@ -95,83 +95,38 @@
         .c3, .c5, p.c1.c5, p:empty, span:empty, br:only-child {
             display: none !important;
         }
-        a {
+        a.localidad-link {
             color: #4b2e1a;
             text-decoration: none;
             border-bottom: 1px dotted #8b4513;
+            font-weight: 500;
         }
-        a:hover {
+        a.localidad-link:hover {
             color: #8b0000;
+            border-bottom: 1px solid #8b0000;
         }
         /* ───────────────────────────────────────────────
            RESPONSIVE DESIGN
         ─────────────────────────────────────────────── */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            #book {
-                padding: 35px 25px;
-                border-width: 8px;
-                max-width: 95%;
-                box-shadow: inset 0 0 25px rgba(0,0,0,0.15);
-            }
-            h1.main-title {
-                font-size: 3.8em;
-                margin: 15px 0 8px;
-            }
-            h1.author {
-                font-size: 2.1em;
-                margin-bottom: 60px;
-                padding-bottom: 20px;
-            }
-            h2.chapter-num {
-                font-size: 2.4em;
-                margin: 70px 0 8px;
-            }
-            h2.chapter-title {
-                font-size: 2.0em;
-                margin-bottom: 40px;
-            }
-            p {
-                font-size: 1.15em;
-                text-indent: 2.2em;
-                margin: 1.4em 0;
-            }
-            .chapter-first-p::first-letter {
-                font-size: 4.0em !important;
-                margin: 0 12px 6px 0 !important;
-                line-height: 0.6 !important;
-            }
-            hr {
-                width: 50%;
-                margin: 60px auto;
-            }
+            body { padding: 10px; }
+            #book { padding: 35px 25px; border-width: 8px; max-width: 95%; box-shadow: inset 0 0 25px rgba(0,0,0,0.15); }
+            h1.main-title { font-size: 3.8em; margin: 15px 0 8px; }
+            h1.author { font-size: 2.1em; margin-bottom: 60px; padding-bottom: 20px; }
+            h2.chapter-num { font-size: 2.4em; margin: 70px 0 8px; }
+            h2.chapter-title { font-size: 2.0em; margin-bottom: 40px; }
+            p { font-size: 1.15em; text-indent: 2.2em; margin: 1.4em 0; }
+            .chapter-first-p::first-letter { font-size: 4.0em !important; margin: 0 12px 6px 0 !important; line-height: 0.6 !important; }
+            hr { width: 50%; margin: 60px auto; }
         }
         @media (max-width: 480px) {
-            #book {
-                padding: 25px 18px;
-            }
-            h1.main-title {
-                font-size: 3.2em;
-            }
-            h1.author {
-                font-size: 1.9em;
-            }
-            h2.chapter-num {
-                font-size: 2.1em;
-            }
-            h2.chapter-title {
-                font-size: 1.8em;
-            }
-            p {
-                font-size: 1.08em;
-                text-indent: 2em;
-            }
-            .chapter-first-p::first-letter {
-                font-size: 3.5em !important;
-                margin: 0 10px 5px 0 !important;
-            }
+            #book { padding: 25px 18px; }
+            h1.main-title { font-size: 3.2em; }
+            h1.author { font-size: 1.9em; }
+            h2.chapter-num { font-size: 2.1em; }
+            h2.chapter-title { font-size: 1.8em; }
+            p { font-size: 1.08em; text-indent: 2em; }
+            .chapter-first-p::first-letter { font-size: 3.5em !important; margin: 0 10px 5px 0 !important; }
         }
     </style>
 </head>
@@ -185,11 +140,14 @@
             <div id="loading">Cargando la crónica...</div>
         </div>
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const contentDiv = document.getElementById('content');
             const loading = document.getElementById('loading');
+
             try {
+                // 1. Cargar y parsear el archivo
                 const response = await fetch('LosErrantesdeKurghaimat.html');
                 if (!response.ok) throw new Error('Archivo no encontrado');
                 const html = await response.text();
@@ -197,7 +155,8 @@
                 const doc = parser.parseFromString(html, 'text/html');
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = doc.body.innerHTML;
-                // Procesar encabezados de capítulo
+
+                // 2. Procesar encabezados de capítulo
                 const chapterHeaders = tempDiv.querySelectorAll('h1.c2, h1.c4, h1.c5');
                 chapterHeaders.forEach(header => {
                     let text = header.textContent.trim();
@@ -224,7 +183,8 @@
                     }
                     header.remove();
                 });
-                // Marcar y limpiar primer párrafo de cada capítulo
+
+                // 3. Marcar primer párrafo de cada capítulo y limpiar inicial en span
                 const paragraphs = tempDiv.querySelectorAll('p.c1');
                 let isAfterChapter = false;
                 paragraphs.forEach(p => {
@@ -233,7 +193,6 @@
                     }
                     if (isAfterChapter && p.textContent.trim()) {
                         p.classList.add('chapter-first-p');
-                        // Extraer inicial si está en <span>
                         if (p.firstChild && p.firstChild.tagName === 'SPAN' &&
                             p.firstChild.textContent.trim().length === 1) {
                             const span = p.firstChild;
@@ -244,82 +203,97 @@
                         isAfterChapter = false;
                     }
                 });
-                // Limpieza final
+
+                // 4. Limpieza final
                 tempDiv.querySelectorAll('p.c1.c5, p:empty, .c3, .c5, span:empty, br:only-child').forEach(el => el.remove());
 
-                // Función para verificar si existe la imagen
+                // 5. Insertar el contenido limpio
+                contentDiv.innerHTML = tempDiv.innerHTML;
+                loading.remove();
+
+                // 6. Ahora que el contenido está en el DOM, procesamos los enlaces
+                const localidadesDir = '/localidades/';
+                const extension = '.jpg';
+
                 async function imageExists(url) {
-                    return new Promise((resolve) => {
+                    return new Promise(resolve => {
                         const img = new Image();
-                        img.src = url;
                         img.onload = () => resolve(true);
                         img.onerror = () => resolve(false);
+                        img.src = url;
                     });
                 }
 
-                // Función para obtener palabras candidatas (palabras que empiezan con mayúscula, asumiendo nombres propios)
-                function getCandidateWords(element) {
-                    const words = new Set();
-                    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-                    while (walker.nextNode()) {
-                        const text = walker.currentNode.nodeValue;
-                        const matches = text.matchAll(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]*\b/g);
-                        for (const match of matches) {
-                            words.add(match[0]);
-                        }
-                    }
-                    return Array.from(words);
-                }
-
-                // Función para linkificar texto
-                function linkifyTextNodes(element, localities) {
-                    if (localities.length === 0) return;
-                    const regex = new RegExp('\\b(' + localities.map(w => w.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|') + ')\\b', 'g');
-                    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-                    const nodes = [];
-                    while (walker.nextNode()) {
-                        nodes.push(walker.currentNode);
-                    }
-                    for (const node of nodes) {
-                        const text = node.nodeValue;
-                        if (regex.test(text)) {
-                            const parent = node.parentNode;
-                            const fragments = text.split(regex);
-                            for (let i = 0; i < fragments.length; i++) {
-                                if (i % 2 === 0) {
-                                    parent.insertBefore(document.createTextNode(fragments[i]), node);
-                                } else {
-                                    const a = document.createElement('a');
-                                    a.href = `/localidades/${fragments[i]}.jpg`;
-                                    a.target = '_blank';
-                                    a.textContent = fragments[i];
-                                    parent.insertBefore(a, node);
-                                }
-                            }
-                            parent.removeChild(node);
-                        }
+                // Buscar todos los nodos de texto y candidatos a nombres propios
+                const textNodes = [];
+                const walker = document.createTreeWalker(contentDiv, NodeFilter.SHOW_TEXT, null);
+                let node;
+                while (node = walker.nextNode()) {
+                    if (node.parentNode && node.nodeValue.trim()) {
+                        textNodes.push(node);
                     }
                 }
 
-                // Obtener candidatos y verificar imágenes
-                const candidates = getCandidateWords(tempDiv);
-                const localities = [];
-                for (const word of candidates) {
-                    const url = `/localidades/${word}.jpg`;
+                // Recolectar posibles nombres (empezando por mayúscula)
+                const possibleNames = new Set();
+                textNodes.forEach(textNode => {
+                    const matches = textNode.nodeValue.matchAll(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ-]{2,}\b/g);
+                    for (const match of matches) {
+                        possibleNames.add(match[0]);
+                    }
+                });
+
+                // Verificar cuáles tienen imagen
+                const validLocalidades = [];
+                for (const name of possibleNames) {
+                    const url = localidadesDir + name + extension;
                     if (await imageExists(url)) {
-                        localities.push(word);
+                        validLocalidades.push(name);
                     }
                 }
 
-                // Aplicar links
-                linkifyTextNodes(tempDiv, localities);
+                if (validLocalidades.length === 0) return;
 
-                contentDiv.innerHTML = tempDiv.innerHTML;
-                loading.remove();
+                // Crear regex con escape de caracteres especiales
+                const regex = new RegExp('\\b(' + validLocalidades
+                    .map(n => n.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'))
+                    .join('|') + ')\\b', 'g');
+
+                // Procesar cada nodo de texto
+                textNodes.forEach(textNode => {
+                    const text = textNode.nodeValue;
+                    if (!regex.test(text)) return;
+                    regex.lastIndex = 0; // resetear regex
+
+                    const fragment = document.createDocumentFragment();
+                    let lastIndex = 0;
+                    let match;
+
+                    while ((match = regex.exec(text)) !== null) {
+                        if (match.index > lastIndex) {
+                            fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                        }
+                        const link = document.createElement('a');
+                        link.href = localidadesDir + match[0] + extension;
+                        link.target = '_blank';
+                        link.className = 'localidad-link';
+                        link.textContent = match[0];
+                        fragment.appendChild(link);
+                        lastIndex = regex.lastIndex;
+                    }
+
+                    if (lastIndex < text.length) {
+                        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+                    }
+
+                    textNode.parentNode.replaceChild(fragment, textNode);
+                });
+
             } catch (err) {
                 contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:180px 0;">
                     Error: ${err.message}<br>Asegúrate de que el archivo se llame exactamente "LosErrantesdeKurghaimat.html"
                 </p>`;
+                loading.remove();
             }
         });
     </script>
