@@ -100,14 +100,13 @@
             text-decoration: none;
             border-bottom: 1px dotted #8b4513;
             font-weight: 500;
+            cursor: pointer;
         }
         a.localidad-link:hover {
             color: #8b0000;
             border-bottom: 1px solid #8b0000;
         }
-        /* ───────────────────────────────────────────────
-           RESPONSIVE DESIGN
-        ─────────────────────────────────────────────── */
+        /* Responsive */
         @media (max-width: 768px) {
             body { padding: 10px; }
             #book { padding: 35px 25px; border-width: 8px; max-width: 95%; box-shadow: inset 0 0 25px rgba(0,0,0,0.15); }
@@ -184,7 +183,7 @@
                     header.remove();
                 });
 
-                // 3. Marcar primer párrafo de cada capítulo y limpiar inicial en span
+                // 3. Marcar primer párrafo y extraer letra inicial si está en span
                 const paragraphs = tempDiv.querySelectorAll('p.c1');
                 let isAfterChapter = false;
                 paragraphs.forEach(p => {
@@ -207,12 +206,12 @@
                 // 4. Limpieza final
                 tempDiv.querySelectorAll('p.c1.c5, p:empty, .c3, .c5, span:empty, br:only-child').forEach(el => el.remove());
 
-                // 5. Insertar el contenido limpio
+                // 5. Insertar contenido limpio en el DOM
                 contentDiv.innerHTML = tempDiv.innerHTML;
                 loading.remove();
 
-                // 6. Ahora que el contenido está en el DOM, procesamos los enlaces
-                const localidadesDir = '/localidades/';
+                // 6. Procesar links a localidades (ahora con el contenido ya renderizado)
+                const localidadesDir = 'localidades/';  // ruta relativa (sin / inicial si está en la misma carpeta raíz)
                 const extension = '.jpg';
 
                 async function imageExists(url) {
@@ -224,17 +223,18 @@
                     });
                 }
 
-                // Buscar todos los nodos de texto y candidatos a nombres propios
+                // Recolectar nodos de texto
                 const textNodes = [];
                 const walker = document.createTreeWalker(contentDiv, NodeFilter.SHOW_TEXT, null);
                 let node;
                 while (node = walker.nextNode()) {
-                    if (node.parentNode && node.nodeValue.trim()) {
+                    if (node.parentNode && node.nodeValue.trim() && 
+                        !['SCRIPT', 'STYLE'].includes(node.parentNode.tagName)) {
                         textNodes.push(node);
                     }
                 }
 
-                // Recolectar posibles nombres (empezando por mayúscula)
+                // Encontrar posibles nombres propios (empezando por mayúscula, al menos 3 letras)
                 const possibleNames = new Set();
                 textNodes.forEach(textNode => {
                     const matches = textNode.nodeValue.matchAll(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ-]{2,}\b/g);
@@ -243,27 +243,29 @@
                     }
                 });
 
-                // Verificar cuáles tienen imagen
-                const validLocalidades = [];
+                // Verificar existencia (normalizando a minúsculas)
+                const validLocalidades = new Map(); // original → lowercase
                 for (const name of possibleNames) {
-                    const url = localidadesDir + name + extension;
+                    const lowerName = name.toLowerCase();
+                    const url = localidadesDir + lowerName + extension;
                     if (await imageExists(url)) {
-                        validLocalidades.push(name);
+                        validLocalidades.set(name, lowerName);
                     }
                 }
 
-                if (validLocalidades.length === 0) return;
+                if (validLocalidades.size === 0) return;
 
-                // Crear regex con escape de caracteres especiales
-                const regex = new RegExp('\\b(' + validLocalidades
+                // Regex con los nombres originales (case-sensitive para match exacto en texto)
+                const namesArray = Array.from(validLocalidades.keys());
+                const regex = new RegExp('\\b(' + namesArray
                     .map(n => n.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'))
                     .join('|') + ')\\b', 'g');
 
-                // Procesar cada nodo de texto
+                // Reemplazar en cada nodo de texto
                 textNodes.forEach(textNode => {
                     const text = textNode.nodeValue;
                     if (!regex.test(text)) return;
-                    regex.lastIndex = 0; // resetear regex
+                    regex.lastIndex = 0;
 
                     const fragment = document.createDocumentFragment();
                     let lastIndex = 0;
@@ -273,11 +275,13 @@
                         if (match.index > lastIndex) {
                             fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
                         }
+                        const originalName = match[0];
+                        const lowerName = validLocalidades.get(originalName);
                         const link = document.createElement('a');
-                        link.href = localidadesDir + match[0] + extension;
+                        link.href = localidadesDir + lowerName + extension;
                         link.target = '_blank';
                         link.className = 'localidad-link';
-                        link.textContent = match[0];
+                        link.textContent = originalName; // mantener el case original en el texto
                         fragment.appendChild(link);
                         lastIndex = regex.lastIndex;
                     }
@@ -293,7 +297,7 @@
                 contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:180px 0;">
                     Error: ${err.message}<br>Asegúrate de que el archivo se llame exactamente "LosErrantesdeKurghaimat.html"
                 </p>`;
-                loading.remove();
+                if (loading) loading.remove();
             }
         });
     </script>
