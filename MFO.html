@@ -23,7 +23,7 @@
     }
     h1 {
       margin: 12px 0;
-      color: #ed1c24; /* Zwilling red */
+      color: #ed1c24;
       font-size: 1.8rem;
       font-weight: 700;
     }
@@ -104,7 +104,7 @@
       z-index: 1;
     }
     .weekend th, .weekend td {
-      background: #ffebee !important; /* Light red for weekends */
+      background: #ffebee !important;
     }
     .empty { color: #999; }
     .loading {
@@ -114,18 +114,11 @@
       padding: 60px 0;
     }
 
-    /* Responsive for mobile - vertical display */
+    /* Responsive - vertical cards en móvil */
     @media (max-width: 768px) {
-      .table-container {
-        overflow-x: hidden;
-      }
-      table {
-        border: 0;
-        min-width: auto;
-      }
-      thead {
-        display: none;
-      }
+      .table-container { overflow-x: hidden; }
+      table { border: 0; min-width: auto; }
+      thead { display: none; }
       tbody tr {
         display: block;
         margin-bottom: 20px;
@@ -161,19 +154,37 @@
         padding: 12px;
         border-radius: 6px 6px 0 0;
       }
-      td.name:before {
-        display: none;
-      }
-      .weekend td {
-        background: #ffebee !important;
-      }
-      .controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .controls select, .controls button {
-        width: 100%;
-      }
+      td.name:before { display: none; }
+      .weekend td { background: #ffebee !important; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .controls select, .controls button { width: 100%; }
+    }
+
+    /* Estilo para el calendario por días (solo usado en PNG cuando Todos) */
+    .calendar-day {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin: 12px 0;
+      padding: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .calendar-day h3 {
+      margin: 0 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #ed1c24;
+      color: #ed1c24;
+      font-size: 1.2rem;
+    }
+    .calendar-day .shift {
+      padding: 6px 0;
+      border-bottom: 1px dashed #eee;
+    }
+    .calendar-day .shift:last-child { border-bottom: none; }
+    .calendar-day .no-turno {
+      color: #999;
+      font-style: italic;
+      padding: 8px 0;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -190,9 +201,7 @@
 
 <div class="controls">
   <label>Mes:
-    <select id="mesSelect">
-      <!-- Populated dynamically -->
-    </select>
+    <select id="mesSelect"></select>
   </label>
   <label>Empleado:
     <select id="empleadoSelect">
@@ -200,9 +209,7 @@
     </select>
   </label>
   <label>Semana:
-    <select id="semanaSelect">
-      <!-- Populated dynamically -->
-    </select>
+    <select id="semanaSelect"></select>
   </label>
   <button id="btnMes">📥 Descargar Mes (PNG)</button>
   <button id="btnSemana">📥 Descargar Semana (PNG)</button>
@@ -221,11 +228,13 @@
 </div>
 
 <script>
+// ──────────────────────────────────────────────
+// CONFIGURACIÓN MESES
+// ──────────────────────────────────────────────
 const monthOrder = {
-  ENERO: 1, FEBRERO: 2, MARZO: 3, ABRIL: 4, MAYO: 5, JUNIO: 6,
-  JULIO: 7, AGOSTO: 8, SEPTIEMBRE: 9, OCTUBRE: 10, NOVIEMBRE: 11, DICIEMBRE: 12
+  ENERO:1, FEBRERO:2, MARZO:3, ABRIL:4, MAYO:5, JUNIO:6,
+  JULIO:7, AGOSTO:8, SEPTIEMBRE:9, OCTUBRE:10, NOVIEMBRE:11, DICIEMBRE:12
 };
-
 const possibleMonths = Object.keys(monthOrder);
 const year = '26';
 const possibleFiles = possibleMonths.map(m => `/MFO/MFO ${m}${year}.xlsx`);
@@ -245,67 +254,58 @@ let data = [];
 let daysInMonth = 0;
 let currentMonthName = '';
 
+// ──────────────────────────────────────────────
+// 1. Buscar archivos disponibles
+// ──────────────────────────────────────────────
 async function getAvailableFiles() {
-  const checks = possibleFiles.map(async (path) => {
+  const checks = possibleFiles.map(async path => {
     try {
       const res = await fetch(path, { method: 'HEAD' });
-      if (res.ok) return path;
-      return null;
+      return res.ok ? path : null;
     } catch {
       return null;
     }
   });
   const available = (await Promise.all(checks)).filter(Boolean);
-
-  // Sort by month order
-  available.sort((a, b) => {
+  available.sort((a,b) => {
     const ma = a.match(/ ([A-Z]+)26/)[1];
     const mb = b.match(/ ([A-Z]+)26/)[1];
-    return monthOrder[ma] - monthOrder[mb];
+    return (monthOrder[ma]||99) - (monthOrder[mb]||99);
   });
-
   return available;
 }
 
+// ──────────────────────────────────────────────
+// 2. Cargar y procesar XLSX
+// ──────────────────────────────────────────────
 async function loadSchedule(path) {
   try {
     const resp = await fetch(path);
-    if (!resp.ok) throw new Error(`No se pudo cargar ${path} – ${resp.status}`);
-    const arrayBuffer = await resp.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    if (!resp.ok) throw new Error(`No se pudo cargar ${path}`);
+    const ab = await resp.arrayBuffer();
+    const wb = XLSX.read(ab, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
     headers = json[2] || [];
     data = json.slice(3).filter(row => row[0] && String(row[0]).trim());
 
     daysInMonth = headers.length - 1;
 
-    // Populate empleados
     empleadoSelect.innerHTML = '<option value="Todos">Todos</option>';
     data.forEach(row => {
-      const nombre = String(row[0]).trim();
-      if (nombre) {
-        const opt = document.createElement('option');
-        opt.value = nombre;
-        opt.textContent = nombre;
-        empleadoSelect.appendChild(opt);
-      }
+      const n = String(row[0]).trim();
+      if (n) empleadoSelect.appendChild(new Option(n, n));
     });
 
-    // Populate semanas dynamically
     semanaSelect.innerHTML = '<option value="Todas">Todo el mes</option>';
     const numWeeks = Math.ceil(daysInMonth / 7);
-    for (let w = 1; w <= numWeeks; w++) {
-      const start = (w - 1) * 7 + 1;
-      const end = Math.min(start + 6, daysInMonth);
-      const opt = document.createElement('option');
-      opt.value = String(w);
-      opt.textContent = `Semana ${w} (${start}–${end})`;
-      semanaSelect.appendChild(opt);
+    for (let w=1; w<=numWeeks; w++) {
+      const s = (w-1)*7 + 1;
+      const e = Math.min(s+6, daysInMonth);
+      semanaSelect.appendChild(new Option(`Semana ${w} (${s}–${e})`, w));
     }
 
-    // Extract month name for filenames
     currentMonthName = path.match(/MFO (.*26)\.xlsx/)[1].replace('26', ' 2026');
 
     loading.style.display = 'none';
@@ -313,43 +313,39 @@ async function loadSchedule(path) {
     semanaContainer.style.display = 'block';
 
     renderTables();
-
   } catch (err) {
-    loading.innerHTML = `Error al cargar el horario:<br><pre>${err.message}</pre>`;
+    loading.innerHTML = `Error al cargar:<br><pre>${err.message}</pre>`;
     console.error(err);
   }
 }
 
+// ──────────────────────────────────────────────
+// 3. Render tablas normales (pantalla)
+// ──────────────────────────────────────────────
 function renderTables() {
   const emp = empleadoSelect.value;
   const sem = semanaSelect.value;
 
-  const filtered = emp === 'Todos'
-    ? data
-    : data.filter(r => String(r[0]).trim() === emp);
+  const filtered = emp === 'Todos' ? data : data.filter(r => String(r[0]).trim() === emp);
 
-  // Mes completo
   mesTableDiv.innerHTML = '';
-  mesTableDiv.appendChild(createTable(headers, filtered, 1, daysInMonth));
+  mesTableDiv.appendChild(createHorizontalTable(headers, filtered, 1, daysInMonth));
 
-  // Semana
   let start = 1, end = daysInMonth;
   if (sem !== 'Todas') {
     const w = Number(sem);
     start = (w-1)*7 + 1;
-    end   = Math.min(start + 6, daysInMonth);
+    end = Math.min(start + 6, daysInMonth);
   }
-  const weekHeaders = [headers[0], ...headers.slice(start, end+1)];
-  const weekData = filtered.map(r => [r[0], ...r.slice(start, end+1)]);
+  const wh = [headers[0], ...headers.slice(start, end+1)];
+  const wd = filtered.map(r => [r[0], ...r.slice(start, end+1)]);
 
   semanaTableDiv.innerHTML = '';
-  semanaTableDiv.appendChild(createTable(weekHeaders, weekData, start, end));
+  semanaTableDiv.appendChild(createHorizontalTable(wh, wd, start, end));
 }
 
-function createTable(head, rows, startDay, endDay) {
+function createHorizontalTable(head, rows, startDay, endDay) {
   const table = document.createElement('table');
-
-  // encabezado
   const thead = document.createElement('thead');
   const trh = document.createElement('tr');
   head.forEach((txt, i) => {
@@ -364,40 +360,98 @@ function createTable(head, rows, startDay, endDay) {
   thead.appendChild(trh);
   table.appendChild(thead);
 
-  // cuerpo
   const tbody = document.createElement('tbody');
   rows.forEach(row => {
     const tr = document.createElement('tr');
     row.forEach((cell, i) => {
       const td = document.createElement('td');
       td.textContent = cell || '-';
-      td.setAttribute('data-label', head[i] || '');
+      td.dataset.label = head[i] || '';
       if (i === 0) td.classList.add('name');
-      else {
-        const d = startDay + i - 1;
-        if (d % 7 === 1 || d % 7 === 0) td.classList.add('weekend');
-      }
+      else if ((startDay + i - 1) % 7 === 1 || (startDay + i - 1) % 7 === 0) td.classList.add('weekend');
       if (!cell) td.classList.add('empty');
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
-
   return table;
 }
 
-function downloadPNG(containerId, filename) {
-  const el = document.getElementById(containerId);
-  html2canvas(el, { scale: 2, useCORS: true }).then(canvas => {
+// ──────────────────────────────────────────────
+// 4. Generar calendario vertical por días (para PNG cuando Todos)
+// ──────────────────────────────────────────────
+function createDayByDayCalendar() {
+  const container = document.createElement('div');
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayHeader = headers[day] || `Día ${day}`;
+    const isWeekend = (day % 7 === 1 || day % 7 === 0);
+
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'calendar-day';
+    if (isWeekend) dayDiv.style.background = '#ffebee';
+
+    const h3 = document.createElement('h3');
+    h3.textContent = `${dayHeader}`;
+    dayDiv.appendChild(h3);
+
+    const workersThatDay = [];
+
+    data.forEach(row => {
+      const name = String(row[0]).trim();
+      const turno = String(row[day] || '').trim();
+      if (turno && turno !== '-') {
+        workersThatDay.push({ name, turno });
+      }
+    });
+
+    if (workersThatDay.length === 0) {
+      const p = document.createElement('div');
+      p.className = 'no-turno';
+      p.textContent = 'No hay turnos programados';
+      dayDiv.appendChild(p);
+    } else {
+      workersThatDay.sort((a,b) => a.name.localeCompare(b.name));
+      workersThatDay.forEach(({name, turno}) => {
+        const div = document.createElement('div');
+        div.className = 'shift';
+        div.innerHTML = `<strong>${name}</strong> → ${turno}`;
+        dayDiv.appendChild(div);
+      });
+    }
+
+    container.appendChild(dayDiv);
+  }
+
+  return container;
+}
+
+// ──────────────────────────────────────────────
+// 5. Descarga PNG
+// ──────────────────────────────────────────────
+function downloadPNG(containerIdOrElement, filename) {
+  const target = typeof containerIdOrElement === 'string'
+    ? document.getElementById(containerIdOrElement)
+    : containerIdOrElement;
+
+  html2canvas(target, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#f9f9f9'
+  }).then(canvas => {
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
     a.download = filename;
     a.click();
-  }).catch(err => alert('Error al generar imagen:\n' + err.message));
+  }).catch(err => {
+    alert('Error al generar imagen:\n' + err.message);
+  });
 }
 
+// ──────────────────────────────────────────────
 // Eventos
+// ──────────────────────────────────────────────
 mesSelect.onchange = () => {
   currentPath = mesSelect.value;
   loading.style.display = 'block';
@@ -405,31 +459,62 @@ mesSelect.onchange = () => {
   semanaContainer.style.display = 'none';
   loadSchedule(currentPath);
 };
-empleadoSelect.onchange = renderTables;
-semanaSelect.onchange   = renderTables;
-document.getElementById('btnMes').onclick    = () => downloadPNG('mesTable',    `Horario_Mes_${currentMonthName.replace(/ /g, '_')}.png`);
-document.getElementById('btnSemana').onclick = () => downloadPNG('semanaTable', `Horario_Semana_${currentMonthName.replace(/ /g, '_')}.png`);
 
+empleadoSelect.onchange = renderTables;
+semanaSelect.onchange = renderTables;
+
+document.getElementById('btnSemana').onclick = () =>
+  downloadPNG('semanaTable', `Horario_Semana_${currentMonthName.replace(/ /g,'_')}.png`);
+
+document.getElementById('btnMes').onclick = () => {
+  const emp = empleadoSelect.value;
+  const filename = `Horario_Mes_${currentMonthName.replace(/ /g,'_')}.png`;
+
+  if (emp === 'Todos') {
+    // Modo calendario vertical por días
+    const tempDiv = document.createElement('div');
+    tempDiv.style.padding = '20px';
+    tempDiv.style.background = '#f9f9f9';
+    tempDiv.style.maxWidth = '800px';
+    tempDiv.style.margin = '0 auto';
+
+    const title = document.createElement('h2');
+    title.textContent = `Horario Completo - ${currentMonthName}`;
+    title.style.color = '#ed1c24';
+    title.style.textAlign = 'center';
+    tempDiv.appendChild(title);
+
+    tempDiv.appendChild(createDayByDayCalendar());
+
+    document.body.appendChild(tempDiv);
+    downloadPNG(tempDiv, filename);
+    document.body.removeChild(tempDiv);
+  } else {
+    // Modo tabla horizontal normal
+    downloadPNG('mesTable', filename);
+  }
+};
+
+// ──────────────────────────────────────────────
 // Inicio
+// ──────────────────────────────────────────────
 (async () => {
   const available = await getAvailableFiles();
   if (available.length === 0) {
-    loading.innerHTML = 'No se encontraron archivos de horarios en /MFO.';
+    loading.innerHTML = 'No se encontraron archivos en /MFO/';
     return;
   }
 
   available.forEach(path => {
-    const monthRaw = path.match(/ ([A-Z]+)26/)[1];
-    const monthDisplay = `${monthRaw} 2026`;
-    const opt = document.createElement('option');
-    opt.value = path;
-    opt.textContent = monthDisplay;
-    if (monthRaw === 'FEBRERO') opt.selected = true; // Current month based on date
+    const m = path.match(/ ([A-Z]+)26/)[1];
+    const display = `${m} 2026`;
+    const opt = new Option(display, path);
+    if (m === 'FEBRERO') opt.selected = true;
     mesSelect.appendChild(opt);
   });
 
   currentPath = mesSelect.value;
-  loadSchedule(currentPath);
+  await loadSchedule(currentPath);
 })();
 </script>
 </body>
