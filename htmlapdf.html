@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Descargador Mailchimp PDF - Cloudflare Proxy</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea { width: 100%; height: 220px; font-family: monospace; }
+        button { margin: 8px 12px 8px 0; padding: 8px 16px; }
+        .campaign { padding: 10px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .status-pending { color: #777; }
+        .status-downloading { color: #007bff; font-weight: bold; }
+        .status-done { color: #28a745; }
+        .status-failed { color: #dc3545; font-weight: bold; }
+        #controls { margin: 20px 0; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <h1>Descargador Campañas Mailchimp a PDF (Proxy Cloudflare + Fallback)</h1>
+    <p>Pega tus líneas y prueba. Si falla, mira consola y cambia proxyPrefix a 'https://cors.lol/'</p>
+    <textarea id="input"></textarea>
+    <div id="controls">
+        <button onclick="parseInput()">Parsear</button>
+        <button id="downloadAllBtn" style="display:none;" onclick="downloadAll(false)">Descargar todas</button>
+        <button id="retryFailedBtn" style="display:none;" onclick="retryFailed()">↻ Reintentar fallidas</button>
+    </div>
+    <div id="list"></div>
+    <iframe id="hiddenFrame" style="display:none; width:1px; height:1px; border:none;"></iframe>
+
+    <script>
+        let campaigns = [];
+
+        function parseInput() {
+            const text = document.getElementById('input').value.trim();
+            const lines = text.split('\n').filter(l => l.trim() && l.includes(':'));
+            campaigns = lines.map(line => {
+                const colonIndex = line.indexOf(':');
+                const name = line.substring(0, colonIndex).trim();
+                const url = line.substring(colonIndex + 1).trim();
+                return { name, url, status: 'pending' };
+            });
+            renderList();
+            updateButtons();
+        }
+
+        function renderList() {
+            const container = document.getElementById('list');
+            container.innerHTML = '';
+            campaigns.forEach((camp, index) => {
+                const div = document.createElement('div');
+                div.className = 'campaign';
+                div.innerHTML = `
+                    <strong>${camp.name}</strong>
+                    <a href="${camp.url}" target="_blank" style="color:#666; font-size:0.9em;">${camp.url}</a>
+                    <span style="margin-left:auto;">Estado: <strong class="status-${camp.status}">${camp.status.toUpperCase()}</strong></span>
+                    <button onclick="downloadOne(${index})">Descargar</button>
+                    <button onclick="downloadOne(${index})" ${camp.status !== 'failed' ? 'disabled' : ''}>Reintentar</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateButtons() {
+            const hasAny = campaigns.length > 0;
+            const hasFailed = campaigns.some(c => c.status === 'failed');
+            document.getElementById('downloadAllBtn').style.display = hasAny ? 'inline-block' : 'none';
+            document.getElementById('retryFailedBtn').style.display = hasFailed ? 'inline-block' : 'none';
+        }
+
+        async function downloadOne(index) {
+            const camp = campaigns[index];
+            if (camp.status === 'downloading') return;
+            camp.status = 'downloading';
+            renderList();
+            updateButtons();
+
+            try {
+                let html;
+                const proxies = [
+                    url => `https://test.cors.workers.dev/?${encodeURIComponent(url)}`, // Cloudflare CORS worker - más fiable
+                    url => `https://cors.lol/${url}`, // Alternativa rápida
+                    url => `https://allorigins.win/raw?url=${encodeURIComponent(url)}` // Último fallback
+                ];
+
+                for (const proxyFn of proxies) {
+                    try {
+                        const proxyUrl = proxyFn(camp.url);
+                        console.log(`Intentando proxy: ${proxyUrl}`);
+                        const res = await fetch(proxyUrl);
+                        if (res.ok) {
+                            html = await res.text();
+                            console.log(`HTML cargado OK con proxy: ${proxyFn.name || 'anónimo'}`);
+                            break;
+                        } else {
+                            console.warn(`Proxy falló con ${res.status}: ${proxyUrl}`);
+                        }
+                    } catch (e) {
+                        console.warn('Error en este proxy:', e);
+                    }
+                }
+
+                if (!html) throw new Error('Todos los proxies fallaron para HTML');
+
+                html = html.replace(/(<head[^>]*>)/i, '$1<base href="https://mailchi.mp/">');
+
+                const iframe = document.getElementById('hiddenFrame');
+                iframe.srcdoc = html;
+
+                await new Promise((resolve, reject) => {
+                    iframe.onload = () => { console.log('Iframe OK'); resolve(); };
+                    iframe.onerror = reject;
+                    setTimeout(() => reject('Iframe timeout'), 60000);
+                });
+
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                const proxyPrefix = 'https://test.cors.workers.dev/?'; // Cambia a 'https://cors.lol/' si falla imágenes
+                doc.querySelectorAll('img[src]').forEach(img => {
+                    let src = img.getAttribute('src');
+                    if (src && src.startsWith('http') && !src.includes('test.cors.workers.dev') && !src.includes('cors.lol')) {
+                        const fullSrc = new URL(src, 'https://mailchi.mp/').href;
+                        img.setAttribute('src', proxyPrefix + encodeURIComponent(fullSrc));
+                        img.crossOrigin = 'anonymous';
+                    }
+                });
+
+                await waitForImages(doc);
+                await new Promise(r => setTimeout(r, 8000)); // Extra para proxies lentos
+
+                const options = {
+                    margin: 0.4,
+                    filename: `${camp.name.replace(/[^a-z0-9áéíóúñ ]/gi, '_')}.pdf`,
+                    image: { type: 'jpeg', quality: 0.92 },
+                    html2canvas: { 
+                        scale: 2,
+                        useCORS: false,
+                        allowTaint: true,
+                        logging: true,
+                        proxy: proxyPrefix
+                    },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+
+                await html2pdf().set(options).from(doc.body).save();
+                camp.status = 'done';
+            } catch (err) {
+                console.error(`Error ${camp.name}:`, err);
+                camp.status = 'failed';
+            }
+            renderList();
+            updateButtons();
+        }
+
+        async function waitForImages(doc) {
+            if (!doc) return;
+            const imgs = [...doc.querySelectorAll('img')];
+            if (imgs.length === 0) return;
+
+            await Promise.allSettled(imgs.map(img => new Promise((res, rej) => {
+                if (img.complete && img.naturalHeight !== 0) return res();
+                const timeout = setTimeout(() => rej(`Timeout ${img.src}`), 40000);
+                img.onload = () => { clearTimeout(timeout); res(); };
+                img.onerror = () => { clearTimeout(timeout); rej(`Error ${img.src}`); };
+                if (img.complete) img.src += '?_=' + Date.now();
+            })));
+        }
+
+        async function downloadAll(onlyFailed = false) {
+            for (let i = 0; i < campaigns.length; i++) {
+                const c = campaigns[i];
+                if (c.status === 'done') continue;
+                if (onlyFailed && c.status !== 'failed') continue;
+                await downloadOne(i);
+            }
+        }
+
+        function retryFailed() {
+            downloadAll(true);
+        }
+    </script>
+</body>
+</html>
