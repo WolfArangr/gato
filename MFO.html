@@ -189,7 +189,11 @@
 </header>
 
 <div class="controls">
-  <label>Mes: <b>Febrero 2026</b></label>
+  <label>Mes:
+    <select id="mesSelect">
+      <!-- Populated dynamically -->
+    </select>
+  </label>
   <label>Empleado:
     <select id="empleadoSelect">
       <option value="Todos">Todos</option>
@@ -197,18 +201,14 @@
   </label>
   <label>Semana:
     <select id="semanaSelect">
-      <option value="Todas">Todo el mes</option>
-      <option value="1">Semana 1 (1–7)</option>
-      <option value="2">Semana 2 (8–14)</option>
-      <option value="3">Semana 3 (15–21)</option>
-      <option value="4">Semana 4 (22–28)</option>
+      <!-- Populated dynamically -->
     </select>
   </label>
   <button id="btnMes">📥 Descargar Mes (PNG)</button>
   <button id="btnSemana">📥 Descargar Semana (PNG)</button>
 </div>
 
-<div id="loading" class="loading">Cargando horario desde /MFO/MFO FEBRERO26.xlsx …</div>
+<div id="loading" class="loading">Buscando meses disponibles en /MFO y cargando horario …</div>
 
 <div class="table-container" id="mesContainer" style="display:none">
   <h2>Overview del Mes</h2>
@@ -221,8 +221,16 @@
 </div>
 
 <script>
-const PATH = '/MFO/MFO FEBRERO26.xlsx';
+const monthOrder = {
+  ENERO: 1, FEBRERO: 2, MARZO: 3, ABRIL: 4, MAYO: 5, JUNIO: 6,
+  JULIO: 7, AGOSTO: 8, SEPTIEMBRE: 9, OCTUBRE: 10, NOVIEMBRE: 11, DICIEMBRE: 12
+};
 
+const possibleMonths = Object.keys(monthOrder);
+const year = '26';
+const possibleFiles = possibleMonths.map(m => `/MFO/MFO ${m}${year}.xlsx`);
+
+const mesSelect      = document.getElementById('mesSelect');
 const empleadoSelect = document.getElementById('empleadoSelect');
 const semanaSelect   = document.getElementById('semanaSelect');
 const loading        = document.getElementById('loading');
@@ -231,23 +239,50 @@ const semanaContainer= document.getElementById('semanaContainer');
 const mesTableDiv    = document.getElementById('mesTable');
 const semanaTableDiv = document.getElementById('semanaTable');
 
+let currentPath = '';
 let headers = [];
 let data = [];
+let daysInMonth = 0;
+let currentMonthName = '';
 
-async function loadSchedule() {
+async function getAvailableFiles() {
+  const checks = possibleFiles.map(async (path) => {
+    try {
+      const res = await fetch(path, { method: 'HEAD' });
+      if (res.ok) return path;
+      return null;
+    } catch {
+      return null;
+    }
+  });
+  const available = (await Promise.all(checks)).filter(Boolean);
+
+  // Sort by month order
+  available.sort((a, b) => {
+    const ma = a.match(/ ([A-Z]+)26/)[1];
+    const mb = b.match(/ ([A-Z]+)26/)[1];
+    return monthOrder[ma] - monthOrder[mb];
+  });
+
+  return available;
+}
+
+async function loadSchedule(path) {
   try {
-    const resp = await fetch(PATH);
-    if (!resp.ok) throw new Error(`No se pudo cargar ${PATH} – ${resp.status}`);
+    const resp = await fetch(path);
+    if (!resp.ok) throw new Error(`No se pudo cargar ${path} – ${resp.status}`);
     const arrayBuffer = await resp.arrayBuffer();
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const json = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-    // Suponemos que la fila 2 (índice 2) son los encabezados con días
     headers = json[2] || [];
     data = json.slice(3).filter(row => row[0] && String(row[0]).trim());
 
-    // Llenar select de empleados
+    daysInMonth = headers.length - 1;
+
+    // Populate empleados
+    empleadoSelect.innerHTML = '<option value="Todos">Todos</option>';
     data.forEach(row => {
       const nombre = String(row[0]).trim();
       if (nombre) {
@@ -257,6 +292,21 @@ async function loadSchedule() {
         empleadoSelect.appendChild(opt);
       }
     });
+
+    // Populate semanas dynamically
+    semanaSelect.innerHTML = '<option value="Todas">Todo el mes</option>';
+    const numWeeks = Math.ceil(daysInMonth / 7);
+    for (let w = 1; w <= numWeeks; w++) {
+      const start = (w - 1) * 7 + 1;
+      const end = Math.min(start + 6, daysInMonth);
+      const opt = document.createElement('option');
+      opt.value = String(w);
+      opt.textContent = `Semana ${w} (${start}–${end})`;
+      semanaSelect.appendChild(opt);
+    }
+
+    // Extract month name for filenames
+    currentMonthName = path.match(/MFO (.*26)\.xlsx/)[1].replace('26', ' 2026');
 
     loading.style.display = 'none';
     mesContainer.style.display = 'block';
@@ -280,14 +330,14 @@ function renderTables() {
 
   // Mes completo
   mesTableDiv.innerHTML = '';
-  mesTableDiv.appendChild(createTable(headers, filtered, 1, 28));
+  mesTableDiv.appendChild(createTable(headers, filtered, 1, daysInMonth));
 
   // Semana
-  let start = 1, end = 28;
+  let start = 1, end = daysInMonth;
   if (sem !== 'Todas') {
     const w = Number(sem);
     start = (w-1)*7 + 1;
-    end   = Math.min(start + 6, 28);
+    end   = Math.min(start + 6, daysInMonth);
   }
   const weekHeaders = [headers[0], ...headers.slice(start, end+1)];
   const weekData = filtered.map(r => [r[0], ...r.slice(start, end+1)]);
@@ -348,13 +398,39 @@ function downloadPNG(containerId, filename) {
 }
 
 // Eventos
+mesSelect.onchange = () => {
+  currentPath = mesSelect.value;
+  loading.style.display = 'block';
+  mesContainer.style.display = 'none';
+  semanaContainer.style.display = 'none';
+  loadSchedule(currentPath);
+};
 empleadoSelect.onchange = renderTables;
 semanaSelect.onchange   = renderTables;
-document.getElementById('btnMes').onclick    = () => downloadPNG('mesTable',    'Horario_Mes_Febrero2026.png');
-document.getElementById('btnSemana').onclick = () => downloadPNG('semanaTable', 'Horario_Semana_Febrero2026.png');
+document.getElementById('btnMes').onclick    = () => downloadPNG('mesTable',    `Horario_Mes_${currentMonthName.replace(/ /g, '_')}.png`);
+document.getElementById('btnSemana').onclick = () => downloadPNG('semanaTable', `Horario_Semana_${currentMonthName.replace(/ /g, '_')}.png`);
 
 // Inicio
-loadSchedule();
+(async () => {
+  const available = await getAvailableFiles();
+  if (available.length === 0) {
+    loading.innerHTML = 'No se encontraron archivos de horarios en /MFO.';
+    return;
+  }
+
+  available.forEach(path => {
+    const monthRaw = path.match(/ ([A-Z]+)26/)[1];
+    const monthDisplay = `${monthRaw} 2026`;
+    const opt = document.createElement('option');
+    opt.value = path;
+    opt.textContent = monthDisplay;
+    if (monthRaw === 'FEBRERO') opt.selected = true; // Current month based on date
+    mesSelect.appendChild(opt);
+  });
+
+  currentPath = mesSelect.value;
+  loadSchedule(currentPath);
+})();
 </script>
 </body>
 </html>
