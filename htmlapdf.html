@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Descargador Mailchimp PDF - Cloudflare Proxy</title>
+    <title>Descargador Campañas Mailchimp PDF</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         textarea { width: 100%; height: 220px; font-family: monospace; }
@@ -17,8 +17,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-    <h1>Descargador Campañas Mailchimp a PDF (Proxy Cloudflare + Fallback)</h1>
-    <p>Pega tus líneas y prueba. Si falla, mira consola y cambia proxyPrefix a 'https://cors.lol/'</p>
+    <h1>Descargador Campañas Mailchimp a PDF (desde web)</h1>
+    <p>Pega tus líneas y descarga (usa proxy para imágenes + allowTaint para evitar tainted canvas).</p>
     <textarea id="input"></textarea>
     <div id="controls">
         <button onclick="parseInput()">Parsear</button>
@@ -76,48 +76,25 @@
             updateButtons();
 
             try {
-                let html;
-                const proxies = [
-                    url => `https://test.cors.workers.dev/?${encodeURIComponent(url)}`, // Cloudflare CORS worker - más fiable
-                    url => `https://cors.lol/${url}`, // Alternativa rápida
-                    url => `https://allorigins.win/raw?url=${encodeURIComponent(url)}` // Último fallback
-                ];
-
-                for (const proxyFn of proxies) {
-                    try {
-                        const proxyUrl = proxyFn(camp.url);
-                        console.log(`Intentando proxy: ${proxyUrl}`);
-                        const res = await fetch(proxyUrl);
-                        if (res.ok) {
-                            html = await res.text();
-                            console.log(`HTML cargado OK con proxy: ${proxyFn.name || 'anónimo'}`);
-                            break;
-                        } else {
-                            console.warn(`Proxy falló con ${res.status}: ${proxyUrl}`);
-                        }
-                    } catch (e) {
-                        console.warn('Error en este proxy:', e);
-                    }
-                }
-
-                if (!html) throw new Error('Todos los proxies fallaron para HTML');
-
+                const res = await fetch(camp.url);
+                if (!res.ok) throw new Error(`HTTP ${res.status} en HTML directo`);
+                let html = await res.text();
                 html = html.replace(/(<head[^>]*>)/i, '$1<base href="https://mailchi.mp/">');
 
                 const iframe = document.getElementById('hiddenFrame');
                 iframe.srcdoc = html;
 
                 await new Promise((resolve, reject) => {
-                    iframe.onload = () => { console.log('Iframe OK'); resolve(); };
+                    iframe.onload = () => resolve();
                     iframe.onerror = reject;
                     setTimeout(() => reject('Iframe timeout'), 60000);
                 });
 
                 const doc = iframe.contentDocument || iframe.contentWindow.document;
-                const proxyPrefix = 'https://test.cors.workers.dev/?'; // Cambia a 'https://cors.lol/' si falla imágenes
+                const proxyPrefix = 'https://corsproxy.io/?'; // Cambia aquí si falla
                 doc.querySelectorAll('img[src]').forEach(img => {
                     let src = img.getAttribute('src');
-                    if (src && src.startsWith('http') && !src.includes('test.cors.workers.dev') && !src.includes('cors.lol')) {
+                    if (src && src.startsWith('http') && !src.includes('corsproxy')) {
                         const fullSrc = new URL(src, 'https://mailchi.mp/').href;
                         img.setAttribute('src', proxyPrefix + encodeURIComponent(fullSrc));
                         img.crossOrigin = 'anonymous';
@@ -125,7 +102,7 @@
                 });
 
                 await waitForImages(doc);
-                await new Promise(r => setTimeout(r, 8000)); // Extra para proxies lentos
+                await new Promise(r => setTimeout(r, 8000)); // Tiempo generoso para proxies
 
                 const options = {
                     margin: 0.4,
@@ -134,9 +111,9 @@
                     html2canvas: { 
                         scale: 2,
                         useCORS: false,
-                        allowTaint: true,
-                        logging: true,
-                        proxy: proxyPrefix
+                        allowTaint: true, // Clave para imágenes cross-origin
+                        logging: true
+                        // proxy: proxyPrefix  // Comenta si da problemas, allowTaint suele bastar
                     },
                     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
                 };
