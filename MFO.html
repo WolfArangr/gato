@@ -4,70 +4,92 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Horario Zwilling - MFO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f6f5;
+      font-family: 'Roboto', sans-serif;
+      background: #f9f9f9;
       margin: 0;
       padding: 20px;
       color: #333;
     }
     header {
       text-align: center;
-      margin-bottom: 25px;
+      margin-bottom: 30px;
     }
     .logo img {
-      max-width: 220px;
+      max-width: 180px;
       height: auto;
     }
     h1 {
-      margin: 10px 0;
-      color: #1a3c6e;
+      margin: 12px 0;
+      color: #ed1c24; /* Zwilling red */
+      font-size: 1.8rem;
+      font-weight: 700;
     }
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
       justify-content: center;
       margin: 20px 0;
+      padding: 0 10px;
     }
-    .controls select, .controls button {
+    .controls label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+    .controls select {
       padding: 8px 12px;
       font-size: 1rem;
       border-radius: 6px;
       border: 1px solid #ccc;
+      background: white;
     }
     .controls button {
-      background: #1a3c6e;
+      padding: 8px 16px;
+      font-size: 1rem;
+      background: #ed1c24;
       color: white;
       border: none;
+      border-radius: 6px;
       cursor: pointer;
+      transition: background 0.2s;
     }
     .controls button:hover {
-      background: #254e8f;
+      background: #c8101d;
     }
     .table-container {
       margin: 30px 0;
       overflow-x: auto;
       background: white;
       border-radius: 8px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       padding: 16px;
+    }
+    h2 {
+      text-align: center;
+      color: #ed1c24;
+      font-size: 1.4rem;
+      margin-bottom: 16px;
     }
     table {
       border-collapse: collapse;
       width: 100%;
-      min-width: 900px;
+      min-width: 800px;
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 9px 10px;
+      padding: 10px;
       text-align: center;
-      font-size: 0.92rem;
+      font-size: 0.95rem;
     }
     th {
-      background: #e8eef7;
-      font-weight: 600;
+      background: #ed1c24;
+      color: white;
+      font-weight: 500;
       position: sticky;
       top: 0;
       z-index: 2;
@@ -76,20 +98,82 @@
       font-weight: 500;
       text-align: left;
       background: #fafafa;
-      min-width: 180px;
+      min-width: 200px;
+      position: sticky;
+      left: 0;
+      z-index: 1;
     }
-    .weekend {
-      background: #e3f2fd !important;
+    .weekend th, .weekend td {
+      background: #ffebee !important; /* Light red for weekends */
     }
-    .empty { color: #aaa; }
+    .empty { color: #999; }
     .loading {
       text-align: center;
       font-size: 1.2rem;
       color: #555;
       padding: 60px 0;
     }
-    @media (max-width: 800px) {
-      .controls { flex-direction: column; align-items: stretch; }
+
+    /* Responsive for mobile - vertical display */
+    @media (max-width: 768px) {
+      .table-container {
+        overflow-x: hidden;
+      }
+      table {
+        border: 0;
+        min-width: auto;
+      }
+      thead {
+        display: none;
+      }
+      tbody tr {
+        display: block;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      }
+      td {
+        display: block;
+        text-align: right;
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 50%;
+      }
+      td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: calc(50% - 20px);
+        white-space: nowrap;
+        font-weight: 500;
+        text-align: left;
+      }
+      td.name {
+        text-align: center !important;
+        font-size: 1.1rem;
+        background: #ed1c24 !important;
+        color: white;
+        border-bottom: none !important;
+        position: relative;
+        left: 0;
+        padding: 12px;
+        border-radius: 6px 6px 0 0;
+      }
+      td.name:before {
+        display: none;
+      }
+      .weekend td {
+        background: #ffebee !important;
+      }
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .controls select, .controls button {
+        width: 100%;
+      }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -99,8 +183,7 @@
 
 <header>
   <div class="logo">
-    <!-- Cambia por tu logo real -->
-    <img src="https://via.placeholder.com/220x80/1a3c6e/ffffff?text=Zwilling+MFO" alt="Zwilling MFO">
+    <img src="https://kitchenbits.com/cdn/shop/collections/zwilling_logo.png?v=1628181183&width=1193" alt="Zwilling Logo">
   </div>
   <h1>Horario Zwilling - MFO</h1>
 </header>
@@ -224,7 +307,7 @@ function createTable(head, rows, startDay, endDay) {
     th.textContent = txt || '';
     if (i >= 1) {
       const d = startDay + i - 1;
-      if (d % 7 === 1 || d % 7 === 0) th.className = 'weekend';
+      if (d % 7 === 1 || d % 7 === 0) th.classList.add('weekend');
     }
     trh.appendChild(th);
   });
@@ -237,12 +320,14 @@ function createTable(head, rows, startDay, endDay) {
     const tr = document.createElement('tr');
     row.forEach((cell, i) => {
       const td = document.createElement('td');
-      td.textContent = cell || '';
-      if (i === 0) td.className = 'name';
+      td.textContent = cell || '-';
+      td.setAttribute('data-label', head[i] || '');
+      if (i === 0) td.classList.add('name');
       else {
         const d = startDay + i - 1;
-        if (d % 7 === 1 || d % 7 === 0) td.className = 'weekend';
+        if (d % 7 === 1 || d % 7 === 0) td.classList.add('weekend');
       }
+      if (!cell) td.classList.add('empty');
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
