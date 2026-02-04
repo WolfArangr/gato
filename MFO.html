@@ -1,468 +1,275 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horario Zwilling - MFO</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            background: #f9f9f9; 
-            color: #222; 
-        }
-        header { 
-            text-align: center; 
-            padding: 50px 20px; 
-            background: linear-gradient(135deg, #B22222 0%, #8B0000 100%); /* Gradiente rojo Zwilling */
-            color: white; 
-            border-radius: 0 0 24px 24px; 
-            margin-bottom: 40px; 
-            box-shadow: 0 10px 30px rgba(178,34,34,0.3);
-        }
-        .logo-container {
-            margin-bottom: 25px;
-        }
-        .logo {
-            max-width: 420px; /* Tamaño perfecto */
-            width: 90%;
-            height: auto;
-            filter: brightness(0) invert(1); /* Hace el logo blanco puro para que resalte en rojo */
-            transition: transform 0.3s ease;
-        }
-        .logo:hover {
-            transform: scale(1.05);
-        }
-        header h1 {
-            margin: 0;
-            font-size: 2.8em;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-        .container { 
-            max-width: 1300px; 
-            margin: 0 auto; 
-        }
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        select, button { 
-            padding: 14px 20px; 
-            border-radius: 12px; 
-            font-size: 1em; 
-            border: 2px solid #ddd;
-            background: white;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            min-width: 180px;
-        }
-        select:hover, button:hover {
-            border-color: #B22222;
-            box-shadow: 0 4px 15px rgba(178,34,34,0.2);
-        }
-        button { 
-            background: #B22222; 
-            color: white; 
-            border: none; 
-            font-weight: 600;
-        }
-        button:hover { background: #900000; }
-        table { 
-            width: 100%; 
-            border-collapse: separate; 
-            border-spacing: 0; 
-            margin: 40px 0; 
-            background: white; 
-            border-radius: 16px; 
-            overflow: hidden; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
-        th { 
-            background: #B22222; 
-            color: white; 
-            padding: 16px; 
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-        td { 
-            border: 1px solid #eee; 
-            padding: 14px; 
-            vertical-align: top; 
-            min-height: 140px;
-            transition: background 0.2s;
-        }
-        td:hover {
-            background: #fafafa;
-        }
-        .day-number { 
-            font-weight: 700; 
-            font-size: 1.5em; 
-            color: #B22222; 
-            margin-bottom: 12px; 
-        }
-        .shift { 
-            background: #fff0f0; /* Rojo muy suave */
-            margin: 6px 0; 
-            padding: 10px; 
-            border-radius: 10px; 
-            font-size: 0.95em; 
-            border-left: 5px solid #B22222;
-            box-shadow: 0 2px 6px rgba(178,34,34,0.1);
-        }
-        .highlight { 
-            background: #ffebee !important; 
-            border-left: 6px solid #B22222 !important; 
-            font-weight: 600; 
-        }
-        #week-view td { min-height: 120px; }
-        @media (max-width: 768px) {
-            header { padding: 40px 15px; }
-            .logo { max-width: 320px; }
-            header h1 { font-size: 2.2em; }
-            .controls { flex-direction: column; }
-            select, button { width: 100%; }
-            td { padding: 12px; min-height: auto; }
-        }
-    </style>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Horario Zwilling - MFO</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f6f5;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .logo img {
+      max-width: 220px;
+      height: auto;
+    }
+    h1 {
+      margin: 10px 0;
+      color: #1a3c6e;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .controls select, .controls button {
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .controls button {
+      background: #1a3c6e;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .controls button:hover {
+      background: #254e8f;
+    }
+    .table-container {
+      margin: 30px 0;
+      overflow-x: auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      padding: 16px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 900px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 9px 10px;
+      text-align: center;
+      font-size: 0.92rem;
+    }
+    th {
+      background: #e8eef7;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    td.name {
+      font-weight: 500;
+      text-align: left;
+      background: #fafafa;
+      min-width: 180px;
+    }
+    .weekend {
+      background: #e3f2fd !important;
+    }
+    .empty { color: #aaa; }
+    .loading {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #555;
+      padding: 60px 0;
+    }
+    @media (max-width: 800px) {
+      .controls { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-    <header>
-        <div class="logo-container">
-            <img src="https://www.dg.de/media/images/org/henckels_ja2.png" alt="Zwilling J.A. Henckels" class="logo">
-        </div>
-        <h1>Horario Zwilling - MFO</h1>
-    </header>
 
-    <div class="container">
-        <div class="controls">
-            <label>Mes: <select id="month-select"></select></label>
-            <label>Empleado: <select id="employee-select"><option value="todos">Todos</option></select></label>
-            <label>Semana: <select id="week-select" disabled></select></label>
-        </div>
+<header>
+  <div class="logo">
+    <!-- Cambia por tu logo real -->
+    <img src="https://via.placeholder.com/220x80/1a3c6e/ffffff?text=Zwilling+MFO" alt="Zwilling MFO">
+  </div>
+  <h1>Horario Zwilling - MFO</h1>
+</header>
 
-        <div style="text-align: center; margin: 30px 0;">
-            <button onclick="downloadImage('month-view')">📥 Descargar Mes (PNG)</button>
-            <button onclick="downloadImage('week-view')">📥 Descargar Semana (PNG)</button>
-        </div>
+<div class="controls">
+  <label>Mes: <b>Febrero 2026</b></label>
+  <label>Empleado:
+    <select id="empleadoSelect">
+      <option value="Todos">Todos</option>
+    </select>
+  </label>
+  <label>Semana:
+    <select id="semanaSelect">
+      <option value="Todas">Todo el mes</option>
+      <option value="1">Semana 1 (1–7)</option>
+      <option value="2">Semana 2 (8–14)</option>
+      <option value="3">Semana 3 (15–21)</option>
+      <option value="4">Semana 4 (22–28)</option>
+    </select>
+  </label>
+  <button id="btnMes">📥 Descargar Mes (PNG)</button>
+  <button id="btnSemana">📥 Descargar Semana (PNG)</button>
+</div>
 
-        <div id="month-view">
-            <h2 style="text-align:center; color:#B22222; font-weight:600;">Overview del Mes</h2>
-            <table id="month-table"></table>
-        </div>
+<div id="loading" class="loading">Cargando horario desde /MFO/MFO FEBRERO26.xlsx …</div>
 
-        <div id="week-view">
-            <h2 style="text-align:center; color:#B22222; font-weight:600;">Overview de la Semana</h2>
-            <table id="week-table"></table>
-        </div>
-    </div>
+<div class="table-container" id="mesContainer" style="display:none">
+  <h2>Overview del Mes</h2>
+  <div id="mesTable"></div>
+</div>
 
-    <script>
-        const owner = 'WolfArangr';
-        const repo = 'gato';
-        const basePath = 'MFO';
+<div class="table-container" id="semanaContainer" style="display:none">
+  <h2>Overview de la Semana</h2>
+  <div id="semanaTable"></div>
+</div>
 
-        const monthMap = {
-            enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6,
-            julio: 7, agosto: 8, septiembre: 9, octubre: 10, noviembre: 11, diciembre: 12
-        };
-        const dayHeaders = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+<script>
+const PATH = '/MFO/MFO FEBRERO26.xlsx';
 
-        let months = [];
-        let currentMonth = null;
-        let employees = [];
-        let shifts = {};
-        let selectedEmployee = 'todos';
-        let selectedWeek = 1;
+const empleadoSelect = document.getElementById('empleadoSelect');
+const semanaSelect   = document.getElementById('semanaSelect');
+const loading        = document.getElementById('loading');
+const mesContainer   = document.getElementById('mesContainer');
+const semanaContainer= document.getElementById('semanaContainer');
+const mesTableDiv    = document.getElementById('mesTable');
+const semanaTableDiv = document.getElementById('semanaTable');
 
-        const monthSelect = document.getElementById('month-select');
-        const employeeSelect = document.getElementById('employee-select');
-        const weekSelect = document.getElementById('week-select');
+let headers = [];
+let data = [];
 
-        async function loadMonths() {
-            try {
-                const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${basePath}`);
-                const data = await res.json();
-                months = data.filter(item => item.type === 'dir').map(item => item.name.toLowerCase());
+async function loadSchedule() {
+  try {
+    const resp = await fetch(PATH);
+    if (!resp.ok) throw new Error(`No se pudo cargar ${PATH} – ${resp.status}`);
+    const arrayBuffer = await resp.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-                months.sort((a, b) => {
-                    const ma = a.match(/([a-z]+)(\d+)/i);
-                    const mb = b.match(/([a-z]+)(\d+)/i);
-                    if (!ma || !mb) return 0;
-                    return (parseInt(ma[2]) * 12 + monthMap[ma[1]]) - (parseInt(mb[2]) * 12 + monthMap[mb[1]]);
-                });
+    // Suponemos que la fila 2 (índice 2) son los encabezados con días
+    headers = json[2] || [];
+    data = json.slice(3).filter(row => row[0] && String(row[0]).trim());
 
-                months.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m;
-                    opt.textContent = m.charAt(0).toUpperCase() + m.slice(1);
-                    monthSelect.appendChild(opt);
-                });
+    // Llenar select de empleados
+    data.forEach(row => {
+      const nombre = String(row[0]).trim();
+      if (nombre) {
+        const opt = document.createElement('option');
+        opt.value = nombre;
+        opt.textContent = nombre;
+        empleadoSelect.appendChild(opt);
+      }
+    });
 
-                if (months.length > 0) {
-                    monthSelect.value = months[months.length - 1];
-                    loadData(months[months.length - 1]);
-                }
-            } catch (err) {
-                console.error('Error cargando meses:', err);
-                alert('Error cargando carpetas. Revisa la consola (F12).');
-            }
-        }
+    loading.style.display = 'none';
+    mesContainer.style.display = 'block';
+    semanaContainer.style.display = 'block';
 
-        async function loadData(monthStr) {
-            currentMonth = monthStr;
-            employees = [];
-            shifts = {};
+    renderTables();
 
-            try {
-                const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${basePath}/${monthStr}`);
-                const files = await res.json();
-                const mdFiles = files.filter(f => f.name.toLowerCase().endsWith('.md'));
+  } catch (err) {
+    loading.innerHTML = `Error al cargar el horario:<br><pre>${err.message}</pre>`;
+    console.error(err);
+  }
+}
 
-                console.log(`Encontrados ${mdFiles.length} archivos .md en ${monthStr}`);
+function renderTables() {
+  const emp = empleadoSelect.value;
+  const sem = semanaSelect.value;
 
-                for (const file of mdFiles) {
-                    try {
-                        const rawRes = await fetch(file.download_url + '?t=' + Date.now());
-                        const text = await rawRes.text();
-                        parseSchedule(text, monthStr);
-                    } catch (e) {
-                        console.warn(`Error leyendo ${file.name}:`, e);
-                    }
-                }
+  const filtered = emp === 'Todos'
+    ? data
+    : data.filter(r => String(r[0]).trim() === emp);
 
-                populateEmployees();
-                displayCalendar();
-                populateWeeks();
-            } catch (err) {
-                console.error('Error cargando mes:', err);
-            }
-        }
+  // Mes completo
+  mesTableDiv.innerHTML = '';
+  mesTableDiv.appendChild(createTable(headers, filtered, 1, 28));
 
-        function parseSchedule(text, monthStr) {
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            if (lines.length < 3) return;
+  // Semana
+  let start = 1, end = 28;
+  if (sem !== 'Todas') {
+    const w = Number(sem);
+    start = (w-1)*7 + 1;
+    end   = Math.min(start + 6, 28);
+  }
+  const weekHeaders = [headers[0], ...headers.slice(start, end+1)];
+  const weekData = filtered.map(r => [r[0], ...r.slice(start, end+1)]);
 
-            let name = null;
-            for (let i = 0; i < Math.min(5, lines.length); i++) {
-                const match = lines[i].match(/Hola\s+([^,]+),/i);
-                if (match) {
-                    name = match[1].trim();
-                    break;
-                }
-            }
-            if (!name) {
-                console.warn('Nombre no encontrado en el archivo');
-                return;
-            }
+  semanaTableDiv.innerHTML = '';
+  semanaTableDiv.appendChild(createTable(weekHeaders, weekData, start, end));
+}
 
-            if (!employees.includes(name)) employees.push(name);
-            if (!shifts[name]) shifts[name] = {};
+function createTable(head, rows, startDay, endDay) {
+  const table = document.createElement('table');
 
-            const match = monthStr.match(/([a-z]+)(\d+)/i);
-            if (!match) return;
-            const monthName = match[1].toLowerCase();
-            const year = parseInt(match[2]);
-            const monthNum = monthMap[monthName];
-            if (!monthNum) return;
+  // encabezado
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  head.forEach((txt, i) => {
+    const th = document.createElement('th');
+    th.textContent = txt || '';
+    if (i >= 1) {
+      const d = startDay + i - 1;
+      if (d % 7 === 1 || d % 7 === 0) th.className = 'weekend';
+    }
+    trh.appendChild(th);
+  });
+  thead.appendChild(trh);
+  table.appendChild(thead);
 
-            for (let i = 0; i < lines.length; i++) {
-                const dayLine = lines[i];
-                const dayMatch = dayLine.match(/^([a-záéíóú]+)\s+(\d{1,2})\s*,\s*([a-záéíóú]+)/i);
-                if (!dayMatch) continue;
+  // cuerpo
+  const tbody = document.createElement('tbody');
+  rows.forEach(row => {
+    const tr = document.createElement('tr');
+    row.forEach((cell, i) => {
+      const td = document.createElement('td');
+      td.textContent = cell || '';
+      if (i === 0) td.className = 'name';
+      else {
+        const d = startDay + i - 1;
+        if (d % 7 === 1 || d % 7 === 0) td.className = 'weekend';
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
 
-                const dayNum = parseInt(dayMatch[2]);
-                const date = `${year}-${monthNum.toString().padStart(2,'0')}-${dayNum.toString().padStart(2,'0')}`;
+  return table;
+}
 
-                const shiftLine = lines[i + 1] || '';
-                if (!shiftLine) continue;
+function downloadPNG(containerId, filename) {
+  const el = document.getElementById(containerId);
+  html2canvas(el, { scale: 2, useCORS: true }).then(canvas => {
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = filename;
+    a.click();
+  }).catch(err => alert('Error al generar imagen:\n' + err.message));
+}
 
-                const timeMatch = shiftLine.match(/(?:Image\s*)?(\d{1,2}:\d{2})\s*([\\\-–—\s]+)\s*(\d{1,2}:\d{2})/i);
+// Eventos
+empleadoSelect.onchange = renderTables;
+semanaSelect.onchange   = renderTables;
+document.getElementById('btnMes').onclick    = () => downloadPNG('mesTable',    'Horario_Mes_Febrero2026.png');
+document.getElementById('btnSemana').onclick = () => downloadPNG('semanaTable', 'Horario_Semana_Febrero2026.png');
 
-                if (!timeMatch) {
-                    console.warn(`Horario no reconocido: "${shiftLine}"`);
-                    continue;
-                }
-
-                const time = `${timeMatch[1].trim()} - ${timeMatch[3].trim()}`;
-                shifts[name][date] = time;
-                console.log(`✓ ${name}: ${date} → ${time}`);
-                i++;
-            }
-        }
-
-        function populateEmployees() {
-            employeeSelect.innerHTML = '<option value="todos">Todos</option>';
-            employees.sort().forEach(emp => {
-                const opt = document.createElement('option');
-                opt.value = emp;
-                opt.textContent = emp;
-                employeeSelect.appendChild(opt);
-            });
-        }
-
-        function populateWeeks() {
-            weekSelect.innerHTML = '';
-            weekSelect.disabled = false;
-
-            const match = currentMonth.match(/([a-z]+)(\d+)/i);
-            const year = parseInt(match[2]);
-            const monthNum = monthMap[match[1].toLowerCase()];
-            const daysInMonth = new Date(year, monthNum, 0).getDate();
-
-            let week = 1;
-            let day = 1;
-            while (day <= daysInMonth) {
-                const end = Math.min(day + 6, daysInMonth);
-                const opt = document.createElement('option');
-                opt.value = week;
-                opt.textContent = `Semana ${week} (${day}-${end})`;
-                weekSelect.appendChild(opt);
-                day = end + 1;
-                week++;
-            }
-            selectedWeek = 1;
-            displayWeek();
-        }
-
-        function displayCalendar() {
-            const table = document.getElementById('month-table');
-            table.innerHTML = '';
-
-            const thead = document.createElement('thead');
-            const hr = document.createElement('tr');
-            dayHeaders.forEach(d => {
-                const th = document.createElement('th');
-                th.textContent = d;
-                hr.appendChild(th);
-            });
-            thead.appendChild(hr);
-            table.appendChild(thead);
-
-            const tbody = document.createElement('tbody');
-
-            const match = currentMonth.match(/([a-z]+)(\d+)/i);
-            const year = parseInt(match[2]);
-            const month = monthMap[match[1].toLowerCase()] - 1;
-
-            const firstDay = new Date(year, month, 1);
-            const offset = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-            let current = new Date(firstDay);
-            current.setDate(current.getDate() - offset);
-
-            const lastDay = new Date(year, month + 1, 0);
-
-            while (current <= lastDay) {
-                const row = document.createElement('tr');
-                for (let i = 0; i < 7; i++) {
-                    const td = document.createElement('td');
-                    if (current.getMonth() === month) {
-                        const dateStr = current.toISOString().split('T')[0];
-                        const div = document.createElement('div');
-                        div.className = 'day-number';
-                        div.textContent = current.getDate();
-                        td.appendChild(div);
-
-                        Object.keys(shifts).forEach(emp => {
-                            if (selectedEmployee !== 'todos' && selectedEmployee !== emp) return;
-                            const time = shifts[emp][dateStr];
-                            if (time) {
-                                const p = document.createElement('p');
-                                p.className = 'shift';
-                                if (selectedEmployee === emp) p.classList.add('highlight');
-                                p.textContent = `${emp}: ${time}`;
-                                td.appendChild(p);
-                            }
-                        });
-                    }
-                    row.appendChild(td);
-                    current.setDate(current.getDate() + 1);
-                }
-                tbody.appendChild(row);
-            }
-            table.appendChild(tbody);
-        }
-
-        function displayWeek() {
-            const table = document.getElementById('week-table');
-            table.innerHTML = '';
-
-            const thead = document.createElement('thead');
-            const hr = document.createElement('tr');
-            dayHeaders.forEach(d => {
-                const th = document.createElement('th');
-                th.textContent = d;
-                hr.appendChild(th);
-            });
-            thead.appendChild(hr);
-            table.appendChild(thead);
-
-            const tbody = document.createElement('tbody');
-            const row = document.createElement('tr');
-
-            const match = currentMonth.match(/([a-z]+)(\d+)/i);
-            const year = parseInt(match[2]);
-            const month = monthMap[match[1].toLowerCase()] - 1;
-            const startDay = (selectedWeek - 1) * 7 + 1;
-            let current = new Date(year, month, startDay);
-
-            for (let i = 0; i < 7; i++) {
-                const td = document.createElement('td');
-                if (current.getMonth() === month && current.getDate() >= 1) {
-                    const dateStr = current.toISOString().split('T')[0];
-                    const div = document.createElement('div');
-                    div.className = 'day-number';
-                    div.textContent = current.getDate();
-                    td.appendChild(div);
-
-                    Object.keys(shifts).forEach(emp => {
-                        if (selectedEmployee !== 'todos' && selectedEmployee !== emp) return;
-                        const time = shifts[emp][dateStr];
-                        if (time) {
-                            const p = document.createElement('p');
-                            p.className = 'shift';
-                            if (selectedEmployee === emp) p.classList.add('highlight');
-                            p.textContent = `${emp}: ${time}`;
-                            td.appendChild(p);
-                        }
-                    });
-                }
-                row.appendChild(td);
-                current.setDate(current.getDate() + 1);
-            }
-            tbody.appendChild(row);
-            table.appendChild(tbody);
-        }
-
-        function downloadImage(viewId) {
-            const element = document.getElementById(viewId);
-            const filename = viewId === 'month-view' ? 'horario-zwilling-mes.png' : 'horario-zwilling-semana.png';
-            html2canvas(element, {scale: 2}).then(canvas => {
-                const a = document.createElement('a');
-                a.download = filename;
-                a.href = canvas.toDataURL('image/png');
-                a.click();
-            });
-        }
-
-        monthSelect.addEventListener('change', e => loadData(e.target.value));
-        employeeSelect.addEventListener('change', e => {
-            selectedEmployee = e.target.value;
-            displayCalendar();
-            displayWeek();
-        });
-        weekSelect.addEventListener('change', e => {
-            selectedWeek = parseInt(e.target.value);
-            displayWeek();
-        });
-
-        loadMonths();
-    </script>
+// Inicio
+loadSchedule();
+</script>
 </body>
 </html>
