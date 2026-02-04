@@ -6,46 +6,174 @@
   <title>Horario Zwilling - MFO</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    body {font-family: 'Roboto', sans-serif; background:#f9f9f9; margin:0; padding:15px; color:#333;}
-    header {text-align:center; margin-bottom:25px;}
-    .logo img {max-width:190px; height:auto;}
-    h1 {margin:10px 0; color:#ed1c24; font-size:1.75rem; font-weight:700;}
-    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo img {
+      max-width: 180px;
+      height: auto;
+    }
+    h1 {
+      margin: 12px 0;
+      color: #ed1c24; /* Zwilling red */
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
     .controls {
-      display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin:20px 0; padding:0 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin: 20px 0;
+      padding: 0 10px;
+    }
+    .controls label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
     }
     .controls select {
-      padding:9px 14px; font-size:1.05rem; border-radius:8px; border:1px solid #ddd;
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: white;
     }
     .controls button {
-      padding:9px 18px; background:#ed1c24; color:white; border:none; border-radius:8px; font-weight:500; cursor:pointer;
+      padding: 8px 16px;
+      font-size: 1rem;
+      background: #ed1c24;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
     }
-    .controls button:hover {background:#c8101d;}
-
+    .controls button:hover {
+      background: #c8101d;
+    }
     .table-container {
-      margin:30px 0; background:white; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); overflow:hidden;
+      margin: 30px 0;
+      overflow-x: auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 16px;
     }
-    h2 {text-align:center; color:#ed1c24; padding:16px; margin:0; background:#fff5f5; font-size:1.35rem;}
+    h2 {
+      text-align: center;
+      color: #ed1c24;
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 800px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+    th {
+      background: #ed1c24;
+      color: white;
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    td.name {
+      font-weight: 500;
+      text-align: left;
+      background: #fafafa;
+      min-width: 200px;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+    }
+    .weekend th, .weekend td {
+      background: #ffebee !important; /* Light red for weekends */
+    }
+    .empty { color: #999; }
+    .loading {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #555;
+      padding: 60px 0;
+    }
 
-    /* Mobile-first vertical cards */
+    /* Responsive for mobile - vertical display */
     @media (max-width: 768px) {
-      table {border:0;}
-      thead {display:none;}
-      tbody tr {display:block; margin:12px 8px; border:1px solid #ddd; border-radius:10px; overflow:hidden; box-shadow:0 3px 10px rgba(0,0,0,0.08);}
+      .table-container {
+        overflow-x: hidden;
+      }
+      table {
+        border: 0;
+        min-width: auto;
+      }
+      thead {
+        display: none;
+      }
+      tbody tr {
+        display: block;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      }
       td {
-        display:block; text-align:right; padding:12px 16px; border:none; border-bottom:1px solid #eee;
-        position:relative; padding-left:55%;
+        display: block;
+        text-align: right;
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 50%;
       }
       td:before {
         content: attr(data-label);
-        position:absolute; left:16px; width:48%; font-weight:600; text-align:left; color:#ed1c24;
+        position: absolute;
+        left: 10px;
+        width: calc(50% - 20px);
+        white-space: nowrap;
+        font-weight: 500;
+        text-align: left;
       }
       td.name {
-        text-align:center; font-size:1.25rem; font-weight:700; background:#ed1c24 !important;
-        color:white; padding:14px !important; border-bottom:none; border-radius:10px 10px 0 0;
+        text-align: center !important;
+        font-size: 1.1rem;
+        background: #ed1c24 !important;
+        color: white;
+        border-bottom: none !important;
+        position: relative;
+        left: 0;
+        padding: 12px;
+        border-radius: 6px 6px 0 0;
       }
-      td.name:before {display:none;}
-      .weekend td {background:#ffebee !important;}
+      td.name:before {
+        display: none;
+      }
+      .weekend td {
+        background: #ffebee !important;
+      }
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .controls select, .controls button {
+        width: 100%;
+      }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -55,19 +183,19 @@
 
 <header>
   <div class="logo">
-    <img src="https://kitchenbits.com/cdn/shop/collections/zwilling_logo.png?v=1628181183&width=1193" alt="Zwilling">
+    <img src="https://kitchenbits.com/cdn/shop/collections/zwilling_logo.png?v=1628181183&width=1193" alt="Zwilling Logo">
   </div>
-  <h1 id="title">Horario Zwilling - MFO</h1>
+  <h1>Horario Zwilling - MFO</h1>
 </header>
 
 <div class="controls">
-  <label><b>Mes:</b>
-    <select id="mesSelect"><option>Cargando meses...</option></select>
+  <label>Mes: <b>Febrero 2026</b></label>
+  <label>Empleado:
+    <select id="empleadoSelect">
+      <option value="Todos">Todos</option>
+    </select>
   </label>
-  <label><b>Empleado:</b>
-    <select id="empleadoSelect"><option value="Todos">Todos</option></select>
-  </label>
-  <label><b>Semana:</b>
+  <label>Semana:
     <select id="semanaSelect">
       <option value="Todas">Todo el mes</option>
       <option value="1">Semana 1 (1–7)</option>
@@ -80,9 +208,7 @@
   <button id="btnSemana">📥 Descargar Semana (PNG)</button>
 </div>
 
-<div id="loading" style="text-align:center; padding:80px; font-size:1.3rem; color:#555;">
-  Buscando archivos de horarios disponibles...
-</div>
+<div id="loading" class="loading">Cargando horario desde /MFO/MFO FEBRERO26.xlsx …</div>
 
 <div class="table-container" id="mesContainer" style="display:none">
   <h2>Overview del Mes</h2>
@@ -95,127 +221,88 @@
 </div>
 
 <script>
-const monthNames = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+const PATH = '/MFO/MFO FEBRERO26.xlsx';
 
-const possibleMonths = [];
-for (let y = 2025; y <= 2028; y++) {
-  monthNames.forEach(mes => {
-    possibleMonths.push({
-      label: mes.charAt(0) + mes.slice(1).toLowerCase() + ` ${y}`,
-      file: `MFO ${mes} ${y.toString().slice(-2)}.xlsx`
-    });
-  });
-}
-
-let currentData = [];
-let headers = [];
-
-const mesSelect = document.getElementById('mesSelect');
 const empleadoSelect = document.getElementById('empleadoSelect');
-const semanaSelect = document.getElementById('semanaSelect');
-const loading = document.getElementById('loading');
-const title = document.getElementById('title');
+const semanaSelect   = document.getElementById('semanaSelect');
+const loading        = document.getElementById('loading');
+const mesContainer   = document.getElementById('mesContainer');
+const semanaContainer= document.getElementById('semanaContainer');
+const mesTableDiv    = document.getElementById('mesTable');
+const semanaTableDiv = document.getElementById('semanaTable');
 
-async function detectAvailableMonths() {
-  const promises = possibleMonths.map(async m => {
-    try {
-      const r = await fetch(`/MFO/${m.file}`, { method: 'HEAD' });
-      return r.ok ? m : null;
-    } catch(e) { return null; }
-  });
-
-  const results = await Promise.all(promises);
-  const available = results.filter(Boolean);
-
-  // Ordenar cronológicamente
-  available.sort((a,b) => a.label.localeCompare(b.label));
-
-  mesSelect.innerHTML = '';
-  available.forEach(m => {
-    const opt = document.createElement('option');
-    opt.value = m.file;
-    opt.textContent = m.label;
-    mesSelect.appendChild(opt);
-  });
-
-  // Seleccionar Febrero 2026 por defecto si existe
-  const feb = available.find(m => m.label.includes("Febrero 2026"));
-  if (feb) mesSelect.value = feb.file;
-
-  return available.length > 0;
-}
+let headers = [];
+let data = [];
 
 async function loadSchedule() {
-  const filename = mesSelect.value;
-  if (!filename) return;
-
-  const currentMonth = mesSelect.options[mesSelect.selectedIndex].text;
-  title.textContent = `Horario Zwilling - MFO ${currentMonth}`;
-
-  loading.style.display = 'block';
-  document.getElementById('mesContainer').style.display = 'none';
-  document.getElementById('semanaContainer').style.display = 'none';
-
   try {
-    const resp = await fetch(`/MFO/${filename}`);
-    if (!resp.ok) throw new Error('Archivo no encontrado');
-    const ab = await resp.arrayBuffer();
-    const wb = XLSX.read(ab, {type:'array'});
-    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:''});
+    const resp = await fetch(PATH);
+    if (!resp.ok) throw new Error(`No se pudo cargar ${PATH} – ${resp.status}`);
+    const arrayBuffer = await resp.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
+    // Suponemos que la fila 2 (índice 2) son los encabezados con días
     headers = json[2] || [];
-    currentData = json.slice(3).filter(r => r[0] && String(r[0]).trim());
+    data = json.slice(3).filter(row => row[0] && String(row[0]).trim());
 
-    populateEmployees();
+    // Llenar select de empleados
+    data.forEach(row => {
+      const nombre = String(row[0]).trim();
+      if (nombre) {
+        const opt = document.createElement('option');
+        opt.value = nombre;
+        opt.textContent = nombre;
+        empleadoSelect.appendChild(opt);
+      }
+    });
+
     loading.style.display = 'none';
-    document.getElementById('mesContainer').style.display = 'block';
-    document.getElementById('semanaContainer').style.display = 'block';
+    mesContainer.style.display = 'block';
+    semanaContainer.style.display = 'block';
+
     renderTables();
 
-  } catch(e) {
-    loading.innerHTML = `Error cargando ${filename}<br><small>${e.message}</small>`;
+  } catch (err) {
+    loading.innerHTML = `Error al cargar el horario:<br><pre>${err.message}</pre>`;
+    console.error(err);
   }
-}
-
-function populateEmployees() {
-  empleadoSelect.innerHTML = '<option value="Todos">Todos</option>';
-  currentData.forEach(row => {
-    const name = String(row[0]).trim();
-    if (name) {
-      const opt = new Option(name, name);
-      empleadoSelect.add(opt);
-    }
-  });
 }
 
 function renderTables() {
   const emp = empleadoSelect.value;
-  const filtered = emp === 'Todos' ? currentData : currentData.filter(r => String(r[0]).trim() === emp);
+  const sem = semanaSelect.value;
+
+  const filtered = emp === 'Todos'
+    ? data
+    : data.filter(r => String(r[0]).trim() === emp);
 
   // Mes completo
-  document.getElementById('mesTable').innerHTML = '';
-  document.getElementById('mesTable').appendChild(createTable(headers, filtered, 1, 31));
+  mesTableDiv.innerHTML = '';
+  mesTableDiv.appendChild(createTable(headers, filtered, 1, 28));
 
-  // Semana seleccionada
-  let start = 1, end = 31;
-  const sem = semanaSelect.value;
+  // Semana
+  let start = 1, end = 28;
   if (sem !== 'Todas') {
-    const w = +sem;
+    const w = Number(sem);
     start = (w-1)*7 + 1;
-    end = Math.min(start + 6, 31);
+    end   = Math.min(start + 6, 28);
   }
   const weekHeaders = [headers[0], ...headers.slice(start, end+1)];
   const weekData = filtered.map(r => [r[0], ...r.slice(start, end+1)]);
 
-  document.getElementById('semanaTable').innerHTML = '';
-  document.getElementById('semanaTable').appendChild(createTable(weekHeaders, weekData, start, end));
+  semanaTableDiv.innerHTML = '';
+  semanaTableDiv.appendChild(createTable(weekHeaders, weekData, start, end));
 }
 
-function createTable(head, rows, startDay) {
+function createTable(head, rows, startDay, endDay) {
   const table = document.createElement('table');
+
+  // encabezado
   const thead = document.createElement('thead');
   const trh = document.createElement('tr');
-  head.forEach((txt,i) => {
+  head.forEach((txt, i) => {
     const th = document.createElement('th');
     th.textContent = txt || '';
     if (i >= 1) {
@@ -227,44 +314,47 @@ function createTable(head, rows, startDay) {
   thead.appendChild(trh);
   table.appendChild(thead);
 
+  // cuerpo
   const tbody = document.createElement('tbody');
   rows.forEach(row => {
     const tr = document.createElement('tr');
     row.forEach((cell, i) => {
       const td = document.createElement('td');
       td.textContent = cell || '-';
-      td.dataset.label = head[i] || '';
+      td.setAttribute('data-label', head[i] || '');
       if (i === 0) td.classList.add('name');
-      else if ((startDay + i - 1) % 7 === 1 || (startDay + i - 1) % 7 === 0) td.classList.add('weekend');
+      else {
+        const d = startDay + i - 1;
+        if (d % 7 === 1 || d % 7 === 0) td.classList.add('weekend');
+      }
+      if (!cell) td.classList.add('empty');
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
+
   return table;
 }
 
-function downloadPNG(id, name) {
-  html2canvas(document.getElementById(id), {scale: 2}).then(canvas => {
+function downloadPNG(containerId, filename) {
+  const el = document.getElementById(containerId);
+  html2canvas(el, { scale: 2, useCORS: true }).then(canvas => {
     const a = document.createElement('a');
-    a.href = canvas.toDataURL();
-    a.download = name;
+    a.href = canvas.toDataURL('image/png');
+    a.download = filename;
     a.click();
-  });
+  }).catch(err => alert('Error al generar imagen:\n' + err.message));
 }
 
 // Eventos
-mesSelect.onchange = loadSchedule;
 empleadoSelect.onchange = renderTables;
-semanaSelect.onchange = renderTables;
-document.getElementById('btnMes').onclick = () => downloadPNG('mesTable', `Horario_${mesSelect.options[mesSelect.selectedIndex].text}.png`);
-document.getElementById('btnSemana').onclick = () => downloadPNG('semanaTable', `Horario_Semana_${mesSelect.options[mesSelect.selectedIndex].text}.png`);
+semanaSelect.onchange   = renderTables;
+document.getElementById('btnMes').onclick    = () => downloadPNG('mesTable',    'Horario_Mes_Febrero2026.png');
+document.getElementById('btnSemana').onclick = () => downloadPNG('semanaTable', 'Horario_Semana_Febrero2026.png');
 
 // Inicio
-detectAvailableMonths().then(hasFiles => {
-  if (hasFiles) loadSchedule();
-  else loading.textContent = "No se encontraron archivos .xlsx en /MFO/";
-});
+loadSchedule();
 </script>
 </body>
 </html>
