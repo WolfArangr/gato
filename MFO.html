@@ -160,7 +160,7 @@
       .controls select, .controls button { width: 100%; }
     }
 
-    /* Estilo para el calendario por días (solo usado en PNG cuando Todos) */
+    /* Estilo para el calendario vertical por días (PNG cuando Todos) */
     .calendar-day {
       background: white;
       border: 1px solid #ddd;
@@ -187,9 +187,47 @@
       padding: 8px 0;
     }
 
-    /* Para el calendario imprimible (solo en memoria para PDF) */
-    #printable-calendar {
-      display: none;
+    /* Ocultar elementos que solo usamos para generar PDF */
+    #printCalendarContainer {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: 297mm; /* A4 landscape */
+      background: white;
+      padding: 10mm;
+      box-sizing: border-box;
+      font-size: 9pt;
+    }
+    #printCalendarContainer table {
+      width: 100%;
+      min-width: auto;
+      font-size: 9pt;
+    }
+    #printCalendarContainer th, #printCalendarContainer td {
+      padding: 4px 6px;
+      font-size: 9pt;
+      border: 0.5pt solid #888;
+    }
+    #printCalendarContainer th {
+      background: #ed1c24;
+      color: white;
+      font-weight: bold;
+    }
+    #printCalendarContainer td.name {
+      background: #f8f8f8;
+      text-align: left;
+      font-weight: 500;
+      min-width: 28mm;
+    }
+    #printCalendarContainer .weekend {
+      background: #fff0f0 !important;
+    }
+    #printCalendarContainer .title {
+      text-align: center;
+      color: #ed1c24;
+      font-size: 16pt;
+      margin-bottom: 8mm;
+      font-weight: bold;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -219,7 +257,7 @@
   </label>
   <button id="btnMes">📥 Descargar Mes (PNG)</button>
   <button id="btnSemana">📥 Descargar Semana (PNG)</button>
-  <button id="btnPrintCalendar">🖨️ Calendario Imprimible (PDF)</button>
+  <button id="btnPrintCalendar">🖨️ Calendario para imprimir (PDF)</button>
 </div>
 
 <div id="loading" class="loading">Buscando meses disponibles en /MFO y cargando horario …</div>
@@ -234,8 +272,8 @@
   <div id="semanaTable"></div>
 </div>
 
-<!-- Contenedor oculto para el calendario imprimible -->
-<div id="printable-calendar"></div>
+<!-- Contenedor oculto solo para generar el PDF -->
+<div id="printCalendarContainer"></div>
 
 <script>
 // ──────────────────────────────────────────────
@@ -257,7 +295,7 @@ const mesContainer   = document.getElementById('mesContainer');
 const semanaContainer= document.getElementById('semanaContainer');
 const mesTableDiv    = document.getElementById('mesTable');
 const semanaTableDiv = document.getElementById('semanaTable');
-const printableDiv   = document.getElementById('printable-calendar');
+const printContainer = document.getElementById('printCalendarContainer');
 
 let currentPath = '';
 let headers = [];
@@ -331,7 +369,7 @@ async function loadSchedule(path) {
 }
 
 // ──────────────────────────────────────────────
-// Render tablas normales (pantalla)
+// 3. Render tablas normales (pantalla)
 // ──────────────────────────────────────────────
 function renderTables() {
   const emp = empleadoSelect.value;
@@ -390,7 +428,7 @@ function createHorizontalTable(head, rows, startDay, endDay) {
 }
 
 // ──────────────────────────────────────────────
-// Calendario por días (para PNG "Todos")
+// 4. Generar calendario vertical por días (para PNG cuando Todos)
 // ──────────────────────────────────────────────
 function createDayByDayCalendar() {
   const container = document.createElement('div');
@@ -439,85 +477,65 @@ function createDayByDayCalendar() {
 }
 
 // ──────────────────────────────────────────────
-// Generar calendario horizontal para PDF (ordenado por turno)
+// 5. Generar tabla horizontal para imprimir (todos los empleados)
 // ──────────────────────────────────────────────
-function generatePrintableCalendar() {
-  printableDiv.innerHTML = '';
+function generatePrintCalendar() {
+  printContainer.innerHTML = '';
 
-  const title = document.createElement('h1');
-  title.textContent = `Horario Completo - ${currentMonthName}`;
-  title.style.color = '#ed1c24';
-  title.style.textAlign = 'center';
-  title.style.marginBottom = '20px';
-  printableDiv.appendChild(title);
+  const title = document.createElement('div');
+  title.className = 'title';
+  title.textContent = `Horario Zwilling MFO – ${currentMonthName}`;
+  printContainer.appendChild(title);
 
   const table = document.createElement('table');
-  table.style.width = '100%';
-  table.style.borderCollapse = 'collapse';
-  table.style.fontSize = '10pt';
 
-  // Encabezado
+  // Cabecera
   const thead = document.createElement('thead');
-  const trHead = document.createElement('tr');
+  const trh = document.createElement('tr');
   const thName = document.createElement('th');
   thName.textContent = 'Empleado';
-  thName.style.border = '1px solid #000';
-  thName.style.padding = '8px';
-  thName.style.background = '#ed1c24';
-  thName.style.color = 'white';
-  thName.style.position = 'sticky';
-  thName.style.left = '0';
-  trHead.appendChild(thName);
+  thName.style.width = '32mm';
+  trh.appendChild(thName);
 
   for (let d = 1; d <= daysInMonth; d++) {
     const th = document.createElement('th');
     th.textContent = headers[d] || d;
-    th.style.border = '1px solid #000';
-    th.style.padding = '6px';
-    th.style.background = (d % 7 === 1 || d % 7 === 0) ? '#ffebee' : '#f8f8f8';
-    trHead.appendChild(th);
+    if (d % 7 === 1 || d % 7 === 0) th.classList.add('weekend');
+    trh.appendChild(th);
   }
-  thead.appendChild(trHead);
+  thead.appendChild(trh);
   table.appendChild(thead);
 
-  // Filas - ordenadas por nombre (o puedes cambiar el criterio)
-  const sortedData = [...data].sort((a,b) => String(a[0]).trim().localeCompare(String(b[0]).trim()));
-
+  // Cuerpo – ordenado alfabéticamente por nombre
   const tbody = document.createElement('tbody');
-  sortedData.forEach(row => {
-    const name = String(row[0]).trim();
-    const tr = document.createElement('tr');
+  const sortedData = [...data].sort((a,b) => {
+    return String(a[0]).trim().localeCompare(String(b[0]).trim());
+  });
 
+  sortedData.forEach(row => {
+    const tr = document.createElement('tr');
     const tdName = document.createElement('td');
-    tdName.textContent = name;
-    tdName.style.border = '1px solid #000';
-    tdName.style.padding = '8px';
-    tdName.style.background = '#fafafa';
-    tdName.style.fontWeight = '500';
-    tdName.style.position = 'sticky';
-    tdName.style.left = '0';
+    tdName.textContent = String(row[0]).trim();
+    tdName.classList.add('name');
     tr.appendChild(tdName);
 
     for (let d = 1; d <= daysInMonth; d++) {
-      const turno = String(row[d] || '').trim();
       const td = document.createElement('td');
+      const turno = String(row[d] || '').trim();
       td.textContent = turno || '-';
-      td.style.border = '1px solid #000';
-      td.style.padding = '6px';
-      td.style.textAlign = 'center';
-      if (d % 7 === 1 || d % 7 === 0) td.style.background = '#ffebee';
+      if (d % 7 === 1 || d % 7 === 0) td.classList.add('weekend');
+      if (!turno) td.classList.add('empty');
       tr.appendChild(td);
     }
-
     tbody.appendChild(tr);
   });
-  table.appendChild(tbody);
 
-  printableDiv.appendChild(table);
+  table.appendChild(tbody);
+  printContainer.appendChild(table);
 }
 
 // ──────────────────────────────────────────────
-// Descarga PNG
+// 6. Descarga PNG
 // ──────────────────────────────────────────────
 function downloadPNG(containerIdOrElement, filename) {
   const target = typeof containerIdOrElement === 'string'
@@ -533,40 +551,55 @@ function downloadPNG(containerIdOrElement, filename) {
     a.href = canvas.toDataURL('image/png');
     a.download = filename;
     a.click();
-  }).catch(err => alert('Error al generar imagen:\n' + err.message));
+  }).catch(err => {
+    alert('Error al generar imagen:\n' + err.message);
+  });
 }
 
 // ──────────────────────────────────────────────
-// Descarga PDF imprimible
+// 7. Generar PDF para imprimir (apaisado A4)
 // ──────────────────────────────────────────────
-function downloadPrintablePDF() {
-  generatePrintableCalendar();
+function generatePrintPDF() {
+  generatePrintCalendar();
 
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({
+  const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
     format: 'a4'
   });
 
-  pdf.setFont("helvetica");
-  pdf.setFontSize(18);
-  pdf.setTextColor(237, 28, 36);
-  pdf.text(`Horario Completo - ${currentMonthName}`, 14, 18);
+  html2canvas(printContainer, {
+    scale: 2,
+    useCORS: true,
+    width: printContainer.offsetWidth,
+    height: printContainer.offsetHeight
+  }).then(canvas => {
+    const imgData = canvas.toDataURL('image/png');
+    const imgWidth = 297; // A4 landscape width in mm
+    const pageHeight = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  pdf.setFontSize(10);
-  pdf.setTextColor(0);
+    let heightLeft = imgHeight;
+    let position = 0;
 
-  pdf.html(printableDiv, {
-    callback: function (pdf) {
-      pdf.save(`Horario_Imprimible_${currentMonthName.replace(/ /g,'_')}.pdf`);
-    },
-    x: 10,
-    y: 25,
-    width: 277,          // A4 landscape usable width ~277mm
-    windowWidth: 1200,   // ayuda a escalar correctamente el HTML
-    autoPaging: 'text',
-    margin: [0, 0, 10, 0]
+    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      doc.addPage();
+      doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    doc.save(`Horario_Imprimir_${currentMonthName.replace(/ /g,'_')}.pdf`);
+
+    // Limpiar contenedor
+    printContainer.innerHTML = '';
+  }).catch(err => {
+    alert('Error al generar PDF:\n' + err.message);
+    printContainer.innerHTML = '';
   });
 }
 
@@ -614,7 +647,7 @@ document.getElementById('btnMes').onclick = () => {
   }
 };
 
-document.getElementById('btnPrintCalendar').onclick = downloadPrintablePDF;
+document.getElementById('btnPrintCalendar').onclick = generatePrintPDF;
 
 // ──────────────────────────────────────────────
 // Inicio
