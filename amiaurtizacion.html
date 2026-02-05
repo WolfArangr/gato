@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase Práctica con el Profesor Miau: Amortización de Préstamos y Leasing de Coches</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.8;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        h1, h2, h3 {
+            color: #00FFFF; /* Cyan neon */
+        }
+        section {
+            background: #1E1E1E;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 255, 255, 0.2); /* Neon glow */
+        }
+        .calculator {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #00FF00; /* Green neon */
+            border-radius: 8px;
+            background: #282828;
+        }
+        input {
+            margin: 10px;
+            padding: 10px;
+            width: 180px;
+            background: #333;
+            color: #00FFFF;
+            border: 1px solid #00FF00;
+            border-radius: 5px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #FF00FF; /* Magenta neon */
+            color: #121212;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #00FF00; /* Green neon on hover */
+            color: #121212;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #282828;
+        }
+        th, td {
+            border: 1px solid #00FFFF;
+            padding: 10px;
+            text-align: right;
+            color: #e0e0e0;
+        }
+        th {
+            background: #00FFFF;
+            color: #121212;
+        }
+        canvas {
+            max-width: 800px;
+            margin: 30px auto;
+            display: block;
+            background: #1E1E1E;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        .ejemplo {
+            font-style: italic;
+            color: #FF69B4; /* Pink neon */
+            margin: 15px 0;
+            padding: 10px;
+            background: #333;
+            border-left: 5px solid #FF00FF;
+        }
+        .caso-practico {
+            background: #282828;
+            padding: 20px;
+            border-left: 8px solid #00FF00;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .formula {
+            background: #333;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border: 1px dashed #00FFFF;
+            color: #FFD700; /* Gold neon for formulas */
+        }
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <h1>¡Bienvenida a la Clase del Profesor Miau: Dominando la Amortización de Préstamos y Leasing para Coches!</h1>
+    <p>¡Miau, miau! Hola, Lorena. Soy el Profesor Miau, el gato economista experto en finanzas felinas... ejem, quiero decir, en finanzas personales y automotrices. He pasado innumerables noches ronroneando sobre balances y tasas de interés, así que estoy aquí para guiarte paso a paso en este fascinante mundo de la amortización. Vamos a desglosar todo de manera didáctica, como si estuviéramos charlando en una cómoda alfombra bajo la luna. No te preocupes, no necesitas ser una experta en programación o dev tools; todo lo que veas aquí se puede replicar fácilmente en Excel, y te daré las fórmulas exactas para que lo hagas tú misma. Usaremos gráficos para que sea visual y atractivo, porque un buen economista sabe que los números bailan mejor con colores. ¡Empecemos con los conceptos básicos, y avanzaremos ronroneando hacia lo práctico!</p>
+
+    <section id="conceptos-basicos">
+        <h2>Conceptos Básicos en Amortización: El Fundamento de Todo</h2>
+        <p>Mi querida alumna, imaginemos que estás comprando un coche nuevo, reluciente como un plato de atún fresco. Pero no lo pagas todo de golpe; en su lugar, pides un préstamo o un leasing. Aquí entra la <strong>amortización</strong>, que no es más que el arte de pagar una deuda de forma gradual, como si estuvieras lamiendo un helado poco a poco para que dure más. Cada pago mensual (o cuota) se divide en dos partes principales: los <strong>intereses</strong>, que son el "precio" que pagas por usar el dinero ajeno, y el <strong>principal</strong>, que es la parte que realmente reduce la deuda pendiente.</p>
+        
+        <p>Vamos a desmenuzarlo con precisión felina:</p>
+        <ul>
+            <li><strong>Principal (o Capital Inicial)</strong>: Es la cantidad total que pides prestada. Por ejemplo, si el coche cuesta 20.000€ y das una entrada de 2.000€, el principal sería 18.000€. En Excel, esto es solo un valor fijo en una celda, digamos A1: 18000.</li>
+            <li><strong>Tasa de Interés</strong>: El porcentaje que te cobran por el préstamo. Suele ser anual, como 5%, pero para cálculos mensuales la dividimos por 12. Fórmula en Excel: Tasa mensual = Tasa anual / 12. Ej: Si tasa anual en B1 es 0.05, en B2: =B1/12.</li>
+            <li><strong>Plazo</strong>: El tiempo total para pagar, en meses o años. Si son 5 años, son 60 meses. En Excel: Meses = Años * 12. Simple, ¿verdad?</li>
+            <li><strong>Cuota Mensual</strong>: El pago fijo cada mes. En el método francés (el más común), al inicio pagas más intereses porque la deuda es alta, y hacia el final más principal. Esto hace que la cuota sea constante, como un ronroneo estable.</li>
+            <li><strong>Saldo Pendiente</strong>: Cuánto te queda por pagar después de cada cuota. Empieza con el principal y baja mes a mes.</li>
+        </ul>
+        
+        <p>Ahora, la diferencia entre préstamo y leasing: Un <strong>préstamo</strong> es como adoptar un coche para siempre; pagas hasta que sea tuyo al 100%. Un <strong>leasing</strong> es más como un alquiler con opción a compra; pagas por el "uso" del coche (su depreciación) más intereses, y al final decides si lo compras pagando un "valor residual" (lo que vale usado) o lo devuelves. Es ideal si cambias de coche a menudo, como yo cambio de caja de arena.</p>
+        
+        <div class="ejemplo">
+            Ejemplo básico: Supongamos un principal de 20.000€ al 5% anual por 5 años. La tasa mensual es 0.05/12 ≈ 0.004167. La cuota sería alrededor de 377€. En los primeros meses, intereses altos (unos 83€), principal bajo. Hacia el final, al revés. ¡Visualízalo como una balanza que se inclina!
+        </div>
+        
+        <p>Para replicar en Excel: Crea columnas para Mes, Saldo Inicial, Intereses, Principal Pagado, Cuota, Saldo Final. Usa fórmulas como =Saldo* TasaMensual para intereses, y =Cuota - Intereses para principal pagado. Te daré más detalles abajo.</p>
+    </section>
+
+    <section id="amortizacion-prestamo">
+        <h2>Amortización de un Préstamo: Paso a Paso con Fórmulas para Excel</h2>
+        <p>¡Ronroneos financieros, alumna mía! Para un préstamo, usamos el método francés para cuotas fijas. La fórmula mágica para la cuota mensual es:</p>
+        <div class="formula">
+            <strong>Cuota = Principal * (r * (1 + r)^n) / ((1 + r)^n - 1)</strong><br>
+            Donde: r = tasa mensual (tasa anual / 12), n = número de meses.
+        </div>
+        <p>En Excel, esta fórmula es la función PAGO: =PAGO(TasaMensual; Meses; -Principal). Nota el negativo para que sea positivo. ¡Fácil como atrapar un láser!</p>
+        
+        <p>Luego, para la tabla de amortización: En Excel, en fila 1: Etiquetas (Mes, Saldo Inicial, Intereses, Principal, Cuota, Saldo Final). En fila 2: Mes=1, Saldo Inicial=Principal, Intereses=SaldoInicial * r, Principal=Cuota - Intereses, Cuota=la fórmula PAGO, Saldo Final=SaldoInicial - Principal. Copia hacia abajo para todos los meses, con Saldo Inicial de la fila anterior = Saldo Final anterior.</p>
+        
+        <p>Explicación extensa: Imagina que cada mes, el banco calcula intereses sobre lo que te queda por pagar (saldo). Pagas la cuota fija, restas los intereses para saber cuánto va al principal, y actualizas el saldo. Esto crea una curva donde los intereses bajan con el tiempo, y el principal sube. Gráficamente, verás líneas descendentes para intereses y ascendentes para principal, cruzándose en el medio.</p>
+        
+        <div class="calculator">
+            <h3>Calculador Interactivo de Préstamo (Prueba y Luego Replica en Excel)</h3>
+            <label>Principal (€): <input type="number" id="principal-prestamo" value="20000"></label>
+            <label>Tasa anual (%): <input type="number" id="tasa-prestamo" value="5" step="0.1"></label>
+            <label>Plazo (años): <input type="number" id="plazo-prestamo" value="5"></label>
+            <button onclick="calcularPrestamo()">Calcular, ¡Miau!</button>
+            <div id="resultado-prestamo" style="color: #00FF00; margin-top: 15px;"></div>
+            <table id="tabla-prestamo">
+                <thead><tr><th>Mes</th><th>Cuota</th><th>Intereses</th><th>Principal</th><th>Saldo</th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <canvas id="grafico-prestamo"></canvas>
+        </div>
+        
+        <div class="ejemplo">
+            Ejemplo detallado: Para 20.000€ al 5% en 5 años (60 meses). Cuota = PAGO(0.05/12; 60; -20000) ≈ 377.42€. Mes 1: Intereses = 20000 * (0.05/12) ≈ 83.33€, Principal = 377.42 - 83.33 ≈ 294.09€, Saldo = 20000 - 294.09 ≈ 19705.91€. Repite 60 veces. Total intereses: suma de la columna Intereses ≈ 2635€. En el gráfico, verás cómo los intereses caen como hojas en otoño.
+        </div>
+        
+        <p>En Excel, suma la columna de Intereses para el total, y verifica que el último saldo sea cerca de 0 (por redondeos). ¡Prueba variando la tasa para ver cómo sube la cuota!</p>
+    </section>
+
+    <section id="leasing">
+        <h2>Leasing de un Coche: La Opción Flexible, con Fórmulas para Excel</h2>
+        <p>¡Miau, ahora algo más juguetón! En el leasing, no amortizas todo el coche; solo pagas la depreciación (cuánto pierde valor) más el costo financiero. Es como pagar por las millas que "usas". Fórmulas clave:</p>
+        <div class="formula">
+            <ul>
+                <li><strong>Depreciación Mensual</strong> = (Valor Coche - Valor Residual) / Meses</li>
+                <li><strong>Factor Dinero</strong> = Tasa Anual / 2400 (convención automotriz, como un múltiplo felino)</li>
+                <li><strong>Financiación Mensual</strong> = (Valor Coche + Valor Residual) * Factor Dinero</li>
+                <li><strong>Cuota Mensual</strong> = Depreciación + Financiación</li>
+            </ul>
+        </div>
+        <p>En Excel: Pon Valor Coche en A1, Residual en A2, Tasa en A3 (0.05), Meses en A4 (36). Depreciación = (A1 - A2)/A4, Factor = A3/2400, Financiación = (A1 + A2)*Factor, Cuota = Depreciación + Financiación.</p>
+        
+        <p>Explicación experta: El valor residual es una estimación (ej: 50% del valor nuevo tras 3 años). No hay tabla de amortización tradicional porque no reduces a cero; al final, el residual es lo que pagas si lo quieres. Gráficamente, un pastel muestra depreciación vs. financiación total. Ideal para empresas o si no quieres compromiso largo.</p>
+        
+        <div class="calculator">
+            <h3>Calculador Interactivo de Leasing (Visualiza y Replica en Excel)</h3>
+            <label>Valor coche (€): <input type="number" id="valor-coche" value="20000"></label>
+            <label>Valor residual (€): <input type="number" id="residual" value="10000"></label>
+            <label>Tasa anual (%): <input type="number" id="tasa-leasing" value="5" step="0.1"></label>
+            <label>Plazo (años): <input type="number" id="plazo-leasing" value="3"></label>
+            <button onclick="calcularLeasing()">Calcular Leasing, ¡Ronroneo!</button>
+            <div id="resultado-leasing" style="color: #FF00FF; margin-top: 15px;"></div>
+            <canvas id="grafico-leasing"></canvas>
+        </div>
+        
+        <div class="ejemplo">
+            Ejemplo extenso: Coche 20.000€, residual 10.000€, 5% en 3 años (36 meses). Depreciación = (20000-10000)/36 ≈ 277.78€. Factor = 0.05/2400 ≈ 0.002083. Financiación = (20000+10000)*0.002083 ≈ 62.50€. Cuota ≈ 340.28€. Total pagado: 340.28*36 ≈ 12250€. Si compras, +10.000€, total efectivo 22250€ (más que préstamo si tasas similares, pero cuotas más bajas).
+        </div>
+        
+        <p>En Excel, multiplica cuota por meses para total, y suma residual si compras. Agrega impuestos si quieres (ej: +21% IVA en cuota: =Cuota*1.21).</p>
+    </section>
+
+    <section id="caso-practico">
+        <h2>Caso Práctico: ¡Tu Turno de Calcular, Alumna Mía!</h2>
+        <p>¡Miau, hora de practicar! Imagina que quieres un coche de 25.000€. Opción 1: Préstamo al 4% por 4 años (48 meses). Opción 2: Leasing con residual de 12.500€ (50% valor) al 6% por 3 años (36 meses).</p>
+        <div class="caso-practico">
+            <p><strong>Tarea Didáctica, Paso a Paso:</strong></p>
+            <ol>
+                <li>Abre Excel. Crea una hoja para Préstamo: Pon Principal=25000, Tasa=0.04, Meses=48. Calcula Cuota con =PAGO(0.04/12;48;-25000).</li>
+                <li>Crea la tabla de amortización: Columna A: Meses 1 a 48. B: Saldo Inicial (B2=25000, B3=B2-D2). C: Intereses =B2*(0.04/12). D: Principal =E2-C2. E: Cuota (todas = la fórmula PAGO). F: Saldo Final =B2-D2. Suma C para total intereses.</li>
+                <li>Para Leasing: Nueva hoja. Valor=25000, Residual=12500, Tasa=0.06, Meses=36. Depreciación=(25000-12500)/36. Factor=0.06/2400. Financiación=(25000+12500)*Factor. Cuota=Depreciación+Financiación. Total=Cuota*36. Si compras: +12500.</li>
+                <li>Compara: Costo total préstamo (suma cuotas) vs. Leasing (total + residual si compras). ¿Cuál es mejor si planeas quedarte el coche 5 años? ¿Si lo cambias cada 3? Calcula intereses totales en préstamo.</li>
+                <li>Visual: En Excel, selecciona datos de Intereses y Principal en préstamo, inserta gráfico de líneas. Para leasing, gráfico de pastel con Depreciación Total y Financiación Total.</li>
+                <li>Bonus experto: Varía la tasa +1% en cada opción. ¿Cómo cambia la cuota? Agrega una columna de IVA (21%) en leasing cuota. ¡Experimenta y anota qué aprendes!</li>
+            </ol>
+            <p>Esto te hará una maestra en finanzas. Si lo haces, verás cómo el préstamo es más para propiedad larga, leasing para flexibilidad. ¡Envíame tus resultados imaginarios, miau!</p>
+        </div>
+    </section>
+
+    <script>
+        let chartPrestamo, chartLeasing;
+
+        function calcularPrestamo() {
+            const principal = parseFloat(document.getElementById('principal-prestamo').value);
+            const tasaAnual = parseFloat(document.getElementById('tasa-prestamo').value) / 100;
+            const plazoAnios = parseInt(document.getElementById('plazo-prestamo').value);
+            const n = plazoAnios * 12;
+            const r = tasaAnual / 12;
+
+            if (isNaN(principal) || isNaN(tasaAnual) || isNaN(n)) return;
+
+            const cuota = principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            let saldo = principal;
+            let totalIntereses = 0;
+            let totalPrincipal = 0;
+
+            const tbody = document.querySelector('#tabla-prestamo tbody');
+            tbody.innerHTML = '';
+
+            const labels = [];
+            const dataIntereses = [];
+            const dataPrincipal = [];
+
+            for (let mes = 1; mes <= n; mes++) {
+                const intereses = saldo * r;
+                const principalPagado = cuota - intereses;
+                saldo -= principalPagado;
+
+                totalIntereses += intereses;
+                totalPrincipal += principalPagado;
+
+                const row = `<tr><td>${mes}</td><td>${cuota.toFixed(2)}</td><td>${intereses.toFixed(2)}</td><td>${principalPagado.toFixed(2)}</td><td>${saldo.toFixed(2)}</td></tr>`;
+                tbody.innerHTML += row;
+
+                labels.push(mes);
+                dataIntereses.push(intereses);
+                dataPrincipal.push(principalPagado);
+            }
+
+            document.getElementById('resultado-prestamo').innerHTML = `Cuota mensual: ${cuota.toFixed(2)}€<br>Total intereses: ${totalIntereses.toFixed(2)}€<br>Total pagado: ${(totalIntereses + principal).toFixed(2)}€`;
+
+            if (chartPrestamo) chartPrestamo.destroy();
+            const ctx = document.getElementById('grafico-prestamo').getContext('2d');
+            chartPrestamo = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Intereses', data: dataIntereses, borderColor: '#FF00FF', fill: false },
+                        { label: 'Principal', data: dataPrincipal, borderColor: '#00FF00', fill: false }
+                    ]
+                },
+                options: { 
+                    scales: { y: { beginAtZero: true, grid: { color: '#00FFFF' } } },
+                    plugins: { legend: { labels: { color: '#e0e0e0' } } }
+                }
+            });
+        }
+
+        function calcularLeasing() {
+            const valorCoche = parseFloat(document.getElementById('valor-coche').value);
+            const residual = parseFloat(document.getElementById('residual').value);
+            const tasaAnual = parseFloat(document.getElementById('tasa-leasing').value) / 100;
+            const plazoAnios = parseInt(document.getElementById('plazo-leasing').value);
+            const meses = plazoAnios * 12;
+
+            if (isNaN(valorCoche) || isNaN(residual) || isNaN(tasaAnual) || isNaN(meses)) return;
+
+            const factorDinero = tasaAnual / 2400;
+            const depreciacion = (valorCoche - residual) / meses;
+            const financiacion = (valorCoche + residual) * factorDinero;
+            const cuota = depreciacion + financiacion;
+
+            const totalPagado = cuota * meses;
+
+            document.getElementById('resultado-leasing').innerHTML = `Cuota mensual: ${cuota.toFixed(2)}€<br>Total pagado en leasing: ${totalPagado.toFixed(2)}€<br>Para comprar al final: +${residual.toFixed(2)}€`;
+
+            if (chartLeasing) chartLeasing.destroy();
+            const ctx = document.getElementById('grafico-leasing').getContext('2d');
+            chartLeasing = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Depreciación Total', 'Financiación Total'],
+                    datasets: [{
+                        data: [depreciacion * meses, financiacion * meses],
+                        backgroundColor: ['#00FF00', '#FF00FF']
+                    }]
+                },
+                options: { plugins: { legend: { labels: { color: '#e0e0e0' } } } }
+            });
+        }
+    </script>
+
+</body>
+</html>
