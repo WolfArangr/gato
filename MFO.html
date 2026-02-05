@@ -186,72 +186,6 @@
       font-style: italic;
       padding: 8px 0;
     }
-
-    /* ──────────────────────────────────────────────
-       ESTILOS SOLO PARA EL CALENDARIO IMPRIMIBLE
-    ────────────────────────────────────────────── */
-    @media print {
-      body * { visibility: hidden; }
-      #printCalendar, #printCalendar * { visibility: visible; }
-      #printCalendar {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-      }
-      .no-print { display: none !important; }
-    }
-
-    #printCalendar {
-      display: none;
-    }
-
-    #printCalendar table {
-      width: 100%;
-      font-size: 9pt;
-      border-collapse: collapse;
-      page-break-inside: avoid;
-    }
-
-    #printCalendar th, #printCalendar td {
-      border: 1px solid #888;
-      padding: 4px 6px;
-      text-align: center;
-      vertical-align: top;
-      height: 60px;
-    }
-
-    #printCalendar th {
-      background: #ed1c24;
-      color: white;
-      font-size: 10pt;
-      padding: 6px;
-    }
-
-    #printCalendar .day-header {
-      font-weight: bold;
-      font-size: 11pt;
-      background: #f8f8f8;
-      padding: 8px;
-    }
-
-    #printCalendar .cell-content {
-      font-size: 8.5pt;
-      line-height: 1.2;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    #printCalendar .weekend {
-      background: #fff0f0;
-    }
-
-    #printCalendar .title-print {
-      text-align: center;
-      color: #ed1c24;
-      font-size: 18pt;
-      margin: 0 0 16px 0;
-    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -279,7 +213,6 @@
   </label>
   <button id="btnMes">📥 Descargar Mes (PNG)</button>
   <button id="btnSemana">📥 Descargar Semana (PNG)</button>
-  <button id="btnPrintCalendar">🖨️ Calendario Imprimible (PDF)</button>
 </div>
 
 <div id="loading" class="loading">Buscando meses disponibles en /MFO y cargando horario …</div>
@@ -294,19 +227,9 @@
   <div id="semanaTable"></div>
 </div>
 
-<!-- Contenedor oculto para el calendario imprimible -->
-<div id="printCalendar">
-  <h1 class="title-print">Horario Zwilling - MFO</h1>
-  <h2 id="printMonthTitle" class="title-print"></h2>
-  <table id="printTable">
-    <thead id="printThead"></thead>
-    <tbody id="printTbody"></tbody>
-  </table>
-</div>
-
 <script>
 // ──────────────────────────────────────────────
-// CONFIGURACIÓN MESES (sin cambios)
+// CONFIGURACIÓN MESES
 // ──────────────────────────────────────────────
 const monthOrder = {
   ENERO:1, FEBRERO:2, MARZO:3, ABRIL:4, MAYO:5, JUNIO:6,
@@ -332,15 +255,16 @@ let daysInMonth = 0;
 let currentMonthName = '';
 
 // ──────────────────────────────────────────────
-// Funciones existentes (sin cambios) ...
+// 1. Buscar archivos disponibles
 // ──────────────────────────────────────────────
-
 async function getAvailableFiles() {
   const checks = possibleFiles.map(async path => {
     try {
       const res = await fetch(path, { method: 'HEAD' });
       return res.ok ? path : null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   });
   const available = (await Promise.all(checks)).filter(Boolean);
   available.sort((a,b) => {
@@ -351,6 +275,9 @@ async function getAvailableFiles() {
   return available;
 }
 
+// ──────────────────────────────────────────────
+// 2. Cargar y procesar XLSX
+// ──────────────────────────────────────────────
 async function loadSchedule(path) {
   try {
     const resp = await fetch(path);
@@ -392,6 +319,9 @@ async function loadSchedule(path) {
   }
 }
 
+// ──────────────────────────────────────────────
+// 3. Render tablas normales (pantalla)
+// ──────────────────────────────────────────────
 function renderTables() {
   const emp = empleadoSelect.value;
   const sem = semanaSelect.value;
@@ -448,23 +378,32 @@ function createHorizontalTable(head, rows, startDay, endDay) {
   return table;
 }
 
+// ──────────────────────────────────────────────
+// 4. Generar calendario vertical por días (para PNG cuando Todos)
+// ──────────────────────────────────────────────
 function createDayByDayCalendar() {
   const container = document.createElement('div');
+
   for (let day = 1; day <= daysInMonth; day++) {
     const dayHeader = headers[day] || `Día ${day}`;
     const isWeekend = (day % 7 === 1 || day % 7 === 0);
+
     const dayDiv = document.createElement('div');
     dayDiv.className = 'calendar-day';
     if (isWeekend) dayDiv.style.background = '#ffebee';
+
     const h3 = document.createElement('h3');
     h3.textContent = `${dayHeader}`;
     dayDiv.appendChild(h3);
 
     const workersThatDay = [];
+
     data.forEach(row => {
       const name = String(row[0]).trim();
       const turno = String(row[day] || '').trim();
-      if (turno && turno !== '-') workersThatDay.push({ name, turno });
+      if (turno && turno !== '-') {
+        workersThatDay.push({ name, turno });
+      }
     });
 
     if (workersThatDay.length === 0) {
@@ -481,102 +420,37 @@ function createDayByDayCalendar() {
         dayDiv.appendChild(div);
       });
     }
+
     container.appendChild(dayDiv);
   }
+
   return container;
 }
 
+// ──────────────────────────────────────────────
+// 5. Descarga PNG
+// ──────────────────────────────────────────────
 function downloadPNG(containerIdOrElement, filename) {
   const target = typeof containerIdOrElement === 'string'
     ? document.getElementById(containerIdOrElement)
     : containerIdOrElement;
 
-  html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#f9f9f9' })
-    .then(canvas => {
-      const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
-      a.download = filename;
-      a.click();
-    }).catch(err => alert('Error al generar imagen:\n' + err.message));
+  html2canvas(target, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#f9f9f9'
+  }).then(canvas => {
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = filename;
+    a.click();
+  }).catch(err => {
+    alert('Error al generar imagen:\n' + err.message);
+  });
 }
 
 // ──────────────────────────────────────────────
-// NUEVA FUNCIÓN: Calendario imprimible horizontal
-// ──────────────────────────────────────────────
-function generatePrintCalendar() {
-  const printThead = document.getElementById('printThead');
-  const printTbody = document.getElementById('printTbody');
-  const printMonthTitle = document.getElementById('printMonthTitle');
-
-  printThead.innerHTML = '';
-  printTbody.innerHTML = '';
-  printMonthTitle.textContent = currentMonthName;
-
-  // Fila de encabezado de días
-  const trHeader = document.createElement('tr');
-  trHeader.innerHTML = '<th></th>'; // columna vacía para la esquina
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const th = document.createElement('th');
-    th.textContent = headers[d] || d;
-    const dow = d % 7;
-    if (dow === 1 || dow === 0) th.classList.add('weekend');
-    trHeader.appendChild(th);
-  }
-  printThead.appendChild(trHeader);
-
-  // Una fila por semana
-  const weekCount = Math.ceil(daysInMonth / 7);
-  for (let w = 0; w < weekCount; w++) {
-    const tr = document.createElement('tr');
-    const thWeek = document.createElement('th');
-    thWeek.textContent = `Sem ${w+1}`;
-    thWeek.className = 'day-header';
-    tr.appendChild(thWeek);
-
-    for (let col = 1; col <= 7; col++) {
-      const day = w * 7 + col;
-      const td = document.createElement('td');
-      if (day > daysInMonth) {
-        td.textContent = '';
-      } else {
-        const turnoPorDia = [];
-
-        data.forEach(row => {
-          const nombre = String(row[0]).trim();
-          const horario = String(row[day] || '').trim();
-          if (horario && horario !== '-') {
-            const primerNombre = nombre.split(' ')[0];
-            turnoPorDia.push(`${primerNombre}: ${horario}`);
-          }
-        });
-
-        if (turnoPorDia.length > 0) {
-          td.innerHTML = turnoPorDia.join('<br>');
-        } else {
-          td.innerHTML = '<span style="color:#aaa; font-style:italic">—</span>';
-        }
-
-        const dow = day % 7;
-        if (dow === 1 || dow === 0) td.classList.add('weekend');
-      }
-      tr.appendChild(td);
-    }
-    printTbody.appendChild(tr);
-  }
-
-  // Mostrar y imprimir
-  document.getElementById('printCalendar').style.display = 'block';
-  window.print();
-
-  // Ocultar de nuevo después de imprimir
-  setTimeout(() => {
-    document.getElementById('printCalendar').style.display = 'none';
-  }, 500);
-}
-
-// ──────────────────────────────────────────────
-// Eventos (solo se añade el nuevo botón)
+// Eventos
 // ──────────────────────────────────────────────
 mesSelect.onchange = () => {
   currentPath = mesSelect.value;
@@ -597,6 +471,7 @@ document.getElementById('btnMes').onclick = () => {
   const filename = `Horario_Mes_${currentMonthName.replace(/ /g,'_')}.png`;
 
   if (emp === 'Todos') {
+    // Modo calendario vertical por días
     const tempDiv = document.createElement('div');
     tempDiv.style.padding = '20px';
     tempDiv.style.background = '#f9f9f9';
@@ -615,12 +490,10 @@ document.getElementById('btnMes').onclick = () => {
     downloadPNG(tempDiv, filename);
     document.body.removeChild(tempDiv);
   } else {
+    // Modo tabla horizontal normal
     downloadPNG('mesTable', filename);
   }
 };
-
-// NUEVO BOTÓN
-document.getElementById('btnPrintCalendar').onclick = generatePrintCalendar;
 
 // ──────────────────────────────────────────────
 // Inicio
