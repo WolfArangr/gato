@@ -5,24 +5,199 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Horario Zwilling - MFO</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  
-  <!-- jsPDF + AutoTable -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
-
   <style>
-    /* ... (tu CSS original se mantiene igual) ... */
-    
-    /* Pequeño ajuste para el nuevo botón */
-    .controls button.pdf-btn {
-      background: #00695c;
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
     }
-    .controls button.pdf-btn:hover {
-      background: #004d40;
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo img {
+      max-width: 180px;
+      height: auto;
+    }
+    h1 {
+      margin: 12px 0;
+      color: #ed1c24;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin: 20px 0;
+      padding: 0 10px;
+    }
+    .controls label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+    .controls select {
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: white;
+    }
+    .controls button {
+      padding: 8px 16px;
+      font-size: 1rem;
+      background: #ed1c24;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .controls button:hover {
+      background: #c8101d;
+    }
+    .table-container {
+      margin: 30px 0;
+      overflow-x: auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 16px;
+    }
+    h2 {
+      text-align: center;
+      color: #ed1c24;
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 800px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+    th {
+      background: #ed1c24;
+      color: white;
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    td.name {
+      font-weight: 500;
+      text-align: left;
+      background: #fafafa;
+      min-width: 200px;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+    }
+    .weekend th, .weekend td {
+      background: #ffebee !important;
+    }
+    .empty { color: #999; }
+    .loading {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #555;
+      padding: 60px 0;
+    }
+
+    /* Responsive - vertical cards en móvil */
+    @media (max-width: 768px) {
+      .table-container { overflow-x: hidden; }
+      table { border: 0; min-width: auto; }
+      thead { display: none; }
+      tbody tr {
+        display: block;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      }
+      td {
+        display: block;
+        text-align: right;
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 50%;
+      }
+      td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: calc(50% - 20px);
+        white-space: nowrap;
+        font-weight: 500;
+        text-align: left;
+      }
+      td.name {
+        text-align: center !important;
+        font-size: 1.1rem;
+        background: #ed1c24 !important;
+        color: white;
+        border-bottom: none !important;
+        position: relative;
+        left: 0;
+        padding: 12px;
+        border-radius: 6px 6px 0 0;
+      }
+      td.name:before { display: none; }
+      .weekend td { background: #ffebee !important; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .controls select, .controls button { width: 100%; }
+    }
+
+    /* Estilo para el calendario por días (solo usado en PNG cuando Todos) */
+    .calendar-day {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin: 12px 0;
+      padding: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .calendar-day h3 {
+      margin: 0 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #ed1c24;
+      color: #ed1c24;
+      font-size: 1.2rem;
+    }
+    .calendar-day .shift {
+      padding: 6px 0;
+      border-bottom: 1px dashed #eee;
+    }
+    .calendar-day .shift:last-child { border-bottom: none; }
+    .calendar-day .no-turno {
+      color: #999;
+      font-style: italic;
+      padding: 8px 0;
+    }
+
+    /* Para el calendario imprimible (solo en memoria para PDF) */
+    #printable-calendar {
+      display: none;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+
 <header>
   <div class="logo">
     <img src="https://kitchenbits.com/cdn/shop/collections/zwilling_logo.png?v=1628181183&width=1193" alt="Zwilling Logo">
@@ -44,7 +219,7 @@
   </label>
   <button id="btnMes">📥 Descargar Mes (PNG)</button>
   <button id="btnSemana">📥 Descargar Semana (PNG)</button>
-  <button id="btnPDFHorizontal" class="pdf-btn">📄 PDF Horario Horizontal</button>
+  <button id="btnPrintCalendar">🖨️ Calendario Imprimible (PDF)</button>
 </div>
 
 <div id="loading" class="loading">Buscando meses disponibles en /MFO y cargando horario …</div>
@@ -59,9 +234,12 @@
   <div id="semanaTable"></div>
 </div>
 
+<!-- Contenedor oculto para el calendario imprimible -->
+<div id="printable-calendar"></div>
+
 <script>
 // ──────────────────────────────────────────────
-// CONFIGURACIÓN MESES  (sin cambios)
+// CONFIGURACIÓN MESES
 // ──────────────────────────────────────────────
 const monthOrder = {
   ENERO:1, FEBRERO:2, MARZO:3, ABRIL:4, MAYO:5, JUNIO:6,
@@ -70,14 +248,16 @@ const monthOrder = {
 const possibleMonths = Object.keys(monthOrder);
 const year = '26';
 const possibleFiles = possibleMonths.map(m => `/MFO/MFO ${m}${year}.xlsx`);
-const mesSelect    = document.getElementById('mesSelect');
+
+const mesSelect      = document.getElementById('mesSelect');
 const empleadoSelect = document.getElementById('empleadoSelect');
-const semanaSelect = document.getElementById('semanaSelect');
-const loading      = document.getElementById('loading');
-const mesContainer = document.getElementById('mesContainer');
-const semanaContainer = document.getElementById('semanaContainer');
-const mesTableDiv  = document.getElementById('mesTable');
+const semanaSelect   = document.getElementById('semanaSelect');
+const loading        = document.getElementById('loading');
+const mesContainer   = document.getElementById('mesContainer');
+const semanaContainer= document.getElementById('semanaContainer');
+const mesTableDiv    = document.getElementById('mesTable');
 const semanaTableDiv = document.getElementById('semanaTable');
+const printableDiv   = document.getElementById('printable-calendar');
 
 let currentPath = '';
 let headers = [];
@@ -86,139 +266,312 @@ let daysInMonth = 0;
 let currentMonthName = '';
 
 // ──────────────────────────────────────────────
-// Funciones originales (sin cambios en la mayoría)
+// 1. Buscar archivos disponibles
 // ──────────────────────────────────────────────
-async function getAvailableFiles() { /* igual */ }
-async function loadSchedule(path) { /* igual */ }
-function renderTables() { /* igual */ }
-function createHorizontalTable(head, rows, startDay, endDay) { /* igual */ }
-function createDayByDayCalendar() { /* igual */ }
-function downloadPNG(containerIdOrElement, filename) { /* igual */ }
-
-// ──────────────────────────────────────────────
-// NUEVA: Obtiene la hora de inicio más temprana de un empleado
-// Acepta formatos como "06:00-14:00", "Tarde", "Mañana", "Libre", etc.
-// ──────────────────────────────────────────────
-function getEarliestStartTime(row) {
-  let minHour = 24;
-  for (let col = 1; col < row.length; col++) {
-    let turno = String(row[col] || '').trim();
-    if (!turno || turno === '-' || turno.toLowerCase().includes('libre')) continue;
-
-    let match = turno.match(/^(\d{1,2}):\d{2}/);
-    if (match) {
-      let h = parseInt(match[1], 10);
-      if (h < minHour) minHour = h;
-      continue;
+async function getAvailableFiles() {
+  const checks = possibleFiles.map(async path => {
+    try {
+      const res = await fetch(path, { method: 'HEAD' });
+      return res.ok ? path : null;
+    } catch {
+      return null;
     }
-
-    // Palabras clave aproximadas
-    if (/mañan|6|7|8/i.test(turno)) minHour = Math.min(minHour, 7);
-    if (/tard|14|15|16/i.test(turno)) minHour = Math.min(minHour, 14);
-    if (/noch|22|23|0/i.test(turno)) minHour = Math.min(minHour, 22);
-  }
-  return minHour;
+  });
+  const available = (await Promise.all(checks)).filter(Boolean);
+  available.sort((a,b) => {
+    const ma = a.match(/ ([A-Z]+)26/)[1];
+    const mb = b.match(/ ([A-Z]+)26/)[1];
+    return (monthOrder[ma]||99) - (monthOrder[mb]||99);
+  });
+  return available;
 }
 
 // ──────────────────────────────────────────────
-// NUEVA: Genera PDF horizontal ordenado por horario
+// 2. Cargar y procesar XLSX
 // ──────────────────────────────────────────────
-function generateHorizontalPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+async function loadSchedule(path) {
+  try {
+    const resp = await fetch(path);
+    if (!resp.ok) throw new Error(`No se pudo cargar ${path}`);
+    const ab = await resp.arrayBuffer();
+    const wb = XLSX.read(ab, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
-  // Título
-  doc.setFontSize(16);
-  doc.setTextColor(237, 28, 36); // #ed1c24
-  doc.text(`Horario ${currentMonthName} - Zwilling MFO`, 15, 12);
+    headers = json[2] || [];
+    data = json.slice(3).filter(row => row[0] && String(row[0]).trim());
 
-  doc.setFontSize(10);
-  doc.setTextColor(0);
-  doc.text(`Generado el ${new Date().toLocaleDateString('es-ES')}`, 15, 18);
+    daysInMonth = headers.length - 1;
 
-  // Preparar datos ─ solo empleados con al menos un turno
-  let employees = data
-    .filter(row => String(row[0]).trim())
-    .map(row => ({
-      name: String(row[0]).trim(),
-      rowData: row,
-      earliest: getEarliestStartTime(row)
-    }))
-    .filter(e => e.earliest < 24); // al menos un turno detectado
+    empleadoSelect.innerHTML = '<option value="Todos">Todos</option>';
+    data.forEach(row => {
+      const n = String(row[0]).trim();
+      if (n) empleadoSelect.appendChild(new Option(n, n));
+    });
 
-  // Ordenar por hora más temprana, luego por nombre
-  employees.sort((a,b) => {
-    if (a.earliest !== b.earliest) return a.earliest - b.earliest;
-    return a.name.localeCompare(b.name);
+    semanaSelect.innerHTML = '<option value="Todas">Todo el mes</option>';
+    const numWeeks = Math.ceil(daysInMonth / 7);
+    for (let w=1; w<=numWeeks; w++) {
+      const s = (w-1)*7 + 1;
+      const e = Math.min(s+6, daysInMonth);
+      semanaSelect.appendChild(new Option(`Semana ${w} (${s}–${e})`, w));
+    }
+
+    currentMonthName = path.match(/MFO (.*26)\.xlsx/)[1].replace('26', ' 2026');
+
+    loading.style.display = 'none';
+    mesContainer.style.display = 'block';
+    semanaContainer.style.display = 'block';
+
+    renderTables();
+  } catch (err) {
+    loading.innerHTML = `Error al cargar:<br><pre>${err.message}</pre>`;
+    console.error(err);
+  }
+}
+
+// ──────────────────────────────────────────────
+// Render tablas normales (pantalla)
+// ──────────────────────────────────────────────
+function renderTables() {
+  const emp = empleadoSelect.value;
+  const sem = semanaSelect.value;
+
+  const filtered = emp === 'Todos' ? data : data.filter(r => String(r[0]).trim() === emp);
+
+  mesTableDiv.innerHTML = '';
+  mesTableDiv.appendChild(createHorizontalTable(headers, filtered, 1, daysInMonth));
+
+  let start = 1, end = daysInMonth;
+  if (sem !== 'Todas') {
+    const w = Number(sem);
+    start = (w-1)*7 + 1;
+    end = Math.min(start + 6, daysInMonth);
+  }
+  const wh = [headers[0], ...headers.slice(start, end+1)];
+  const wd = filtered.map(r => [r[0], ...r.slice(start, end+1)]);
+
+  semanaTableDiv.innerHTML = '';
+  semanaTableDiv.appendChild(createHorizontalTable(wh, wd, start, end));
+}
+
+function createHorizontalTable(head, rows, startDay, endDay) {
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  head.forEach((txt, i) => {
+    const th = document.createElement('th');
+    th.textContent = txt || '';
+    if (i >= 1) {
+      const d = startDay + i - 1;
+      if (d % 7 === 1 || d % 7 === 0) th.classList.add('weekend');
+    }
+    trh.appendChild(th);
   });
+  thead.appendChild(trh);
+  table.appendChild(thead);
 
-  // Construir body para autoTable
-  const body = employees.map(e => {
-    const cells = [e.name];
+  const tbody = document.createElement('tbody');
+  rows.forEach(row => {
+    const tr = document.createElement('tr');
+    row.forEach((cell, i) => {
+      const td = document.createElement('td');
+      td.textContent = cell || '-';
+      td.dataset.label = head[i] || '';
+      if (i === 0) td.classList.add('name');
+      else if ((startDay + i - 1) % 7 === 1 || (startDay + i - 1) % 7 === 0) td.classList.add('weekend');
+      if (!cell) td.classList.add('empty');
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  return table;
+}
+
+// ──────────────────────────────────────────────
+// Calendario por días (para PNG "Todos")
+// ──────────────────────────────────────────────
+function createDayByDayCalendar() {
+  const container = document.createElement('div');
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayHeader = headers[day] || `Día ${day}`;
+    const isWeekend = (day % 7 === 1 || day % 7 === 0);
+
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'calendar-day';
+    if (isWeekend) dayDiv.style.background = '#ffebee';
+
+    const h3 = document.createElement('h3');
+    h3.textContent = `${dayHeader}`;
+    dayDiv.appendChild(h3);
+
+    const workersThatDay = [];
+
+    data.forEach(row => {
+      const name = String(row[0]).trim();
+      const turno = String(row[day] || '').trim();
+      if (turno && turno !== '-') {
+        workersThatDay.push({ name, turno });
+      }
+    });
+
+    if (workersThatDay.length === 0) {
+      const p = document.createElement('div');
+      p.className = 'no-turno';
+      p.textContent = 'No hay turnos programados';
+      dayDiv.appendChild(p);
+    } else {
+      workersThatDay.sort((a,b) => a.name.localeCompare(b.name));
+      workersThatDay.forEach(({name, turno}) => {
+        const div = document.createElement('div');
+        div.className = 'shift';
+        div.innerHTML = `<strong>${name}</strong> → ${turno}`;
+        dayDiv.appendChild(div);
+      });
+    }
+
+    container.appendChild(dayDiv);
+  }
+
+  return container;
+}
+
+// ──────────────────────────────────────────────
+// Generar calendario horizontal para PDF (ordenado por turno)
+// ──────────────────────────────────────────────
+function generatePrintableCalendar() {
+  printableDiv.innerHTML = '';
+
+  const title = document.createElement('h1');
+  title.textContent = `Horario Completo - ${currentMonthName}`;
+  title.style.color = '#ed1c24';
+  title.style.textAlign = 'center';
+  title.style.marginBottom = '20px';
+  printableDiv.appendChild(title);
+
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  table.style.fontSize = '10pt';
+
+  // Encabezado
+  const thead = document.createElement('thead');
+  const trHead = document.createElement('tr');
+  const thName = document.createElement('th');
+  thName.textContent = 'Empleado';
+  thName.style.border = '1px solid #000';
+  thName.style.padding = '8px';
+  thName.style.background = '#ed1c24';
+  thName.style.color = 'white';
+  thName.style.position = 'sticky';
+  thName.style.left = '0';
+  trHead.appendChild(thName);
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const th = document.createElement('th');
+    th.textContent = headers[d] || d;
+    th.style.border = '1px solid #000';
+    th.style.padding = '6px';
+    th.style.background = (d % 7 === 1 || d % 7 === 0) ? '#ffebee' : '#f8f8f8';
+    trHead.appendChild(th);
+  }
+  thead.appendChild(trHead);
+  table.appendChild(thead);
+
+  // Filas - ordenadas por nombre (o puedes cambiar el criterio)
+  const sortedData = [...data].sort((a,b) => String(a[0]).trim().localeCompare(String(b[0]).trim()));
+
+  const tbody = document.createElement('tbody');
+  sortedData.forEach(row => {
+    const name = String(row[0]).trim();
+    const tr = document.createElement('tr');
+
+    const tdName = document.createElement('td');
+    tdName.textContent = name;
+    tdName.style.border = '1px solid #000';
+    tdName.style.padding = '8px';
+    tdName.style.background = '#fafafa';
+    tdName.style.fontWeight = '500';
+    tdName.style.position = 'sticky';
+    tdName.style.left = '0';
+    tr.appendChild(tdName);
+
     for (let d = 1; d <= daysInMonth; d++) {
-      let val = String(e.rowData[d] || '').trim();
-      cells.push(val || '-');
+      const turno = String(row[d] || '').trim();
+      const td = document.createElement('td');
+      td.textContent = turno || '-';
+      td.style.border = '1px solid #000';
+      td.style.padding = '6px';
+      td.style.textAlign = 'center';
+      if (d % 7 === 1 || d % 7 === 0) td.style.background = '#ffebee';
+      tr.appendChild(td);
     }
-    return cells;
+
+    tbody.appendChild(tr);
   });
+  table.appendChild(tbody);
 
-  // Cabecera
-  const head = [headers.map((h,i) => i===0 ? "Empleado" : h)];
-
-  // Generar tabla
-  doc.autoTable({
-    head: head,
-    body: body,
-    startY: 28,
-    theme: 'grid',
-    styles: {
-      fontSize: 8,
-      cellPadding: 2.2,
-      overflow: 'linebreak',
-      halign: 'center',
-      lineWidth: 0.1,
-      lineColor: [220,220,220]
-    },
-    headStyles: {
-      fillColor: [237, 28, 36],
-      textColor: 255,
-      fontSize: 8.5,
-      fontStyle: 'bold'
-    },
-    columnStyles: {
-      0: { 
-        cellWidth: 38, 
-        halign: 'left', 
-        fillColor: [250,250,250] 
-      }
-    },
-    margin: { top: 28, left: 12, right: 12 },
-    didParseCell(data) {
-      // Días fin de semana
-      if (data.column.index >= 1) {
-        const dayNum = data.column.index;
-        if (dayNum % 7 === 1 || dayNum % 7 === 0) {
-          data.cell.styles.fillColor = [255, 235, 238]; // #ffebee
-        }
-      }
-    }
-  });
-
-  // Pie de página simple
-  const pageCount = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.text(`Página ${i} de ${pageCount} — Horario confidencial`, 15, doc.internal.pageSize.height - 10);
-  }
-
-  // Descargar
-  const filename = `Horario_Horizontal_${currentMonthName.replace(/ /g,'_')}_2026.pdf`;
-  doc.save(filename);
+  printableDiv.appendChild(table);
 }
 
 // ──────────────────────────────────────────────
-// Eventos (se añade el nuevo botón)
+// Descarga PNG
+// ──────────────────────────────────────────────
+function downloadPNG(containerIdOrElement, filename) {
+  const target = typeof containerIdOrElement === 'string'
+    ? document.getElementById(containerIdOrElement)
+    : containerIdOrElement;
+
+  html2canvas(target, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#f9f9f9'
+  }).then(canvas => {
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = filename;
+    a.click();
+  }).catch(err => alert('Error al generar imagen:\n' + err.message));
+}
+
+// ──────────────────────────────────────────────
+// Descarga PDF imprimible
+// ──────────────────────────────────────────────
+function downloadPrintablePDF() {
+  generatePrintableCalendar();
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  pdf.setFont("helvetica");
+  pdf.setFontSize(18);
+  pdf.setTextColor(237, 28, 36);
+  pdf.text(`Horario Completo - ${currentMonthName}`, 14, 18);
+
+  pdf.setFontSize(10);
+  pdf.setTextColor(0);
+
+  pdf.html(printableDiv, {
+    callback: function (pdf) {
+      pdf.save(`Horario_Imprimible_${currentMonthName.replace(/ /g,'_')}.pdf`);
+    },
+    x: 10,
+    y: 25,
+    width: 277,          // A4 landscape usable width ~277mm
+    windowWidth: 1200,   // ayuda a escalar correctamente el HTML
+    autoPaging: 'text',
+    margin: [0, 0, 10, 0]
+  });
+}
+
+// ──────────────────────────────────────────────
+// Eventos
 // ──────────────────────────────────────────────
 mesSelect.onchange = () => {
   currentPath = mesSelect.value;
@@ -237,18 +590,22 @@ document.getElementById('btnSemana').onclick = () =>
 document.getElementById('btnMes').onclick = () => {
   const emp = empleadoSelect.value;
   const filename = `Horario_Mes_${currentMonthName.replace(/ /g,'_')}.png`;
+
   if (emp === 'Todos') {
     const tempDiv = document.createElement('div');
     tempDiv.style.padding = '20px';
     tempDiv.style.background = '#f9f9f9';
     tempDiv.style.maxWidth = '800px';
     tempDiv.style.margin = '0 auto';
+
     const title = document.createElement('h2');
     title.textContent = `Horario Completo - ${currentMonthName}`;
     title.style.color = '#ed1c24';
     title.style.textAlign = 'center';
     tempDiv.appendChild(title);
+
     tempDiv.appendChild(createDayByDayCalendar());
+
     document.body.appendChild(tempDiv);
     downloadPNG(tempDiv, filename);
     document.body.removeChild(tempDiv);
@@ -257,8 +614,7 @@ document.getElementById('btnMes').onclick = () => {
   }
 };
 
-// ¡Nuevo evento!
-document.getElementById('btnPDFHorizontal').onclick = generateHorizontalPDF;
+document.getElementById('btnPrintCalendar').onclick = downloadPrintablePDF;
 
 // ──────────────────────────────────────────────
 // Inicio
@@ -269,6 +625,7 @@ document.getElementById('btnPDFHorizontal').onclick = generateHorizontalPDF;
     loading.innerHTML = 'No se encontraron archivos en /MFO/';
     return;
   }
+
   available.forEach(path => {
     const m = path.match(/ ([A-Z]+)26/)[1];
     const display = `${m} 2026`;
@@ -276,6 +633,7 @@ document.getElementById('btnPDFHorizontal').onclick = generateHorizontalPDF;
     if (m === 'FEBRERO') opt.selected = true;
     mesSelect.appendChild(opt);
   });
+
   currentPath = mesSelect.value;
   await loadSchedule(currentPath);
 })();
