@@ -160,7 +160,7 @@
       .controls select, .controls button { width: 100%; }
     }
 
-    /* Estilo para el calendario vertical por días (PNG cuando Todos) */
+    /* Estilo para el calendario por días (solo usado en PNG cuando Todos) */
     .calendar-day {
       background: white;
       border: 1px solid #ddd;
@@ -187,52 +187,74 @@
       padding: 8px 0;
     }
 
-    /* Ocultar elementos que solo usamos para generar PDF */
-    #printCalendarContainer {
-      position: absolute;
-      left: -9999px;
-      top: -9999px;
-      width: 297mm; /* A4 landscape */
-      background: white;
-      padding: 10mm;
-      box-sizing: border-box;
-      font-size: 9pt;
+    /* ──────────────────────────────────────────────
+       ESTILOS SOLO PARA EL CALENDARIO IMPRIMIBLE
+    ────────────────────────────────────────────── */
+    @media print {
+      body * { visibility: hidden; }
+      #printCalendar, #printCalendar * { visibility: visible; }
+      #printCalendar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .no-print { display: none !important; }
     }
-    #printCalendarContainer table {
+
+    #printCalendar {
+      display: none;
+    }
+
+    #printCalendar table {
       width: 100%;
-      min-width: auto;
       font-size: 9pt;
+      border-collapse: collapse;
+      page-break-inside: avoid;
     }
-    #printCalendarContainer th, #printCalendarContainer td {
+
+    #printCalendar th, #printCalendar td {
+      border: 1px solid #888;
       padding: 4px 6px;
-      font-size: 9pt;
-      border: 0.5pt solid #888;
+      text-align: center;
+      vertical-align: top;
+      height: 60px;
     }
-    #printCalendarContainer th {
+
+    #printCalendar th {
       background: #ed1c24;
       color: white;
+      font-size: 10pt;
+      padding: 6px;
+    }
+
+    #printCalendar .day-header {
       font-weight: bold;
-    }
-    #printCalendarContainer td.name {
+      font-size: 11pt;
       background: #f8f8f8;
-      text-align: left;
-      font-weight: 500;
-      min-width: 28mm;
+      padding: 8px;
     }
-    #printCalendarContainer .weekend {
-      background: #fff0f0 !important;
+
+    #printCalendar .cell-content {
+      font-size: 8.5pt;
+      line-height: 1.2;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
-    #printCalendarContainer .title {
+
+    #printCalendar .weekend {
+      background: #fff0f0;
+    }
+
+    #printCalendar .title-print {
       text-align: center;
       color: #ed1c24;
-      font-size: 16pt;
-      margin-bottom: 8mm;
-      font-weight: bold;
+      font-size: 18pt;
+      margin: 0 0 16px 0;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -257,7 +279,7 @@
   </label>
   <button id="btnMes">📥 Descargar Mes (PNG)</button>
   <button id="btnSemana">📥 Descargar Semana (PNG)</button>
-  <button id="btnPrintCalendar">🖨️ Calendario para imprimir (PDF)</button>
+  <button id="btnPrintCalendar">🖨️ Calendario Imprimible (PDF)</button>
 </div>
 
 <div id="loading" class="loading">Buscando meses disponibles en /MFO y cargando horario …</div>
@@ -272,12 +294,19 @@
   <div id="semanaTable"></div>
 </div>
 
-<!-- Contenedor oculto solo para generar el PDF -->
-<div id="printCalendarContainer"></div>
+<!-- Contenedor oculto para el calendario imprimible -->
+<div id="printCalendar">
+  <h1 class="title-print">Horario Zwilling - MFO</h1>
+  <h2 id="printMonthTitle" class="title-print"></h2>
+  <table id="printTable">
+    <thead id="printThead"></thead>
+    <tbody id="printTbody"></tbody>
+  </table>
+</div>
 
 <script>
 // ──────────────────────────────────────────────
-// CONFIGURACIÓN MESES
+// CONFIGURACIÓN MESES (sin cambios)
 // ──────────────────────────────────────────────
 const monthOrder = {
   ENERO:1, FEBRERO:2, MARZO:3, ABRIL:4, MAYO:5, JUNIO:6,
@@ -295,7 +324,6 @@ const mesContainer   = document.getElementById('mesContainer');
 const semanaContainer= document.getElementById('semanaContainer');
 const mesTableDiv    = document.getElementById('mesTable');
 const semanaTableDiv = document.getElementById('semanaTable');
-const printContainer = document.getElementById('printCalendarContainer');
 
 let currentPath = '';
 let headers = [];
@@ -304,16 +332,15 @@ let daysInMonth = 0;
 let currentMonthName = '';
 
 // ──────────────────────────────────────────────
-// 1. Buscar archivos disponibles
+// Funciones existentes (sin cambios) ...
 // ──────────────────────────────────────────────
+
 async function getAvailableFiles() {
   const checks = possibleFiles.map(async path => {
     try {
       const res = await fetch(path, { method: 'HEAD' });
       return res.ok ? path : null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   });
   const available = (await Promise.all(checks)).filter(Boolean);
   available.sort((a,b) => {
@@ -324,9 +351,6 @@ async function getAvailableFiles() {
   return available;
 }
 
-// ──────────────────────────────────────────────
-// 2. Cargar y procesar XLSX
-// ──────────────────────────────────────────────
 async function loadSchedule(path) {
   try {
     const resp = await fetch(path);
@@ -368,9 +392,6 @@ async function loadSchedule(path) {
   }
 }
 
-// ──────────────────────────────────────────────
-// 3. Render tablas normales (pantalla)
-// ──────────────────────────────────────────────
 function renderTables() {
   const emp = empleadoSelect.value;
   const sem = semanaSelect.value;
@@ -427,32 +448,23 @@ function createHorizontalTable(head, rows, startDay, endDay) {
   return table;
 }
 
-// ──────────────────────────────────────────────
-// 4. Generar calendario vertical por días (para PNG cuando Todos)
-// ──────────────────────────────────────────────
 function createDayByDayCalendar() {
   const container = document.createElement('div');
-
   for (let day = 1; day <= daysInMonth; day++) {
     const dayHeader = headers[day] || `Día ${day}`;
     const isWeekend = (day % 7 === 1 || day % 7 === 0);
-
     const dayDiv = document.createElement('div');
     dayDiv.className = 'calendar-day';
     if (isWeekend) dayDiv.style.background = '#ffebee';
-
     const h3 = document.createElement('h3');
     h3.textContent = `${dayHeader}`;
     dayDiv.appendChild(h3);
 
     const workersThatDay = [];
-
     data.forEach(row => {
       const name = String(row[0]).trim();
       const turno = String(row[day] || '').trim();
-      if (turno && turno !== '-') {
-        workersThatDay.push({ name, turno });
-      }
+      if (turno && turno !== '-') workersThatDay.push({ name, turno });
     });
 
     if (workersThatDay.length === 0) {
@@ -469,142 +481,102 @@ function createDayByDayCalendar() {
         dayDiv.appendChild(div);
       });
     }
-
     container.appendChild(dayDiv);
   }
-
   return container;
 }
 
-// ──────────────────────────────────────────────
-// 5. Generar tabla horizontal para imprimir (todos los empleados)
-// ──────────────────────────────────────────────
-function generatePrintCalendar() {
-  printContainer.innerHTML = '';
-
-  const title = document.createElement('div');
-  title.className = 'title';
-  title.textContent = `Horario Zwilling MFO – ${currentMonthName}`;
-  printContainer.appendChild(title);
-
-  const table = document.createElement('table');
-
-  // Cabecera
-  const thead = document.createElement('thead');
-  const trh = document.createElement('tr');
-  const thName = document.createElement('th');
-  thName.textContent = 'Empleado';
-  thName.style.width = '32mm';
-  trh.appendChild(thName);
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const th = document.createElement('th');
-    th.textContent = headers[d] || d;
-    if (d % 7 === 1 || d % 7 === 0) th.classList.add('weekend');
-    trh.appendChild(th);
-  }
-  thead.appendChild(trh);
-  table.appendChild(thead);
-
-  // Cuerpo – ordenado alfabéticamente por nombre
-  const tbody = document.createElement('tbody');
-  const sortedData = [...data].sort((a,b) => {
-    return String(a[0]).trim().localeCompare(String(b[0]).trim());
-  });
-
-  sortedData.forEach(row => {
-    const tr = document.createElement('tr');
-    const tdName = document.createElement('td');
-    tdName.textContent = String(row[0]).trim();
-    tdName.classList.add('name');
-    tr.appendChild(tdName);
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const td = document.createElement('td');
-      const turno = String(row[d] || '').trim();
-      td.textContent = turno || '-';
-      if (d % 7 === 1 || d % 7 === 0) td.classList.add('weekend');
-      if (!turno) td.classList.add('empty');
-      tr.appendChild(td);
-    }
-    tbody.appendChild(tr);
-  });
-
-  table.appendChild(tbody);
-  printContainer.appendChild(table);
-}
-
-// ──────────────────────────────────────────────
-// 6. Descarga PNG
-// ──────────────────────────────────────────────
 function downloadPNG(containerIdOrElement, filename) {
   const target = typeof containerIdOrElement === 'string'
     ? document.getElementById(containerIdOrElement)
     : containerIdOrElement;
 
-  html2canvas(target, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: '#f9f9f9'
-  }).then(canvas => {
-    const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
-    a.download = filename;
-    a.click();
-  }).catch(err => {
-    alert('Error al generar imagen:\n' + err.message);
-  });
+  html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#f9f9f9' })
+    .then(canvas => {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = filename;
+      a.click();
+    }).catch(err => alert('Error al generar imagen:\n' + err.message));
 }
 
 // ──────────────────────────────────────────────
-// 7. Generar PDF para imprimir (apaisado A4)
+// NUEVA FUNCIÓN: Calendario imprimible horizontal
 // ──────────────────────────────────────────────
-function generatePrintPDF() {
-  generatePrintCalendar();
+function generatePrintCalendar() {
+  const printThead = document.getElementById('printThead');
+  const printTbody = document.getElementById('printTbody');
+  const printMonthTitle = document.getElementById('printMonthTitle');
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: 'a4'
-  });
+  printThead.innerHTML = '';
+  printTbody.innerHTML = '';
+  printMonthTitle.textContent = currentMonthName;
 
-  html2canvas(printContainer, {
-    scale: 2,
-    useCORS: true,
-    width: printContainer.offsetWidth,
-    height: printContainer.offsetHeight
-  }).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
-    const imgWidth = 297; // A4 landscape width in mm
-    const pageHeight = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  // Fila de encabezado de días
+  const trHeader = document.createElement('tr');
+  trHeader.innerHTML = '<th></th>'; // columna vacía para la esquina
 
-    let heightLeft = imgHeight;
-    let position = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const th = document.createElement('th');
+    th.textContent = headers[d] || d;
+    const dow = d % 7;
+    if (dow === 1 || dow === 0) th.classList.add('weekend');
+    trHeader.appendChild(th);
+  }
+  printThead.appendChild(trHeader);
 
-    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
+  // Una fila por semana
+  const weekCount = Math.ceil(daysInMonth / 7);
+  for (let w = 0; w < weekCount; w++) {
+    const tr = document.createElement('tr');
+    const thWeek = document.createElement('th');
+    thWeek.textContent = `Sem ${w+1}`;
+    thWeek.className = 'day-header';
+    tr.appendChild(thWeek);
 
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      doc.addPage();
-      doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+    for (let col = 1; col <= 7; col++) {
+      const day = w * 7 + col;
+      const td = document.createElement('td');
+      if (day > daysInMonth) {
+        td.textContent = '';
+      } else {
+        const turnoPorDia = [];
+
+        data.forEach(row => {
+          const nombre = String(row[0]).trim();
+          const horario = String(row[day] || '').trim();
+          if (horario && horario !== '-') {
+            const primerNombre = nombre.split(' ')[0];
+            turnoPorDia.push(`${primerNombre}: ${horario}`);
+          }
+        });
+
+        if (turnoPorDia.length > 0) {
+          td.innerHTML = turnoPorDia.join('<br>');
+        } else {
+          td.innerHTML = '<span style="color:#aaa; font-style:italic">—</span>';
+        }
+
+        const dow = day % 7;
+        if (dow === 1 || dow === 0) td.classList.add('weekend');
+      }
+      tr.appendChild(td);
     }
+    printTbody.appendChild(tr);
+  }
 
-    doc.save(`Horario_Imprimir_${currentMonthName.replace(/ /g,'_')}.pdf`);
+  // Mostrar y imprimir
+  document.getElementById('printCalendar').style.display = 'block';
+  window.print();
 
-    // Limpiar contenedor
-    printContainer.innerHTML = '';
-  }).catch(err => {
-    alert('Error al generar PDF:\n' + err.message);
-    printContainer.innerHTML = '';
-  });
+  // Ocultar de nuevo después de imprimir
+  setTimeout(() => {
+    document.getElementById('printCalendar').style.display = 'none';
+  }, 500);
 }
 
 // ──────────────────────────────────────────────
-// Eventos
+// Eventos (solo se añade el nuevo botón)
 // ──────────────────────────────────────────────
 mesSelect.onchange = () => {
   currentPath = mesSelect.value;
@@ -647,7 +619,8 @@ document.getElementById('btnMes').onclick = () => {
   }
 };
 
-document.getElementById('btnPrintCalendar').onclick = generatePrintPDF;
+// NUEVO BOTÓN
+document.getElementById('btnPrintCalendar').onclick = generatePrintCalendar;
 
 // ──────────────────────────────────────────────
 // Inicio
