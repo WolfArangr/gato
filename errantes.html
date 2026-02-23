@@ -97,6 +97,56 @@
             color: #8b0000;
             border-bottom: 1px solid #8b0000;
         }
+        #toc {
+            text-align: center;
+            margin-bottom: 60px;
+            font-size: 1.2em;
+        }
+        #toc h3 {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.8em;
+            color: #4b2e1a;
+            margin-bottom: 20px;
+        }
+        #toc ul {
+            list-style: none;
+            padding: 0;
+        }
+        #toc li {
+            margin: 10px 0;
+        }
+        #toc a {
+            color: #8b4513;
+            text-decoration: none;
+        }
+        #toc a:hover {
+            color: #8b0000;
+        }
+        #localidades {
+            margin-top: 60px;
+            text-align: center;
+        }
+        #localidades summary {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.6em;
+            color: #4b2e1a;
+            cursor: pointer;
+        }
+        #localidades ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        #localidades li {
+            margin: 8px 0;
+        }
+        #localidades a {
+            color: #8b4513;
+            text-decoration: none;
+        }
+        #localidades a:hover {
+            color: #8b0000;
+        }
         /* Responsive */
         @media (max-width: 768px) {
             body { padding: 10px; }
@@ -123,16 +173,25 @@
         <div id="title-page">
             <h1 class="main-title">Los Errantes de Kurghaimat</h1>
             <h1 class="author">Edvard Arangr</h1>
+            <div id="toc">
+                <!-- El índice se genera dinámicamente aquí -->
+            </div>
         </div>
         <div id="content">
             <div id="loading">Cargando la crónica...</div>
         </div>
+        <details id="localidades">
+            <summary>Localidades Mencionadas</summary>
+            <!-- La lista se genera dinámicamente aquí -->
+        </details>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const contentDiv = document.getElementById('content');
             const loading = document.getElementById('loading');
+            const tocDiv = document.getElementById('toc');
+            const localidadesDetails = document.getElementById('localidades');
 
             try {
                 const response = await fetch('LosErrantesdeKurghaimat.html');
@@ -145,6 +204,8 @@
 
                 // Procesar capítulos
                 const chapterHeaders = tempDiv.querySelectorAll('h1.c7');
+                const chapters = [];
+                let chapterIndex = 1;
                 chapterHeaders.forEach(header => {
                     const span = header.querySelector('span.c4');
                     let text = (span?.textContent || header.textContent || '').trim();
@@ -156,6 +217,7 @@
                     const h2Num = document.createElement('h2');
                     h2Num.className = 'chapter-num';
                     h2Num.textContent = chapterNum;
+                    h2Num.id = `chapter-${chapterIndex}`; // Asignar ID para enlace
 
                     const h2Sub = document.createElement('h2');
                     h2Sub.className = 'chapter-title';
@@ -164,8 +226,29 @@
                     header.parentNode.insertBefore(h2Num, header);
                     if (chapterSub) header.parentNode.insertBefore(h2Sub, header.nextSibling);
 
+                    chapters.push({ num: chapterNum, id: `chapter-${chapterIndex}` });
+                    chapterIndex++;
+
                     header.remove();
                 });
+
+                // Generar índice dinámico
+                if (chapters.length > 0) {
+                    const tocH3 = document.createElement('h3');
+                    tocH3.textContent = 'Índice de Capítulos';
+                    tocDiv.appendChild(tocH3);
+
+                    const tocUl = document.createElement('ul');
+                    chapters.forEach(ch => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = `#${ch.id}`;
+                        a.textContent = ch.num;
+                        li.appendChild(a);
+                        tocUl.appendChild(li);
+                    });
+                    tocDiv.appendChild(tocUl);
+                }
 
                 // Limpieza de párrafos vacíos / irrelevantes
                 tempDiv.querySelectorAll('p').forEach(p => {
@@ -180,7 +263,99 @@
                 contentDiv.innerHTML = tempDiv.innerHTML;
                 loading?.remove();
 
-                // (Aquí puedes dejar o quitar el bloque de localidades si lo usas)
+                // Procesar localidades (asumiendo que las imágenes existen en 'localidades/')
+                const localidadesDir = 'localidades/';
+                const extension = '.jpg';
+                async function imageExists(url) {
+                    return new Promise(resolve => {
+                        const img = new Image();
+                        img.onload = () => resolve(true);
+                        img.onerror = () => resolve(false);
+                        img.src = url;
+                    });
+                }
+
+                // Recolectar nodos de texto
+                const textNodes = [];
+                const walker = document.createTreeWalker(contentDiv, NodeFilter.SHOW_TEXT, null);
+                let node;
+                while (node = walker.nextNode()) {
+                    if (node.parentNode && node.nodeValue.trim() &&
+                        !['SCRIPT', 'STYLE'].includes(node.parentNode.tagName)) {
+                        textNodes.push(node);
+                    }
+                }
+
+                // Encontrar posibles nombres propios (empezando por mayúscula, al menos 3 letras)
+                const possibleNames = new Set();
+                textNodes.forEach(textNode => {
+                    const matches = textNode.nodeValue.matchAll(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ-]{2,}\b/g);
+                    for (const match of matches) {
+                        possibleNames.add(match[0]);
+                    }
+                });
+
+                // Verificar existencia (normalizando a minúsculas)
+                const validLocalidades = new Map(); // original → lowercase
+                for (const name of possibleNames) {
+                    const lowerName = name.toLowerCase();
+                    const url = localidadesDir + lowerName + extension;
+                    if (await imageExists(url)) {
+                        validLocalidades.set(name, lowerName);
+                    }
+                }
+
+                if (validLocalidades.size === 0) {
+                    localidadesDetails.remove(); // Si no hay, quitar el details
+                } else {
+                    // Regex con los nombres originales
+                    const namesArray = Array.from(validLocalidades.keys());
+                    const regex = new RegExp('\\b(' + namesArray
+                        .map(n => n.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'))
+                        .join('|') + ')\\b', 'g');
+
+                    // Reemplazar en cada nodo de texto
+                    textNodes.forEach(textNode => {
+                        const text = textNode.nodeValue;
+                        if (!regex.test(text)) return;
+                        regex.lastIndex = 0;
+                        const fragment = document.createDocumentFragment();
+                        let lastIndex = 0;
+                        let match;
+                        while ((match = regex.exec(text)) !== null) {
+                            if (match.index > lastIndex) {
+                                fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                            }
+                            const originalName = match[0];
+                            const lowerName = validLocalidades.get(originalName);
+                            const link = document.createElement('a');
+                            link.href = localidadesDir + lowerName + extension;
+                            link.target = '_blank';
+                            link.className = 'localidad-link';
+                            link.textContent = originalName;
+                            fragment.appendChild(link);
+                            lastIndex = regex.lastIndex;
+                        }
+                        if (lastIndex < text.length) {
+                            fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+                        }
+                        textNode.parentNode.replaceChild(fragment, textNode);
+                    });
+
+                    // Generar lista dinámica en el desplegable
+                    const locUl = document.createElement('ul');
+                    const sortedNames = Array.from(validLocalidades.keys()).sort();
+                    sortedNames.forEach(name => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = localidadesDir + validLocalidades.get(name) + extension;
+                        a.target = '_blank';
+                        a.textContent = name;
+                        li.appendChild(a);
+                        locUl.appendChild(li);
+                    });
+                    localidadesDetails.appendChild(locUl);
+                }
 
             } catch (err) {
                 contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:120px 0;">
