@@ -68,15 +68,6 @@
             margin: 1.6em 0;
             font-size: 1.25em;
         }
-        .chapter-first-p::first-letter {
-            font-family: 'MedievalSharp', cursive !important;
-            font-size: 4.0em !important;
-            color: #8b0000 !important;
-            float: left !important;
-            margin: 0 8px 4px 0 !important;
-            line-height: 0.85 !important;
-            font-weight: bold !important;
-        }
         hr {
             border: none;
             border-top: 3px double #8b4513;
@@ -90,7 +81,7 @@
             padding: 180px 0;
             font-size: 1.5em;
         }
-        /* Ocultar basura */
+        /* Ocultar basura de Google Docs */
         .c3, .c5, p.c1.c5, p:empty, span:empty, br:only-child,
         p.c1:not(:has(*:not(:empty))), p.c2:empty {
             display: none !important;
@@ -106,9 +97,25 @@
             color: #8b0000;
             border-bottom: 1px solid #8b0000;
         }
-        /* Responsive (sin cambios) */
-        @media (max-width: 768px) { /* ... mismo que antes ... */ }
-        @media (max-width: 480px) { /* ... mismo que antes ... */ }
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            #book { padding: 35px 25px; border-width: 8px; max-width: 95%; box-shadow: inset 0 0 25px rgba(0,0,0,0.15); }
+            h1.main-title { font-size: 3.8em; margin: 15px 0 8px; }
+            h1.author { font-size: 2.1em; margin-bottom: 60px; padding-bottom: 20px; }
+            h2.chapter-num { font-size: 2.4em; margin: 70px 0 8px; }
+            h2.chapter-title { font-size: 2.0em; margin-bottom: 40px; }
+            p { font-size: 1.15em; text-indent: 2.2em; margin: 1.4em 0; }
+            hr { width: 50%; margin: 60px auto; }
+        }
+        @media (max-width: 480px) {
+            #book { padding: 25px 18px; }
+            h1.main-title { font-size: 3.2em; }
+            h1.author { font-size: 1.9em; }
+            h2.chapter-num { font-size: 2.1em; }
+            h2.chapter-title { font-size: 1.8em; }
+            p { font-size: 1.08em; text-indent: 2em; }
+        }
     </style>
 </head>
 <body>
@@ -136,7 +143,7 @@
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = doc.body.innerHTML;
 
-                // ── 1. Procesar capítulos ───────────────────────────────────────
+                // Procesar capítulos
                 const chapterHeaders = tempDiv.querySelectorAll('h1.c7');
                 chapterHeaders.forEach(header => {
                     const span = header.querySelector('span.c4');
@@ -160,44 +167,20 @@
                     header.remove();
                 });
 
-                // ── 2. Limpieza previa de párrafos vacíos ───────────────────────
+                // Limpieza de párrafos vacíos / irrelevantes
                 tempDiv.querySelectorAll('p').forEach(p => {
                     const txt = (p.textContent || '').trim();
                     if (txt.length < 3 || txt === ' ') p.remove();
                 });
 
-                // ── 3. Aplicar drop cap al primer párrafo con contenido real después de cada capítulo ──
-                tempDiv.querySelectorAll('h2.chapter-num').forEach(chapterH2 => {
-                    let sibling = chapterH2.nextElementSibling;
-                    while (sibling) {
-                        if (sibling.tagName === 'P') {
-                            const text = (sibling.textContent || '').trim();
-                            if (text.length > 10) {  // umbral para considerar "párrafo real"
-                                sibling.classList.add('chapter-first-p');
-
-                                // Extraer letra inicial si está envuelta en <span>
-                                const firstChild = sibling.firstChild;
-                                if (firstChild?.nodeType === 1 && firstChild.tagName === 'SPAN' &&
-                                    (firstChild.textContent || '').trim().length === 1) {
-                                    const letter = firstChild.textContent;
-                                    firstChild.remove();
-                                    sibling.insertBefore(document.createTextNode(letter), sibling.firstChild);
-                                }
-                                break;
-                            }
-                        }
-                        sibling = sibling.nextElementSibling;
-                    }
-                });
-
-                // ── 4. Limpieza final ──────────────────────────────────────────
+                // Limpieza final
                 tempDiv.querySelectorAll('p:empty, .c3, .c5, span:empty, br:only-child').forEach(el => el.remove());
 
-                // ── 5. Insertar SOLO en #content (mantiene la portada) ─────────
+                // Insertar contenido
                 contentDiv.innerHTML = tempDiv.innerHTML;
                 loading?.remove();
 
-                // (Opcional: tu código de localidades aquí si lo quieres mantener)
+                // (Aquí puedes dejar o quitar el bloque de localidades si lo usas)
 
             } catch (err) {
                 contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:120px 0;">
