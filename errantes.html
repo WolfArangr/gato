@@ -177,22 +177,19 @@
             <div id="toc">
                 <!-- El índice se genera dinámicamente aquí -->
             </div>
-
-<details id="localidades">
-    <summary>
-        Localidades Mencionadas
-        <span id="load-percent" style="color:#777; font-size:0.8em; margin-left:10px;">
-            (Cargando: 0%)
-        </span>
-    </summary>
-    <!-- La lista se genera dinámicamente aquí -->
-</details>
-
-        
+            <details id="localidades">
+                <summary>
+                    Localidades Mencionadas
+                    <span id="load-percent" style="color:#777; font-size:0.8em; margin-left:10px;">
+                        (0/127)
+                    </span>
+                </summary>
+                <!-- La lista se genera dinámicamente aquí -->
+            </details>
         </div>
         <div id="content">
             <div id="loading">Cargando la crónica...</div>
-        </details>
+        </div>
     </div>
 
     <script>
@@ -201,6 +198,7 @@
             const loading = document.getElementById('loading');
             const tocDiv = document.getElementById('toc');
             const localidadesDetails = document.getElementById('localidades');
+            const percentSpan = document.getElementById('load-percent');
 
             try {
                 const response = await fetch('LosErrantesdeKurghaimat.html');
@@ -219,34 +217,27 @@
                     const span = header.querySelector('span.c4');
                     let text = (span?.textContent || header.textContent || '').trim();
                     if (!text) { header.remove(); return; }
-
                     let chapterNum = text.split(' - ')[0]?.trim() || text;
                     let chapterSub = text.includes(' - ') ? text.split(' - ').slice(1).join(' - ').trim() : '';
-
                     const h2Num = document.createElement('h2');
                     h2Num.className = 'chapter-num';
                     h2Num.textContent = chapterNum;
-                    h2Num.id = `chapter-${chapterIndex}`; // Asignar ID para enlace
-
+                    h2Num.id = `chapter-${chapterIndex}`;
                     const h2Sub = document.createElement('h2');
                     h2Sub.className = 'chapter-title';
                     h2Sub.textContent = chapterSub;
-
                     header.parentNode.insertBefore(h2Num, header);
                     if (chapterSub) header.parentNode.insertBefore(h2Sub, header.nextSibling);
-
                     chapters.push({ num: chapterNum, id: `chapter-${chapterIndex}` });
                     chapterIndex++;
-
                     header.remove();
                 });
 
-                // Generar índice dinámico
+                // Generar índice
                 if (chapters.length > 0) {
                     const tocH3 = document.createElement('h3');
                     tocH3.textContent = 'Índice de Capítulos';
                     tocDiv.appendChild(tocH3);
-
                     const tocUl = document.createElement('ul');
                     chapters.forEach(ch => {
                         const li = document.createElement('li');
@@ -259,22 +250,56 @@
                     tocDiv.appendChild(tocUl);
                 }
 
-                // Limpieza de párrafos vacíos / irrelevantes
+                // Limpieza
                 tempDiv.querySelectorAll('p').forEach(p => {
                     const txt = (p.textContent || '').trim();
                     if (txt.length < 3 || txt === ' ') p.remove();
                 });
-
-                // Limpieza final
                 tempDiv.querySelectorAll('p:empty, .c3, .c5, span:empty, br:only-child').forEach(el => el.remove());
 
-                // Insertar contenido
+                // Insertar contenido limpio
                 contentDiv.innerHTML = tempDiv.innerHTML;
                 loading?.remove();
 
-                // Procesar localidades (asumiendo que las imágenes existen en 'localidades/')
+                // ────────────────────────────────────────────────
+                // NUEVA LÓGICA: partir de la lista fija de localidades
+                // ────────────────────────────────────────────────
                 const localidadesDir = 'localidades/';
                 const extension = '.jpg';
+
+                // Lista fija (sin .jpg)
+                const knownLocalidades = [
+                    "aldearares","aldequejas","alinomin","allares","allogollos","allos","alominchar",
+                    "aloranagan","aloranes","anconta","anzonquepi","arminocelas","arveta","baiga",
+                    "bailes","barriosbar","bartolares","beldea","bellavil","berzuese","buenala",
+                    "cancon","candigos","cantita","cardaralare","carralriote","carrealloca","carriruera",
+                    "caspinanar","castanarro","casto","castominza","cermola","chocento","chuelas",
+                    "cidaganta","cinies","ciralher","copejon","coyogollor","cuergeso","cuertocedo",
+                    "dorihuejar","driero","duceque","esplera","esteruerane","estesavas","estrieguque",
+                    "estrienil","estriequega","fontanes","fuencos","galza","herreron","herzuemillo",
+                    "hiquemilba","huerolinil","huerongo","humanilnue","jadrallida","jiles","leras",
+                    "lomagandera","lumana","lunoradete","lunosanar","luronteldea","madran","madronasas",
+                    "maliba","malvez","mantella","menaba","mihuejas","milmaganes","minoma","mirueranil",
+                    "mitatillar","mocha","momanuejas","mominchar","moncorea","negranosbar","negrera",
+                    "noblegalo","noblevo","nudera","orrealgarve","palla","palvistemil","pigos","porro",
+                    "pradatan","puebradena","puertanil","quindoliga","quinzadedo","reras","riofrintuma",
+                    "ruenanilsaz","saldea","sanca","sancialo","sanconciare","sande","sanderados",
+                    "sandieravas","santalestab","saura","sejontanil","selastil","tordalagar","torredavil",
+                    "torrio","torronza","torroso","tortilmadro","urriozascas","vallo","valmadroma",
+                    "valviste","valza","yundo","yunta","yuntatildea","zarmoveras"
+                ];
+
+                const total = knownLocalidades.length; // 127
+                let checked = 0;
+
+                function updateProgress() {
+                    checked++;
+                    const pct = Math.floor((checked / total) * 100);
+                    if (percentSpan) {
+                        percentSpan.textContent = `(${checked}/${total}) ${pct}%`;
+                    }
+                }
+
                 async function imageExists(url) {
                     return new Promise(resolve => {
                         const img = new Image();
@@ -284,116 +309,100 @@
                     });
                 }
 
-                // Recolectar nodos de texto
+                const validLocalidades = new Map(); // lowerName → original capitalized version (aprox)
+
+                // Comprobamos todas en paralelo
+                const checks = knownLocalidades.map(async (lowerName) => {
+                    const url = localidadesDir + lowerName + extension;
+                    const exists = await imageExists(url);
+                    if (exists) {
+                        // Usamos una capitalización aproximada (primera letra mayúscula)
+                        // Puedes mejorar esto si tienes una lista con la forma exacta
+                        const capitalized = lowerName.charAt(0).toUpperCase() + lowerName.slice(1);
+                        validLocalidades.set(lowerName, capitalized);
+                    }
+                    updateProgress();
+                });
+
+                await Promise.all(checks);
+
+                // Limpiar el indicador de progreso
+                if (percentSpan) percentSpan.remove();
+
+                if (validLocalidades.size === 0) {
+                    localidadesDetails.remove();
+                    return;
+                }
+
+                // Crear regex con todos los nombres válidos (case sensitive)
+                const namesArray = Array.from(validLocalidades.values());
+                const escaped = namesArray.map(n => n.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'));
+                const regex = new RegExp('\\b(' + escaped.join('|') + ')\\b', 'g');
+
+                // Recolectar todos los nodos de texto una sola vez
                 const textNodes = [];
                 const walker = document.createTreeWalker(contentDiv, NodeFilter.SHOW_TEXT, null);
                 let node;
                 while (node = walker.nextNode()) {
-                    if (node.parentNode && node.nodeValue.trim() &&
-                        !['SCRIPT', 'STYLE'].includes(node.parentNode.tagName)) {
+                    if (node.nodeValue.trim() && !['SCRIPT','STYLE'].includes(node.parentNode.tagName)) {
                         textNodes.push(node);
                     }
                 }
 
-                // Encontrar posibles nombres propios (empezando por mayúscula, al menos 3 letras)
-                const possibleNames = new Set();
+                // Reemplazar en el contenido
                 textNodes.forEach(textNode => {
-                    const matches = textNode.nodeValue.matchAll(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ-]{2,}\b/g);
-                    for (const match of matches) {
-                        possibleNames.add(match[0]);
+                    const text = textNode.nodeValue;
+                    if (!regex.test(text)) return;
+                    regex.lastIndex = 0;
+
+                    const fragment = document.createDocumentFragment();
+                    let lastIndex = 0;
+                    let match;
+                    while ((match = regex.exec(text)) !== null) {
+                        if (match.index > lastIndex) {
+                            fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                        }
+                        const original = match[0];
+                        const lower = original.toLowerCase();
+                        const link = document.createElement('a');
+                        link.href = localidadesDir + lower + extension;
+                        link.target = '_blank';
+                        link.className = 'localidad-link';
+                        link.textContent = original;
+                        fragment.appendChild(link);
+                        lastIndex = regex.lastIndex;
                     }
+                    if (lastIndex < text.length) {
+                        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+                    }
+                    textNode.parentNode.replaceChild(fragment, textNode);
                 });
 
-                // Verificar existencia (normalizando a minúsculas)
-                const validLocalidades = new Map(); // original → lowercase
-                for (const name of possibleNames) {
-                    const lowerName = name.toLowerCase();
-                    const url = localidadesDir + lowerName + extension;
-                    if (await imageExists(url)) {
-                        validLocalidades.set(name, lowerName);
-                    }
-                }
+                // Generar la lista en el details
+                const locUl = document.createElement('ul');
+                const sorted = Array.from(validLocalidades.entries())
+                    .map(([lower, cap]) => ({lower, cap}))
+                    .sort((a,b) => a.cap.localeCompare(b.cap));
 
-                if (validLocalidades.size === 0) {
-                    localidadesDetails.remove(); // Si no hay, quitar el details
-                } else {
-                    // Regex con los nombres originales
-                    const namesArray = Array.from(validLocalidades.keys());
-                    const regex = new RegExp('\\b(' + namesArray
-                        .map(n => n.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'))
-                        .join('|') + ')\\b', 'g');
+                sorted.forEach(({lower, cap}) => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = localidadesDir + lower + extension;
+                    a.target = '_blank';
+                    a.textContent = cap;
+                    li.appendChild(a);
+                    locUl.appendChild(li);
+                });
 
-                    // Reemplazar en cada nodo de texto
-                    textNodes.forEach(textNode => {
-                        const text = textNode.nodeValue;
-                        if (!regex.test(text)) return;
-                        regex.lastIndex = 0;
-                        const fragment = document.createDocumentFragment();
-                        let lastIndex = 0;
-                        let match;
-                        while ((match = regex.exec(text)) !== null) {
-                            if (match.index > lastIndex) {
-                                fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
-                            }
-                            const originalName = match[0];
-                            const lowerName = validLocalidades.get(originalName);
-                            const link = document.createElement('a');
-                            link.href = localidadesDir + lowerName + extension;
-                            link.target = '_blank';
-                            link.className = 'localidad-link';
-                            link.textContent = originalName;
-                            fragment.appendChild(link);
-                            lastIndex = regex.lastIndex;
-                        }
-                        if (lastIndex < text.length) {
-                            fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
-                        }
-                        textNode.parentNode.replaceChild(fragment, textNode);
-                    });
-
-                    // Generar lista dinámica en el desplegable
-                    const locUl = document.createElement('ul');
-                    const sortedNames = Array.from(validLocalidades.keys()).sort();
-                    sortedNames.forEach(name => {
-                        const li = document.createElement('li');
-                        const a = document.createElement('a');
-                        a.href = localidadesDir + validLocalidades.get(name) + extension;
-                        a.target = '_blank';
-                        a.textContent = name;
-                        li.appendChild(a);
-                        locUl.appendChild(li);
-                    });
-                    localidadesDetails.appendChild(locUl);
-                }
+                localidadesDetails.appendChild(locUl);
 
             } catch (err) {
                 contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:120px 0;">
-                    Error: ${err.message}<br>Verifica que "LosErrantesdeKurghaimat.html" exista y sea accesible.
+                    Error: ${err.message}<br>Verifica que "LosErrantesdeKurghaimat.html" exista.
                 </p>`;
                 loading?.remove();
             }
         });
     </script>
-
-        <script>
-    const el = document.getElementById('load-percent');
-    let pct = 0;
-
-    const interval = setInterval(() => {
-        pct += 1;
-        el.textContent = `(Cargando: ${pct}%)`;
-        if (pct >= 100) {
-            clearInterval(interval);
-            el.remove();
-        }
-    }, 100);
-</script>
 </body>
 </html>
-
-
-
-
-
-
-
