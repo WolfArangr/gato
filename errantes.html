@@ -249,7 +249,7 @@
                     tocDiv.appendChild(tocUl);
                 }
 
-                // Limpieza de elementos irrelevantes
+                // Limpieza
                 tempDiv.querySelectorAll('p').forEach(p => {
                     const txt = (p.textContent || '').trim();
                     if (txt.length < 3 || txt === ' ') p.remove();
@@ -260,12 +260,12 @@
                 loading?.remove();
 
                 // ────────────────────────────────────────────────
-                // LOCALIDADES: solo las que aparecen en el texto
+                // LOCALIDADES: solo las mencionadas → con límites de palabra
                 // ────────────────────────────────────────────────
                 const localidadesDir = 'localidades/';
                 const extension = '.jpg';
 
-                // Lista conocida en minúsculas (nombres de archivo)
+                // Lista base conocida (todo en minúsculas)
                 const knownLower = new Set([
                     "aldearares","aldequejas","alinomin","allares","allogollos","allos","alominchar",
                     "aloranagan","aloranes","anconta","anzonquepi","arminocelas","arveta","baiga",
@@ -287,7 +287,7 @@
                     "valviste","valza","yundo","yunta","yuntatildea","zarmoveras"
                 ]);
 
-                // Recolectar nodos de texto
+                // 1. Recolectar nodos de texto
                 const textNodes = [];
                 const walker = document.createTreeWalker(contentDiv, NodeFilter.SHOW_TEXT, null);
                 let node;
@@ -297,58 +297,63 @@
                     }
                 }
 
-                // Encontrar localidades mencionadas + guardar su forma real en el texto
-                const foundLowerToDisplay = new Map(); // lower → forma original en texto (primera aparición)
+                // 2. Encontrar menciones con límites de palabra (\b)
+                const foundLower = new Set();
+                const nameToDisplay = new Map(); // lower → forma real encontrada (primera ocurrencia)
 
                 textNodes.forEach(tNode => {
-                    const textLower = tNode.nodeValue.toLowerCase();
+                    const text = tNode.nodeValue;
                     for (const lower of knownLower) {
-                        if (textLower.includes(lower) && !foundLowerToDisplay.has(lower)) {
-                            // Buscar la primera aparición real (case sensitive)
-                            const regex = new RegExp(lower.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
-                            const match = tNode.nodeValue.match(regex);
-                            if (match) {
-                                foundLowerToDisplay.set(lower, match[0]);
+                        // Regex con límites de palabra, case-insensitive
+                        const wordRegex = new RegExp(`\\b${lower.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
+                        if (wordRegex.test(text)) {
+                            foundLower.add(lower);
+                            // Guardar la primera forma capitalizada que aparezca
+                            if (!nameToDisplay.has(lower)) {
+                                const match = text.match(wordRegex);
+                                if (match) {
+                                    nameToDisplay.set(lower, match[0]);
+                                }
                             }
                         }
                     }
                 });
 
-                const foundLocalities = Array.from(foundLowerToDisplay.keys());
-                const totalToCheck = foundLocalities.length;
-                let checkedCount = 0;
+                // 3. Verificar existencia de imagen solo para las encontradas
+                const validLocalidades = new Map(); // lower → displayName
+                const totalToCheck = foundLower.size;
+                let checked = 0;
 
                 function updateProgress() {
-                    checkedCount++;
-                    const pct = totalToCheck > 0 ? Math.floor((checkedCount / totalToCheck) * 100) : 100;
+                    checked++;
+                    const pct = totalToCheck > 0 ? Math.floor((checked / totalToCheck) * 100) : 100;
                     if (percentSpan) {
-                        percentSpan.textContent = `(${checkedCount}/${totalToCheck}) ${pct}%`;
+                        percentSpan.textContent = `(${checked}/${totalToCheck}) ${pct}%`;
                     }
                 }
 
                 async function imageExists(url) {
-                    return new Promise(resolve => {
+                    return new Promise(r => {
                         const img = new Image();
-                        img.onload = () => resolve(true);
-                        img.onerror = () => resolve(false);
+                        img.onload = () => r(true);
+                        img.onerror = () => r(false);
                         img.src = url;
                     });
                 }
 
-                const validLocalidades = new Map(); // lower → display (como aparece en texto)
-
-                if (totalToCheck > 0) {
-                    const checks = foundLocalities.map(async lower => {
+                if (totalToCheck === 0) {
+                    if (percentSpan) percentSpan.textContent = `(0/0) 100%`;
+                } else {
+                    const checks = Array.from(foundLower).map(async lower => {
                         const url = localidadesDir + lower + extension;
                         const exists = await imageExists(url);
                         if (exists) {
-                            validLocalidades.set(lower, foundLowerToDisplay.get(lower));
+                            const display = nameToDisplay.get(lower) || (lower.charAt(0).toUpperCase() + lower.slice(1));
+                            validLocalidades.set(lower, display);
                         }
                         updateProgress();
                     });
                     await Promise.all(checks);
-                } else {
-                    updateProgress();
                 }
 
                 if (percentSpan) percentSpan.remove();
@@ -358,12 +363,12 @@
                     return;
                 }
 
-                // Regex para reemplazar solo las encontradas y válidas
+                // 4. Regex final para reemplazar (usamos las formas exactas encontradas)
                 const namesArray = Array.from(validLocalidades.values());
-                const escapedNames = namesArray.map(n => n.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'));
-                const regex = new RegExp('\\b(' + escapedNames.join('|') + ')\\b', 'g');
+                const escaped = namesArray.map(n => n.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'));
+                const regex = new RegExp('\\b(' + escaped.join('|') + ')\\b', 'g');
 
-                // Reemplazar en el contenido
+                // 5. Reemplazar en los nodos de texto
                 textNodes.forEach(textNode => {
                     const text = textNode.nodeValue;
                     if (!regex.test(text)) return;
@@ -396,7 +401,7 @@
                     textNode.parentNode.replaceChild(fragment, textNode);
                 });
 
-                // Generar lista ordenada alfabéticamente según la forma mostrada
+                // 6. Generar lista ordenada alfabéticamente (por la forma mostrada)
                 const locUl = document.createElement('ul');
                 const sorted = Array.from(validLocalidades.entries())
                     .map(([lower, display]) => ({lower, display}))
@@ -416,7 +421,7 @@
 
             } catch (err) {
                 contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:120px 0;">
-                    Error: ${err.message}<br>Verifica que "LosErrantesdeKurghaimat.html" exista y sea accesible.
+                    Error: ${err.message}<br>Verifica que "LosErrantesdeKurghaimat.html" exista.
                 </p>`;
                 loading?.remove();
             }
