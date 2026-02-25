@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interactivo de Kurghaimat</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1.1/build/openseadragon/openseadragon.min.js"></script>
+    <style>
+        body {
+            background: url('parchment.jpg') repeat fixed;
+            font-family: 'EB Garamond', serif;
+            color: #2c1b0f;
+            line-height: 1.75;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5e8c7;
+        }
+        #book {
+            max-width: 920px;
+            margin: 0 auto;
+            background: rgba(245, 232, 199, 0.96);
+            padding: 70px 80px;
+            border: 12px solid #6b4c2e;
+            border-image: url('border-medieval.png') 30 round;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+        }
+        #title-page {
+            text-align: center;
+            margin-bottom: 100px;
+        }
+        h1.main-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 5.4em;
+            color: #8b0000;
+            margin: 20px 0 10px;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
+        }
+        h1.author {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.7em;
+            color: #3d2b1f;
+            margin: 0 0 100px;
+            border-bottom: 4px double #8b4513;
+            padding-bottom: 30px;
+        }
+        #map-container {
+            height: 600px;
+            margin-bottom: 40px;
+        }
+        #search {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        #localidades {
+            margin-top: 60px;
+            text-align: center;
+        }
+        #localidades summary {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.0em;
+            color: #4b2e1a;
+            cursor: pointer;
+        }
+        #localidades ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        #localidades li {
+            margin: 8px 0;
+        }
+        #localidades a {
+            font-size: 1.4em;
+            color: #8b4513;
+            text-decoration: none;
+        }
+        #localidades a:hover {
+            color: #8b0000;
+        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            #book { padding: 35px 25px; border-width: 8px; max-width: 95%; box-shadow: inset 0 0 25px rgba(0,0,0,0.15); }
+            h1.main-title { font-size: 3.8em; margin: 15px 0 8px; }
+            h1.author { font-size: 2.1em; margin-bottom: 60px; padding-bottom: 20px; }
+            #map-container { height: 400px; }
+        }
+        @media (max-width: 480px) {
+            #book { padding: 25px 18px; }
+            h1.main-title { font-size: 3.2em; }
+            h1.author { font-size: 1.9em; }
+            #map-container { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="book">
+        <div id="title-page">
+            <h1 class="main-title">Mapa Interactivo de Kurghaimat</h1>
+            <h1 class="author">Edvard Arangr</h1>
+        </div>
+        <div id="map-container"></div>
+        <input type="text" id="search" placeholder="Buscar localidad...">
+        <details id="localidades">
+            <summary>
+                Localidades
+                <span id="load-percent" style="color:#777; font-size:0.8em; margin-left:10px;">
+                    (0%)
+                </span>
+            </summary>
+            <ul id="loc-list">
+                <!-- Lista generada dinámicamente -->
+            </ul>
+        </details>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const percentSpan = document.getElementById('load-percent');
+            const locDetails = document.getElementById('localidades');
+            const locList = document.getElementById('loc-list');
+            const searchInput = document.getElementById('search');
+
+            // Inicializar el mapa zoomable con OpenSeaDragon
+            var viewer = OpenSeaDragon({
+                id: "map-container",
+                prefixUrl: "https://openseadragon.github.io/openseadragon/images/",
+                showNavigator: true,
+                tileSources: {
+                    type: 'image',
+                    url: '/localidades/mapacompleto.png'
+                }
+            });
+
+            // Lista de localidades conocidas (en minúsculas)
+            const knownLower = [
+                "aldearares","aldequejas","alinomin","allares","allogollos","allos","alominchar",
+                "aloranagan","aloranes","anconta","anzonquepi","arminocelas","arveta","baiga",
+                "bailes","barriosbar","bartolares","beldea","bellavil","berzuese","buenala",
+                "cancon","candigos","cantita","cardaralare","carralriote","carrealloca","carriruera",
+                "caspinanar","castanarro","casto","castominza","cermola","chocento","chuelas",
+                "cidaganta","cinies","ciralher","copejon","coyogollor","cuergeso","cuertocedo",
+                "dorihuejar","driero","duceque","esplera","esteruerane","estesavas","estrieguque",
+                "estrienil","estriequega","fontanes","fuencos","galza","herreron","herzuemillo",
+                "hiquemilba","huerolinil","huerongo","humanilnue","jadrallida","jiles","leras",
+                "lomagandera","lumana","lunoradete","lunosanar","luronteldea","madran","madronasas",
+                "maliba","malvez","mantella","menaba","mihuejas","milmaganes","minoma","mirueranil",
+                "mitatillar","mocha","momanuejas","mominchar","moncorea","negranosbar","negrera",
+                "noblegalo","noblevo","nudera","orrealgarve","palla","palvistemil","pigos","porro",
+                "pradatan","puebradena","puertanil","quindoliga","quinzadedo","reras","riofrintuma",
+                "ruenanilsaz","saldea","sanca","sancialo","sanconciare","sande","sanderados",
+                "sandieravas","santalestab","saura","sejontanil","selastil","tordalagar","torredavil",
+                "torrio","torronza","torroso","tortilmadro","urriozascas","vallo","valmadroma",
+                "valviste","valza","yundo","yunta","yuntatildea","zarmoveras"
+            ];
+
+            const total = knownLower.length;
+            let checked = 0;
+
+            function updateProgress() {
+                checked++;
+                const pct = Math.floor((checked / total) * 100);
+                if (percentSpan) percentSpan.textContent = `(${checked}/${total}) ${pct}%`;
+            }
+
+            async function imageExists(url) {
+                return new Promise(resolve => {
+                    const img = new Image();
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    img.src = url;
+                });
+            }
+
+            const validLocalidades = new Map(); // lower → capitalized
+
+            const checks = knownLower.map(async (lower) => {
+                const url = `localidades/${lower}.jpg`;
+                const exists = await imageExists(url);
+                if (exists) {
+                    const capitalized = lower.charAt(0).toUpperCase() + lower.slice(1);
+                    validLocalidades.set(lower, capitalized);
+                }
+                updateProgress();
+            });
+
+            await Promise.all(checks);
+
+            if (percentSpan) percentSpan.remove();
+
+            if (validLocalidades.size === 0) {
+                locDetails.remove();
+                return;
+            }
+
+            // Generar lista ordenada
+            const sorted = Array.from(validLocalidades.entries())
+                .map(([lower, cap]) => ({lower, cap}))
+                .sort((a,b) => a.cap.localeCompare(b.cap, 'es'));
+
+            sorted.forEach(({lower, cap}) => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = `localidades/${lower}.jpg`;
+                a.target = '_blank';
+                a.textContent = cap;
+                li.appendChild(a);
+                locList.appendChild(li);
+            });
+
+            // Función de búsqueda
+            searchInput.addEventListener('input', function() {
+                const filter = this.value.toLowerCase();
+                const lis = locList.getElementsByTagName('li');
+                for (let i = 0; i < lis.length; i++) {
+                    const a = lis[i].getElementsByTagName('a')[0];
+                    if (a.textContent.toLowerCase().includes(filter)) {
+                        lis[i].style.display = '';
+                    } else {
+                        lis[i].style.display = 'none';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
