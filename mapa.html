@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
     <title>Mapa Interactivo de Kurghaimat</title>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;700&family=MedievalSharp&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1.1/build/openseadragon/openseadragon.min.js"></script>
@@ -13,6 +13,10 @@
             color: #2c1b0f;
             margin: 0;
             padding: 20px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         #book {
             max-width: 920px;
@@ -43,6 +47,7 @@
             height: 800px;
             border: 2px solid #6b4c2e;
             position: relative;
+            touch-action: manipulation;
         }
         #status {
             position: absolute;
@@ -88,7 +93,7 @@
             <h1 class="author">Edvard Arangr</h1>
         </div>
 
-        <div id="status">Cargando mapa... Haz clic (o tap) en el punto rojo para abrir la localidad</div>
+        <div id="status">Cargando mapa... Haz clic o tap en los puntos rojos para abrir la localidad</div>
         <div id="map-container"></div>
     </div>
 
@@ -96,10 +101,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
 
-            // Solo UN punto por ahora (ajústalo tú con las coordenadas reales)
+            // Solo los tres sitios que pediste
             const locations = [
-                { name: "Leras", lower: "leras", x: 800, y: 400 }  // ← CAMBIA AQUÍ LAS COORDENADAS REALES
-                // Si quieres añadir más después, solo copia la línea y cambia nombre/lower/x/y
+                { name: "Chuelas", lower: "chuelas", x: 8044, y: 1436 },
+                { name: "Bailes", lower: "bailes", x: 8475, y: 1194 },
+                { name: "Cinies", lower: "cinies", x: 7858, y: 754 }
             ];
 
             const viewer = OpenSeadragon({
@@ -113,52 +119,49 @@
                 showNavigator: true,
                 navigatorPosition: "BOTTOM_RIGHT",
                 defaultZoomLevel: 0.7,
-                minZoomLevel: 0.3,           // ← límite de zoom-out (ajusta si quieres más/menos alejado)
+                minZoomLevel: 0.3,
                 maxZoomLevel: 12,
                 constrainDuringPan: true,
-                visibilityRatio: 1.0,        // evita que se salga mucho del borde
-                preserveViewport: true
+                visibilityRatio: 1.0,
+                preserveViewport: true,
+                gestureSettingsTouch: {
+                    pinchToZoom: true,
+                    clickToZoom: false,
+                    dblClickToZoom: true
+                }
             });
 
             viewer.addHandler('open', () => {
                 console.log("Mapa cargado correctamente");
-                status.textContent = "Haz clic (o tap) en el punto rojo para abrir la localidad";
+                status.textContent = "Dale a los puntos rojos para abrir la localidad";
 
-                // Limitar zoom-out para que el mapa completo quepa justo en pantalla
+                // Limitar zoom-out para que el mapa quepa justo en pantalla
                 const containerAspect = viewer.container.clientWidth / viewer.container.clientHeight;
                 const imageAspect = 4807 / 10000;
                 const fitZoom = Math.min(1 / containerAspect, 1 / imageAspect) * 0.98;
                 viewer.viewport.minZoomLevel = fitZoom;
 
-                // Añadir el único punto
+                // Añadir los tres puntos
                 locations.forEach(loc => {
                     const pin = document.createElement('div');
                     pin.className = 'loc-pin';
                     pin.title = loc.name;
 
-                    pin.addEventListener('click', () => {
-                        // Abrir la imagen de la localidad en nueva pestaña
+                    // Evento clic/tap
+                    const openLocation = (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
                         window.open(`localidades/${loc.lower}.jpg`, '_blank');
+                    };
 
-                        // Opcional: zoom suave al punto (coméntalo si no lo quieres)
-                        const x_norm = loc.x / 10000;
-                        const y_norm = loc.y / 4807;
-                        const zoomSize = 0.18;
-                        viewer.viewport.fitBounds(
-                            new OpenSeadragon.Rect(
-                                x_norm - zoomSize / 2,
-                                y_norm - zoomSize / 2,
-                                zoomSize,
-                                zoomSize
-                            ),
-                            true
-                        );
-                    });
+                    pin.addEventListener('click', openLocation);
+                    pin.addEventListener('touchend', openLocation);  // Mejora compatibilidad móvil
 
                     viewer.addOverlay({
                         element: pin,
                         location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
-                        placement: 'CENTER'
+                        placement: 'CENTER',
+                        checkResize: false
                     });
                 });
             });
