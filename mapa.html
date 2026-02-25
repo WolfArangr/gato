@@ -76,7 +76,7 @@
             cursor: pointer;
             pointer-events: auto;
             transition: transform 0.15s;
-            transform-origin: center top; /* Escala desde la parte superior para simular "subida" */
+            transform-origin: center top;
         }
         .loc-pin:hover {
             transform: scale(1.5);
@@ -113,7 +113,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
 
-            // Ubicaciones (ya ajustadas por ti con /2.08)
+            // Ubicaciones (ya ajustadas por ti)
             const locations = [
                 { name: "Chuelas", lower: "chuelas", x: 8044, y: 690 },
                 { name: "Bailes", lower: "bailes", x: 8475, y: 574 },
@@ -144,6 +144,9 @@
                 }
             });
 
+            // Offset deseado en píxeles de pantalla en zoom mínimo (50 px abajo)
+            const maxOffsetPx = 50;
+
             viewer.addHandler('open', () => {
                 console.log("Mapa cargado correctamente");
                 status.textContent = "Haz clic o tap en los puntos rojos para abrir la localidad";
@@ -167,9 +170,7 @@
 
                 viewer.viewport.goHome(true);
 
-                // Offset hacia abajo en píxeles reales (50 px)
-                const offsetPx = 50; // Puedes cambiar este valor
-
+                // Añadir pines
                 locations.forEach(loc => {
                     const pin = document.createElement('div');
                     pin.className = 'loc-pin';
@@ -184,18 +185,26 @@
                     pin.addEventListener('click', openLocation);
                     pin.addEventListener('touchend', openLocation);
 
-                    // Posición base + offset hacia abajo
-                    const baseY = loc.y / 4807;
-                    const offsetNorm = offsetPx / 4807; // Convertir píxeles a coordenadas normalizadas
+                    // Posición real (sin offset en coordenadas)
                     viewer.addOverlay({
                         element: pin,
-                        location: new OpenSeadragon.Point(
-                            loc.x / 10000,
-                            baseY + offsetNorm  // Desplazado 50 px hacia abajo
-                        ),
+                        location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
                         placement: 'CENTER',
                         checkResize: false
                     });
+
+                    // Ajustar offset dinámico según zoom
+                    const updatePinOffset = () => {
+                        const currentZoom = viewer.viewport.getZoom();
+                        const zoomRatio = Math.max(0, Math.min(1, (currentZoom - fitZoom) / (12 - fitZoom))); // 0 en min, 1 en max
+                        const offsetNow = maxOffsetPx * (1 - zoomRatio); // 50 px en min, 0 px en max
+                        pin.style.transform = `translateY(${offsetNow}px)`;
+                    };
+
+                    // Actualizar offset cada vez que cambia el zoom
+                    viewer.addHandler('zoom', updatePinOffset);
+                    // Llamar una vez al inicio
+                    updatePinOffset();
                 });
             });
 
