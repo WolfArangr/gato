@@ -86,13 +86,13 @@
             h1.author { font-size: 1.4em; }
             #map-wrapper { 
                 aspect-ratio: 10000 / 4807;
-                max-height: 70vh; /* Más alto en móvil para llenar pantalla */
+                max-height: 70vh;
             }
         }
         @media (max-width: 480px) {
             #map-wrapper { 
                 aspect-ratio: 1 / 1; /* Cuadrado en pantallas muy pequeñas */
-                max-height: 80vh;    /* Casi toda la altura visible */
+                max-height: 80vh;
             }
             .loc-pin { width: 24px; height: 24px; border-width: 3px; }
         }
@@ -129,8 +129,8 @@
                 useCanvas: false,
                 showNavigator: true,
                 navigatorPosition: "BOTTOM_RIGHT",
-                defaultZoomLevel: 1.0,
-                minZoomLevel: 1.0, // Valor inicial, se recalcula después
+                defaultZoomLevel: 1.0, // Valor inicial, se recalcula después
+                minZoomLevel: 1.0,     // Valor inicial, se recalcula después
                 maxZoomLevel: 12,
                 constrainDuringPan: true,
                 visibilityRatio: 1.0,
@@ -147,15 +147,13 @@
                 console.log("Mapa cargado correctamente");
                 status.textContent = "Haz clic o tap en los puntos rojos para abrir la localidad";
 
-                // Recalcular minZoomLevel para que el mapa llene siempre verticalmente (sin hueco arriba/abajo)
+                // Recalcular minZoomLevel y defaultZoomLevel para que el mapa llene siempre verticalmente (sin hueco arriba/abajo)
                 const container = viewer.container;
                 const containerHeight = container.clientHeight;
                 const containerWidth = container.clientWidth;
                 const imageAspect = 4807 / 10000;
                 const containerAspect = containerHeight / containerWidth;
 
-                // Si el contenedor es más alto que la imagen (vertical), zoom mínimo para llenar alto
-                // Si es más ancho (panorámico), zoom mínimo para llenar ancho
                 let fitZoom;
                 if (containerAspect > imageAspect) {
                     // Contenedor más alto → zoom para que la altura de la imagen llene el contenedor
@@ -165,8 +163,12 @@
                     fitZoom = 1 / containerAspect * imageAspect;
                 }
 
+                // Aplicar el mismo zoom tanto al mínimo como al default (inicio)
                 viewer.viewport.minZoomLevel = fitZoom;
-                viewer.viewport.goHome(true); // Centra y ajusta al inicio
+                viewer.viewport.defaultZoomLevel = fitZoom; // ← Esto hace que el zoom por defecto sea el mismo que el mínimo
+
+                // Centrar y ajustar al inicio con el zoom calculado
+                viewer.viewport.goHome(true);
 
                 // Añadir los tres puntos
                 locations.forEach(loc => {
@@ -194,7 +196,7 @@
 
             viewer.addHandler('open-failed', (event) => {
                 console.error("Error al abrir mapa:", event);
-                status.innerHTML = 'Error al cargar mapa – ver consola F12';
+                status.innerHTML = 'Error al cargar gatimapa – ver consola F12';
             });
         });
     </script>
