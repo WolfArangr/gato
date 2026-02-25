@@ -102,7 +102,8 @@
             const locations = [
                 { name: "Chuelas", lower: "chuelas", x: 8044, y: 1436 },
                 { name: "Bailes", lower: "bailes", x: 8475, y: 1194 },
-                { name: "Cinies", lower: "cinies", x: 7858, y: 754 }
+                { name: "Cinies", lower: "cinies", x: 7858, y: 754 },
+                { name: "Test", lower: "test", x: 0, y: 0 },
             ];
 
             const viewer = OpenSeadragon({
@@ -125,7 +126,8 @@
                     pinchToZoom: true,
                     clickToZoom: false,
                     dblClickToZoom: true
-                }
+                },
+                minZoomImageRatio: 1.0  // Ajusta esto para limitar zoom-out sin vacío extra
             });
 
             viewer.addHandler('open', () => {
@@ -135,7 +137,7 @@
                 // Limitar zoom-out para que el mapa quepa justo en pantalla (sin área vacía extra)
                 const containerAspect = viewer.container.clientWidth / viewer.container.clientHeight;
                 const imageAspect = 4807 / 10000;
-                const fitZoom = Math.min(1 / containerAspect, 1 / imageAspect) * 1.2; // Ajusta el multiplicador aquí: 1.0 para encuadre completo, >1.0 para menos zoom-out (menos área vacía, más cerca)
+                const fitZoom = Math.min(1 / containerAspect, 1 / imageAspect) * 1.6; // Aumentado a 1.2 para reducir vacío
                 viewer.viewport.minZoomLevel = fitZoom;
 
                 // Añadir los tres puntos
