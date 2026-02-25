@@ -44,13 +44,30 @@
             color: #3d2b1f;
             margin: 0;
         }
-        #map-wrapper {
-            width: 100%;
-            aspect-ratio: 10000 / 4807; /* Fuerza la proporción exacta de la imagen */
-            max-height: 800px; /* Límite superior para no crecer demasiado */
-            margin-bottom: 20px;
-            border: 2px solid #6b4c2e;
-        }
+#map-wrapper {
+    width: 100%;
+    aspect-ratio: 10000 / 4807; /* Proporción exacta de la imagen (panorámica) */
+    max-height: 800px;          /* Límite superior en pantallas grandes */
+    margin-bottom: 20px;
+    border: 2px solid #6b4c2e;
+}
+
+/* En móvil pequeño: más vertical, máximo cuadrado */
+@media (max-width: 768px) {
+    #map-wrapper {
+        aspect-ratio: 10000 / 4807; /* Mantiene panorámico si cabe */
+        max-height: 60vh;           /* Ocupa hasta 60% de la altura visible */
+        max-height: min(60vh, 500px);
+    }
+}
+
+@media (max-width: 480px) {
+    #map-wrapper {
+        aspect-ratio: 1 / 1;        /* Límite cuadrado en pantallas muy pequeñas */
+        max-height: 70vh;           /* Más alto relativo, pero no más de 70% de la pantalla */
+        max-height: min(70vh, 400px);
+    }
+}
         #map-container {
             width: 100%;
             height: 100%;
