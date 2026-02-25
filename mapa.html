@@ -123,10 +123,10 @@
             const mapWidth = 10000;
             const mapHeight = 4807;
             const aspect = mapHeight / mapWidth;
-            const revealRadiusPx = 400; // Ajustado para mapa más pequeño
+            const revealRadiusPx = 400;
             const revealRadiusNorm = revealRadiusPx / mapWidth;
 
-            // Posiciones aproximadas (ajusta manualmente según tu mapa)
+            // Posiciones aproximadas – ajústalas según tu mapa real
             const positions = [
                 {lower: 'palla', cap: 'Palla', x: 500, y: 200},
                 {lower: 'allares', cap: 'Allares', x: 1500, y: 800},
@@ -138,13 +138,16 @@
                 {lower: 'yundo', cap: 'Yundo', x: 7500, y: 3200},
                 {lower: 'vallo', cap: 'Vallo', x: 8500, y: 3600},
                 {lower: 'sanconciare', cap: 'Sanconciare', x: 9000, y: 4200},
-                // Añade más según necesites
+                // Añade las que necesites
             ];
 
             const viewer = OpenSeadragon({
                 id: "map-container",
                 prefixUrl: "https://openseadragon.github.io/openseadragon/images/",
-                tileSources: "localidades/mapacompleto.jpg",
+                tileSources: {
+                    type: 'image',                          // ← Fuerza modo imagen simple (clave para evitar el error XML)
+                    url: "localidades/mapacompleto.jpg"
+                },
                 useCanvas: false,
                 immediateRender: true,
                 showNavigator: true,
@@ -157,17 +160,18 @@
             viewer.addHandler('open', () => {
                 console.log("¡Mapa cargado correctamente!");
                 document.getElementById('status').textContent = 'Mapa cargado – prueba zoom y clic en localidades';
-                
-                // Aquí iría el código de niebla si lo quieres activar después
-                // Por ahora lo dejo comentado para simplificar la prueba
             });
 
             viewer.addHandler('open-failed', (event) => {
                 console.error("Error al abrir mapa:", event);
-                document.getElementById('status').innerHTML = 'Error al cargar mapa – ver consola F12';
+                document.getElementById('status').innerHTML = 'Error al cargar: ' + (event.message || 'ver consola F12');
             });
 
-            // Lista de localidades (clic → zoom)
+            viewer.addHandler('tile-load-failed', (event) => {
+                console.error("Tile falló:", event);
+            });
+
+            // Generar lista de localidades con zoom al clic
             const locList = document.getElementById('loc-list');
             positions.sort((a, b) => a.cap.localeCompare(b.cap, 'es'));
             positions.forEach(pos => {
@@ -180,24 +184,23 @@
                     e.preventDefault();
                     const x_norm = pos.x / mapWidth;
                     const y_norm = pos.y / mapWidth;
-                    const zoomSize = 0.3; // tamaño relativo del zoom
+                    const zoomSize = 0.3;
                     viewer.viewport.fitBounds(
                         new OpenSeadragon.Rect(
                             x_norm - zoomSize / 2,
-                            y_norm - zoomSize / 2 * aspect,
+                            y_norm - (zoomSize / 2) * aspect,
                             zoomSize,
                             zoomSize * aspect
                         ),
                         true
                     );
-                    // Opcional: abrir imagen de localidad
                     window.open(a.href, '_blank');
                 });
                 li.appendChild(a);
                 locList.appendChild(li);
             });
 
-            // Búsqueda simple
+            // Búsqueda
             document.getElementById('search').addEventListener('input', function() {
                 const filter = this.value.toLowerCase();
                 const items = locList.getElementsByTagName('li');
