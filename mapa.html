@@ -107,10 +107,7 @@
         <input type="text" id="search" placeholder="Buscar localidad...">
         <details id="localidades">
             <summary>
-                Localidades
-                <span id="load-percent" style="color:#777; font-size:0.8em; margin-left:10px;">
-                    (0%)
-                </span>
+                Localidades Descubiertas
             </summary>
             <ul id="loc-list">
                 <!-- Lista generada dinámicamente -->
@@ -118,14 +115,202 @@
         </details>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const percentSpan = document.getElementById('load-percent');
-            const locDetails = document.getElementById('localidades');
-            const locList = document.getElementById('loc-list');
-            const searchInput = document.getElementById('search');
+        document.addEventListener('DOMContentLoaded', () => {
+            const mapWidth = 15360;
+            const mapHeight = 7384;
+            const aspect = mapHeight / mapWidth;
+            const revealRadiusPx = 500; // Radio del área revelada en píxeles
+            const revealRadiusNorm = revealRadiusPx / mapWidth;
 
-            // Inicializar el mapa zoomable con OpenSeaDragon
-            var viewer = OpenSeaDragon({
+            // Posiciones estimadas basadas en OCR (x, y en píxeles). Puedes ajustar manualmente para más precisión.
+            const positions = [
+                {lower: 'palla', cap: 'Palla', x: 0.0, y: 0.0},
+                {lower: 'cancon', cap: 'Cabcon', x: 512.0, y: 0.0},
+                {lower: 'anzonquepi', cap: 'Auizonquepi', x: 1024.0, y: 0.0},
+                {lower: 'ciralher', cap: 'Chaler', x: 1536.0, y: 0.0},
+                {lower: 'sande', cap: 'Saude', x: 2048.0, y: 0.0},
+                {lower: 'sanconciare', cap: 'SanconciarMosas', x: 2560.0, y: 0.0},
+                {lower: 'anconta', cap: 'Auconta', x: 3072.0, y: 0.0},
+                {lower: 'anconta', cap: 'Auconca', x: 3584.0, y: 0.0},
+                {lower: 'ciralher', cap: 'Ciralher', x: 4096.0, y: 0.0},
+                {lower: 'puertanil', cap: 'PuercanilBalsicemil', x: 4608.0, y: 0.0},
+                {lower: 'cinies', cap: 'Cities', x: 5120.0, y: 0.0},
+                {lower: 'chuelas', cap: 'Chuelas', x: 5632.0, y: 0.0},
+                {lower: 'cidaganta', cap: 'Cidaganta', x: 6144.0, y: 0.0},
+                {lower: 'esplera', cap: 'Esplera', x: 6656.0, y: 0.0},
+                {lower: 'estriequega', cap: 'Escriequega', x: 7168.0, y: 0.0},
+                {lower: 'fontanes', cap: 'Foucanes', x: 7680.0, y: 0.0},
+                {lower: 'sanca', cap: 'Sanca', x: 8192.0, y: 0.0},
+                {lower: 'cancon', cap: 'Ciralconza', x: 8704.0, y: 0.0},
+                {lower: 'puertanil', cap: 'Puercanil', x: 9216.0, y: 0.0},
+                {lower: 'palvistemil', cap: 'Bulsicemil', x: 9728.0, y: 0.0},
+                {lower: 'negrera', cap: 'Neg', x: 10240.0, y: 0.0},
+                {lower: 'negranosbar', cap: 'ranosbar', x: 10752.0, y: 0.0},
+                {lower: 'chuelas', cap: 'Huelas', x: 11264.0, y: 0.0},
+                {lower: 'sandieravas', cap: 'Sanderavas', x: 11776.0, y: 0.0},
+                {lower: 'puertanil', cap: 'Duercothil', x: 12288.0, y: 0.0},
+                {lower: 'yundo', cap: 'Yundo', x: 12800.0, y: 0.0},
+                {lower: 'vallo', cap: 'Vallo', x: 13312.0, y: 0.0},
+                {lower: 'leras', cap: 'Leras', x: 13824.0, y: 0.0},
+                {lower: 'cidaganta', cap: 'Cidaganta', x: 14336.0, y: 0.0},
+                {lower: 'esplera', cap: 'Esp', x: 14848.0, y: 0.0},
+                {lower: 'leras', cap: 'lera', x: 15360.0, y: 0.0},
+                {lower: 'estriequega', cap: 'Escriequega', x: 0.0, y: 434.3529411764706},
+                {lower: 'fontanes', cap: 'Foucanes', x: 960.0, y: 434.3529411764706},
+                {lower: 'sanca', cap: 'Sanca', x: 1920.0, y: 434.3529411764706},
+                {lower: 'cancon', cap: 'Ciralconza', x: 2880.0, y: 434.3529411764706},
+                {lower: 'puertanil', cap: 'Puercanil', x: 3840.0, y: 434.3529411764706},
+                {lower: 'palvistemil', cap: 'Bulsicemil', x: 4800.0, y: 434.3529411764706},
+                {lower: 'negrera', cap: 'Neg', x: 5760.0, y: 434.3529411764706},
+                {lower: 'negranosbar', cap: 'ranosbar', x: 6720.0, y: 434.3529411764706},
+                {lower: 'chuelas', cap: 'Huelas', x: 7680.0, y: 434.3529411764706},
+                {lower: 'sandieravas', cap: 'Sanderavas', x: 8640.0, y: 434.3529411764706},
+                {lower: 'puertanil', cap: 'Duercothil', x: 9600.0, y: 434.3529411764706},
+                {lower: 'yundo', cap: 'Yundo', x: 10560.0, y: 434.3529411764706},
+                {lower: 'vallo', cap: 'Vallo', x: 11520.0, y: 434.3529411764706},
+                {lower: 'leras', cap: 'Leras', x: 12480.0, y: 434.3529411764706},
+                {lower: 'cidaganta', cap: 'Cidaganta', x: 13440.0, y: 434.3529411764706},
+                {lower: 'esplera', cap: 'Esp', x: 14400.0, y: 434.3529411764706},
+                {lower: 'leras', cap: 'lera', x: 15360.0, y: 434.3529411764706},
+                {lower: 'mocha', cap: 'Mocha', x: 0.0, y: 868.7058823529412},
+                {lower: 'cuertocedo', cap: 'Cuercocedo', x: 0.0, y: 1303.058823529412},
+                {lower: 'valviste', cap: 'Valvisce', x: 960.0, y: 1303.058823529412},
+                {lower: 'torrio', cap: 'Torr', x: 1920.0, y: 1303.058823529412},
+                {lower: 'torronza', cap: 'onza', x: 2880.0, y: 1303.058823529412},
+                {lower: 'orrealgarve', cap: 'Orrealgarve', x: 3840.0, y: 1303.058823529412},
+                {lower: 'lunoradete', cap: 'Lunoradete', x: 4800.0, y: 1303.058823529412},
+                {lower: 'luronteldea', cap: 'Luronteldea', x: 5760.0, y: 1303.058823529412},
+                {lower: 'tordalagar', cap: 'Tordalagar', x: 6720.0, y: 1303.058823529412},
+                {lower: 'torroso', cap: 'Torroso', x: 7680.0, y: 1303.058823529412},
+                {lower: 'mihuejas', cap: 'Minuejas', x: 8640.0, y: 1303.058823529412},
+                {lower: 'negranosbar', cap: 'Negranosbar', x: 9600.0, y: 1303.058823529412},
+                {lower: 'arminocelas', cap: 'Arminocelas', x: 10560.0, y: 1303.058823529412},
+                {lower: 'negrera', cap: 'Neg', x: 11520.0, y: 1303.058823529412},
+                {lower: 'reras', cap: 'rera', x: 12480.0, y: 1303.058823529412},
+                {lower: 'cardaralare', cap: 'Cardaralare', x: 13440.0, y: 1303.058823529412},
+                {lower: 'urriozascas', cap: 'Urriozascas', x: 14400.0, y: 1303.058823529412},
+                {lower: 'madronasas', cap: 'Madronasas', x: 15360.0, y: 1303.058823529412},
+                {lower: 'jadrallida', cap: 'Jadrallida', x: 0.0, y: 1737.4117647058824},
+                {lower: 'torredavil', cap: 'Torredavil', x: 0.0, y: 2171.764705882353},
+                {lower: 'saura', cap: 'Saura', x: 1706.6666666666665, y: 2171.764705882353},
+                {lower: 'herzuemillo', cap: 'Derzuemillo', x: 3413.333333333333, y: 2171.764705882353},
+                {lower: 'porro', cap: 'Orero', x: 5120.0, y: 2171.764705882353},
+                {lower: 'casto', cap: 'Casto', x: 6826.666666666666, y: 2171.764705882353},
+                {lower: 'barriosbar', cap: 'Barriosbar', x: 8533.333333333334, y: 2171.764705882353},
+                {lower: 'baiga', cap: 'Baiga', x: 10240.0, y: 2171.764705882353},
+                {lower: 'ciralher', cap: 'Ciralher', x: 11946.666666666666, y: 2171.764705882353},
+                {lower: 'urriozascas', cap: 'Urriozascas', x: 13653.333333333332, y: 2171.764705882353},
+                {lower: 'madronasas', cap: 'Madronasas', x: 15360.0, y: 2171.764705882353},
+                {lower: 'jadrallida', cap: 'Jadrallida', x: 0.0, y: 2606.117647058824},
+                {lower: 'torredavil', cap: 'Torredavil', x: 0.0, y: 3040.470588235294},
+                {lower: 'saura', cap: 'Saura', x: 1536.0, y: 3040.470588235294},
+                {lower: 'herzuemillo', cap: 'Derzuemillo', x: 3072.0, y: 3040.470588235294},
+                {lower: 'porro', cap: 'Orero', x: 4608.0, y: 3040.470588235294},
+                {lower: 'casto', cap: 'Casto', x: 6144.0, y: 3040.470588235294},
+                {lower: 'barriosbar', cap: 'Barriosbar', x: 7680.0, y: 3040.470588235294},
+                {lower: 'baiga', cap: 'Baiga', x: 9216.0, y: 3040.470588235294},
+                {lower: 'ciralher', cap: 'Cir', x: 10752.0, y: 3040.470588235294},
+                {lower: 'ciralher', cap: 'alher', x: 12288.0, y: 3040.470588235294},
+                {lower: 'urriozascas', cap: 'Urriozascas', x: 13824.0, y: 3040.470588235294},
+                {lower: 'madronasas', cap: 'Madronasas', x: 15360.0, y: 3040.470588235294},
+                {lower: 'yuntatildea', cap: 'Yuntatildea', x: 0.0, y: 3474.823529411765},
+                {lower: 'torredavil', cap: 'Torredavil', x: 0.0, y: 3909.176470588235},
+                {lower: 'saura', cap: 'Saura', x: 1536.0, y: 3909.176470588235},
+                {lower: 'herzuemillo', cap: 'Derzuemillo', x: 3072.0, y: 3909.176470588235},
+                {lower: 'porro', cap: 'Orero', x: 4608.0, y: 3909.176470588235},
+                {lower: 'casto', cap: 'Casto', x: 6144.0, y: 3909.176470588235},
+                {lower: 'barriosbar', cap: 'Barriosbar', x: 7680.0, y: 3909.176470588235},
+                {lower: 'baiga', cap: 'Baiga', x: 9216.0, y: 3909.176470588235},
+                {lower: 'ciralher', cap: 'Cir', x: 10752.0, y: 3909.176470588235},
+                {lower: 'ciralher', cap: 'alher', x: 12288.0, y: 3909.176470588235},
+                {lower: 'urriozascas', cap: 'Urriozascas', x: 13824.0, y: 3909.176470588235},
+                {lower: 'madronasas', cap: 'Madronasas', x: 15360.0, y: 3909.176470588235},
+                {lower: 'yuntatildea', cap: 'Yuntatildea', x: 0.0, y: 4343.529411764706},
+                {lower: 'herzuemillo', cap: 'Herzuemillo', x: 0.0, y: 4777.882352941177},
+                {lower: 'pigos', cap: 'Pigo', x: 1280.0, y: 4777.882352941177},
+                {lower: 'bellavil', cap: 'Bellavil', x: 2560.0, y: 4777.882352941177},
+                {lower: 'sandieravas', cap: 'Sandieravas', x: 3840.0, y: 4777.882352941177},
+                {lower: 'quinzadedo', cap: 'Quinzadedo', x: 5120.0, y: 4777.882352941177},
+                {lower: 'fuencos', cap: 'Fue', x: 6400.0, y: 4777.882352941177},
+                {lower: 'fuencos', cap: 'ncos', x: 7680.0, y: 4777.882352941177},
+                {lower: 'lumana', cap: 'Lumana', x: 8960.0, y: 4777.882352941177},
+                {lower: 'lumana', cap: 'Huma', x: 10240.0, y: 4777.882352941177},
+                {lower: 'yunta', cap: 'na', x: 11520.0, y: 4777.882352941177},
+                {lower: 'allogollos', cap: 'Allogollos', x: 12800.0, y: 4777.882352941177},
+                {lower: 'carrealloca', cap: 'Carrealloca', x: 14080.0, y: 4777.882352941177},
+                {lower: 'estriequega', cap: 'Escriequesa', x: 15360.0, y: 4777.882352941177},
+                {lower: 'cancon', cap: 'Cascon', x: 0.0, y: 5212.235294117648},
+                {lower: 'candigos', cap: 'Candigos', x: 853.3333333333333, y: 5212.235294117648},
+                {lower: 'jiles', cap: 'Jiles', x: 1706.6666666666665, y: 5212.235294117648},
+                {lower: 'bartolares', cap: 'Barr', x: 2560.0, y: 5212.235294117648},
+                {lower: 'barriosbar', cap: 'iosbar', x: 3413.333333333333, y: 5212.235294117648},
+                {lower: 'nudera', cap: 'Nurera', x: 4266.666666666667, y: 5212.235294117648},
+                {lower: 'quinzadedo', cap: 'Quinza', x: 5120.0, y: 5212.235294117648},
+                {lower: 'sande', cap: 'ded', x: 5973.333333333333, y: 5212.235294117648},
+                {lower: 'santalestab', cap: 'Sancalescab', x: 7680.0, y: 5212.235294117648},
+                {lower: 'malvez', cap: 'Malvez', x: 8533.333333333334, y: 5212.235294117648},
+                {lower: 'fuencos', cap: 'Fue', x: 9386.666666666668, y: 5212.235294117648},
+                {lower: 'fuencos', cap: 'ncos', x: 10240.0, y: 5212.235294117648},
+                {lower: 'lumana', cap: 'Lumana', x: 11093.333333333334, y: 5212.235294117648},
+                {lower: 'lumana', cap: 'Huma', x: 11946.666666666666, y: 5212.235294117648},
+                {lower: 'yunta', cap: 'na', x: 12800.0, y: 5212.235294117648},
+                {lower: 'allogollos', cap: 'Allogollos', x: 13653.333333333332, y: 5212.235294117648},
+                {lower: 'carrealloca', cap: 'Carrealloca', x: 14506.666666666666, y: 5212.235294117648},
+                {lower: 'estriequega', cap: 'Escriequesa', x: 15360.0, y: 5212.235294117648},
+                {lower: 'cancon', cap: 'Cascon', x: 0.0, y: 5646.588235294117},
+                {lower: 'candigos', cap: 'Candigos', x: 853.3333333333333, y: 5646.588235294117},
+                {lower: 'jiles', cap: 'Jiles', x: 1706.6666666666665, y: 5646.588235294117},
+                {lower: 'bartolares', cap: 'Barr', x: 2560.0, y: 5646.588235294117},
+                {lower: 'barriosbar', cap: 'iosbar', x: 3413.333333333333, y: 5646.588235294117},
+                {lower: 'nudera', cap: 'Nurera', x: 4266.666666666667, y: 5646.588235294117},
+                {lower: 'quinzadedo', cap: 'Quinza', x: 5120.0, y: 5646.588235294117},
+                {lower: 'sande', cap: 'ded', x: 5973.333333333333, y: 5646.588235294117},
+                {lower: 'santalestab', cap: 'Sancalescab', x: 7680.0, y: 5646.588235294117},
+                {lower: 'malvez', cap: 'Malvez', x: 8533.333333333334, y: 5646.588235294117},
+                {lower: 'fuencos', cap: 'Fue', x: 9386.666666666668, y: 5646.588235294117},
+                {lower: 'fuencos', cap: 'ncos', x: 10240.0, y: 5646.588235294117},
+                {lower: 'lumana', cap: 'Lumana', x: 11093.333333333334, y: 5646.588235294117},
+                {lower: 'lumana', cap: 'Huma', x: 11946.666666666666, y: 5646.588235294117},
+                {lower: 'yunta', cap: 'na', x: 12800.0, y: 5646.588235294117},
+                {lower: 'allogollos', cap: 'Allogollos', x: 13653.333333333332, y: 5646.588235294117},
+                {lower: 'carrealloca', cap: 'Carrealloca', x: 14506.666666666666, y: 5646.588235294117},
+                {lower: 'estriequega', cap: 'Escriequesa', x: 15360.0, y: 5646.588235294117},
+                {lower: 'quindoliga', cap: 'Quindoliga', x: 0.0, y: 6080.941176470588},
+                {lower: 'allares', cap: 'Allares', x: 2560.0, y: 6080.941176470588},
+                {lower: 'noblegalo', cap: 'Noblegalo', x: 5120.0, y: 6080.941176470588},
+                {lower: 'valmadroma', cap: 'Valmadroma', x: 7680.0, y: 6080.941176470588},
+                {lower: 'riofrintuma', cap: 'Riofrintuma', x: 10240.0, y: 6080.941176470588},
+                {lower: 'aloranagan', cap: 'Aloranagan', x: 12800.0, y: 6080.941176470588},
+                {lower: 'fuencos', cap: 'Duercoso', x: 15360.0, y: 6080.941176470588},
+                {lower: 'sancialo', cap: 'Sancialo', x: 0.0, y: 6515.294117647059},
+                {lower: 'allares', cap: 'Allares', x: 2560.0, y: 6515.294117647059},
+                {lower: 'noblegalo', cap: 'Noblegalo', x: 5120.0, y: 6515.294117647059},
+                {lower: 'valmadroma', cap: 'Valmadroma', x: 7680.0, y: 6515.294117647059},
+                {lower: 'riofrintuma', cap: 'Riofrintuma', x: 10240.0, y: 6515.294117647059},
+                {lower: 'aloranagan', cap: 'Aloranagan', x: 12800.0, y: 6515.294117647059},
+                {lower: 'fuencos', cap: 'Duercoso', x: 15360.0, y: 6515.294117647059},
+                {lower: 'sancialo', cap: 'Sancialo', x: 0.0, y: 6949.64705882353},
+                {lower: 'allares', cap: 'Allares', x: 2560.0, y: 6949.64705882353},
+                {lower: 'noblegalo', cap: 'Noblegalo', x: 5120.0, y: 6949.64705882353},
+                {lower: 'valmadroma', cap: 'Valmadroma', x: 7680.0, y: 6949.64705882353},
+                {lower: 'riofrintuma', cap: 'Riofrintuma', x: 10240.0, y: 6949.64705882353},
+                {lower: 'aloranagan', cap: 'Aloranagan', x: 12800.0, y: 6949.64705882353},
+                {lower: 'fuencos', cap: 'Duercoso', x: 15360.0, y: 6949.64705882353},
+                {lower: 'sanconciare', cap: 'Sanconciare', x: 0.0, y: 7384.0}
+            ];
+
+            // Deduplicar por lower, tomar la primera posición
+            const uniquePositions = [];
+            const seen = new Set();
+            for (const pos of positions) {
+                if (!seen.has(pos.lower)) {
+                    seen.add(pos.lower);
+                    uniquePositions.push(pos);
+                }
+            }
+
+            // Inicializar el visor
+            const viewer = OpenSeaDragon({
                 id: "map-container",
                 prefixUrl: "https://openseadragon.github.io/openseadragon/images/",
                 showNavigator: true,
@@ -135,83 +320,78 @@
                 }
             });
 
-            // Lista de localidades conocidas (en minúsculas)
-            const knownLower = [
-                "aldearares","aldequejas","alinomin","allares","allogollos","allos","alominchar",
-                "aloranagan","aloranes","anconta","anzonquepi","arminocelas","arveta","baiga",
-                "bailes","barriosbar","bartolares","beldea","bellavil","berzuese","buenala",
-                "cancon","candigos","cantita","cardaralare","carralriote","carrealloca","carriruera",
-                "caspinanar","castanarro","casto","castominza","cermola","chocento","chuelas",
-                "cidaganta","cinies","ciralher","copejon","coyogollor","cuergeso","cuertocedo",
-                "dorihuejar","driero","duceque","esplera","esteruerane","estesavas","estrieguque",
-                "estrienil","estriequega","fontanes","fuencos","galza","herreron","herzuemillo",
-                "hiquemilba","huerolinil","huerongo","humanilnue","jadrallida","jiles","leras",
-                "lomagandera","lumana","lunoradete","lunosanar","luronteldea","madran","madronasas",
-                "maliba","malvez","mantella","menaba","mihuejas","milmaganes","minoma","mirueranil",
-                "mitatillar","mocha","momanuejas","mominchar","moncorea","negranosbar","negrera",
-                "noblegalo","noblevo","nudera","orrealgarve","palla","palvistemil","pigos","porro",
-                "pradatan","puebradena","puertanil","quindoliga","quinzadedo","reras","riofrintuma",
-                "ruenanilsaz","saldea","sanca","sancialo","sanconciare","sande","sanderados",
-                "sandieravas","santalestab","saura","sejontanil","selastil","tordalagar","torredavil",
-                "torrio","torronza","torroso","tortilmadro","urriozascas","vallo","valmadroma",
-                "valviste","valza","yundo","yunta","yuntatildea","zarmoveras"
-            ];
+            viewer.addHandler('open', () => {
+                // Crear SVG para la niebla
+                const svgNS = 'http://www.w3.org/2000/svg';
+                const svg = document.createElementNS(svgNS, 'svg');
+                svg.setAttribute('viewBox', `0 0 1 ${aspect}`);
+                svg.style.width = '100%';
+                svg.style.height = '100%';
 
-            const total = knownLower.length;
-            let checked = 0;
+                const mask = document.createElementNS(svgNS, 'mask');
+                mask.id = 'fog-mask';
 
-            function updateProgress() {
-                checked++;
-                const pct = Math.floor((checked / total) * 100);
-                if (percentSpan) percentSpan.textContent = `(${checked}/${total}) ${pct}%`;
-            }
+                const maskRect = document.createElementNS(svgNS, 'rect');
+                maskRect.setAttribute('x', '0');
+                maskRect.setAttribute('y', '0');
+                maskRect.setAttribute('width', '1');
+                maskRect.setAttribute('height', `${aspect}`);
+                maskRect.setAttribute('fill', 'white');
+                mask.appendChild(maskRect);
 
-            async function imageExists(url) {
-                return new Promise(resolve => {
-                    const img = new Image();
-                    img.onload = () => resolve(true);
-                    img.onerror = () => resolve(false);
-                    img.src = url;
+                uniquePositions.forEach(pos => {
+                    const x_norm = pos.x / mapWidth;
+                    const y_norm = pos.y / mapWidth; // Porque y_norm = py / width
+                    const circle = document.createElementNS(svgNS, 'circle');
+                    circle.setAttribute('cx', `${x_norm}`);
+                    circle.setAttribute('cy', `${y_norm}`);
+                    circle.setAttribute('r', `${revealRadiusNorm}`);
+                    circle.setAttribute('fill', 'black');
+                    mask.appendChild(circle);
                 });
-            }
 
-            const validLocalidades = new Map(); // lower → capitalized
+                svg.appendChild(mask);
 
-            const checks = knownLower.map(async (lower) => {
-                const url = `localidades/${lower}.jpg`;
-                const exists = await imageExists(url);
-                if (exists) {
-                    const capitalized = lower.charAt(0).toUpperCase() + lower.slice(1);
-                    validLocalidades.set(lower, capitalized);
-                }
-                updateProgress();
+                const fogRect = document.createElementNS(svgNS, 'rect');
+                fogRect.setAttribute('x', '0');
+                fogRect.setAttribute('y', '0');
+                fogRect.setAttribute('width', '1');
+                fogRect.setAttribute('height', `${aspect}`);
+                fogRect.setAttribute('fill', '#2c1b0f'); // Color de niebla
+                fogRect.setAttribute('opacity', '0.8');
+                fogRect.setAttribute('mask', 'url(#fog-mask)');
+                svg.appendChild(fogRect);
+
+                // Añadir el overlay
+                viewer.addOverlay({
+                    element: svg,
+                    location: new OpenSeaDragon.Rect(0, 0, 1, aspect)
+                });
             });
 
-            await Promise.all(checks);
+            // Generar la lista de localidades descubiertas (ordenada alfabéticamente)
+            const sorted = uniquePositions.sort((a, b) => a.cap.localeCompare(b.cap, 'es'));
 
-            if (percentSpan) percentSpan.remove();
-
-            if (validLocalidades.size === 0) {
-                locDetails.remove();
-                return;
-            }
-
-            // Generar lista ordenada
-            const sorted = Array.from(validLocalidades.entries())
-                .map(([lower, cap]) => ({lower, cap}))
-                .sort((a,b) => a.cap.localeCompare(b.cap, 'es'));
-
-            sorted.forEach(({lower, cap}) => {
+            const locList = document.getElementById('loc-list');
+            sorted.forEach(pos => {
                 const li = document.createElement('li');
                 const a = document.createElement('a');
-                a.href = `localidades/${lower}.jpg`;
+                a.href = `localidades/${pos.lower}.jpg`;
                 a.target = '_blank';
-                a.textContent = cap;
+                a.textContent = pos.cap;
+                a.addEventListener('click', (e) => {
+                    // Zoom al área
+                    const x_norm = pos.x / mapWidth;
+                    const y_norm = pos.y / mapWidth;
+                    const bounds = new OpenSeaDragon.Rect(x_norm - revealRadiusNorm, y_norm - revealRadiusNorm, 2 * revealRadiusNorm, 2 * revealRadiusNorm);
+                    viewer.viewport.fitBounds(bounds, true);
+                });
                 li.appendChild(a);
                 locList.appendChild(li);
             });
 
-            // Función de búsqueda
+            // Búsqueda
+            const searchInput = document.getElementById('search');
             searchInput.addEventListener('input', function() {
                 const filter = this.value.toLowerCase();
                 const lis = locList.getElementsByTagName('li');
