@@ -45,7 +45,7 @@
         }
         #map-wrapper {
             width: 100%;
-            aspect-ratio: 10000 / 4807; /* Proporción exacta de la imagen */
+            aspect-ratio: 10000 / 4807;
             margin-bottom: 20px;
             border: 2px solid #6b4c2e;
         }
@@ -67,8 +67,8 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
         .loc-pin {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             background: #b22222;
             border: 4px solid white;
             border-radius: 50%;
@@ -76,6 +76,7 @@
             cursor: pointer;
             pointer-events: auto;
             transition: transform 0.15s;
+            transform-origin: center top; /* Escala desde la parte superior para simular "subida" */
         }
         .loc-pin:hover {
             transform: scale(1.5);
@@ -88,13 +89,13 @@
                 aspect-ratio: 10000 / 4807;
                 max-height: 70vh;
             }
+            .loc-pin { width: 20px; height: 20px; border-width: 3px; }
         }
         @media (max-width: 480px) {
             #map-wrapper { 
-                aspect-ratio: 1 / 1; /* Cuadrado en pantallas muy pequeñas */
+                aspect-ratio: 1 / 1;
                 max-height: 80vh;
             }
-            .loc-pin { width: 24px; height: 24px; border-width: 3px; }
         }
     </style>
 </head>
@@ -112,7 +113,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
 
-            // Ubicaciones (ya divididas por 2.08 como tú hiciste)
+            // Ubicaciones (ya ajustadas por ti con /2.08)
             const locations = [
                 { name: "Chuelas", lower: "chuelas", x: 8044, y: 690 },
                 { name: "Bailes", lower: "bailes", x: 8475, y: 574 },
@@ -129,8 +130,8 @@
                 useCanvas: false,
                 showNavigator: true,
                 navigatorPosition: "BOTTOM_RIGHT",
-                defaultZoomLevel: 1.0, // Valor inicial, se recalcula después
-                minZoomLevel: 1.0,     // Valor inicial, se recalcula después
+                defaultZoomLevel: 1.0,
+                minZoomLevel: 1.0,
                 maxZoomLevel: 12,
                 constrainDuringPan: true,
                 visibilityRatio: 1.0,
@@ -147,7 +148,7 @@
                 console.log("Mapa cargado correctamente");
                 status.textContent = "Haz clic o tap en los puntos rojos para abrir la localidad";
 
-                // Recalcular minZoomLevel y defaultZoomLevel para que el mapa llene siempre verticalmente (sin hueco arriba/abajo)
+                // Recalcular minZoomLevel y defaultZoomLevel para llenar verticalmente
                 const container = viewer.container;
                 const containerHeight = container.clientHeight;
                 const containerWidth = container.clientWidth;
@@ -156,21 +157,19 @@
 
                 let fitZoom;
                 if (containerAspect > imageAspect) {
-                    // Contenedor más alto → zoom para que la altura de la imagen llene el contenedor
                     fitZoom = containerHeight / (imageAspect * containerWidth);
                 } else {
-                    // Contenedor más ancho → zoom para que el ancho llene el contenedor
                     fitZoom = 1 / containerAspect * imageAspect;
                 }
 
-                // Aplicar el mismo zoom tanto al mínimo como al default (inicio)
                 viewer.viewport.minZoomLevel = fitZoom;
-                viewer.viewport.defaultZoomLevel = fitZoom; // ← Esto hace que el zoom por defecto sea el mismo que el mínimo
+                viewer.viewport.defaultZoomLevel = fitZoom;
 
-                // Centrar y ajustar al inicio con el zoom calculado
                 viewer.viewport.goHome(true);
 
-                // Añadir los tres puntos
+                // Offset hacia abajo en píxeles reales (50 px)
+                const offsetPx = 50; // Puedes cambiar este valor
+
                 locations.forEach(loc => {
                     const pin = document.createElement('div');
                     pin.className = 'loc-pin';
@@ -185,9 +184,15 @@
                     pin.addEventListener('click', openLocation);
                     pin.addEventListener('touchend', openLocation);
 
+                    // Posición base + offset hacia abajo
+                    const baseY = loc.y / 4807;
+                    const offsetNorm = offsetPx / 4807; // Convertir píxeles a coordenadas normalizadas
                     viewer.addOverlay({
                         element: pin,
-                        location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
+                        location: new OpenSeadragon.Point(
+                            loc.x / 10000,
+                            baseY + offsetNorm  // Desplazado 50 px hacia abajo
+                        ),
                         placement: 'CENTER',
                         checkResize: false
                     });
@@ -196,7 +201,7 @@
 
             viewer.addHandler('open-failed', (event) => {
                 console.error("Error al abrir mapa:", event);
-                status.innerHTML = 'Error al cargar gatimapa – ver consola F12';
+                status.innerHTML = 'Error al cargar mapa – ver consola F12';
             });
         });
     </script>
