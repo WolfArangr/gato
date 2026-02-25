@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -44,30 +43,12 @@
             color: #3d2b1f;
             margin: 0;
         }
-#map-wrapper {
-    width: 100%;
-    aspect-ratio: 10000 / 4807; /* Proporción exacta de la imagen (panorámica) */
-    max-height: 800px;          /* Límite superior en pantallas grandes */
-    margin-bottom: 20px;
-    border: 2px solid #6b4c2e;
-}
-
-/* En móvil pequeño: más vertical, máximo cuadrado */
-@media (max-width: 768px) {
-    #map-wrapper {
-        aspect-ratio: 10000 / 4807; /* Mantiene panorámico si cabe */
-        max-height: 60vh;           /* Ocupa hasta 60% de la altura visible */
-        max-height: min(60vh, 500px);
-    }
-}
-
-@media (max-width: 480px) {
-    #map-wrapper {
-        aspect-ratio: 1 / 1;        /* Límite cuadrado en pantallas muy pequeñas */
-        max-height: 70vh;           /* Más alto relativo, pero no más de 70% de la pantalla */
-        max-height: min(70vh, 400px);
-    }
-}
+        #map-wrapper {
+            width: 100%;
+            aspect-ratio: 10000 / 4807; /* Proporción exacta de la imagen */
+            margin-bottom: 20px;
+            border: 2px solid #6b4c2e;
+        }
         #map-container {
             width: 100%;
             height: 100%;
@@ -101,12 +82,18 @@
         }
         @media (max-width: 768px) {
             #book { padding: 35px 25px; max-width: 95%; }
-            h1.main-title { font-size: 2.0em; }
-            h1.author { font-size: 1.0em; }
-            #map-wrapper { max-height: 500px; }
+            h1.main-title { font-size: 2.8em; }
+            h1.author { font-size: 1.4em; }
+            #map-wrapper { 
+                aspect-ratio: 10000 / 4807;
+                max-height: 70vh; /* Más alto en móvil para llenar pantalla */
+            }
         }
         @media (max-width: 480px) {
-            #map-wrapper { max-height: 350px; }
+            #map-wrapper { 
+                aspect-ratio: 1 / 1; /* Cuadrado en pantallas muy pequeñas */
+                max-height: 80vh;    /* Casi toda la altura visible */
+            }
             .loc-pin { width: 24px; height: 24px; border-width: 3px; }
         }
     </style>
@@ -121,12 +108,11 @@
             <div id="map-container"></div>
         </div>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
 
-            // Ubicaciones, hay que dividir coordenada y entre 2.08
+            // Ubicaciones (ya divididas por 2.08 como tú hiciste)
             const locations = [
                 { name: "Chuelas", lower: "chuelas", x: 8044, y: 690 },
                 { name: "Bailes", lower: "bailes", x: 8475, y: 574 },
@@ -144,12 +130,12 @@
                 showNavigator: true,
                 navigatorPosition: "BOTTOM_RIGHT",
                 defaultZoomLevel: 1.0,
-                minZoomLevel: 1.0,
+                minZoomLevel: 1.0, // Valor inicial, se recalcula después
                 maxZoomLevel: 12,
                 constrainDuringPan: true,
                 visibilityRatio: 1.0,
                 preserveViewport: true,
-                minZoomImageRatio: 1.0,  // Evita zoom-out más allá del tamaño real de la imagen
+                minZoomImageRatio: 1.0,
                 gestureSettingsTouch: {
                     pinchToZoom: true,
                     clickToZoom: false,
@@ -160,6 +146,27 @@
             viewer.addHandler('open', () => {
                 console.log("Mapa cargado correctamente");
                 status.textContent = "Haz clic o tap en los puntos rojos para abrir la localidad";
+
+                // Recalcular minZoomLevel para que el mapa llene siempre verticalmente (sin hueco arriba/abajo)
+                const container = viewer.container;
+                const containerHeight = container.clientHeight;
+                const containerWidth = container.clientWidth;
+                const imageAspect = 4807 / 10000;
+                const containerAspect = containerHeight / containerWidth;
+
+                // Si el contenedor es más alto que la imagen (vertical), zoom mínimo para llenar alto
+                // Si es más ancho (panorámico), zoom mínimo para llenar ancho
+                let fitZoom;
+                if (containerAspect > imageAspect) {
+                    // Contenedor más alto → zoom para que la altura de la imagen llene el contenedor
+                    fitZoom = containerHeight / (imageAspect * containerWidth);
+                } else {
+                    // Contenedor más ancho → zoom para que el ancho llene el contenedor
+                    fitZoom = 1 / containerAspect * imageAspect;
+                }
+
+                viewer.viewport.minZoomLevel = fitZoom;
+                viewer.viewport.goHome(true); // Centra y ajusta al inicio
 
                 // Añadir los tres puntos
                 locations.forEach(loc => {
@@ -183,9 +190,6 @@
                         checkResize: false
                     });
                 });
-
-                // Centrar y ajustar al inicio
-                viewer.viewport.goHome(true);
             });
 
             viewer.addHandler('open-failed', (event) => {
