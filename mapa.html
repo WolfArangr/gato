@@ -3,44 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Interactivo de Kurghaimat - Solución 3 (mínima)</title>
+    <title>Mapa Interactivo de Kurghaimat</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;700&family=MedievalSharp&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1.1/build/openseadragon/openseadragon.min.js"></script>
     <style>
-        body { margin:0; padding:0; background:#f5e8c7; }
-        #map-container { width:100vw; height:100vh; position:relative; }
-        #status { position:absolute; top:10px; left:10px; background:white; padding:15px; border:2px solid red; z-index:9999; font-weight:bold; }
+        body {
+            background-color: #f5e8c7;
+            font-family: 'EB Garamond', serif;
+            color: #2c1b0f;
+            line-height: 1.75;
+            margin: 0;
+            padding: 20px;
+        }
+        #book {
+            max-width: 920px;
+            margin: 0 auto;
+            background: rgba(245, 232, 199, 0.96);
+            padding: 70px 80px;
+            border: 12px solid #6b4c2e;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+        }
+        #title-page {
+            text-align: center;
+            margin-bottom: 100px;
+        }
+        h1.main-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 5.4em;
+            color: #8b0000;
+            margin: 20px 0 10px;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
+        }
+        h1.author {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.7em;
+            color: #3d2b1f;
+            margin: 0 0 100px;
+            border-bottom: 4px double #8b4513;
+            padding-bottom: 30px;
+        }
+        #map-container {
+            height: 600px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        #status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 15px;
+            border: 2px solid red;
+            z-index: 9999;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        #search {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        #localidades {
+            margin-top: 60px;
+            text-align: center;
+        }
+        #localidades summary {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.0em;
+            color: #4b2e1a;
+            cursor: pointer;
+        }
+        #localidades ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        #localidades li {
+            margin: 8px 0;
+        }
+        #localidades a {
+            font-size: 1.4em;
+            color: #8b4513;
+            text-decoration: none;
+        }
+        #localidades a:hover {
+            color: #8b0000;
+        }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            #book { padding: 35px 25px; max-width: 95%; }
+            h1.main-title { font-size: 3.8em; }
+            h1.author { font-size: 2.1em; }
+            #map-container { height: 400px; }
+        }
+        @media (max-width: 480px) {
+            #map-container { height: 300px; }
+        }
     </style>
 </head>
 <body>
-    <div id="status">Cargando mapa... (si se queda aquí, abre F12 → Console y dime qué sale)</div>
-    <div id="map-container"></div>
+    <div id="book">
+        <div id="title-page">
+            <h1 class="main-title">Mapa Interactivo de Kurghaimat</h1>
+            <h1 class="author">Edvard Arangr</h1>
+        </div>
+        <div id="status">Cargando mapa (10000×4807 px – 5.74 MB)... Mira consola F12 si se queda aquí</div>
+        <div id="map-container"></div>
+        <input type="text" id="search" placeholder="Buscar localidad...">
+        <details id="localidades">
+            <summary>Localidades Descubiertas</summary>
+            <ul id="loc-list"></ul>
+        </details>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const mapWidth = 10000;
+            const mapHeight = 4807;
+            const aspect = mapHeight / mapWidth;
+            const revealRadiusPx = 400; // Ajustado para mapa más pequeño
+            const revealRadiusNorm = revealRadiusPx / mapWidth;
+
+            // Posiciones aproximadas (ajusta manualmente según tu mapa)
+            const positions = [
+                {lower: 'palla', cap: 'Palla', x: 500, y: 200},
+                {lower: 'allares', cap: 'Allares', x: 1500, y: 800},
+                {lower: 'leras', cap: 'Leras', x: 2500, y: 1200},
+                {lower: 'torredavil', cap: 'Torredavil', x: 3500, y: 1600},
+                {lower: 'saura', cap: 'Saura', x: 4500, y: 2000},
+                {lower: 'casto', cap: 'Casto', x: 5500, y: 2400},
+                {lower: 'valviste', cap: 'Valviste', x: 6500, y: 2800},
+                {lower: 'yundo', cap: 'Yundo', x: 7500, y: 3200},
+                {lower: 'vallo', cap: 'Vallo', x: 8500, y: 3600},
+                {lower: 'sanconciare', cap: 'Sanconciare', x: 9000, y: 4200},
+                // Añade más según necesites
+            ];
+
             const viewer = OpenSeadragon({
                 id: "map-container",
                 prefixUrl: "https://openseadragon.github.io/openseadragon/images/",
-                tileSources: "./localidades/mapacompleto.png",
+                tileSources: "localidades/mapacompleto.jpg",
                 useCanvas: false,
                 immediateRender: true,
                 showNavigator: true,
-                defaultZoomLevel: 0.4,
-                minZoomLevel: 0.05,
-                maxZoomLevel: 8
+                navigatorPosition: "BOTTOM_RIGHT",
+                defaultZoomLevel: 0.6,
+                minZoomLevel: 0.2,
+                maxZoomLevel: 10
             });
 
             viewer.addHandler('open', () => {
                 console.log("¡Mapa cargado correctamente!");
-                document.getElementById('status').textContent = 'Mapa cargado';
+                document.getElementById('status').textContent = 'Mapa cargado – prueba zoom y clic en localidades';
+                
+                // Aquí iría el código de niebla si lo quieres activar después
+                // Por ahora lo dejo comentado para simplificar la prueba
             });
 
             viewer.addHandler('open-failed', (event) => {
-                console.error("Error al abrir:", event);
-                document.getElementById('status').innerHTML = 'Error: ' + (event.message || 'unable to open – ver consola');
+                console.error("Error al abrir mapa:", event);
+                document.getElementById('status').innerHTML = 'Error al cargar mapa – ver consola F12';
             });
 
-            viewer.addHandler('tile-load-failed', (event) => {
-                console.error("Tile falló:", event);
+            // Lista de localidades (clic → zoom)
+            const locList = document.getElementById('loc-list');
+            positions.sort((a, b) => a.cap.localeCompare(b.cap, 'es'));
+            positions.forEach(pos => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = `localidades/${pos.lower}.jpg`;
+                a.target = '_blank';
+                a.textContent = pos.cap;
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const x_norm = pos.x / mapWidth;
+                    const y_norm = pos.y / mapWidth;
+                    const zoomSize = 0.3; // tamaño relativo del zoom
+                    viewer.viewport.fitBounds(
+                        new OpenSeadragon.Rect(
+                            x_norm - zoomSize / 2,
+                            y_norm - zoomSize / 2 * aspect,
+                            zoomSize,
+                            zoomSize * aspect
+                        ),
+                        true
+                    );
+                    // Opcional: abrir imagen de localidad
+                    window.open(a.href, '_blank');
+                });
+                li.appendChild(a);
+                locList.appendChild(li);
+            });
+
+            // Búsqueda simple
+            document.getElementById('search').addEventListener('input', function() {
+                const filter = this.value.toLowerCase();
+                const items = locList.getElementsByTagName('li');
+                for (let i = 0; i < items.length; i++) {
+                    const txt = items[i].textContent.toLowerCase();
+                    items[i].style.display = txt.includes(filter) ? '' : 'none';
+                }
             });
         });
     </script>
