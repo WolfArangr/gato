@@ -167,6 +167,22 @@
             h2.chapter-title { font-size: 1.8em; }
             p { font-size: 1.08em; text-indent: 2em; }
         }
+        /* Enlace al mapa encima de "Localidades Mencionadas" */
+        .map-link {
+            font-size: 1.3em;
+            color: #4b2e1a;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .map-link a {
+            color: #8b4513;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .map-link a:hover {
+            color: #8b0000;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -179,6 +195,10 @@
             </div>
             <details id="localidades">
                 <summary>
+                    <div class="map-link">
+                        Mapa interactivo: 
+                        <a href="https://www.gato.red/mapa" target="_blank">www.gato.red/mapa</a>
+                    </div>
                     Localidades Mencionadas
                     <span id="load-percent" style="color:#777; font-size:0.8em; margin-left:10px;">
                         (0%)
@@ -191,7 +211,6 @@
             <div id="loading">Cargando la crónica...</div>
         </div>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const contentDiv = document.getElementById('content');
@@ -199,7 +218,6 @@
             const tocDiv = document.getElementById('toc');
             const localidadesDetails = document.getElementById('localidades');
             const percentSpan = document.getElementById('load-percent');
-
             try {
                 const response = await fetch('LosErrantesdeKurghaimat.html');
                 if (!response.ok) throw new Error('Archivo no encontrado');
@@ -208,7 +226,6 @@
                 const doc = parser.parseFromString(html, 'text/html');
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = doc.body.innerHTML;
-
                 // Procesar capítulos
                 const chapterHeaders = tempDiv.querySelectorAll('h1.c7');
                 const chapters = [];
@@ -232,7 +249,6 @@
                     chapterIndex++;
                     header.remove();
                 });
-
                 if (chapters.length > 0) {
                     const tocH3 = document.createElement('h3');
                     tocH3.textContent = 'Índice de Capítulos';
@@ -248,23 +264,19 @@
                     });
                     tocDiv.appendChild(tocUl);
                 }
-
                 // Limpieza
                 tempDiv.querySelectorAll('p').forEach(p => {
                     const txt = (p.textContent || '').trim();
                     if (txt.length < 3 || txt === ' ') p.remove();
                 });
                 tempDiv.querySelectorAll('p:empty, .c3, .c5, span:empty, br:only-child').forEach(el => el.remove());
-
                 contentDiv.innerHTML = tempDiv.innerHTML;
                 loading?.remove();
-
                 // ────────────────────────────────────────────────
                 // LOCALIDADES: solo las mencionadas → con límites de palabra
                 // ────────────────────────────────────────────────
                 const localidadesDir = 'localidades/';
                 const extension = '.jpg';
-
                 // Lista base conocida (todo en minúsculas)
                 const knownLower = new Set([
                     "aldearares","aldequejas","alinomin","allares","allogollos","allos","alominchar",
@@ -286,7 +298,6 @@
                     "torrio","torronza","torroso","tortilmadro","urriozascas","vallo","valmadroma",
                     "valviste","valza","yundo","yunta","yuntatildea","zarmoveras"
                 ]);
-
                 // 1. Recolectar nodos de texto
                 const textNodes = [];
                 const walker = document.createTreeWalker(contentDiv, NodeFilter.SHOW_TEXT, null);
@@ -296,11 +307,9 @@
                         textNodes.push(node);
                     }
                 }
-
                 // 2. Encontrar menciones con límites de palabra (\b)
                 const foundLower = new Set();
                 const nameToDisplay = new Map(); // lower → forma real encontrada (primera ocurrencia)
-
                 textNodes.forEach(tNode => {
                     const text = tNode.nodeValue;
                     for (const lower of knownLower) {
@@ -318,12 +327,10 @@
                         }
                     }
                 });
-
                 // 3. Verificar existencia de imagen solo para las encontradas
                 const validLocalidades = new Map(); // lower → displayName
                 const totalToCheck = foundLower.size;
                 let checked = 0;
-
                 function updateProgress() {
                     checked++;
                     const pct = totalToCheck > 0 ? Math.floor((checked / totalToCheck) * 100) : 100;
@@ -331,7 +338,6 @@
                         percentSpan.textContent = `(${checked}/${totalToCheck}) ${pct}%`;
                     }
                 }
-
                 async function imageExists(url) {
                     return new Promise(r => {
                         const img = new Image();
@@ -340,7 +346,6 @@
                         img.src = url;
                     });
                 }
-
                 if (totalToCheck === 0) {
                     if (percentSpan) percentSpan.textContent = `(0/0) 100%`;
                 } else {
@@ -355,25 +360,20 @@
                     });
                     await Promise.all(checks);
                 }
-
                 if (percentSpan) percentSpan.remove();
-
                 if (validLocalidades.size === 0) {
                     localidadesDetails.remove();
                     return;
                 }
-
                 // 4. Regex final para reemplazar (usamos las formas exactas encontradas)
                 const namesArray = Array.from(validLocalidades.values());
                 const escaped = namesArray.map(n => n.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'));
                 const regex = new RegExp('\\b(' + escaped.join('|') + ')\\b', 'g');
-
                 // 5. Reemplazar en los nodos de texto
                 textNodes.forEach(textNode => {
                     const text = textNode.nodeValue;
                     if (!regex.test(text)) return;
                     regex.lastIndex = 0;
-
                     const fragment = document.createDocumentFragment();
                     let lastIndex = 0;
                     let match;
@@ -400,13 +400,11 @@
                     }
                     textNode.parentNode.replaceChild(fragment, textNode);
                 });
-
                 // 6. Generar lista ordenada alfabéticamente (por la forma mostrada)
                 const locUl = document.createElement('ul');
                 const sorted = Array.from(validLocalidades.entries())
                     .map(([lower, display]) => ({lower, display}))
                     .sort((a, b) => a.display.localeCompare(b.display, 'es'));
-
                 sorted.forEach(({lower, display}) => {
                     const li = document.createElement('li');
                     const a = document.createElement('a');
@@ -416,9 +414,7 @@
                     li.appendChild(a);
                     locUl.appendChild(li);
                 });
-
                 localidadesDetails.appendChild(locUl);
-
             } catch (err) {
                 contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:120px 0;">
                     Error: ${err.message}<br>Verifica que "LosErrantesdeKurghaimat.html" exista.
