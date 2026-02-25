@@ -79,7 +79,7 @@
             transform: scale(1.5);
         }
         .loc-label {
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             color: white;
             padding: 4px 8px;
             border-radius: 4px;
@@ -88,6 +88,7 @@
             white-space: nowrap;
             pointer-events: none;
             box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            margin-top: 4px; /* Separación para mejor alineación */
         }
         .mini-pin {
             width: 16px;
@@ -137,14 +138,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
 
-            // Ubicaciones principales
             const locations = [
                 { name: "Chuelas", lower: "chuelas", x: 8044, y: 690 },
                 { name: "Bailes", lower: "bailes", x: 8475, y: 574 },
                 { name: "Cinies", lower: "cinies", x: 7858, y: 362 }
             ];
 
-            // Mini puntos para eventos (solo visibles a partir de zoom max/2)
             const miniLocations = [
                 { name: "Incendio en la Posada del dragón", lower: "posadadeldragon", x: 7980, y: 380, desc: "Aquí se originó el Gran Incendio de 1026" }
             ];
@@ -201,12 +200,11 @@
 
                 viewer.viewport.goHome(true);
 
-                // Centrar inicialmente en el extremo derecho
-                viewer.viewport.panTo(new OpenSeadragon.Point(0.95, 0.5), true); // x=0.95 (casi extremo derecho), y=0.5 (centro vertical)
+                // Centrar inicialmente en el extremo derecho (centro vertical)
+                viewer.viewport.panTo(new OpenSeadragon.Point(0.95, 0.5), true);
 
                 // Añadir pines principales + labels
                 locations.forEach(loc => {
-                    // Pin principal
                     const pin = document.createElement('div');
                     pin.className = 'loc-pin';
                     pin.title = loc.name;
@@ -229,26 +227,27 @@
                         checkResize: false
                     });
 
-                    // Label flotante (nombre)
                     const label = document.createElement('div');
                     label.className = 'loc-label';
                     label.textContent = loc.name;
 
                     viewer.addOverlay({
                         element: label,
-                        location: new OpenSeadragon.Point(loc.x / 10000, (loc.y / 4807) + 0.005), // Ligeramente debajo del pin
-                        placement: 'TOP', // Aparece encima del pin
+                        location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
+                        placement: 'BOTTOM',
                         checkResize: false
                     });
 
-                    // Guardar para ocultar/mostrar
-                    viewer.addHandler('zoom', () => {
+                    // Ocultar/mostrar label según zoom
+                    const updateLabel = () => {
                         const currentZoom = viewer.viewport.getZoom();
                         label.style.display = (currentZoom <= midZoom) ? 'block' : 'none';
-                    });
+                    };
+                    viewer.addHandler('zoom', updateLabel);
+                    updateLabel(); // Inicial
                 });
 
-                // Añadir mini puntos azules (eventos)
+                // Mini puntos azules
                 miniLocations.forEach(mini => {
                     const miniPin = document.createElement('div');
                     miniPin.className = 'mini-pin';
@@ -272,11 +271,13 @@
                         checkResize: false
                     });
 
-                    // Mostrar solo a partir de midZoom
-                    viewer.addHandler('zoom', () => {
+                    // Ocultar/mostrar mini pin según zoom
+                    const updateMini = () => {
                         const currentZoom = viewer.viewport.getZoom();
                         miniPin.style.display = (currentZoom >= midZoom) ? 'block' : 'none';
-                    });
+                    };
+                    viewer.addHandler('zoom', updateMini);
+                    updateMini(); // Inicial
                 });
             });
 
