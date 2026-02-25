@@ -11,7 +11,6 @@
             background-color: #f5e8c7;
             font-family: 'EB Garamond', serif;
             color: #2c1b0f;
-            line-height: 1.75;
             margin: 0;
             padding: 20px;
         }
@@ -25,7 +24,7 @@
         }
         #title-page {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
         }
         h1.main-title {
             font-family: 'MedievalSharp', cursive;
@@ -38,13 +37,10 @@
             font-family: 'MedievalSharp', cursive;
             font-size: 2.7em;
             color: #3d2b1f;
-            margin: 0 0 60px;
-            border-bottom: 4px double #8b4513;
-            padding-bottom: 20px;
+            margin: 0;
         }
         #map-container {
-            height: 700px;
-            margin-bottom: 40px;
+            height: 800px;
             border: 2px solid #6b4c2e;
             position: relative;
         }
@@ -59,54 +55,25 @@
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
-        #search {
-            width: 100%;
-            padding: 10px;
-            font-size: 1.2em;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-        }
-        #localidades {
-            margin-top: 40px;
-            text-align: center;
-        }
-        #localidades summary {
-            font-family: 'MedievalSharp', cursive;
-            font-size: 2.0em;
-            color: #4b2e1a;
+        .loc-pin {
+            width: 24px;
+            height: 24px;
+            background: #b22222;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(0,0,0,0.6);
             cursor: pointer;
+            pointer-events: auto;
         }
-        #localidades ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 20px;
-            columns: 2;
-            column-gap: 40px;
-        }
-        #localidades li {
-            margin: 6px 0;
-            break-inside: avoid;
-        }
-        #localidades a {
-            font-size: 1.35em;
-            color: #8b4513;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        #localidades a:hover {
-            color: #8b0000;
-            text-decoration: underline;
+        .loc-pin:hover {
+            transform: scale(1.4);
+            transition: transform 0.2s;
         }
         @media (max-width: 768px) {
-            body { padding: 10px; }
             #book { padding: 35px 25px; max-width: 95%; }
             h1.main-title { font-size: 3.8em; }
             h1.author { font-size: 2.1em; }
             #map-container { height: 500px; }
-            #localidades ul { columns: 1; }
-        }
-        @media (max-width: 480px) {
-            #map-container { height: 350px; }
         }
     </style>
 </head>
@@ -117,26 +84,35 @@
             <h1 class="author">Edvard Arangr</h1>
         </div>
 
-        <div id="status">Cargando mapa y localidades... (mira consola F12 si se queda aquí)</div>
+        <div id="status">Cargando mapa... (haz clic en los puntos rojos para abrir la localidad)</div>
         <div id="map-container"></div>
-
-        <input type="text" id="search" placeholder="Buscar localidad...">
-
-        <details id="localidades" open>
-            <summary>Localidades Mencionadas</summary>
-            <ul id="loc-list"></ul>
-        </details>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
-            const locList = document.getElementById('loc-list');
-            const searchInput = document.getElementById('search');
 
-            // ────────────────────────────────────────────────
-            // Inicializar mapa (sin restricciones estrictas de zoom-out)
-            // ────────────────────────────────────────────────
+            // Coordenadas aproximadas de las localidades en píxeles (10000 × 4807)
+            // Ajusta estos valores según donde estén realmente en tu mapa
+            const locations = [
+                { name: "Palla", lower: "palla", x: 800, y: 400 },
+                { name: "Allares", lower: "allares", x: 2200, y: 1400 },
+                { name: "Leras", lower: "leras", x: 9000, y: 2000 },
+                { name: "Torredavil", lower: "torredavil", x: 2800, y: 2200 },
+                { name: "Saura", lower: "saura", x: 4000, y: 2600 },
+                { name: "Casto", lower: "casto", x: 5000, y: 2200 },
+                { name: "Valviste", lower: "valviste", x: 5000, y: 800 },
+                { name: "Yundo", lower: "yundo", x: 7800, y: 3400 },
+                { name: "Vallo", lower: "vallo", x: 8600, y: 3200 },
+                { name: "Sanconciare", lower: "sanconciare", x: 5000, y: 400 },
+                { name: "Anconta", lower: "anconta", x: 4500, y: 900 },
+                { name: "Ciralher", lower: "ciralher", x: 300, y: 400 },
+                { name: "Esplera", lower: "esplera", x: 6500, y: 1400 },
+                { name: "Negrera", lower: "negrera", x: 6200, y: 1600 },
+                { name: "Madronasas", lower: "madronasas", x: 7600, y: 2800 },
+                // Añade todas las que quieras, con sus coordenadas reales
+            ];
+
             const viewer = OpenSeadragon({
                 id: "map-container",
                 prefixUrl: "https://openseadragon.github.io/openseadragon/images/",
@@ -148,212 +124,53 @@
                 showNavigator: true,
                 navigatorPosition: "BOTTOM_RIGHT",
                 defaultZoomLevel: 0.7,
-                minZoomLevel: 0.25,          // permite alejar un poco más que el encuadre completo
+                minZoomLevel: 0.25,
                 maxZoomLevel: 12,
                 constrainDuringPan: true,
-                visibilityRatio: 0.85        // evita que se salga demasiado del borde
+                visibilityRatio: 0.85
             });
 
             viewer.addHandler('open', () => {
                 console.log("Mapa cargado correctamente");
-                status.textContent = "Mapa cargado – haz clic en cualquier localidad de la lista";
+                status.textContent = "Haz clic en los puntos rojos para abrir la localidad";
+
+                // Añadir pines clicables
+                locations.forEach(loc => {
+                    const pin = document.createElement('div');
+                    pin.className = 'loc-pin';
+                    pin.title = loc.name; // tooltip al pasar el ratón
+
+                    pin.addEventListener('click', () => {
+                        // Abrir imagen de la localidad
+                        window.open(`localidades/${loc.lower}.jpg`, '_blank');
+
+                        // Opcional: zoom suave al punto
+                        const x_norm = loc.x / 10000;
+                        const y_norm = loc.y / 4807;
+                        const zoomSize = 0.18;
+                        viewer.viewport.fitBounds(
+                            new OpenSeadragon.Rect(
+                                x_norm - zoomSize / 2,
+                                y_norm - zoomSize / 2,
+                                zoomSize,
+                                zoomSize
+                            ),
+                            true
+                        );
+                    });
+
+                    // Posicionar el pin en coordenadas normalizadas
+                    viewer.addOverlay({
+                        element: pin,
+                        location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
+                        placement: 'CENTER'
+                    });
+                });
             });
 
             viewer.addHandler('open-failed', (event) => {
                 console.error("Error al abrir mapa:", event);
                 status.innerHTML = 'Error al cargar mapa – ver consola F12';
-            });
-
-            // ────────────────────────────────────────────────
-            // Coordenadas aproximadas de localidades (ajusta estos valores)
-            // x e y en píxeles (0,0 es esquina superior izquierda)
-            // ────────────────────────────────────────────────
-            const locationCoords = {
-                "aldearares": {x: 1200, y: 800},
-                "aldequejas": {x: 1800, y: 1200},
-                "allares": {x: 2200, y: 1400},
-                "allos": {x: 3000, y: 1600},
-                "anconta": {x: 4500, y: 900},
-                "anzonquepi": {x: 3800, y: 600},
-                "arminocelas": {x: 5200, y: 2200},
-                "arveta": {x: 6800, y: 1800},
-                "baiga": {x: 7500, y: 2500},
-                "bailes": {x: 8200, y: 1400},
-                "beldea": {x: 2800, y: 2000},
-                "bellavil": {x: 3500, y: 2800},
-                "berzuese": {x: 900, y: 3200},
-                "cancon": {x: 4800, y: 800},
-                "candigos": {x: 1500, y: 3400},
-                "cardaralare": {x: 5800, y: 2600},
-                "carrealloca": {x: 7200, y: 3000},
-                "casto": {x: 5000, y: 2200},
-                "cermola": {x: 6200, y: 3400},
-                "chocento": {x: 4000, y: 1000},
-                "chuelas": {x: 8500, y: 1200},
-                "cidaganta": {x: 8800, y: 1600},
-                "ciralher": {x: 300, y: 400},
-                "copejon": {x: 9500, y: 2800},
-                "cuergeso": {x: 4200, y: 1800},
-                "cuertocedo": {x: 2000, y: 1000},
-                "esplera": {x: 6500, y: 1400},
-                "estriequega": {x: 1000, y: 600},
-                "fontanes": {x: 2600, y: 800},
-                "fuencos": {x: 1800, y: 3600},
-                "herzuemillo": {x: 3200, y: 2400},
-                "jadrallida": {x: 7800, y: 2600},
-                "jiles": {x: 1400, y: 3800},
-                "leras": {x: 9000, y: 2000},
-                "lumana": {x: 6800, y: 3200},
-                "madronasas": {x: 7600, y: 2800},
-                "malvez": {x: 5400, y: 3600},
-                "mocha": {x: 2200, y: 1200},
-                "moncorea": {x: 4800, y: 1400},
-                "negranosbar": {x: 7000, y: 1800},
-                "negrera": {x: 6200, y: 1600},
-                "noblegalo": {x: 8000, y: 3400},
-                "nudera": {x: 3600, y: 3800},
-                "orrealgarve": {x: 2800, y: 1600},
-                "palla": {x: 800, y: 400},
-                "palvistemil": {x: 4000, y: 600},
-                "pigos": {x: 3000, y: 3000},
-                "porro": {x: 5200, y: 2400},
-                "puertanil": {x: 3800, y: 400},
-                "quindoliga": {x: 600, y: 3600},
-                "quinzadedo": {x: 4400, y: 3400},
-                "reras": {x: 3200, y: 4000},
-                "riofrintuma": {x: 8400, y: 3800},
-                "ruenanilsaz": {x: 7200, y: 2200},
-                "saldea": {x: 200, y: 800},
-                "sanca": {x: 3000, y: 600},
-                "sancialo": {x: 600, y: 4200},
-                "sanconciare": {x: 5000, y: 400},
-                "sanderados": {x: 6800, y: 1200},
-                "sandieravas": {x: 7600, y: 1600},
-                "saura": {x: 4000, y: 2600},
-                "selastil": {x: 8200, y: 2400},
-                "tordalagar": {x: 5400, y: 2000},
-                "torredavil": {x: 2800, y: 2200},
-                "torrio": {x: 6400, y: 1800},
-                "torronza": {x: 5800, y: 1400},
-                "torroso": {x: 6200, y: 1000},
-                "urriozascas": {x: 7000, y: 3000},
-                "vallo": {x: 8600, y: 3200},
-                "valmadroma": {x: 8200, y: 3600},
-                "valviste": {x: 5000, y: 800},
-                "valza": {x: 9000, y: 2800},
-                "yundo": {x: 7800, y: 3400},
-                "yunta": {x: 7200, y: 3800},
-                "yuntatildea": {x: 6800, y: 4000},
-                "zarmoveras": {x: 4000, y: 4200},
-                // Añade o ajusta más si quieres precisión
-            };
-
-            // ────────────────────────────────────────────────
-            // Generación de la lista exactamente como en tu HTML principal
-            // ────────────────────────────────────────────────
-            const localidadesDir = 'localidades/';
-            const extension = '.jpg';
-
-            const knownLower = new Set([
-                "aldearares","aldequejas","alinomin","allares","allogollos","allos","alominchar",
-                "aloranagan","aloranes","anconta","anzonquepi","arminocelas","arveta","baiga",
-                "bailes","barriosbar","bartolares","beldea","bellavil","berzuese","buenala",
-                "cancon","candigos","cantita","cardaralare","carralriote","carrealloca","carriruera",
-                "caspinanar","castanarro","casto","castominza","cermola","chocento","chuelas",
-                "cidaganta","cinies","ciralher","copejon","coyogollor","cuergeso","cuertocedo",
-                "dorihuejar","driero","duceque","esplera","esteruerane","estesavas","estrieguque",
-                "estrienil","estriequega","fontanes","fuencos","galza","herreron","herzuemillo",
-                "hiquemilba","huerolinil","huerongo","humanilnue","jadrallida","jiles","leras",
-                "lomagandera","lumana","lunoradete","lunosanar","luronteldea","madran","madronasas",
-                "maliba","malvez","mantella","menaba","mihuejas","milmaganes","minoma","mirueranil",
-                "mitatillar","mocha","momanuejas","mominchar","moncorea","negranosbar","negrera",
-                "noblegalo","noblevo","nudera","orrealgarve","palla","palvistemil","pigos","porro",
-                "pradatan","puebradena","puertanil","quindoliga","quinzadedo","reras","riofrintuma",
-                "ruenanilsaz","saldea","sanca","sancialo","sanconciare","sande","sanderados",
-                "sandieravas","santalestab","saura","sejontanil","selastil","tordalagar","torredavil",
-                "torrio","torronza","torroso","tortilmadro","urriozascas","vallo","valmadroma",
-                "valviste","valza","yundo","yunta","yuntatildea","zarmoveras"
-            ]);
-
-            // Como no tenemos acceso al contenido del libro aquí, usamos todas las conocidas que tengan imagen
-            // (en tu web real copia la lógica completa de walker + regex del HTML principal)
-            const validLocalidades = new Map();
-            const totalToCheck = knownLower.size;
-            let checked = 0;
-
-            function updateProgress() {
-                checked++;
-                const pct = Math.floor((checked / totalToCheck) * 100);
-                status.textContent = `Verificando localidades: ${checked}/${totalToCheck} (${pct}%)`;
-            }
-
-            async function imageExists(url) {
-                return new Promise(r => {
-                    const img = new Image();
-                    img.onload = () => r(true);
-                    img.onerror = () => r(false);
-                    img.src = url;
-                });
-            }
-
-            const checks = Array.from(knownLower).map(async lower => {
-                const url = localidadesDir + lower + extension;
-                const exists = await imageExists(url);
-                if (exists) {
-                    const display = lower.charAt(0).toUpperCase() + lower.slice(1);
-                    validLocalidades.set(lower, display);
-                }
-                updateProgress();
-            });
-
-            await Promise.all(checks);
-
-            status.textContent = `Localidades encontradas: ${validLocalidades.size}`;
-
-            if (validLocalidades.size === 0) {
-                locList.innerHTML = '<li>No se encontraron localidades con imagen</li>';
-            } else {
-                const sorted = Array.from(validLocalidades.entries())
-                    .map(([lower, display]) => ({lower, display}))
-                    .sort((a, b) => a.display.localeCompare(b.display, 'es'));
-
-                sorted.forEach(({lower, display}) => {
-                    const li = document.createElement('li');
-                    const a = document.createElement('a');
-                    a.textContent = display;
-                    a.style.cursor = 'pointer';
-                    a.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        // Zoom aproximado
-                        const coord = locationCoords[lower] || {x: mapWidth/2, y: mapHeight/2};
-                        const x_norm = coord.x / 10000;
-                        const y_norm = coord.y / 10000;
-                        const zoomSize = 0.25;
-                        viewer.viewport.fitBounds(
-                            new OpenSeadragon.Rect(
-                                x_norm - zoomSize / 2,
-                                y_norm - (zoomSize / 2) * (4807/10000),
-                                zoomSize,
-                                zoomSize * (4807/10000)
-                            ),
-                            true
-                        );
-                        // Abrir imagen individual
-                        window.open(`localidades/${lower}.jpg`, '_blank');
-                    });
-                    li.appendChild(a);
-                    locList.appendChild(li);
-                });
-            }
-
-            // Búsqueda en la lista
-            searchInput.addEventListener('input', function() {
-                const filter = this.value.toLowerCase();
-                const lis = locList.getElementsByTagName('li');
-                Array.from(lis).forEach(li => {
-                    const txt = li.textContent.toLowerCase();
-                    li.style.display = txt.includes(filter) ? '' : 'none';
-                });
             });
         });
     </script>
