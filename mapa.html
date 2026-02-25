@@ -43,17 +43,18 @@
             padding-bottom: 30px;
         }
         #map-container {
-            height: 600px;
+            height: 700px;
             margin-bottom: 40px;
             position: relative;
+            border: 2px solid #6b4c2e;
         }
         #status {
             position: absolute;
             top: 10px;
             left: 10px;
             background: white;
-            padding: 15px;
-            border: 2px solid red;
+            padding: 12px 18px;
+            border: 2px solid #b22222;
             z-index: 9999;
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
@@ -79,27 +80,32 @@
             list-style: none;
             padding: 0;
             margin-top: 20px;
+            columns: 2;
+            column-gap: 40px;
         }
         #localidades li {
-            margin: 8px 0;
+            margin: 6px 0;
+            break-inside: avoid;
         }
         #localidades a {
-            font-size: 1.4em;
+            font-size: 1.3em;
             color: #8b4513;
             text-decoration: none;
         }
         #localidades a:hover {
             color: #8b0000;
+            text-decoration: underline;
         }
         @media (max-width: 768px) {
             body { padding: 10px; }
             #book { padding: 35px 25px; max-width: 95%; }
             h1.main-title { font-size: 3.8em; }
             h1.author { font-size: 2.1em; }
-            #map-container { height: 400px; }
+            #map-container { height: 500px; }
+            #localidades ul { columns: 1; }
         }
         @media (max-width: 480px) {
-            #map-container { height: 300px; }
+            #map-container { height: 350px; }
         }
     </style>
 </head>
@@ -109,105 +115,173 @@
             <h1 class="main-title">Mapa Interactivo de Kurghaimat</h1>
             <h1 class="author">Edvard Arangr</h1>
         </div>
-        <div id="status">Cargando mapa (10000×4807 px – 5.74 MB)... Mira consola F12 si se queda aquí</div>
+
+        <div id="status">Cargando mapa y localidades... (mira consola F12 si se queda aquí)</div>
         <div id="map-container"></div>
+
         <input type="text" id="search" placeholder="Buscar localidad...">
-        <details id="localidades">
-            <summary>Localidades Descubiertas</summary>
-            <ul id="loc-list"></ul>
+
+        <details id="localidades" open>
+            <summary>Localidades Mencionadas</summary>
+            <ul id="loc-list">
+                <!-- Se genera dinámicamente igual que en tu HTML principal -->
+            </ul>
         </details>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const mapWidth = 10000;
-            const mapHeight = 4807;
-            const aspect = mapHeight / mapWidth;
-            const revealRadiusPx = 400;
-            const revealRadiusNorm = revealRadiusPx / mapWidth;
+        document.addEventListener('DOMContentLoaded', async () => {
+            const status = document.getElementById('status');
+            const locList = document.getElementById('loc-list');
+            const searchInput = document.getElementById('search');
 
-            // Posiciones aproximadas – ajústalas según tu mapa real
-            const positions = [
-                {lower: 'palla', cap: 'Palla', x: 500, y: 200},
-                {lower: 'allares', cap: 'Allares', x: 1500, y: 800},
-                {lower: 'leras', cap: 'Leras', x: 2500, y: 1200},
-                {lower: 'torredavil', cap: 'Torredavil', x: 3500, y: 1600},
-                {lower: 'saura', cap: 'Saura', x: 4500, y: 2000},
-                {lower: 'casto', cap: 'Casto', x: 5500, y: 2400},
-                {lower: 'valviste', cap: 'Valviste', x: 6500, y: 2800},
-                {lower: 'yundo', cap: 'Yundo', x: 7500, y: 3200},
-                {lower: 'vallo', cap: 'Vallo', x: 8500, y: 3600},
-                {lower: 'sanconciare', cap: 'Sanconciare', x: 9000, y: 4200},
-                // Añade las que necesites
-            ];
-
+            // ────────────────────────────────────────────────
+            // 1. Inicializar el mapa con límite de zoom-out
+            // ────────────────────────────────────────────────
             const viewer = OpenSeadragon({
                 id: "map-container",
                 prefixUrl: "https://openseadragon.github.io/openseadragon/images/",
                 tileSources: {
-                    type: 'image',                          // ← Fuerza modo imagen simple (clave para evitar el error XML)
+                    type: 'image',
                     url: "localidades/mapacompleto.jpg"
                 },
                 useCanvas: false,
-                immediateRender: true,
                 showNavigator: true,
                 navigatorPosition: "BOTTOM_RIGHT",
-                defaultZoomLevel: 0.6,
-                minZoomLevel: 0.2,
-                maxZoomLevel: 10
+                defaultZoomLevel: 0.7,
+                minZoomLevel: 0.4,              // ← ajusta si quieres más alejado
+                maxZoomLevel: 12,
+                visibilityRatio: 1.0,           // evita que se salga del borde
+                constrainDuringPan: true,
+                homeButton: true
             });
 
+            // Esperar a que el mapa esté listo y limitar zoom-out al encuadre completo
             viewer.addHandler('open', () => {
-                console.log("¡Mapa cargado correctamente!");
-                document.getElementById('status').textContent = 'Mapa cargado – prueba zoom y clic en localidades';
+                console.log("Mapa cargado correctamente");
+                status.textContent = "Mapa cargado – haz clic en una localidad para zoom";
+
+                // Calcular zoom mínimo para que quepa todo el mapa
+                const containerRect = viewer.container.clientWidth / viewer.container.clientHeight;
+                const imageAspect = 4807 / 10000;
+                const fitZoom = Math.min(1 / containerRect, 1 / imageAspect) * 0.98; // margen pequeño
+                viewer.viewport.minZoomLevel = fitZoom;
+                viewer.viewport.goHome(true); // centra al inicio
             });
 
             viewer.addHandler('open-failed', (event) => {
                 console.error("Error al abrir mapa:", event);
-                document.getElementById('status').innerHTML = 'Error al cargar: ' + (event.message || 'ver consola F12');
+                status.innerHTML = 'Error al cargar mapa – ver consola F12';
             });
 
-            viewer.addHandler('tile-load-failed', (event) => {
-                console.error("Tile falló:", event);
-            });
+            // ────────────────────────────────────────────────
+            // 2. Generar lista de localidades IGUAL que en tu HTML principal
+            // ────────────────────────────────────────────────
+            const localidadesDir = 'localidades/';
+            const extension = '.jpg';
 
-            // Generar lista de localidades con zoom al clic
-            const locList = document.getElementById('loc-list');
-            positions.sort((a, b) => a.cap.localeCompare(b.cap, 'es'));
-            positions.forEach(pos => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = `localidades/${pos.lower}.jpg`;
-                a.target = '_blank';
-                a.textContent = pos.cap;
-                a.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const x_norm = pos.x / mapWidth;
-                    const y_norm = pos.y / mapWidth;
-                    const zoomSize = 0.3;
-                    viewer.viewport.fitBounds(
-                        new OpenSeadragon.Rect(
-                            x_norm - zoomSize / 2,
-                            y_norm - (zoomSize / 2) * aspect,
-                            zoomSize,
-                            zoomSize * aspect
-                        ),
-                        true
-                    );
-                    window.open(a.href, '_blank');
+            const knownLower = new Set([
+                "aldearares","aldequejas","alinomin","allares","allogollos","allos","alominchar",
+                "aloranagan","aloranes","anconta","anzonquepi","arminocelas","arveta","baiga",
+                "bailes","barriosbar","bartolares","beldea","bellavil","berzuese","buenala",
+                "cancon","candigos","cantita","cardaralare","carralriote","carrealloca","carriruera",
+                "caspinanar","castanarro","casto","castominza","cermola","chocento","chuelas",
+                "cidaganta","cinies","ciralher","copejon","coyogollor","cuergeso","cuertocedo",
+                "dorihuejar","driero","duceque","esplera","esteruerane","estesavas","estrieguque",
+                "estrienil","estriequega","fontanes","fuencos","galza","herreron","herzuemillo",
+                "hiquemilba","huerolinil","huerongo","humanilnue","jadrallida","jiles","leras",
+                "lomagandera","lumana","lunoradete","lunosanar","luronteldea","madran","madronasas",
+                "maliba","malvez","mantella","menaba","mihuejas","milmaganes","minoma","mirueranil",
+                "mitatillar","mocha","momanuejas","mominchar","moncorea","negranosbar","negrera",
+                "noblegalo","noblevo","nudera","orrealgarve","palla","palvistemil","pigos","porro",
+                "pradatan","puebradena","puertanil","quindoliga","quinzadedo","reras","riofrintuma",
+                "ruenanilsaz","saldea","sanca","sancialo","sanconciare","sande","sanderados",
+                "sandieravas","santalestab","saura","sejontanil","selastil","tordalagar","torredavil",
+                "torrio","torronza","torroso","tortilmadro","urriozascas","vallo","valmadroma",
+                "valviste","valza","yundo","yunta","yuntatildea","zarmoveras"
+            ]);
+
+            // Como no tenemos el contenido del libro aquí, simulamos que todas las conocidas existen
+            // En tu caso real, deberías copiar la lógica completa de búsqueda en el texto
+            // Por ahora usamos todas + verificamos existencia de imagen
+            const validLocalidades = new Map(); // lower → display (capitalizada aproximada)
+            const totalToCheck = knownLower.size;
+            let checked = 0;
+
+            function updateProgress() {
+                checked++;
+                const pct = Math.floor((checked / totalToCheck) * 100);
+                status.textContent = `Verificando localidades: ${checked}/${totalToCheck} (${pct}%)`;
+            }
+
+            async function imageExists(url) {
+                return new Promise(r => {
+                    const img = new Image();
+                    img.onload = () => r(true);
+                    img.onerror = () => r(false);
+                    img.src = url;
                 });
-                li.appendChild(a);
-                locList.appendChild(li);
+            }
+
+            const checks = Array.from(knownLower).map(async lower => {
+                const url = localidadesDir + lower + extension;
+                const exists = await imageExists(url);
+                if (exists) {
+                    const display = lower.charAt(0).toUpperCase() + lower.slice(1);
+                    validLocalidades.set(lower, display);
+                }
+                updateProgress();
             });
 
-            // Búsqueda
-            document.getElementById('search').addEventListener('input', function() {
+            await Promise.all(checks);
+
+            status.textContent = `Localidades encontradas: ${validLocalidades.size}`;
+
+            if (validLocalidades.size === 0) {
+                locList.innerHTML = '<li>No se encontraron localidades con imagen</li>';
+            } else {
+                const sorted = Array.from(validLocalidades.entries())
+                    .map(([lower, display]) => ({lower, display}))
+                    .sort((a, b) => a.display.localeCompare(b.display, 'es'));
+
+                sorted.forEach(({lower, display}) => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = localidadesDir + lower + extension;
+                    a.target = '_blank';
+                    a.textContent = display;
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        // Zoom aproximado (ajusta coordenadas reales más adelante)
+                        const pos = positions.find(p => p.lower === lower) || {x: mapWidth/2, y: mapHeight/2};
+                        const x_norm = pos.x / mapWidth;
+                        const y_norm = pos.y / mapWidth;
+                        const zoomSize = 0.25;
+                        viewer.viewport.fitBounds(
+                            new OpenSeadragon.Rect(
+                                x_norm - zoomSize / 2,
+                                y_norm - (zoomSize / 2) * aspect,
+                                zoomSize,
+                                zoomSize * aspect
+                            ),
+                            true
+                        );
+                        // Abrir imagen de la localidad
+                        window.open(a.href, '_blank');
+                    });
+                    li.appendChild(a);
+                    locList.appendChild(li);
+                });
+            }
+
+            // Búsqueda en la lista
+            searchInput.addEventListener('input', function() {
                 const filter = this.value.toLowerCase();
-                const items = locList.getElementsByTagName('li');
-                for (let i = 0; i < items.length; i++) {
-                    const txt = items[i].textContent.toLowerCase();
-                    items[i].style.display = txt.includes(filter) ? '' : 'none';
-                }
+                const lis = locList.getElementsByTagName('li');
+                Array.from(lis).forEach(li => {
+                    const txt = li.textContent.toLowerCase();
+                    li.style.display = txt.includes(filter) ? '' : 'none';
+                });
             });
         });
     </script>
