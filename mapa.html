@@ -45,7 +45,8 @@
         }
         #map-wrapper {
             width: 100%;
-            aspect-ratio: 10000 / 4807;
+            aspect-ratio: 10000 / 4807; /* Proporción exacta de la imagen */
+            max-height: 800px; /* Límite superior para no crecer demasiado */
             margin-bottom: 20px;
             border: 2px solid #6b4c2e;
         }
@@ -56,17 +57,19 @@
             touch-action: manipulation;
         }
         #status {
-            margin-top: 20px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
             background: white;
             padding: 12px 18px;
             border: 2px solid #b22222;
+            z-index: 9999;
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            text-align: center;
         }
         .loc-pin {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             background: #b22222;
             border: 4px solid white;
             border-radius: 50%;
@@ -74,9 +77,33 @@
             cursor: pointer;
             pointer-events: auto;
             transition: transform 0.15s;
-            transform-origin: center top;
         }
         .loc-pin:hover {
+            transform: scale(1.5);
+        }
+        .loc-label {
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+            white-space: nowrap;
+            pointer-events: none; /* No clickable */
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        .mini-pin {
+            width: 16px;
+            height: 16px;
+            background: #0000ff; /* Azul */
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(0,0,0,0.5);
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.15s;
+        }
+        .mini-pin:hover {
             transform: scale(1.5);
         }
         @media (max-width: 768px) {
@@ -88,6 +115,8 @@
                 max-height: 70vh;
             }
             .loc-pin { width: 20px; height: 20px; border-width: 3px; }
+            .loc-label { font-size: 10px; padding: 2px 6px; }
+            .mini-pin { width: 12px; height: 12px; border-width: 2px; }
         }
         @media (max-width: 480px) {
             #map-wrapper { 
@@ -102,20 +131,25 @@
         <div id="title-page">
             <h1 class="main-title">Mapa Interactivo de Kurghaimat</h1>
         </div>
+        <div id="status">Cargando mapa... Haz clic o tap en los puntos rojos para abrir la localidad</div>
         <div id="map-wrapper">
             <div id="map-container"></div>
         </div>
-        <div id="status">Cargando mapa... Haz clic o tap en los puntos rojos para abrir la localidad</div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
 
-            // Ubicaciones (ya ajustadas por ti)
+            // Ubicaciones principales (ya ajustadas por ti)
             const locations = [
                 { name: "Chuelas", lower: "chuelas", x: 8044, y: 690 },
                 { name: "Bailes", lower: "bailes", x: 8475, y: 574 },
                 { name: "Cinies", lower: "cinies", x: 7858, y: 362 }
+            ];
+
+            // Mini puntos para eventos (visible a partir de zoom max/2)
+            const miniLocations = [
+                { name: "Incendio en la Posada del dragón", lower: "posadadeldragon", x: 7980, y: 380, desc: "Aquí se originó el Gran Incendio de 1026" }
             ];
 
             const viewer = OpenSeadragon({
@@ -142,8 +176,8 @@
                 }
             });
 
-            // Offset máximo en píxeles de pantalla (en zoom mínimo)
-            const maxOffsetPx = 50;
+            let midZoom;
+            const overlays = []; // Para guardar pins y labels
 
             viewer.addHandler('open', () => {
                 console.log("Mapa cargado correctamente");
@@ -168,7 +202,9 @@
 
                 viewer.viewport.goHome(true);
 
-                // Añadir pines
+                midZoom = (fitZoom + 12) / 2; // Mitad entre min y max zoom
+
+                // Añadir pines principales
                 locations.forEach(loc => {
                     const pin = document.createElement('div');
                     pin.className = 'loc-pin';
@@ -183,7 +219,6 @@
                     pin.addEventListener('click', openLocation);
                     pin.addEventListener('touchend', openLocation);
 
-                    // Posición real (sin offset en coordenadas)
                     viewer.addOverlay({
                         element: pin,
                         location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
@@ -191,18 +226,59 @@
                         checkResize: false
                     });
 
-                    // Ajustar offset dinámico según zoom
-                    const updatePinOffset = () => {
-                        const currentZoom = viewer.viewport.getZoom();
-                        const zoomRatio = Math.max(0, Math.min(1, (currentZoom - fitZoom) / (12 - fitZoom)));
-                        const offsetNow = maxOffsetPx * (1 - zoomRatio);
-                        pin.style.transform = `translateY(${offsetNow}px)`;
-                    };
+                    // Añadir label flotante (nombre)
+                    const label = document.createElement('div');
+                    label.className = 'loc-label';
+                    label.textContent = loc.name;
 
-                    // Actualizar en cada cambio de zoom
-                    viewer.addHandler('zoom', updatePinOffset);
-                    // Aplicar al inicio
-                    updatePinOffset();
+                    viewer.addOverlay({
+                        element: label,
+                        location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
+                        placement: 'BOTTOM', // Debajo del pin (o 'TOP' para arriba)
+                        checkResize: false
+                    });
+
+                    overlays.push({ pin, label });
+                });
+
+                // Añadir mini puntos para eventos
+                miniLocations.forEach(mini => {
+                    const miniPin = document.createElement('div');
+                    miniPin.className = 'mini-pin';
+                    miniPin.title = mini.name;
+
+                    miniPin.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        alert(mini.desc);
+                    });
+                    miniPin.addEventListener('touchend', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        alert(mini.desc);
+                    });
+
+                    viewer.addOverlay({
+                        element: miniPin,
+                        location: new OpenSeadragon.Point(mini.x / 10000, mini.y / 4807),
+                        placement: 'CENTER',
+                        checkResize: false
+                    });
+
+                    overlays.push({ miniPin });
+                });
+            });
+
+            // Evento zoom para mostrar/ocultar labels y mini puntos
+            viewer.addHandler('zoom', () => {
+                const currentZoom = viewer.viewport.getZoom();
+                overlays.forEach(overlay => {
+                    if (overlay.label) {
+                        overlay.label.style.display = (currentZoom <= midZoom) ? 'block' : 'none';
+                    }
+                    if (overlay.miniPin) {
+                        overlay.miniPin.style.display = (currentZoom >= midZoom) ? 'block' : 'none';
+                    }
                 });
             });
 
