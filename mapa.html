@@ -56,15 +56,13 @@
             touch-action: manipulation;
         }
         #status {
-            position: absolute;
-            top: 10px;
-            left: 10px;
+            margin-top: 20px;
             background: white;
             padding: 12px 18px;
             border: 2px solid #b22222;
-            z-index: 9999;
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            text-align: center;
         }
         .loc-pin {
             width: 24px;
@@ -104,10 +102,10 @@
         <div id="title-page">
             <h1 class="main-title">Mapa Interactivo de Kurghaimat</h1>
         </div>
-        <div id="status">Cargando mapa... Haz clic o tap en los puntos rojos para abrir la localidad</div>
         <div id="map-wrapper">
             <div id="map-container"></div>
         </div>
+        <div id="status">Cargando mapa... Haz clic o tap en los puntos rojos para abrir la localidad</div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -144,14 +142,14 @@
                 }
             });
 
-            // Offset deseado en píxeles de pantalla en zoom mínimo (50 px abajo)
+            // Offset máximo en píxeles de pantalla (en zoom mínimo)
             const maxOffsetPx = 50;
 
             viewer.addHandler('open', () => {
                 console.log("Mapa cargado correctamente");
                 status.textContent = "Haz clic o tap en los puntos rojos para abrir la localidad";
 
-                // Recalcular minZoomLevel y defaultZoomLevel para llenar verticalmente
+                // Recalcular zoom mínimo y por defecto para llenar verticalmente
                 const container = viewer.container;
                 const containerHeight = container.clientHeight;
                 const containerWidth = container.clientWidth;
@@ -196,14 +194,14 @@
                     // Ajustar offset dinámico según zoom
                     const updatePinOffset = () => {
                         const currentZoom = viewer.viewport.getZoom();
-                        const zoomRatio = Math.max(0, Math.min(1, (currentZoom - fitZoom) / (12 - fitZoom))); // 0 en min, 1 en max
-                        const offsetNow = maxOffsetPx * (1 - zoomRatio); // 50 px en min, 0 px en max
+                        const zoomRatio = Math.max(0, Math.min(1, (currentZoom - fitZoom) / (12 - fitZoom)));
+                        const offsetNow = maxOffsetPx * (1 - zoomRatio);
                         pin.style.transform = `translateY(${offsetNow}px)`;
                     };
 
-                    // Actualizar offset cada vez que cambia el zoom
+                    // Actualizar en cada cambio de zoom
                     viewer.addHandler('zoom', updatePinOffset);
-                    // Llamar una vez al inicio
+                    // Aplicar al inicio
                     updatePinOffset();
                 });
             });
