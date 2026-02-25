@@ -46,8 +46,8 @@
         #map-wrapper {
             width: 100%;
             aspect-ratio: 10000 / 4807; /* Fuerza la proporción exacta de la imagen */
-            max-height: 1000px; /* Límite superior para no crecer demasiado */
-            margin-bottom: 10px;
+            max-height: 800px; /* Límite superior para no crecer demasiado */
+            margin-bottom: 20px;
             border: 2px solid #6b4c2e;
         }
         #map-container {
@@ -108,12 +108,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
 
-            // Los tres sitios que pediste
+            // Los tres sitios que pediste, hay que dividir y entre 2.08
             const locations = [
-                { name: "Chuelas", lower: "chuelas", x: 8044, y: 1436 },
-                { name: "Bailes", lower: "bailes", x: 8475, y: 1194 },
-                { name: "Cinies", lower: "cinies", x: 7858, y: 754 },
-                { name: "Test", lower: "test", x: 5000, y: 2400 },
+                { name: "Chuelas", lower: "chuelas", x: 8044, y: 690 },
+                { name: "Bailes", lower: "bailes", x: 8475, y: 574 },
+                { name: "Cinies", lower: "cinies", x: 7858, y: 362 }
             ];
 
             const viewer = OpenSeadragon({
@@ -126,8 +125,8 @@
                 useCanvas: false,
                 showNavigator: true,
                 navigatorPosition: "BOTTOM_RIGHT",
-                defaultZoomLevel: 1.6,
-                minZoomLevel: 1,
+                defaultZoomLevel: 1.0,
+                minZoomLevel: 1.0,
                 maxZoomLevel: 12,
                 constrainDuringPan: true,
                 visibilityRatio: 1.0,
@@ -161,7 +160,7 @@
 
                     viewer.addOverlay({
                         element: pin,
-                        location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 1000),
+                        location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
                         placement: 'CENTER',
                         checkResize: false
                     });
@@ -173,7 +172,7 @@
 
             viewer.addHandler('open-failed', (event) => {
                 console.error("Error al abrir mapa:", event);
-                status.innerHTML = 'Error al cargar mapa, seguramente culpa de un gato – ver consola F12';
+                status.innerHTML = 'Error al cargar mapa – ver consola F12';
             });
         });
     </script>
