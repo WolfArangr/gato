@@ -91,11 +91,9 @@
         <div id="title-page">
             <h1 class="main-title">Mapa Interactivo de Kurghaimat</h1>
         </div>
-
         <div id="status">Cargando mapa... Haz clic o tap en los puntos rojos para abrir la localidad</div>
         <div id="map-container"></div>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
@@ -137,7 +135,7 @@
                 // Limitar zoom-out para que el mapa quepa justo en pantalla (sin área vacía extra)
                 const containerAspect = viewer.container.clientWidth / viewer.container.clientHeight;
                 const imageAspect = 4807 / 10000;
-                const fitZoom = Math.min(1 / containerAspect, 1 / imageAspect) * 1.0; // Ajusta el multiplicador aquí: 1.0 para justo encuadre, >1.0 para menos zoom-out (más cerca), <1.0 para más zoom-out
+                const fitZoom = Math.min(1 / containerAspect, 1 / imageAspect) * 1.2; // Ajusta el multiplicador aquí: 1.0 para encuadre completo, >1.0 para menos zoom-out (menos área vacía, más cerca)
                 viewer.viewport.minZoomLevel = fitZoom;
 
                 // Añadir los tres puntos
@@ -154,7 +152,7 @@
                     };
 
                     pin.addEventListener('click', openLocation);
-                    pin.addEventListener('touchend', openLocation);  // Mejora compatibilidad móvil
+                    pin.addEventListener('touchend', openLocation); // Mejora compatibilidad móvil
 
                     viewer.addOverlay({
                         element: pin,
