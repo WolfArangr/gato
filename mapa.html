@@ -3,108 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Interactivo de Kurghaimat</title>
+    <title>Mapa Interactivo de Kurghaimat - Solución 1</title>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;700&family=MedievalSharp&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1.1/build/openseadragon/openseadragon.min.js"></script>
     <style>
-        body {
-            background: url('parchment.jpg') repeat fixed;
-            font-family: 'EB Garamond', serif;
-            color: #2c1b0f;
-            line-height: 1.75;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5e8c7;
-        }
-        #book {
-            max-width: 920px;
-            margin: 0 auto;
-            background: rgba(245, 232, 199, 0.96);
-            padding: 70px 80px;
-            border: 12px solid #6b4c2e;
-            border-image: url('border-medieval.png') 30 round;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
-        }
-        #title-page {
-            text-align: center;
-            margin-bottom: 100px;
-        }
-        h1.main-title {
-            font-family: 'MedievalSharp', cursive;
-            font-size: 5.4em;
-            color: #8b0000;
-            margin: 20px 0 10px;
-            text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
-        }
-        h1.author {
-            font-family: 'MedievalSharp', cursive;
-            font-size: 2.7em;
-            color: #3d2b1f;
-            margin: 0 0 100px;
-            border-bottom: 4px double #8b4513;
-            padding-bottom: 30px;
-        }
-        #map-container {
-            height: 600px;
-            margin-bottom: 40px;
-        }
-        #status {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: white;
-            padding: 10px;
-            border: 1px solid red;
-            z-index: 1000;
-            font-size: 1em;
-        }
-        #search {
-            width: 100%;
-            padding: 10px;
-            font-size: 1.2em;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-        }
-        #localidades {
-            margin-top: 60px;
-            text-align: center;
-        }
-        #localidades summary {
-            font-family: 'MedievalSharp', cursive;
-            font-size: 2.0em;
-            color: #4b2e1a;
-            cursor: pointer;
-        }
-        #localidades ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 20px;
-        }
-        #localidades li {
-            margin: 8px 0;
-        }
-        #localidades a {
-            font-size: 1.4em;
-            color: #8b4513;
-            text-decoration: none;
-        }
-        #localidades a:hover {
-            color: #8b0000;
-        }
-        /* Responsive */
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            #book { padding: 35px 25px; border-width: 8px; max-width: 95%; box-shadow: inset 0 0 25px rgba(0,0,0,0.15); }
-            h1.main-title { font-size: 3.8em; margin: 15px 0 8px; }
-            h1.author { font-size: 2.1em; margin-bottom: 60px; padding-bottom: 20px; }
-            #map-container { height: 400px; }
-        }
-        @media (max-width: 480px) {
-            #book { padding: 25px 18px; }
-            h1.main-title { font-size: 3.2em; }
-            h1.author { font-size: 1.9em; }
-            #map-container { height: 300px; }
-        }
+        body { background: url('parchment.jpg') repeat fixed; font-family: 'EB Garamond', serif; color: #2c1b0f; line-height: 1.75; margin: 0; padding: 20px; background-color: #f5e8c7; }
+        #book { max-width: 920px; margin: 0 auto; background: rgba(245, 232, 199, 0.96); padding: 70px 80px; border: 12px solid #6b4c2e; border-image: url('border-medieval.png') 30 round; box-shadow: inset 0 0 50px rgba(0,0,0,0.2); }
+        #title-page { text-align: center; margin-bottom: 100px; }
+        h1.main-title { font-family: 'MedievalSharp', cursive; font-size: 5.4em; color: #8b0000; margin: 20px 0 10px; text-shadow: 3px 3px 8px rgba(0,0,0,0.3); }
+        h1.author { font-family: 'MedievalSharp', cursive; font-size: 2.7em; color: #3d2b1f; margin: 0 0 100px; border-bottom: 4px double #8b4513; padding-bottom: 30px; }
+        #map-container { height: 600px; margin-bottom: 40px; position: relative; }
+        #status { position: absolute; top: 10px; left: 10px; background: white; padding: 15px; border: 2px solid red; z-index: 9999; font-weight: bold; }
+        @media (max-width: 768px) { #map-container { height: 400px; } }
+        @media (max-width: 480px) { #map-container { height: 300px; } }
     </style>
 </head>
 <body>
@@ -113,321 +24,37 @@
             <h1 class="main-title">Mapa Interactivo de Kurghaimat</h1>
             <h1 class="author">Edvard Arangr</h1>
         </div>
-        <div id="status">Cargando mapa... (mira consola F12 si se queda aquí)</div>
+        <div id="status">Cargando mapa... (si se queda aquí, abre F12 → Console y dime qué sale)</div>
         <div id="map-container"></div>
-        <input type="text" id="search" placeholder="Buscar localidad...">
-        <details id="localidades">
-            <summary>
-                Localidades Descubiertas
-            </summary>
-            <ul id="loc-list">
-                <!-- Lista generada dinámicamente -->
-            </ul>
-        </details>
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const mapWidth = 15360;
-            const mapHeight = 7384;
-            const aspect = mapHeight / mapWidth;
-            const revealRadiusPx = 500; // Radio del área revelada en píxeles
-            const revealRadiusNorm = revealRadiusPx / mapWidth;
-
-            // Posiciones estimadas basadas en OCR (x, y en píxeles). Puedes ajustar manualmente para más precisión.
-            const positions = [
-                {lower: 'palla', cap: 'Palla', x: 0.0, y: 0.0},
-                {lower: 'cancon', cap: 'Cabcon', x: 512.0, y: 0.0},
-                {lower: 'anzonquepi', cap: 'Auizonquepi', x: 1024.0, y: 0.0},
-                {lower: 'ciralher', cap: 'Chaler', x: 1536.0, y: 0.0},
-                {lower: 'sande', cap: 'Saude', x: 2048.0, y: 0.0},
-                {lower: 'sanconciarMosas', cap: 'SanconciarMosas', x: 2560.0, y: 0.0},
-                {lower: 'auconta', cap: 'Auconta', x: 3072.0, y: 0.0},
-                {lower: 'auconca', cap: 'Auconca', x: 3584.0, y: 0.0},
-                {lower: 'ciralher', cap: 'Ciralher', x: 4096.0, y: 0.0},
-                {lower: 'puercanilBalsicemil', cap: 'PuercanilBalsicemil', x: 4608.0, y: 0.0},
-                {lower: 'cities', cap: 'Cities', x: 5120.0, y: 0.0},
-                {lower: 'chuelas', cap: 'Chuelas', x: 5632.0, y: 0.0},
-                {lower: 'cidaganta', cap: 'Cidaganta', x: 6144.0, y: 0.0},
-                {lower: 'esplera', cap: 'Esplera', x: 6656.0, y: 0.0},
-                {lower: 'escriequega', cap: 'Escriequega', x: 7168.0, y: 0.0},
-                {lower: 'foucanes', cap: 'Foucanes', x: 7680.0, y: 0.0},
-                {lower: 'sanca', cap: 'Sanca', x: 8192.0, y: 0.0},
-                {lower: 'ciralconza', cap: 'Ciralconza', x: 8704.0, y: 0.0},
-                {lower: 'puercanil', cap: 'Puercanil', x: 9216.0, y: 0.0},
-                {lower: 'bulsicemil', cap: 'Bulsicemil', x: 9728.0, y: 0.0},
-                {lower: 'neg', cap: 'Neg', x: 10240.0, y: 0.0},
-                {lower: 'ranosbar', cap: 'ranosbar', x: 10752.0, y: 0.0},
-                {lower: 'huelas', cap: 'Huelas', x: 11264.0, y: 0.0},
-                {lower: 'sanderavas', cap: 'Sanderavas', x: 11776.0, y: 0.0},
-                {lower: 'duercothil', cap: 'Duercothil', x: 12288.0, y: 0.0},
-                {lower: 'yundo', cap: 'Yundo', x: 12800.0, y: 0.0},
-                {lower: 'vallo', cap: 'Vallo', x: 13312.0, y: 0.0},
-                {lower: 'leras', cap: 'Leras', x: 13824.0, y: 0.0},
-                {lower: 'cidaganta', cap: 'Cidaganta', x: 14336.0, y: 0.0},
-                {lower: 'esp', cap: 'Esp', x: 14848.0, y: 0.0},
-                {lower: 'lera', cap: 'lera', x: 15360.0, y: 0.0},
-                {lower: 'escriequega', cap: 'Escriequega', x: 0.0, y: 434.3529411764706},
-                {lower: 'foucanes', cap: 'Foucanes', x: 960.0, y: 434.3529411764706},
-                {lower: 'sanca', cap: 'Sanca', x: 1920.0, y: 434.3529411764706},
-                {lower: 'ciralconza', cap: 'Ciralconza', x: 2880.0, y: 434.3529411764706},
-                {lower: 'puercanil', cap: 'Puercanil', x: 3840.0, y: 434.3529411764706},
-                {lower: 'bulsicemil', cap: 'Bulsicemil', x: 4800.0, y: 434.3529411764706},
-                {lower: 'neg', cap: 'Neg', x: 5760.0, y: 434.3529411764706},
-                {lower: 'ranosbar', cap: 'ranosbar', x: 6720.0, y: 434.3529411764706},
-                {lower: 'huelas', cap: 'Huelas', x: 7680.0, y: 434.3529411764706},
-                {lower: 'sanderavas', cap: 'Sanderavas', x: 8640.0, y: 434.3529411764706},
-                {lower: 'duercothil', cap: 'Duercothil', x: 9600.0, y: 434.3529411764706},
-                {lower: 'yundo', cap: 'Yundo', x: 10560.0, y: 434.3529411764706},
-                {lower: 'vallo', cap: 'Vallo', x: 11520.0, y: 434.3529411764706},
-                {lower: 'leras', cap: 'Leras', x: 12480.0, y: 434.3529411764706},
-                {lower: 'cidaganta', cap: 'Cidaganta', x: 13440.0, y: 434.3529411764706},
-                {lower: 'esp', cap: 'Esp', x: 14400.0, y: 434.3529411764706},
-                {lower: 'lera', cap: 'lera', x: 15360.0, y: 434.3529411764706},
-                {lower: 'mocha', cap: 'Mocha', x: 0.0, y: 868.7058823529412},
-                {lower: 'cuertocedo', cap: 'Cuercocedo', x: 0.0, y: 1303.058823529412},
-                {lower: 'valvisce', cap: 'Valvisce', x: 960.0, y: 1303.058823529412},
-                {lower: 'torr', cap: 'Torr', x: 1920.0, y: 1303.058823529412},
-                {lower: 'onza', cap: 'onza', x: 2880.0, y: 1303.058823529412},
-                {lower: 'orrealgarve', cap: 'Orrealgarve', x: 3840.0, y: 1303.058823529412},
-                {lower: 'lunoradete', cap: 'Lunoradete', x: 4800.0, y: 1303.058823529412},
-                {lower: 'luronteldea', cap: 'Luronteldea', x: 5760.0, y: 1303.058823529412},
-                {lower: 'tordalagar', cap: 'Tordalagar', x: 6720.0, y: 1303.058823529412},
-                {lower: 'torroso', cap: 'Torroso', x: 7680.0, y: 1303.058823529412},
-                {lower: 'minuejas', cap: 'Minuejas', x: 8640.0, y: 1303.058823529412},
-                {lower: 'negranosbar', cap: 'Negranosbar', x: 9600.0, y: 1303.058823529412},
-                {lower: 'arminocelas', cap: 'Arminocelas', x: 10560.0, y: 1303.058823529412},
-                {lower: 'neg', cap: 'Neg', x: 11520.0, y: 1303.058823529412},
-                {lower: 'rera', cap: 'rera', x: 12480.0, y: 1303.058823529412},
-                {lower: 'cardaralare', cap: 'Cardaralare', x: 13440.0, y: 1303.058823529412},
-                {lower: 'urriozascas', cap: 'Urriozascas', x: 14400.0, y: 1303.058823529412},
-                {lower: 'madronasas', cap: 'Madronasas', x: 15360.0, y: 1303.058823529412},
-                {lower: 'jadrallida', cap: 'Jadrallida', x: 0.0, y: 1737.4117647058824},
-                {lower: 'torredavil', cap: 'Torredavil', x: 0.0, y: 2171.764705882353},
-                {lower: 'saura', cap: 'Saura', x: 1706.6666666666665, y: 2171.764705882353},
-                {lower: 'derzuemillo', cap: 'Derzuemillo', x: 3413.333333333333, y: 2171.764705882353},
-                {lower: 'orero', cap: 'Orero', x: 5120.0, y: 2171.764705882353},
-                {lower: 'casto', cap: 'Casto', x: 6826.666666666666, y: 2171.764705882353},
-                {lower: 'barriosbar', cap: 'Barriosbar', x: 8533.333333333334, y: 2171.764705882353},
-                {lower: 'baiga', cap: 'Baiga', x: 10240.0, y: 2171.764705882353},
-                {lower: 'ciralher', cap: 'Ciralher', x: 11946.666666666666, y: 2171.764705882353},
-                {lower: 'urriozascas', cap: 'Urriozascas', x: 13653.333333333332, y: 2171.764705882353},
-                {lower: 'madronasas', cap: 'Madronasas', x: 15360.0, y: 2171.764705882353},
-                {lower: 'jadrallida', cap: 'Jadrallida', x: 0.0, y: 2606.117647058824},
-                {lower: 'torredavil', cap: 'Torredavil', x: 0.0, y: 3040.470588235294},
-                {lower: 'saura', cap: 'Saura', x: 1536.0, y: 3040.470588235294},
-                {lower: 'derzuemillo', cap: 'Derzuemillo', x: 3072.0, y: 3040.470588235294},
-                {lower: 'orero', cap: 'Orero', x: 4608.0, y: 3040.470588235294},
-                {lower: 'casto', cap: 'Casto', x: 6144.0, y: 3040.470588235294},
-                {lower: 'barriosbar', cap: 'Barriosbar', x: 7680.0, y: 3040.470588235294},
-                {lower: 'baiga', cap: 'Baiga', x: 9216.0, y: 3040.470588235294},
-                {lower: 'cir', cap: 'Cir', x: 10752.0, y: 3040.470588235294},
-                {lower: 'alher', cap: 'alher', x: 12288.0, y: 3040.470588235294},
-                {lower: 'urriozascas', cap: 'Urriozascas', x: 13824.0, y: 3040.470588235294},
-                {lower: 'madronasas', cap: 'Madronasas', x: 15360.0, y: 3040.470588235294},
-                {lower: 'yuntatildea', cap: 'Yuntatildea', x: 0.0, y: 3474.823529411765},
-                {lower: 'torredavil', cap: 'Torredavil', x: 0.0, y: 3909.176470588235},
-                {lower: 'saura', cap: 'Saura', x: 1536.0, y: 3909.176470588235},
-                {lower: 'derzuemillo', cap: 'Derzuemillo', x: 3072.0, y: 3909.176470588235},
-                {lower: 'orero', cap: 'Orero', x: 4608.0, y: 3909.176470588235},
-                {lower: 'casto', cap: 'Casto', x: 6144.0, y: 3909.176470588235},
-                {lower: 'barriosbar', cap: 'Barriosbar', x: 7680.0, y: 3909.176470588235},
-                {lower: 'baiga', cap: 'Baiga', x: 9216.0, y: 3909.176470588235},
-                {lower: 'cir', cap: 'Cir', x: 10752.0, y: 3909.176470588235},
-                {lower: 'alher', cap: 'alher', x: 12288.0, y: 3909.176470588235},
-                {lower: 'urriozascas', cap: 'Urriozascas', x: 13824.0, y: 3909.176470588235},
-                {lower: 'madronasas', cap: 'Madronasas', x: 15360.0, y: 3909.176470588235},
-                {lower: 'yuntatildea', cap: 'Yuntatildea', x: 0.0, y: 4343.529411764706},
-                {lower: 'herzuemillo', cap: 'Herzuemillo', x: 0.0, y: 4777.882352941177},
-                {lower: 'pigo', cap: 'Pigo', x: 1280.0, y: 4777.882352941177},
-                {lower: 'bellavil', cap: 'Bellavil', x: 2560.0, y: 4777.882352941177},
-                {lower: 'sandieravas', cap: 'Sandieravas', x: 3840.0, y: 4777.882352941177},
-                {lower: 'quinzadedo', cap: 'Quinzadedo', x: 5120.0, y: 4777.882352941177},
-                {lower: 'fue', cap: 'Fue', x: 6400.0, y: 4777.882352941177},
-                {lower: 'ncos', cap: 'ncos', x: 7680.0, y: 4777.882352941177},
-                {lower: 'lumana', cap: 'Lumana', x: 8960.0, y: 4777.882352941177},
-                {lower: 'huma', cap: 'Huma', x: 10240.0, y: 4777.882352941177},
-                {lower: 'na', cap: 'na', x: 11520.0, y: 4777.882352941177},
-                {lower: 'allogollos', cap: 'Allogollos', x: 12800.0, y: 4777.882352941177},
-                {lower: 'carrealloca', cap: 'Carrealloca', x: 14080.0, y: 4777.882352941177},
-                {lower: 'escriequesa', cap: 'Escriequesa', x: 15360.0, y: 4777.882352941177},
-                {lower: 'cascon', cap: 'Cascon', x: 0.0, y: 5212.235294117648},
-                {lower: 'candigos', cap: 'Candigos', x: 853.3333333333333, y: 5212.235294117648},
-                {lower: 'jiles', cap: 'Jiles', x: 1706.6666666666665, y: 5212.235294117648},
-                {lower: 'barr', cap: 'Barr', x: 2560.0, y: 5212.235294117648},
-                {lower: 'iosbar', cap: 'iosbar', x: 3413.333333333333, y: 5212.235294117648},
-                {lower: 'nurera', cap: 'Nurera', x: 4266.666666666667, y: 5212.235294117648},
-                {lower: 'quinza', cap: 'Quinza', x: 5120.0, y: 5212.235294117648},
-                {lower: 'ded', cap: 'ded', x: 5973.333333333333, y: 5212.235294117648},
-                {lower: 'sancalescab', cap: 'Sancalescab', x: 7680.0, y: 5212.235294117648},
-                {lower: 'malvez', cap: 'Malvez', x: 8533.333333333334, y: 5212.235294117648},
-                {lower: 'fue', cap: 'Fue', x: 9386.666666666668, y: 5212.235294117648},
-                {lower: 'ncos', cap: 'ncos', x: 10240.0, y: 5212.235294117648},
-                {lower: 'lumana', cap: 'Lumana', x: 11093.333333333334, y: 5212.235294117648},
-                {lower: 'huma', cap: 'Huma', x: 11946.666666666666, y: 5212.235294117648},
-                {lower: 'na', cap: 'na', x: 12800.0, y: 5212.235294117648},
-                {lower: 'allogollos', cap: 'Allogollos', x: 13653.333333333332, y: 5212.235294117648},
-                {lower: 'carrealloca', cap: 'Carrealloca', x: 14506.666666666666, y: 5212.235294117648},
-                {lower: 'escriequesa', cap: 'Escriequesa', x: 15360.0, y: 5212.235294117648},
-                {lower: 'cascon', cap: 'Cascon', x: 0.0, y: 5646.588235294117},
-                {lower: 'candigos', cap: 'Candigos', x: 853.3333333333333, y: 5646.588235294117},
-                {lower: 'jiles', cap: 'Jiles', x: 1706.6666666666665, y: 5646.588235294117},
-                {lower: 'barr', cap: 'Barr', x: 2560.0, y: 5646.588235294117},
-                {lower: 'iosbar', cap: 'iosbar', x: 3413.333333333333, y: 5646.588235294117},
-                {lower: 'nurera', cap: 'Nurera', x: 4266.666666666667, y: 5646.588235294117},
-                {lower: 'quinza', cap: 'Quinza', x: 5120.0, y: 5646.588235294117},
-                {lower: 'ded', cap: 'ded', x: 5973.333333333333, y: 5646.588235294117},
-                {lower: 'sancalescab', cap: 'Sancalescab', x: 7680.0, y: 5646.588235294117},
-                {lower: 'malvez', cap: 'Malvez', x: 8533.333333333334, y: 5646.588235294117},
-                {lower: 'fue', cap: 'Fue', x: 9386.666666666668, y: 5646.588235294117},
-                {lower: 'ncos', cap: 'ncos', x: 10240.0, y: 5646.588235294117},
-                {lower: 'lumana', cap: 'Lumana', x: 11093.333333333334, y: 5646.588235294117},
-                {lower: 'huma', cap: 'Huma', x: 11946.666666666666, y: 5646.588235294117},
-                {lower: 'na', cap: 'na', x: 12800.0, y: 5646.588235294117},
-                {lower: 'allogollos', cap: 'Allogollos', x: 13653.333333333332, y: 5646.588235294117},
-                {lower: 'carrealloca', cap: 'Carrealloca', x: 14506.666666666666, y: 5646.588235294117},
-                {lower: 'escriequesa', cap: 'Escriequesa', x: 15360.0, y: 5646.588235294117},
-                {lower: 'quindoliga', cap: 'Quindoliga', x: 0.0, y: 6080.941176470588},
-                {lower: 'allares', cap: 'Allares', x: 2560.0, y: 6080.941176470588},
-                {lower: 'noblegalo', cap: 'Noblegalo', x: 5120.0, y: 6080.941176470588},
-                {lower: 'valmadroma', cap: 'Valmadroma', x: 7680.0, y: 6080.941176470588},
-                {lower: 'riofrintuma', cap: 'Riofrintuma', x: 10240.0, y: 6080.941176470588},
-                {lower: 'aloranagan', cap: 'Aloranagan', x: 12800.0, y: 6080.941176470588},
-                {lower: 'duercoso', cap: 'Duercoso', x: 15360.0, y: 6080.941176470588},
-                {lower: 'sancialo', cap: 'Sancialo', x: 0.0, y: 6515.294117647059},
-                {lower: 'allares', cap: 'Allares', x: 2560.0, y: 6515.294117647059},
-                {lower: 'noblegalo', cap: 'Noblegalo', x: 5120.0, y: 6515.294117647059},
-                {lower: 'valmadroma', cap: 'Valmadroma', x: 7680.0, y: 6515.294117647059},
-                {lower: 'riofrintuma', cap: 'Riofrintuma', x: 10240.0, y: 6515.294117647059},
-                {lower: 'aloranagan', cap: 'Aloranagan', x: 12800.0, y: 6515.294117647059},
-                {lower: 'duercoso', cap: 'Duercoso', x: 15360.0, y: 6515.294117647059},
-                {lower: 'sancialo', cap: 'Sancialo', x: 0.0, y: 6949.64705882353},
-                {lower: 'allares', cap: 'Allares', x: 2560.0, y: 6949.64705882353},
-                {lower: 'noblegalo', cap: 'Noblegalo', x: 5120.0, y: 6949.64705882353},
-                {lower: 'valmadroma', cap: 'Valmadroma', x: 7680.0, y: 6949.64705882353},
-                {lower: 'riofrintuma', cap: 'Riofrintuma', x: 10240.0, y: 6949.64705882353},
-                {lower: 'aloranagan', cap: 'Aloranagan', x: 12800.0, y: 6949.64705882353},
-                {lower: 'duercoso', cap: 'Duercoso', x: 15360.0, y: 6949.64705882353},
-                {lower: 'sanconciare', cap: 'Sanconciare', x: 0.0, y: 7384.0}
-            ];
-
-            // Deduplicar por lower, tomar la primera posición
-            const uniquePositions = [];
-            const seen = new Set();
-            for (const pos of positions) {
-                if (!seen.has(pos.lower)) {
-                    seen.add(pos.lower);
-                    uniquePositions.push(pos);
-                }
-            }
-
-            // Inicializar el visor
             const viewer = OpenSeadragon({
                 id: "map-container",
                 prefixUrl: "https://openseadragon.github.io/openseadragon/images/",
-                showNavigator: true,
                 tileSources: "localidades/mapacompleto.png",
-                useCanvas: false,  // Fuerza modo <img> para evitar crash en imágenes grandes
-                defaultZoomLevel: 0.5,
-                minZoomLevel: 0.1,
-                maxZoomLevel: 10
+                useCanvas: false,               // ← Fuerza uso de <img> en lugar de canvas
+                immediateRender: true,
+                showNavigator: true,
+                navigatorPosition: "BOTTOM_RIGHT",
+                defaultZoomLevel: 0.4,
+                minZoomLevel: 0.05,
+                maxZoomLevel: 8
             });
 
             viewer.addHandler('open', () => {
-                console.log("Mapa abierto correctamente – debería verse ahora");
-                document.getElementById('status').textContent = '¡Mapa cargado!';
-                // Procede con la niebla
-                const svgNS = 'http://www.w3.org/2000/svg';
-                const svg = document.createElementNS(svgNS, 'svg');
-                svg.setAttribute('viewBox', `0 0 1 ${aspect}`);
-                svg.style.width = '100%';
-                svg.style.height = '100%';
-
-                const mask = document.createElementNS(svgNS, 'mask');
-                mask.id = 'fog-mask';
-
-                const maskRect = document.createElementNS(svgNS, 'rect');
-                maskRect.setAttribute('x', '0');
-                maskRect.setAttribute('y', '0');
-                maskRect.setAttribute('width', '1');
-                maskRect.setAttribute('height', `${aspect}`);
-                maskRect.setAttribute('fill', 'white');
-                mask.appendChild(maskRect);
-
-                uniquePositions.forEach(pos => {
-                    const x_norm = pos.x / mapWidth;
-                    const y_norm = pos.y / mapWidth; // Normalizado por width para mantener proporción
-                    const circle = document.createElementNS(svgNS, 'circle');
-                    circle.setAttribute('cx', `${x_norm}`);
-                    circle.setAttribute('cy', `${y_norm}`);
-                    circle.setAttribute('r', `${revealRadiusNorm}`);
-                    circle.setAttribute('fill', 'black');
-                    mask.appendChild(circle);
-                });
-
-                svg.appendChild(mask);
-
-                const fogRect = document.createElementNS(svgNS, 'rect');
-                fogRect.setAttribute('x', '0');
-                fogRect.setAttribute('y', '0');
-                fogRect.setAttribute('width', '1');
-                fogRect.setAttribute('height', `${aspect}`);
-                fogRect.setAttribute('fill', '#2c1b0f'); // Color de niebla
-                fogRect.setAttribute('opacity', '0.8');
-                fogRect.setAttribute('mask', 'url(#fog-mask)');
-                svg.appendChild(fogRect);
-
-                // Añadir overlay de niebla
-                viewer.addOverlay({
-                    element: svg,
-                    location: new OpenSeaDragon.Rect(0, 0, 1, aspect)
-                });
+                console.log("¡Mapa cargado correctamente!");
+                document.getElementById('status').textContent = 'Mapa cargado (puede ser lento por tamaño)';
             });
 
             viewer.addHandler('open-failed', (event) => {
-                console.error("Fallo al abrir mapa:", event);
-                document.getElementById('status').textContent = 'Error al cargar mapa: ' + (event.message || 'ver consola F12');
+                console.error("Error al abrir:", event);
+                document.getElementById('status').innerHTML = 'Error: ' + (event.message || 'unable to open – ver consola');
             });
 
             viewer.addHandler('tile-load-failed', (event) => {
-                console.error("Fallo en tile:", event);
-            });
-
-            // Generar lista ordenada
-            const sorted = uniquePositions.sort((a, b) => a.cap.localeCompare(b.cap, 'es'));
-
-            const locList = document.getElementById('loc-list');
-            sorted.forEach(pos => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = `localidades/${pos.lower}.jpg`;
-                a.target = '_blank';
-                a.textContent = pos.cap;
-                a.addEventListener('click', (e) => {
-                    e.preventDefault(); // Para no abrir enlace si zoom funciona
-                    const x_norm = pos.x / mapWidth;
-                    const y_norm = pos.y / mapWidth;
-                    const bounds = new OpenSeaDragon.Rect(x_norm - revealRadiusNorm, y_norm - revealRadiusNorm, 2 * revealRadiusNorm, 2 * revealRadiusNorm);
-                    viewer.viewport.fitBounds(bounds, true);
-                    // Opcional: abre el jpg en new tab
-                    window.open(a.href, '_blank');
-                });
-                li.appendChild(a);
-                locList.appendChild(li);
-            });
-
-            // Búsqueda
-            const searchInput = document.getElementById('search');
-            searchInput.addEventListener('input', function() {
-                const filter = this.value.toLowerCase();
-                const lis = locList.getElementsByTagName('li');
-                for (let i = 0; i < lis.length; i++) {
-                    const a = lis[i].getElementsByTagName('a')[0];
-                    if (a.textContent.toLowerCase().includes(filter)) {
-                        lis[i].style.display = '';
-                    } else {
-                        lis[i].style.display = 'none';
-                    }
-                }
+                console.error("Tile falló:", event);
             });
         });
     </script>
