@@ -1,196 +1,197 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
-<title>Mapa Interactivo de Kurghaimat</title>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;700&family=MedievalSharp&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1.1/build/openseadragon/openseadragon.min.js"></script>
-<style>
-body {
-background-color: #f5e8c7;
-font-family: 'EB Garamond', serif;
-color: #2c1b0f;
-margin: 0;
-padding: 20px;
-user-select: none;
--webkit-user-select: none;
--moz-user-select: none;
--ms-user-select: none;
-}
-#book {
-max-width: 920px;
-margin: 0 auto;
-background: rgba(245, 232, 199, 0.96);
-padding: 70px 80px;
-border: 12px solid #6b4c2e;
-box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
-}
-#title-page {
-text-align: center;
-margin-bottom: 40px;
-}
-h1.main-title {
-font-family: 'MedievalSharp', cursive;
-font-size: 3.2em;
-color: #8b0000;
-margin: 20px 0 10px;
-text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
-}
-h1.author {
-font-family: 'MedievalSharp', cursive;
-font-size: 1.6em;
-color: #3d2b1f;
-margin: 0;
-}
-#map-wrapper {
-width: 100%;
-aspect-ratio: 10000 / 4807;
-margin-bottom: 20px;
-border: 2px solid #6b4c2e;
-}
-#map-container {
-width: 100%;
-height: 100%;
-position: relative;
-touch-action: manipulation;
-}
-#status {
-margin-top: 20px;
-background: white;
-padding: 12px 18px;
-border: 2px solid #b22222;
-font-weight: bold;
-box-shadow: 0 0 10px rgba(0,0,0,0.3);
-text-align: center;
-}
-.loc-pin {
-width: 24px;
-height: 24px;
-background: #b22222;
-border: 4px solid white;
-border-radius: 50%;
-box-shadow: 0 0 10px rgba(0,0,0,0.7);
-cursor: pointer;
-pointer-events: auto;
-transition: transform 0.15s;
-}
-.loc-pin:hover {
-transform: scale(1.5);
-}
-.loc-label {
-background: rgba(0,0,0,0.7);
-color: white;
-padding: 4px 8px;
-border-radius: 4px;
-font-family: 'MedievalSharp', cursive; /* Fuente mejorada */
-font-size: 14px; /* Un poco más grande para mejor legibilidad */
-text-align: center;
-white-space: nowrap;
-pointer-events: none;
-box-shadow: 0 0 5px rgba(0,0,0,0.5);
-margin-top: 4px; /* Separación para mejor alineación */
-}
-.mini-pin {
-width: 16px;
-height: 16px;
-background: #0000ff;
-border: 2px solid white;
-border-radius: 50%;
-box-shadow: 0 0 6px rgba(0,0,0,0.5);
-cursor: pointer;
-pointer-events: auto;
-transition: transform 0.15s;
-}
-.mini-pin:hover {
-transform: scale(1.5);
-}
-#event-popup {
-position: fixed;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-background: rgba(245, 232, 199, 0.95);
-border: 4px solid #6b4c2e;
-border-radius: 12px;
-padding: 25px 35px;
-max-width: 90%;
-max-height: 80vh;
-overflow-y: auto;
-box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-z-index: 10000;
-font-size: 1.2em;
-color: #2c1b0f;
-text-align: center;
-display: none;
-}
-#event-popup h3 {
-font-family: 'MedievalSharp', cursive;
-color: #8b0000;
-margin: 0 0 15px;
-font-size: 1.8em;
-text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-}
-#event-popup p {
-margin: 0 0 20px;
-}
-#event-close {
-background: #b22222;
-color: white;
-border: none;
-padding: 10px 25px;
-border-radius: 8px;
-font-family: 'MedievalSharp', cursive; /* Fuente mejorada para el botón */
-font-size: 1.3em;
-cursor: pointer;
-transition: background 0.2s;
-}
-#event-close:hover {
-background: #8b0000;
-}
-@media (max-width: 768px) {
-#book { padding: 35px 25px; max-width: 95%; }
-h1.main-title { font-size: 2.8em; }
-h1.author { font-size: 1.4em; }
-#map-wrapper { aspect-ratio: 10000 / 4807; max-height: 70vh; }
-.loc-pin { width: 20px; height: 20px; border-width: 3px; }
-.loc-label { font-size: 13px; padding: 2px 6px; }
-.mini-pin { width: 12px; height: 12px; border-width: 2px; }
-#event-popup { padding: 20px; font-size: 1.1em; }
-#event-popup h3 { font-size: 1.6em; }
-#event-close { font-size: 1.1em; }
-}
-@media (max-width: 480px) {
-#map-wrapper { aspect-ratio: 1 / 1; max-height: 80vh; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Mapa Interactivo de Kurghaimat</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1.1/build/openseadragon/openseadragon.min.js"></script>
+    <style>
+        body {
+            background-color: #f5e8c7;
+            font-family: 'EB Garamond', serif;
+            color: #2c1b0f;
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        #book {
+            max-width: 920px;
+            margin: 0 auto;
+            background: rgba(245, 232, 199, 0.96);
+            padding: 70px 80px;
+            border: 12px solid #6b4c2e;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+        }
+        #title-page {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1.main-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 3.2em;
+            color: #8b0000;
+            margin: 20px 0 10px;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
+        }
+        h1.author {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.6em;
+            color: #3d2b1f;
+            margin: 0;
+        }
+        #map-wrapper {
+            width: 100%;
+            aspect-ratio: 10000 / 4807;
+            margin-bottom: 20px;
+            border: 2px solid #6b4c2e;
+        }
+        #map-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            touch-action: manipulation;
+        }
+        #status {
+            margin-top: 20px;
+            background: white;
+            padding: 12px 18px;
+            border: 2px solid #b22222;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .loc-pin {
+            width: 24px;
+            height: 24px;
+            background: #b22222;
+            border: 4px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.7);
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.15s;
+        }
+        .loc-pin:hover {
+            transform: scale(1.5);
+        }
+        .loc-label {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 14px;
+            text-align: center;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            margin-top: 4px;
+        }
+        .mini-pin {
+            width: 16px;
+            height: 16px;
+            background: #0000ff;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(0,0,0,0.5);
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.15s;
+        }
+        .mini-pin:hover {
+            transform: scale(1.5);
+        }
+        #event-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(245, 232, 199, 0.95);
+            border: 4px solid #6b4c2e;
+            border-radius: 12px;
+            padding: 25px 35px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            z-index: 10000;
+            font-size: 1.2em;
+            color: #2c1b0f;
+            text-align: center;
+            display: none;
+        }
+        #event-popup h3 {
+            font-family: 'MedievalSharp', cursive;
+            color: #8b0000;
+            margin: 0 0 15px;
+            font-size: 1.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        #event-popup p {
+            margin: 0 0 20px;
+        }
+        #event-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 9999;
+            display: none;
+        }
+        @media (max-width: 768px) {
+            #book { padding: 35px 25px; max-width: 95%; }
+            h1.main-title { font-size: 2.8em; }
+            h1.author { font-size: 1.4em; }
+            #map-wrapper { aspect-ratio: 10000 / 4807; max-height: 70vh; }
+            .loc-pin { width: 20px; height: 20px; border-width: 3px; }
+            .loc-label { font-size: 13px; padding: 2px 6px; }
+            .mini-pin { width: 12px; height: 12px; border-width: 2px; }
+            #event-popup { padding: 20px; font-size: 1.1em; }
+            #event-popup h3 { font-size: 1.6em; }
+        }
+        @media (max-width: 480px) {
+            #map-wrapper { aspect-ratio: 1 / 1; max-height: 80vh; }
+        }
+    </style>
 </head>
 <body>
-<div id="book">
-<div id="title-page">
-<h1 class="main-title">Mapa Interactivo de Kurghaimat</h1>
-</div>
-<div id="map-wrapper">
-<div id="map-container"></div>
-</div>
-<div id="status">Cargando mapa... Haz clic o tap en los puntos rojos para abrir la localidad</div>
-</div>
-    
-    
-        
-        
-        <button id="event-close">Cerrar</button>
-    
+    <div id="book">
+        <div id="title-page">
+            <h1 class="main-title">Mapa Interactivo de Kurghaimat</h1>
+        </div>
+        <div id="map-wrapper">
+            <div id="map-container"></div>
+        </div>
+        <div id="status">Cargando mapa... Haz clic o tap en los puntos rojos para abrir la localidad</div>
+    </div>
+
+    <!-- Overlay oscuro para cerrar popup clicando fuera -->
+    <div id="event-overlay"></div>
+
+    <!-- Popup vistoso para eventos (sin botón cerrar) -->
+    <div id="event-popup">
+        <h3 id="event-title"></h3>
+        <p id="event-desc"></p>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
             const eventPopup = document.getElementById('event-popup');
+            const eventOverlay = document.getElementById('event-overlay');
             const eventTitle = document.getElementById('event-title');
             const eventDesc = document.getElementById('event-desc');
-            const eventClose = document.getElementById('event-close');
 
-            // Cerrar popup
-            eventClose.addEventListener('click', () => {
+            // Cerrar popup clicando fuera (overlay)
+            eventOverlay.addEventListener('click', () => {
                 eventPopup.style.display = 'none';
+                eventOverlay.style.display = 'none';
             });
 
             const locations = [
@@ -254,15 +255,12 @@ h1.author { font-size: 1.4em; }
 
                 viewer.viewport.goHome(true);
 
-                // Detectar si es móvil o PC
-                const isMobile = window.innerWidth < 768;
-
                 // Centrar inicialmente en el extremo derecho (centro vertical)
-                if (isMobile) {
-                    viewer.viewport.panTo(new OpenSeadragon.Point(0.65, 0.24035), true);
-                } else {
-                    viewer.viewport.panTo(new OpenSeadragon.Point(0.5, 0.24035), true);
-                }
+                const isMobile = window.innerWidth < 768;
+                viewer.viewport.panTo(new OpenSeadragon.Point(
+                    isMobile ? 0.65 : 0.5,
+                    0.24035
+                ), true);
 
                 // Pines principales + labels
                 locations.forEach(loc => {
@@ -299,16 +297,15 @@ h1.author { font-size: 1.4em; }
                         checkResize: false
                     });
 
-                    // Ocultar/mostrar label
                     const updateLabel = () => {
                         const currentZoom = viewer.viewport.getZoom();
                         label.style.display = (currentZoom <= midZoom) ? 'block' : 'none';
                     };
                     viewer.addHandler('zoom', updateLabel);
-                    updateLabel(); // Inicial
+                    updateLabel();
                 });
 
-                // Mini puntos azules
+                // Mini puntos azules con popup vistoso (sin botón cerrar)
                 miniLocations.forEach(mini => {
                     const miniPin = document.createElement('div');
                     miniPin.className = 'mini-pin';
@@ -320,6 +317,7 @@ h1.author { font-size: 1.4em; }
                         eventTitle.textContent = mini.name;
                         eventDesc.textContent = mini.desc;
                         eventPopup.style.display = 'block';
+                        eventOverlay.style.display = 'block';
                     });
                     miniPin.addEventListener('touchend', (e) => {
                         e.stopPropagation();
@@ -327,6 +325,7 @@ h1.author { font-size: 1.4em; }
                         eventTitle.textContent = mini.name;
                         eventDesc.textContent = mini.desc;
                         eventPopup.style.display = 'block';
+                        eventOverlay.style.display = 'block';
                     });
 
                     viewer.addOverlay({
@@ -336,13 +335,12 @@ h1.author { font-size: 1.4em; }
                         checkResize: false
                     });
 
-                    // Ocultar/mostrar mini pin
                     const updateMini = () => {
                         const currentZoom = viewer.viewport.getZoom();
                         miniPin.style.display = (currentZoom >= midZoom) ? 'block' : 'none';
                     };
                     viewer.addHandler('zoom', updateMini);
-                    updateMini(); // Inicial
+                    updateMini();
                 });
             });
 
