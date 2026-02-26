@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localidad — Crónicas Errantes</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=MedievalSharp&display=swap">
+    <style>
+        body {
+            background: url('parchment.jpg') repeat fixed;
+            font-family: 'EB Garamond', serif;
+            color: #2c1b0f;
+            line-height: 1.75;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5e8c7;
+        }
+        #book {
+            max-width: 920px;
+            margin: 0 auto;
+            background: rgba(245, 232, 199, 0.96);
+            padding: 70px 80px;
+            border: 12px solid #6b4c2e;
+            border-image: url('border-medieval.png') 30 round;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+        }
+        h1.chapter-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 3.8em;
+            color: #4b2e1a;
+            text-align: center;
+            margin: 0 0 50px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+        }
+        h2.section-title {
+            font-family: 'MedievalSharp', cursive;
+            color: #4b2e1a;
+            font-size: 2.2em;
+            margin: 2em 0 0.7em;
+            border-bottom: 2px solid #8b4513;
+            padding-bottom: 0.4em;
+        }
+        p {
+            text-align: justify;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+            -ms-hyphens: auto;
+            text-indent: 2.8em;
+            margin: 1.5em 0;
+            font-size: 1.28em;
+        }
+        hr {
+            border: none;
+            border-top: 3px double #8b4513;
+            margin: 5em auto;
+            width: 40%;
+        }
+        .map-container {
+            text-align: center;
+            margin: 2.8em 0 4em;
+            padding: 1.4em;
+            background: rgba(139, 69, 19, 0.07);
+            border: 3px double #8b4513;
+            border-radius: 8px;
+        }
+        .location-map {
+            max-width: 100%;
+            height: auto;
+            border: 6px solid #6b4c2e;
+            box-shadow: 0 6px 22px rgba(0,0,0,0.3);
+            border-radius: 5px;
+        }
+        .nav-top {
+            text-align: center;
+            margin-bottom: 2.5em;
+            font-size: 1.18em;
+        }
+        .nav-top a {
+            color: #8b4513;
+            text-decoration: none;
+            margin: 0 1.2em;
+            font-weight: 500;
+        }
+        .nav-top a:hover {
+            color: #b22222;
+            text-decoration: underline;
+        }
+        #loading {
+            text-align: center;
+            font-style: italic;
+            color: #5c4033;
+            padding: 200px 0;
+            font-size: 1.6em;
+        }
+        #error {
+            color: #8b0000;
+            text-align: center;
+            font-size: 1.3em;
+            padding: 2em;
+        }
+        @media (max-width: 768px) {
+            #book { padding: 40px 30px; border-width: 8px; }
+            h1.chapter-title { font-size: 3.1em; }
+            h2.section-title { font-size: 2.0em; }
+            p { font-size: 1.18em; text-indent: 2.2em; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="book">
+
+    <div id="loading">Cargando las crónicas de la localidad...</div>
+    
+    <div id="content" style="display:none;">
+
+        <div class="nav-top">
+            <a href="wikierrantes.html">← Volver al índice</a>
+               |   
+            <a href="mapa.html">Ver mapa general</a>
+        </div>
+
+        <h1 class="chapter-title" id="nombre-localidad"></h1>
+
+        <div class="map-container">
+            <img id="mapa-img" src="" alt="Mapa de la localidad" class="location-map">
+            <div style="margin-top:1em; font-style:italic; color:#6b4c2e; font-size:0.98em;">
+                Representación esquemática de la localidad
+            </div>
+        </div>
+
+        <h2 class="section-title">Descripción del lugar</h2>
+        <p id="descripcion"></p>
+
+        <h2 class="section-title">Población y descripción de sus gentes, poder adquisitivo, actividad principal</h2>
+        <p id="habitantes"></p>
+
+        <h2 class="section-title">Servicios disponibles</h2>
+        <p id="servicios"></p>
+
+        <hr>
+
+    </div>
+
+</div>
+
+<script>
+    async function cargarLocalidad() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
+        if (!id) {
+            mostrarError("No se indicó ninguna localidad en la URL.<br>Ejemplo: wikierrantes.html?id=cinies");
+            return;
+        }
+
+        const urlJson = `localidades/${id}.json`;
+
+        try {
+            const respuesta = await fetch(urlJson);
+            if (!respuesta.ok) {
+                throw new Error(`No se encontró la localidad "${id}"`);
+            }
+
+            const data = await respuesta.json();
+
+            // Rellenar contenido
+            document.title = `${data.nombre} — Crónicas Errantes`;
+            document.getElementById('nombre-localidad').textContent = data.nombre;
+            document.getElementById('mapa-img').src = `localidades/${data.imagen}`;
+            document.getElementById('descripcion').textContent = data.descripcion;
+            document.getElementById('habitantes').textContent = data.habitantes;
+            document.getElementById('servicios').textContent = data.servicios;
+
+            // Mostrar contenido y ocultar loading
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+        } catch (err) {
+            mostrarError(`Error al cargar ${urlJson}<br>${err.message}`);
+        }
+    }
+
+    function mostrarError(mensaje) {
+        document.getElementById('loading').innerHTML = `<div id="error">${mensaje}</div>`;
+    }
+
+    window.addEventListener('load', cargarLocalidad);
+</script>
+
+</body>
+</html>
