@@ -191,7 +191,6 @@
                 eventOverlay.style.display = 'none';
             });
 
-            //dividir coordenadas Y entre 2.08
             const locations = [
                 { name: "Chuelas", lower: "chuelas", x: 8044, y: 690 },
                 { name: "Bailes", lower: "bailes", x: 8475, y: 574 },
@@ -222,10 +221,10 @@
                 preserveViewport: true,
                 minZoomImageRatio: 1.0,
                 gestureSettingsMouse: {
-        clickToZoom:      false,       // ← clave – desactiva zoom al click
-        dblClickToZoom:   true,
-        scrollToZoom:     true
-    },
+                    clickToZoom: false,
+                    dblClickToZoom: true,
+                    scrollToZoom: true
+                },
                 gestureSettingsTouch: {
                     pinchToZoom: true,
                     clickToZoom: false,
@@ -256,7 +255,6 @@
                 viewer.viewport.defaultZoomLevel = minZoom;
                 viewer.viewport.goHome(true);
 
-                // Centrar inicialmente en el extremo derecho (centro vertical)
                 const isMobile = window.innerWidth < 768;
                 viewer.viewport.panTo(new OpenSeadragon.Point(
                     isMobile ? 0.65 : 0.5,
@@ -268,16 +266,17 @@
                     const pin = document.createElement('div');
                     pin.className = 'loc-pin';
                     pin.title = loc.name;
-                    pin.addEventListener('click', (e) => {
-                        e.stopPropagation();
+
+                    const openLocation = (e) => {
                         e.preventDefault();
-                        window.open(`https://www.gato.red/wikierrantes.html?id=${loc.lower}`, '_blank');
-                    });
-                    pin.addEventListener('touchend', (e) => {
                         e.stopPropagation();
-                        e.preventDefault();
+                        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
                         window.open(`https://www.gato.red/wikierrantes.html?id=${loc.lower}`, '_blank');
-                    });
+                    };
+
+                    pin.addEventListener('pointerup', openLocation);     // ← cambio principal (funciona en pc y touch)
+                    pin.addEventListener('touchend', openLocation);      // mantener para mejor compatibilidad touch
+
                     viewer.addOverlay({
                         element: pin,
                         location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
@@ -303,27 +302,25 @@
                     updateLabel();
                 });
 
-                // Mini puntos azules con popup vistoso (sin botón cerrar)
+                // Mini puntos azules con popup vistoso
                 miniLocations.forEach(mini => {
                     const miniPin = document.createElement('div');
                     miniPin.className = 'mini-pin';
                     miniPin.title = mini.name;
-                    miniPin.addEventListener('click', (e) => {
-                        e.stopPropagation();
+
+                    const openMini = (e) => {
                         e.preventDefault();
+                        e.stopPropagation();
+                        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
                         eventTitle.textContent = mini.name;
                         eventDesc.textContent = mini.desc;
                         eventPopup.style.display = 'block';
                         eventOverlay.style.display = 'block';
-                    });
-                    miniPin.addEventListener('touchend', (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        eventTitle.textContent = mini.name;
-                        eventDesc.textContent = mini.desc;
-                        eventPopup.style.display = 'block';
-                        eventOverlay.style.display = 'block';
-                    });
+                    };
+
+                    miniPin.addEventListener('pointerup', openMini);     // ← cambio principal
+                    miniPin.addEventListener('touchend', openMini);
+
                     viewer.addOverlay({
                         element: miniPin,
                         location: new OpenSeadragon.Point(mini.x / 10000, mini.y / 4807),
