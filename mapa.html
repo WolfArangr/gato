@@ -267,15 +267,24 @@
                     pin.className = 'loc-pin';
                     pin.title = loc.name;
 
-                    const openLocation = (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+                    // Abrir enlace
+                    const openLink = () => {
                         window.open(`https://www.gato.red/wikierrantes.html?id=${loc.lower}`, '_blank');
                     };
 
-                    pin.addEventListener('pointerup', openLocation);     // ← cambio principal (funciona en pc y touch)
-                    pin.addEventListener('touchend', openLocation);      // mantener para mejor compatibilidad touch
+                    // Usamos MouseTracker para capturar clicks de forma fiable
+                    new OpenSeadragon.MouseTracker({
+                        element: pin,
+                        clickHandler: function(event) {
+                            openLink();
+                            event.preventDefaultAction = true;   // evita que OSD haga zoom u otros defaults
+                            event.stopPropagation = true;
+                        },
+                        pressHandler: function(event) {
+                            // Opcional: para mejor feel en algunos navegadores
+                            event.preventDefaultAction = true;
+                        }
+                    });
 
                     viewer.addOverlay({
                         element: pin,
@@ -302,24 +311,30 @@
                     updateLabel();
                 });
 
-                // Mini puntos azules con popup vistoso
+                // Mini puntos azules con popup
                 miniLocations.forEach(mini => {
                     const miniPin = document.createElement('div');
                     miniPin.className = 'mini-pin';
                     miniPin.title = mini.name;
 
-                    const openMini = (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+                    const openMini = () => {
                         eventTitle.textContent = mini.name;
                         eventDesc.textContent = mini.desc;
                         eventPopup.style.display = 'block';
                         eventOverlay.style.display = 'block';
                     };
 
-                    miniPin.addEventListener('pointerup', openMini);     // ← cambio principal
-                    miniPin.addEventListener('touchend', openMini);
+                    new OpenSeadragon.MouseTracker({
+                        element: miniPin,
+                        clickHandler: function(event) {
+                            openMini();
+                            event.preventDefaultAction = true;
+                            event.stopPropagation = true;
+                        },
+                        pressHandler: function(event) {
+                            event.preventDefaultAction = true;
+                        }
+                    });
 
                     viewer.addOverlay({
                         element: miniPin,
