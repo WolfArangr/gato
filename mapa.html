@@ -170,16 +170,13 @@
         </div>
         <div id="status">Cargando mapa... Haz clic o tap en los puntos rojos para abrir la localidad</div>
     </div>
-
     <!-- Overlay oscuro para cerrar popup clicando fuera -->
     <div id="event-overlay"></div>
-
     <!-- Popup vistoso para eventos (sin botón cerrar) -->
     <div id="event-popup">
         <h3 id="event-title"></h3>
         <p id="event-desc"></p>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
@@ -193,7 +190,8 @@
                 eventPopup.style.display = 'none';
                 eventOverlay.style.display = 'none';
             });
-//dividir coordenadas Y entre 2.08
+
+            //dividir coordenadas Y entre 2.08
             const locations = [
                 { name: "Chuelas", lower: "chuelas", x: 8044, y: 690 },
                 { name: "Bailes", lower: "bailes", x: 8475, y: 574 },
@@ -241,20 +239,16 @@
                 const containerWidth = container.clientWidth;
                 const imageAspect = 4807 / 10000;
                 const containerAspect = containerHeight / containerWidth;
-
                 let fitZoom;
                 if (containerAspect > imageAspect) {
                     fitZoom = containerHeight / (imageAspect * containerWidth);
                 } else {
                     fitZoom = 1 / containerAspect * imageAspect;
                 }
-
                 minZoom = fitZoom;
                 midZoom = (minZoom + 12) / 2;
-
                 viewer.viewport.minZoomLevel = minZoom;
                 viewer.viewport.defaultZoomLevel = minZoom;
-
                 viewer.viewport.goHome(true);
 
                 // Centrar inicialmente en el extremo derecho (centro vertical)
@@ -269,18 +263,16 @@
                     const pin = document.createElement('div');
                     pin.className = 'loc-pin';
                     pin.title = loc.name;
-
                     pin.addEventListener('click', (e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        window.open(`localidades/${loc.lower}.jpg`, '_blank');
+                        window.open(`https://www.gato.red/wikierrantes.html?id=${loc.lower}`, '_blank');
                     });
                     pin.addEventListener('touchend', (e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        window.open(`localidades/${loc.lower}.jpg`, '_blank');
+                        window.open(`https://www.gato.red/wikierrantes.html?id=${loc.lower}`, '_blank');
                     });
-
                     viewer.addOverlay({
                         element: pin,
                         location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
@@ -291,7 +283,6 @@
                     const label = document.createElement('div');
                     label.className = 'loc-label';
                     label.textContent = loc.name;
-
                     viewer.addOverlay({
                         element: label,
                         location: new OpenSeadragon.Point(loc.x / 10000, loc.y / 4807),
@@ -312,7 +303,6 @@
                     const miniPin = document.createElement('div');
                     miniPin.className = 'mini-pin';
                     miniPin.title = mini.name;
-
                     miniPin.addEventListener('click', (e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -329,7 +319,6 @@
                         eventPopup.style.display = 'block';
                         eventOverlay.style.display = 'block';
                     });
-
                     viewer.addOverlay({
                         element: miniPin,
                         location: new OpenSeadragon.Point(mini.x / 10000, mini.y / 4807),
