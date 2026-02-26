@@ -98,11 +98,45 @@
             font-size: 1.3em;
             padding: 2em;
         }
+
+        /* ── Nuevos estilos para la lista de servicios ── */
+        .services-list {
+            font-size: 1.24em;
+            margin: 1.8em 0 2.5em 3.5em;
+            padding: 0;
+            list-style: none;
+            counter-reset: servicio;
+        }
+        .services-list li {
+            position: relative;
+            margin: 0.9em 0;
+            padding-left: 2.4em;
+            text-indent: -1.2em;
+        }
+        .services-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #6b4c2e;
+            font-size: 1.4em;
+            line-height: 1;
+        }
+        .services-list li:first-child {
+            margin-top: 0;
+        }
+        .services-list li:last-child {
+            margin-bottom: 0;
+        }
+
         @media (max-width: 768px) {
             #book { padding: 40px 30px; border-width: 8px; }
             h1.chapter-title { font-size: 3.1em; }
             h2.section-title { font-size: 2.0em; }
             p { font-size: 1.18em; text-indent: 2.2em; }
+            .services-list {
+                margin-left: 2.8em;
+                font-size: 1.16em;
+            }
         }
     </style>
 </head>
@@ -134,7 +168,9 @@
         <p id="habitantes"></p>
 
         <h2 class="section-title">Servicios</h2>
-        <p id="servicios"></p>
+        <ul class="services-list" id="servicios">
+            <!-- Los <li> se generarán dinámicamente desde JS -->
+        </ul>
 
         <hr>
 
@@ -168,7 +204,17 @@
             document.getElementById('mapa-img').src = `localidades/${data.imagen}`;
             document.getElementById('descripcion').textContent = data.descripcion;
             document.getElementById('habitantes').textContent = data.habitantes;
-            document.getElementById('servicios').textContent = data.servicios;
+
+            // ── Cambio principal: crear lista en lugar de texto plano ──
+            const serviciosList = document.getElementById('servicios');
+            serviciosList.innerHTML = ''; // Limpiar por si acaso
+            const serviciosArray = data.servicios.split(',').map(s => s.trim()).filter(s => s);
+            
+            serviciosArray.forEach(servicio => {
+                const li = document.createElement('li');
+                li.textContent = servicio;
+                serviciosList.appendChild(li);
+            });
 
             // Mostrar contenido y ocultar loading
             document.getElementById('loading').style.display = 'none';
