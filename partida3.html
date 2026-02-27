@@ -167,6 +167,70 @@
             font-style: italic;
             color: #aaa;
         }
+        .tiradas-section {
+            background: #1e1e2e;
+            border: 1px solid #5555aa;
+            border-left: 6px solid #7777cc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .tiradas-section h3 {
+            color: #aaaaff;
+            border-bottom: 1px solid #5555aa;
+            margin-top: 0;
+        }
+        .tirada-bloque {
+            background: #252535;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #444466;
+        }
+        .tirada-titulo {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #ccccff;
+            margin-bottom: 10px;
+        }
+        .tirada-tabla {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        .tirada-tabla th {
+            background: #333355;
+            color: #aaaaff;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 0.95em;
+            border: 1px solid #444466;
+        }
+        .tirada-tabla td {
+            padding: 8px 12px;
+            border: 1px solid #333355;
+            font-size: 0.95em;
+            vertical-align: top;
+        }
+        .tirada-tabla tr:nth-child(even) td {
+            background: #22223a;
+        }
+        .tirada-tabla tr:nth-child(odd) td {
+            background: #1e1e30;
+        }
+        .resultado-critico { color: #ffdd00; font-weight: bold; }
+        .resultado-exito { color: #66ff99; }
+        .resultado-parcial { color: #ffaa44; }
+        .resultado-fallo { color: #ff6666; }
+        .resultado-pifia { color: #ff2222; font-weight: bold; }
+        .rango-dado {
+            font-family: monospace;
+            background: #333355;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ccccff;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -198,6 +262,102 @@
         <p class="ambiente"><strong>Ambiente Detallado:</strong> Claro en bosque transicional con olor a flores silvestres y tierra húmeda. Se escuchan el murmullo del riachuelo y el viento entre las ramas. La luz solar se filtra de forma moteada y la temperatura es templada y acogedora. Este encuentro puede adaptarse a terrenos cercanos a la aldea próxima sin mayor modificación.</p>
         
         <p class="riesgos">⚠ Riesgos: Combate Normal con 3 a 5 enemigos sobre un grid de 8x8. El daño es bajo (d4 + F=4 por garrotes, entre 5 y 10 PV por impacto). Existe riesgo de heridas leves con sangrado de -1 PV por turno si se falla una tirada de Resistencia Normal. Si los jugadores fallan una tirada de Carisma Difícil al intentar negociar, la situación escala al combate sin posibilidad de replanteo. La huida es posible con una tirada de Agilidad Normal, aunque los merodeadores perseguirán durante 1d4 turnos. Si los jugadores se ven completamente rodeados y caen a 0 PV, hay un 10% de posibilidades de muerte real; en la mayoría de casos quedan inconscientes y despojados. No hay magia en este encuentro.</p>
+
+        <!-- TABLA DE TIRADAS E1 -->
+        <div class="tiradas-section">
+            <h3>🎲 Tabla de Tiradas — d20</h3>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Carisma — Negociar con el Cabecilla (antes de que comience el combate)</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">El jugador intenta disuadir al cabecilla con palabras, intimidación o una oferta. Dificultad base: 14. Si el jugador menciona a los Cuervos de las Llanuras o sugiere que son una amenaza común, la dificultad baja a 11. Si el grupo ha sufrido daño visible, la dificultad sube a 16.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El cabecilla no solo acepta la propuesta, sino que, impresionado, ofrece información sobre los Cuervos de las Llanuras de forma voluntaria. Revela la nota del botín sin que sea necesario registrar los cuerpos. Los merodeadores se dispersan sin hostilidad y el cabecilla puede convertirse en contacto futuro si los jugadores lo tratan con respeto.</td></tr>
+                        <tr><td><span class="rango-dado">15–19</span></td><td><span class="resultado-exito">Éxito.</span> El cabecilla baja el garrote y acepta negociar. Exige una "tarifa de paso" de entre 5 y 10 dovahs o un objeto menor. Si los jugadores pagan, se retira con sus hombres. Si regatean con otra tirada de Carisma (dificultad 12), puede reducirse a la mitad o eliminarse.</td></tr>
+                        <tr><td><span class="rango-dado">10–14</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El cabecilla duda y hace una pausa. Los merodeadores no atacan este turno, pero la tensión es alta. El jugador puede intentar una segunda tirada el siguiente turno con -2. Si falla la segunda, el combate comienza de forma inminente.</td></tr>
+                        <tr><td><span class="rango-dado">5–9</span></td><td><span class="resultado-fallo">Fallo.</span> El cabecilla ríe con desprecio y ordena a sus hombres que rodeen al grupo. El combate comienza en el siguiente turno. Los merodeadores obtienen +1 a su tirada de iniciativa por haber preparado sus posiciones durante la distracción del intento de negociación.</td></tr>
+                        <tr><td><span class="rango-dado">1–4 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> Las palabras del jugador enfurecen al cabecilla, que lo señala como el objetivo principal. Todos los merodeadores concentran sus ataques sobre ese personaje durante el primer turno de combate. Además, el cabecilla gana +2 a su siguiente tirada de ataque por la rabia acumulada.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Intimidación — Demostración de fuerza o reputación (alternativa al Carisma)</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">El jugador intenta amedrentar al grupo de merodeadores mostrando armas, cicatrices de batalla o nombrando una reputación conocida. Solo aplicable si el grupo no ha mostrado señales de debilidad. Dificultad base: 15. Si el grupo supera en número a los merodeadores, dificultad 12.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> Los merodeadores comunes huyen de inmediato entre la maleza. El cabecilla se queda solo, visiblemente temblando, y puede ser interrogado con ventaja en cualquier tirada social posterior. Entrega la nota del botín y sus dovahs sin resistencia.</td></tr>
+                        <tr><td><span class="rango-dado">15–19</span></td><td><span class="resultado-exito">Éxito.</span> Los merodeadores comunes retroceden varios pasos y miran al cabecilla esperando una señal. El cabecilla duda. Si un segundo jugador apoya con una tirada de Carisma (dificultad 10), el grupo se retira por completo. Si nadie apoya, el cabecilla reúne valor y el combate comienza en el turno siguiente.</td></tr>
+                        <tr><td><span class="rango-dado">10–14</span></td><td><span class="resultado-parcial">Éxito parcial.</span> Uno de los merodeadores comunes decide no arriesgarse y huye, reduciendo el grupo en uno. El resto se mantiene firme. El combate sigue siendo probable, pero el grupo enemigo es más pequeño.</td></tr>
+                        <tr><td><span class="rango-dado">5–9</span></td><td><span class="resultado-fallo">Fallo.</span> Los merodeadores no se dejan intimidar. El cabecilla escupe al suelo y da la orden de atacar. Combate normal.</td></tr>
+                        <tr><td><span class="rango-dado">1–4 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El intento de intimidación resulta ridículo. Los merodeadores ríen a carcajadas y el cabecilla desafía al jugador en un duelo a primera sangre delante de todos. Si el jugador acepta y pierde, el grupo debe entregar sus bolsas. Si rechaza el duelo, todos los enemigos atacan con +1 de moral durante las dos primeras rondas.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Percepción — Detectar la emboscada antes de estar completamente rodeados</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Un jugador puede intentar detectar señales de que hay más merodeadores ocultos en la espesura antes de que se cierren del todo. Dificultad: 13. Solo puede intentarse una vez antes de que el cerco sea completo.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador detecta la posición exacta de todos los merodeadores ocultos y puede comunicárselo al grupo con un gesto. El grupo no queda sorprendido y además puede elegir su posición de combate, obteniendo +1 a iniciativa y la opción de intentar huir antes de que el cerco se cierre.</td></tr>
+                        <tr><td><span class="rango-dado">13–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador nota que hay movimiento en la espesura y avisa al grupo. El grupo no queda sorprendido. Pueden elegir entre intentar huir o tomar posiciones defensivas antes de que los merodeadores emerjan completamente.</td></tr>
+                        <tr><td><span class="rango-dado">8–12</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador nota algo raro pero no puede identificarlo con claridad. El grupo gana +1 a iniciativa pero no sabe exactamente cuántos enemigos hay ni desde dónde vendrán todos.</td></tr>
+                        <tr><td><span class="rango-dado">3–7</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador no detecta nada hasta que los merodeadores ya están en posición. Combate normal sin ventaja ni desventaja adicional.</td></tr>
+                        <tr><td><span class="rango-dado">1–2 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador confunde una señal inocente con peligro y avisa en falso, distrayendo al grupo. Los merodeadores aprovechan la confusión y el cabecilla obtiene +1 a iniciativa.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Agilidad — Huida del cerco</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Puede intentarse en cualquier momento si el grupo decide huir. Dificultad: 12. Los merodeadores perseguirán 1d4 turnos. Si algún jugador falla, queda rezagado y puede ser atrapado.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador escapa con tal rapidez que rompe la formación del cerco, arrastrando consigo a todos los compañeros que estén en contacto visual. Los merodeadores no persiguen; el cabecilla los frena, furioso, gritando que "no vale la pena correr por tan poco".</td></tr>
+                        <tr><td><span class="rango-dado">12–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador escapa limpiamente. Los merodeadores lo persiguen 1d4 turnos pero no logran alcanzarlo. Si todos los jugadores superan la tirada, el grupo escapa completo.</td></tr>
+                        <tr><td><span class="rango-dado">7–11</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador escapa pero recibe d4 de daño de un golpe de garrote o cuchillazo antes de salir del cerco. Un merodeador lo persigue 1d4 turnos adicionales de forma individual.</td></tr>
+                        <tr><td><span class="rango-dado">3–6</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador tropieza con una raíz o es interceptado. Queda atrapado y debe hacer frente a un merodeador en combate individual el turno siguiente. Sus compañeros pueden volver a ayudarle o continuar huyendo.</td></tr>
+                        <tr><td><span class="rango-dado">1–2 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador cae al suelo estrepitosamente. Queda tumbado (sin acción el siguiente turno) y rodeado por dos merodeadores que le apuntan con sus armas. Puede rendirse o luchar en desventaja severa (-2 a todas sus tiradas de ataque y defensa).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Resistencia — Evitar sangrado tras recibir impacto de garrote</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Cuando un jugador recibe daño de garrote, debe superar esta tirada para evitar que la herida sangre. Dificultad: 11. Si ya tiene una herida previa sangrando, la dificultad sube a 14.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador aguanta el golpe sin sufrir efectos secundarios y además recupera 1 PV por la descarga de adrenalina.</td></tr>
+                        <tr><td><span class="rango-dado">11–19</span></td><td><span class="resultado-exito">Éxito.</span> No hay sangrado. La herida duele pero no empeora. El jugador puede seguir combatiendo sin penalizaciones adicionales.</td></tr>
+                        <tr><td><span class="rango-dado">6–10</span></td><td><span class="resultado-parcial">Éxito parcial.</span> La herida sangra levemente: -1 PV al inicio del siguiente turno únicamente. Después se estabiliza sola.</td></tr>
+                        <tr><td><span class="rango-dado">2–5</span></td><td><span class="resultado-fallo">Fallo.</span> La herida sangra de forma continua: -1 PV por turno hasta que otro personaje invierta una acción completa en detener el sangrado (tirada de Inteligencia 10) o hasta que el combate termine y se pueda aplicar presión.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El golpe rompe algo. Además del sangrado continuo (-1 PV/turno), el jugador sufre -1 a todas las tiradas de Agilidad y Fuerza hasta recibir atención médica real. El Director puede determinar si es una costilla fisurada, un esguince grave u otra lesión similar.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Inteligencia — Recordar información sobre los Lobos del Bosque</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Un jugador puede intentar recordar rumores o datos sobre esta banda antes o durante la negociación, lo que puede otorgar ventaja en tiradas sociales. Dificultad: 10.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador recuerda que los Lobos tienen una enemistad encarnizada con los Cuervos de las Llanuras y conoce el nombre del cabecilla o de algún miembro importante. Nombrarlo con familiaridad otorga +3 a la siguiente tirada de Carisma o Intimidación.</td></tr>
+                        <tr><td><span class="rango-dado">13–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador recuerda que los Lobos evitan matar a sus víctimas si pueden evitarlo (prefieren el robo limpio) y que temen profundamente a los Cuervos. Mencionar a los Cuervos como amenaza común otorga +2 a la siguiente tirada social.</td></tr>
+                        <tr><td><span class="rango-dado">7–12</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador sabe que son una banda de bandoleros del bosque pero no recuerda detalles útiles. No hay bonificador, pero tampoco penalización.</td></tr>
+                        <tr><td><span class="rango-dado">2–6</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador no recuerda nada relevante o confunde a los Lobos con otra banda. Sin efecto.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador recuerda algo erróneo y lo menciona en voz alta, ofendiendo al cabecilla. -2 a la siguiente tirada social con este grupo.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- FIN TIRADAS E1 -->
         
         <div class="npc-section">
             <h3>Fichas de NPCs</h3>
@@ -286,6 +446,87 @@
         <p class="ambiente"><strong>Ambiente Detallado:</strong> Sendero polvoriento flanqueado de hierbas altas y robles centenarios, con olor a polvo caliente y hierbas aromáticas. Los insectos zumban sin descanso y el viento cálido y seco mueve la vegetación de forma constante. La luz solar es intensa y no da tregua. Este encuentro puede adaptarse fácilmente a cualquier camino principal que conduzca hacia la aldea próxima.</p>
         
         <p class="riesgos">⚠ Riesgos: Encuentro principalmente social con dificultad Alta. Se requiere una tirada de Carisma o Inteligencia para detectar la mentira del mercader antes de que la situación degenere. Si los jugadores deciden ayudarlo sin sospechar, caerán en una emboscada: 2 bandidos ocultos entre la maleza atacan con iniciativa por sorpresa (+2). El daño es medio (d6 + F=5, entre 8 y 12 PV). La carreta también oculta una trampa mecánica que puede detectarse con una tirada de Percepción Normal; si falla, provoca d6 de daño en área. Existe riesgo de robo de equipo si los jugadores quedan flanqueados. La probabilidad de muerte en caso de emboscada total es del 5%. No hay magia en este encuentro.</p>
+
+        <!-- TABLA DE TIRADAS E2 -->
+        <div class="tiradas-section">
+            <h3>🎲 Tabla de Tiradas — d20</h3>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Inteligencia o Carisma — Detectar la mentira del mercader falso</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Un jugador puede intentar leer entre líneas el relato del mercader, buscar inconsistencias en su historia o detectar señales físicas de que finge. Puede usarse Inteligencia (análisis racional) o Carisma (lectura emocional e intuitiva). Dificultad: 14. Si el grupo viene directamente del Encuentro 1 con la nota sobre los Cuervos, la dificultad baja a 11.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador detecta la trampa al completo: sabe que el mercader es un señuelo, que hay emboscadores ocultos y que la carreta esconde una trampa mecánica. Puede planear una contraemboscada con ventaja total. Si el grupo actúa de forma coordinada, los bandidos emboscados comienzan el combate en desventaja (-2 a iniciativa y sin bonificador de sorpresa).</td></tr>
+                        <tr><td><span class="rango-dado">14–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador detecta que el mercader miente. Sus vendajes no corresponden a heridas reales, sus gestos son calculados y su historia tiene huecos evidentes. El grupo no cae en la trampa y puede confrontar al mercader, intentar capturarlo sin que los emboscadores reaccionen (tirada de Sigilo grupal, dificultad 13) o retroceder y rodear la zona.</td></tr>
+                        <tr><td><span class="rango-dado">9–13</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador siente que algo no encaja pero no puede precisar qué. Puede describir su incomodidad al grupo, lo que permite a otro jugador intentar la tirada con -2. Si nadie más lo intenta, el grupo sigue adelante con cautela pero sin saber exactamente qué esperar: los emboscadores pierden el bonificador de sorpresa pero el combate sigue siendo probable.</td></tr>
+                        <tr><td><span class="rango-dado">4–8</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador no detecta nada sospechoso y puede llegar a convencer a sus compañeros más escépticos de que el mercader es legítimo. El grupo se acerca a la carreta y la emboscada se activa con sorpresa completa (+2 a iniciativa de los bandidos).</td></tr>
+                        <tr><td><span class="rango-dado">1–3 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador no solo cree al mercader, sino que defiende su credibilidad con convicción ante el grupo, silenciando cualquier voz de advertencia. El mercader, al ver esto, activa la señal antes de tiempo con una pequeña ventaja adicional: los bandidos emboscados tienen +3 a iniciativa en lugar de +2.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Percepción — Detectar la trampa mecánica oculta en la carreta</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Puede intentarse al acercarse a la carreta, antes de tocarla. Dificultad: 13. Si el jugador ha detectado previamente la mentira del mercader, la dificultad baja a 10.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador localiza la trampa con tal precisión que puede desactivarla sin riesgo (sin tirada adicional) y, además, puede rearmarla para que se active sobre los bandidos si alguno intenta huir hacia la carreta. Daño d6 en área aplicado a los enemigos que fallen una tirada de Agilidad (dificultad 12).</td></tr>
+                        <tr><td><span class="rango-dado">13–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador detecta la trampa y puede intentar desactivarla con una tirada de Inteligencia (dificultad 12). Si tiene éxito, queda neutralizada. Si falla la desactivación, la trampa se activa pero el jugador puede apartarse a tiempo (sin daño).</td></tr>
+                        <tr><td><span class="rango-dado">7–12</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador nota que algo en la estructura de la carreta parece preparado artificialmente, pero no puede identificar el mecanismo. Puede marcar la zona como peligrosa y evitarla, lo que implica que ningún jugador puede usar la carreta como cobertura durante el combate.</td></tr>
+                        <tr><td><span class="rango-dado">2–6</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador no detecta la trampa. Si se activa durante el combate (por movimiento cercano o por el mercader), inflige d6 de daño en área a todos en un radio de 2 casillas. Tirada de Agilidad (dificultad 12) para reducir el daño a la mitad.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador activa la trampa involuntariamente al manipular la carreta. Se activa de inmediato: d6 de daño en área, sin posibilidad de tirada de reducción para el jugador que la activó. Los demás sí pueden intentar Agilidad (dificultad 12).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Carisma — Confrontar al mercader antes de que dé la señal</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Si el grupo ha detectado el engaño y decide confrontar al mercader antes de que active la emboscada, puede intentar presionarlo para que revele la posición de los emboscadores o se rinda sin luchar. Dificultad: 15. Si el jugador amenaza con mencionar a los Lobos del Bosque como aliados, dificultad 12.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El mercader se derrumba por completo bajo la presión. Revela las posiciones exactas de los emboscadores, desactiva la señal y puede ser usado como rehén o informante. Si se le trata bien, proporciona datos sobre la jerarquía de los Cuervos de las Llanuras que serán útiles en encuentros posteriores.</td></tr>
+                        <tr><td><span class="rango-dado">15–19</span></td><td><span class="resultado-exito">Éxito.</span> El mercader, asustado, admite el engaño y señala vagamente la dirección de los emboscadores, aunque intenta minimizar su propia participación. Los bandidos pierden el bonificador de sorpresa y el mercader no combate activamente a menos que se le acorrale.</td></tr>
+                        <tr><td><span class="rango-dado">9–14</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El mercader se pone nervioso y tartamudea, lo que confirma las sospechas del grupo, pero antes de que pueda revelar nada, da la señal involuntariamente con un gesto de pánico. La emboscada comienza, pero los bandidos no tienen el bonificador de sorpresa.</td></tr>
+                        <tr><td><span class="rango-dado">4–8</span></td><td><span class="resultado-fallo">Fallo.</span> El mercader mantiene la compostura y da la señal deliberadamente mientras el jugador habla. Emboscada con sorpresa completa.</td></tr>
+                        <tr><td><span class="rango-dado">1–3 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El mercader detecta que el jugador tantea sin pruebas concretas y contraataca verbalmente, poniendo al grupo en una posición defensiva y social comprometida. Da la señal de forma disimulada; los bandidos atacan con sorpresa completa y el mercader actúa en el mismo turno desde posición cuerpo a cuerpo con su daga oculta.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Sigilo grupal — Rodear la zona e intentar una contraemboscada</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Si el grupo detecta el engaño y decide dar la vuelta para flanquear a los emboscadores desde el exterior, todos los jugadores deben superar esta tirada. Dificultad: 13. Solo aplicable si ningún jugador está herido con sangrado activo (penalización de +3 a la dificultad si alguno lo está).</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El grupo completo sorprende a los emboscadores por la espalda. Los bandidos emboscados pierden el bonificador de sigilo, quedan desorientados y el grupo obtiene +3 a iniciativa y una ronda gratuita de acción antes de que los enemigos puedan reaccionar.</td></tr>
+                        <tr><td><span class="rango-dado">13–19</span></td><td><span class="resultado-exito">Éxito.</span> El grupo flanquea la posición sin ser detectado. Los bandidos quedan sorprendidos y pierden su bonificador de sigilo. El combate comienza con el grupo en posición ventajosa (+2 a iniciativa).</td></tr>
+                        <tr><td><span class="rango-dado">7–12</span></td><td><span class="resultado-parcial">Éxito parcial.</span> La mayoría del grupo consigue flanquear, pero al menos uno hace ruido y alerta a un bandido. Ese bandido no queda sorprendido y mantiene su bonificador. El resto del grupo conserva la ventaja.</td></tr>
+                        <tr><td><span class="rango-dado">2–6</span></td><td><span class="resultado-fallo">Fallo.</span> El intento de flanqueo falla por completo: los bandidos detectan el movimiento y ajustan sus posiciones. El combate comienza en condiciones normales, sin ventaja para ninguno de los dos bandos.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El intento de flanqueo delata al grupo de forma estrepitosa. Los bandidos cambian de posición y ahora son ellos quienes tienen ventaja de flanqueo sobre los jugadores. El mercader también se reposiciona y ataca por sorpresa.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Agilidad — Esquivar el disparo de los bandidos emboscados en el primer turno</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Si la emboscada se activa con éxito, cada jugador dentro del alcance (20 metros) puede intentar arrojarse al suelo o detrás de cobertura antes de que los arcos disparen. Dificultad: 12.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador esquiva el disparo con tal fluidez que aprovecha el impulso para avanzar hacia el bandido más cercano, obteniendo posición cuerpo a cuerpo de forma inmediata sin coste de movimiento.</td></tr>
+                        <tr><td><span class="rango-dado">12–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador se pone a cubierto y evita el disparo completamente. Queda en posición defensiva (cobertura parcial: -2 al daño recibido de ataques a distancia).</td></tr>
+                        <tr><td><span class="rango-dado">6–11</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador intenta esquivar pero recibe el disparo de forma rozante: daño reducido a la mitad (redondeado hacia abajo).</td></tr>
+                        <tr><td><span class="rango-dado">2–5</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador recibe el disparo a plena potencia (d6 + F=5). Si ya estaba herido, debe además superar una tirada de Resistencia (dificultad 11) para no quedar aturdido (pierde su acción el siguiente turno).</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador tropieza al intentar esquivar y cae al suelo. Recibe el disparo a plena potencia y queda tumbado (sin acción ofensiva el siguiente turno). Además, la caída activa la trampa de la carreta si estaba cerca de ella.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- FIN TIRADAS E2 -->
         
         <div class="npc-section">
             <h3>Fichas de NPCs</h3>
@@ -360,6 +601,87 @@
         <p class="ambiente"><strong>Ambiente Detallado:</strong> Aldea de adobe enclavada en praderas secas, con olor a humo de leña y pan añejo. Los sonidos más constantes son el viento cálido, el mugido del ganado y el chirrido ocasional de puertas y veletas. La luz crepuscular baña todo en tonos naranjas y rojizos, y la temperatura es tibia con un punto de polvo. Este encuentro puede ajustarse fácilmente a la aldea próxima en vuestro mapa de campaña.</p>
         
         <p class="riesgos">⚠ Riesgos: Encuentro principalmente social de dificultad Normal. Se necesita una tirada de Carisma para extraer información útil de los aldeanos; si la tirada falla, los aldeanos se vuelven hostiles y puede desencadenarse una pelea con 2 o 3 de ellos. El daño en combate es bajo (d4, entre 4 y 8 PV). La exploración de la aldea requiere una tirada de Percepción Difícil; si falla, se activa un rumor que atrae a una patrulla del ducado en 1d4 turnos. Además, si los jugadores aceptan comer sin precaución, deben superar una tirada de Resistencia Normal o sufrir -2 a todos sus atributos durante aproximadamente una hora por culpa de una adulteración sutil en la comida. La probabilidad de muerte es muy baja, pero el aislamiento y la pérdida de recursos son riesgos reales. No hay magia en este encuentro.</p>
+
+        <!-- TABLA DE TIRADAS E3 -->
+        <div class="tiradas-section">
+            <h3>🎲 Tabla de Tiradas — d20</h3>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Carisma — Ganarse la confianza de la Matrona y extraer información</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">El jugador intenta establecer una conexión genuina con la matrona mediante palabras, actitud o compartiendo algún detalle personal o de sus viajes. Dificultad: 13. Si el grupo ofrece algo de valor (comida, dovahs o información sobre los bandidos del camino), la dificultad baja a 10. Si algún jugador parece amenazante o impaciente, sube a 16.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> La matrona se convierte en aliada activa. Comparte toda la información que conoce sobre el alquimista, describe el camino hacia su refugio con precisión y advierte al grupo sobre la patrulla del ducado que ronda la aldea cada noche. Además, los invita a dormir en su casa, proporcionando descanso completo (recuperan todos los PV perdidos) sin riesgo de adulteración.</td></tr>
+                        <tr><td><span class="rango-dado">13–19</span></td><td><span class="resultado-exito">Éxito.</span> La matrona confía lo suficiente como para revelar que el alquimista pasó por la aldea hace pocos días y que dejó una nota chamuscada. Entrega dicha nota (pista del botín) y menciona vagamente que "buscaba algo al norte". No dice más sin una segunda tirada de Carisma (dificultad 11).</td></tr>
+                        <tr><td><span class="rango-dado">7–12</span></td><td><span class="resultado-parcial">Éxito parcial.</span> La matrona acepta hablar pero solo comparte rumores vagos: "un hombre con olor a azufre", "llegó de noche y se fue antes del alba". No entrega la nota sin un segundo intento. Los aldeanos observan desde lejos pero no interfieren.</td></tr>
+                        <tr><td><span class="rango-dado">3–6</span></td><td><span class="resultado-fallo">Fallo.</span> La matrona se cierra en banda y avisa a los aldeanos de que los forasteros hacen preguntas molestas. Los aldeanos sospechosos se acercan al grupo con actitud claramente hostil. El grupo tiene un turno para intentar una tirada de Carisma de emergencia (dificultad 15) o retirarse de la plaza.</td></tr>
+                        <tr><td><span class="rango-dado">1–2 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador dice o hace algo que ofende profundamente a la matrona (insulta a alguien del pueblo, menciona al ducado de forma despectiva, etc.). La matrona grita en la plaza que los forasteros son espías del ducado. Los aldeanos sospechosos atacan de inmediato y la patrulla del ducado es alertada automáticamente, llegando en 1d4 turnos.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Percepción — Explorar la aldea sin levantar sospechas</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Un jugador puede intentar explorar las zonas menos transitadas de la aldea (establos, traseras de casas, el pozo) en busca de información o rastros del alquimista. Dificultad Difícil: 16. Si la matrona ya confía en el grupo, la dificultad baja a 12.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador encuentra no solo la nota chamuscada del alquimista, sino también un dibujo tosco de una cueva con una cruz marcada al norte del bosque, claramente trazado en la pared de un establo con carbón. Esta información complementa la pista principal y permite al grupo llegar al Encuentro 4 sin caer en la trampa del suelo inestable (pueden buscar la entrada alternativa).</td></tr>
+                        <tr><td><span class="rango-dado">16–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador descubre la nota chamuscada del alquimista sin ser visto por nadie. Regresa al grupo con la pista sin alertar a ningún aldeano.</td></tr>
+                        <tr><td><span class="rango-dado">10–15</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador descubre la nota pero es visto por un aldeano sospechoso. Este no actúa de inmediato pero comienza a seguir al grupo a distancia y, si el grupo permanece en la aldea más de 30 minutos (3 turnos narrativos), notificará a la patrulla del ducado.</td></tr>
+                        <tr><td><span class="rango-dado">4–9</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador no encuentra nada de valor y además es visto husmeando por un aldeano que lo interpreta como un robo potencial. Esto activa el rumor de la patrulla del ducado, que llegará en 1d4 turnos.</td></tr>
+                        <tr><td><span class="rango-dado">1–3 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador vuelca algo o hace ruido en su exploración, alertando a varios aldeanos. Uno de ellos llama a la patrulla del ducado de inmediato. La patrulla llegará en el siguiente turno (no en 1d4) y el grupo tiene muy poco tiempo para marcharse o explicarse.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Resistencia — Detectar y resistir el alimento adulterado</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Si los jugadores aceptan comer el estofado ofrecido sin precaución, cada uno debe hacer esta tirada. Un jugador puede intentar detectar el adulterante antes de comer con Inteligencia (dificultad 13). Si lo detecta, puede avisar al resto. Dificultad de Resistencia: 12.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador no solo resiste el adulterante, sino que su cuerpo lo metaboliza de forma positiva: recupera d4 PV adicionales por la comida caliente. Además, nota el sabor extraño y puede describírselo al grupo, dando a los demás jugadores +2 a sus tiradas de Resistencia si aún no han comido.</td></tr>
+                        <tr><td><span class="rango-dado">12–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador resiste el adulterante sin efectos negativos. La comida le sienta bien y recupera 2 PV.</td></tr>
+                        <tr><td><span class="rango-dado">7–11</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador sufre solo la mitad del efecto: -1 a todos sus atributos durante 30 minutos (2 turnos narrativos o 1 combate completo).</td></tr>
+                        <tr><td><span class="rango-dado">2–6</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador sufre el efecto completo del adulterante: -2 a todos sus atributos durante aproximadamente una hora (1d6 encuentros o hasta que descanse). Sus acciones en combate durante este tiempo tienen -2 a todas las tiradas.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El adulterante reacciona especialmente mal con el jugador. Sufre -3 a todos sus atributos y además debe superar una segunda tirada de Resistencia (dificultad 13) o vomitar y quedar sin acción durante el turno siguiente. Solo el ungüento curativo del botín puede neutralizar el efecto antes de que el tiempo lo disipe.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Carisma — Calmar a los aldeanos sospechosos antes de que ataquen o llamen refuerzos</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Si los aldeanos se han puesto hostiles por alguna acción del grupo, un jugador puede intentar calmar la situación antes de que degenere. Dificultad: 15. Si la matrona ya apoya al grupo, la dificultad baja a 10.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> Los aldeanos se calman por completo y uno de ellos, avergonzado por la desconfianza mostrada, ofrece información adicional sobre el alquimista de forma espontánea. La patrulla del ducado, si ya había sido alertada, recibe un mensaje de que la alarma era falsa.</td></tr>
+                        <tr><td><span class="rango-dado">15–19</span></td><td><span class="resultado-exito">Éxito.</span> Los aldeanos se retiran pero siguen mirando con recelo. No atacan ni llaman refuerzos. El grupo puede continuar en la aldea con normalidad, aunque bajo vigilancia discreta.</td></tr>
+                        <tr><td><span class="rango-dado">8–14</span></td><td><span class="resultado-parcial">Éxito parcial.</span> Los aldeanos se detienen pero no se dispersan. La situación queda en un punto muerto tenso. Si el grupo se marcha en los próximos dos turnos, no habrá más problemas. Si se quedan, la tirada deberá repetirse con +2 de dificultad acumulada.</td></tr>
+                        <tr><td><span class="rango-dado">3–7</span></td><td><span class="resultado-fallo">Fallo.</span> Los aldeanos no ceden y atacan (d4 de daño, herramientas de labranza). La patrulla del ducado es alertada y llegará en 1d4 turnos.</td></tr>
+                        <tr><td><span class="rango-dado">1–2 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> Las palabras del jugador son interpretadas como una amenaza velada. Los aldeanos atacan con furia y la matrona —si antes era aliada— se pone del lado de los suyos. La patrulla del ducado llega en el siguiente turno y trata al grupo como agresores.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Carisma o Inteligencia — Negociar con la patrulla del ducado si llega</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Si la patrulla del ducado llega a la aldea mientras el grupo está presente, un jugador puede intentar explicar la situación o apelar a la autoridad del ducado. Dificultad: 16. Si el grupo tiene algún documento oficial o puede nombrar a alguien de rango del ducado, la dificultad baja a 12.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El capitán de la patrulla cree al grupo completamente y además les proporciona un salvoconducto que facilita el paso por territorios del ducado durante los próximos días. Menciona de pasada que "el ducado también busca al alquimista", abriendo una posible vía diplomática con la autoridad local.</td></tr>
+                        <tr><td><span class="rango-dado">16–19</span></td><td><span class="resultado-exito">Éxito.</span> La patrulla acepta la explicación y deja marchar al grupo sin incidentes, aunque los vigila hasta que salen del perímetro de la aldea.</td></tr>
+                        <tr><td><span class="rango-dado">9–15</span></td><td><span class="resultado-parcial">Éxito parcial.</span> La patrulla no arresta al grupo pero tampoco los cree del todo. Los escolta fuera de la aldea y les prohíbe regresar esa noche. El grupo pierde acceso al botín del mercadillo de la aldea.</td></tr>
+                        <tr><td><span class="rango-dado">3–8</span></td><td><span class="resultado-fallo">Fallo.</span> La patrulla detiene al grupo para "interrogatorio de rutina". Deben pasar 1d4 horas bajo custodia, perdiendo ese tiempo y debiendo superar otra tirada de Carisma (dificultad 13) para ser liberados sin cargos.</td></tr>
+                        <tr><td><span class="rango-dado">1–2 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> La explicación empeora la situación. La patrulla arresta al jugador que habló y exige que el resto deponga sus armas. El grupo debe elegir entre someterse (pierden tiempo y equipo menor temporalmente) o resistir (combate con 3 soldados del ducado, d6+4 de daño, armadura media).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- FIN TIRADAS E3 -->
         
         <div class="npc-section">
             <h3>Fichas de NPCs</h3>
@@ -441,6 +763,102 @@
         <p class="ambiente"><strong>Ambiente Detallado:</strong> Sistema de túneles subterráneo accedido de forma accidental desde el bosque. Huele a musgo, azufre y tierra húmeda. Los únicos sonidos son el eco de las goteras, el crujido ocasional de la piedra y los ruidos de las criaturas que lo habitan. La temperatura es fría y la visibilidad es muy reducida sin una fuente de luz propia. Este encuentro se activa en un punto aleatorio del bosque cercano a la aldea próxima y puede reubicarse sin mayor dificultad.</p>
         
         <p class="riesgos">⚠ Riesgos: La caída inicial inflige d6 de daño, mitigable con una tirada de Agilidad Normal. La mazmorra se compone de 3 o 4 salas con dificultad progresiva. Las trampas mecánicas requieren tiradas de Percepción Difícil para ser detectadas; si fallan, infligen d8 de daño. Los enemigos representan un combate de dificultad Normal con ataques de mordisco que pueden envenenar (d4 de daño por veneno con tirada de Resistencia Normal para resistirlo). El puzle central requiere una tirada de Inteligencia Difícil; si falla, activa una trampa de gas que hace d6 de daño en área. La probabilidad de quedar inconsciente es del 20%, la más alta hasta ahora. Si hay elementos mágicos en la campaña, el Director puede introducirlos aquí de forma controlada.</p>
+
+        <!-- TABLA DE TIRADAS E4 -->
+        <div class="tiradas-section">
+            <h3>🎲 Tabla de Tiradas — d20</h3>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Agilidad — Amortiguar la caída en el pozo</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">En el momento en que el suelo cede, cada jugador tiene una fracción de segundo para reaccionar. Dificultad: 12.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador cae con una voltereta perfecta y aterriza en cuclillas sin sufrir ningún daño. Además, al caer con los sentidos alertas, tiene +2 a su primera tirada de Percepción dentro de la mazmorra.</td></tr>
+                        <tr><td><span class="rango-dado">12–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador amortigua la caída correctamente. Recibe la mitad del daño base (d6 reducido a d3).</td></tr>
+                        <tr><td><span class="rango-dado">6–11</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador cae de forma torpe pero controlada. Recibe el daño completo (d6) pero no sufre efectos secundarios adicionales.</td></tr>
+                        <tr><td><span class="rango-dado">2–5</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador cae mal y recibe d6 de daño. Además, queda aturdido: pierde su primera acción dentro de la mazmorra recuperándose del impacto.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador cae de forma desastrosa sobre otro compañero o sobre su propio equipo. Recibe d6+2 de daño y sufre una torcedura: -1 a todas las tiradas de Agilidad hasta recibir atención o descanso. Si cae sobre otro jugador, ese jugador recibe también d3 de daño.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Percepción — Detectar trampas mecánicas en cada sala</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Debe intentarse al entrar en cada sala nueva. Dificultad Difícil: 16. Si el grupo lleva antorchas encendidas, la dificultad baja a 13. En la oscuridad total, sube a 19.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador detecta la trampa con tal precisión que puede identificar su mecanismo exacto. Puede desactivarla sin tirada adicional y, si lo desea, rearmarla para usarla contra las ratas gigantes (trampa activable como acción táctica que inflige d6 a la primera rata que cruce esa celda).</td></tr>
+                        <tr><td><span class="rango-dado">16–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador detecta la trampa y puede rodearla con seguridad. Puede intentar desactivarla con una tirada de Inteligencia (dificultad 13). Si falla la desactivación, simplemente la rodea sin activarla.</td></tr>
+                        <tr><td><span class="rango-dado">10–15</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador intuye que hay algo peligroso en esa zona pero no puede localizar el mecanismo con precisión. El grupo puede avanzar con precaución (velocidad reducida a la mitad) para evitar activarla, o arriesgarse a cruzar normalmente.</td></tr>
+                        <tr><td><span class="rango-dado">4–9</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador no detecta la trampa. Se activa al cruzar: d8 de daño (proyectil, pincho o palanca). Tirada de Agilidad (dificultad 12) para reducir a la mitad.</td></tr>
+                        <tr><td><span class="rango-dado">1–3 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador activa la trampa sin llegar a verla siquiera. Recibe el daño completo (d8) sin posibilidad de reducción, y el ruido de la trampa alerta a las ratas gigantes de la sala contigua, que se acercan con iniciativa este turno.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Inteligencia — Resolver el puzle de grabados de la sala central</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">La sala central contiene una serie de grabados erosionados que forman un patrón lógico o numérico. Resolverlo correctamente abre un pasadizo hacia las salas más profundas sin activar la trampa de gas. Dificultad Difícil: 17. Si el grupo encontró la runa del botín anteriormente, la dificultad baja a 13.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador resuelve el puzle y además comprende el significado de los grabados en su totalidad: son un mapa rudimentario de los túneles. El grupo conoce la disposición exacta de las salas restantes, la ubicación del Guardián Espectral y la posición del botín principal, evitando trampas y sorpresas.</td></tr>
+                        <tr><td><span class="rango-dado">17–19</span></td><td><span class="resultado-exito">Éxito.</span> El puzle se resuelve correctamente. El pasadizo se abre sin activar la trampa de gas. El grupo puede avanzar a las salas profundas con seguridad.</td></tr>
+                        <tr><td><span class="rango-dado">10–16</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador resuelve parcialmente el puzle. El pasadizo se abre, pero la trampa de gas no queda completamente desactivada: hay un 50% de probabilidades de que se active de todas formas al cruzar el umbral (tirar d6: impar = se activa, par = no se activa).</td></tr>
+                        <tr><td><span class="rango-dado">4–9</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador activa la trampa de gas. Nube de gas venenoso en un radio de 3 casillas: d6 de daño a todos los presentes. Tirada de Resistencia (dificultad 12) para reducir a la mitad. El gas se disipa en 1d4 turnos.</td></tr>
+                        <tr><td><span class="rango-dado">1–3 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador activa la trampa de gas a máxima potencia y además bloquea el pasadizo central. El grupo sufre d6 de daño sin posibilidad de reducción y debe buscar otra ruta (sala alternativa con trampa adicional), o esperar a que el gas se disipe (3d4 turnos) con el riesgo de que el Guardián Espectral aparezca durante la espera.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Resistencia — Aguantar el veneno de las ratas gigantes</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Cada vez que una rata gigante impacta con su mordisco, el jugador afectado debe superar esta tirada. Dificultad: 12. Si el jugador ya tiene veneno activo de un mordisco anterior, la dificultad sube a 15 por acumulación.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador no solo resiste el veneno sino que su sistema inmune parece reforzado: tiene +2 a todas las tiradas de Resistencia contra veneno durante el resto del encuentro.</td></tr>
+                        <tr><td><span class="rango-dado">12–19</span></td><td><span class="resultado-exito">Éxito.</span> El veneno no surte efecto. Solo el daño físico del mordisco (d4) se aplica.</td></tr>
+                        <tr><td><span class="rango-dado">7–11</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El veneno entra en el organismo pero débilmente: -1 PV al inicio del siguiente turno únicamente. Después el cuerpo lo neutraliza.</td></tr>
+                        <tr><td><span class="rango-dado">2–6</span></td><td><span class="resultado-fallo">Fallo.</span> El veneno surte efecto pleno: -1 PV por turno hasta que otro jugador invierta una acción en aplicar un antídoto o el ungüento curativo del botín de la aldea. O hasta que el grupo salga de la mazmorra y el veneno se disipe de forma natural tras un descanso.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El veneno reacciona con violencia. -2 PV por turno y además el jugador sufre -1 a Fuerza y Agilidad mientras el veneno esté activo. Solo el ungüento curativo o un antídoto real puede detenerlo antes del descanso.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Percepción o Inteligencia — Identificar al Guardián Espectral y encontrar su punto débil</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Al encontrarse con el Guardián Espectral por primera vez, un jugador puede intentar reconocer la naturaleza del ser o encontrar algún indicio de cómo enfrentarlo. Dificultad: 14.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador reconoce que se trata de un alma atada que murió sin sepultura y comprende que puede ser liberada si se mencionan en voz alta su nombre (grabado en una piedra cercana) o si se realizan las palabras de un rito funerario básico. Si se hace esto correctamente, el Guardián desaparece sin combate y deja el botín intacto.</td></tr>
+                        <tr><td><span class="rango-dado">14–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador identifica que el Guardián es vulnerable a la luz directa (antorchas o fuego activo en la misma casilla infligen daño normal a pesar de ser inmune al fuego a distancia) y que retrocede ante objetos con carga emocional positiva (comida, recuerdos verbalizados, etc.).</td></tr>
+                        <tr><td><span class="rango-dado">8–13</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador sabe que las armas normales hacen la mitad del daño al Guardián, pero no descubre más información. El grupo puede luchar en desventaja leve.</td></tr>
+                        <tr><td><span class="rango-dado">2–7</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador no logra identificar ninguna debilidad. El grupo lucha sin información: las armas normales hacen la mitad del daño y el Guardián tiene ventaja táctica por ser el terreno su dominio.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador dice en voz alta algo que provoca al Guardián (insulto involuntario, nombre erróneo). El Guardián entra en un estado de furia: obtiene +2 a ataque durante las dos primeras rondas y sus garras etéreas también anulan la reducción de armadura de cuero durante ese tiempo.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Percepción — Registrar las salas en busca de botín</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Puede intentarse una vez por sala explorada. Dificultad: 12. En la sala del Guardián, la dificultad sube a 15 por la atmósfera perturbadora.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador encuentra el botín completo descrito más los objetos secundarios: en total 40 dovahs, el frasco alquímico, la runa, el pergamino y además un amuleto antiguo de valor desconocido que el Director puede desarrollar como gancho narrativo.</td></tr>
+                        <tr><td><span class="rango-dado">12–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador encuentra el botín estándar de la sala (entre 20 y 40 dovahs más los objetos descritos en el botín posible).</td></tr>
+                        <tr><td><span class="rango-dado">6–11</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador encuentra solo parte del botín: los dovahs, pero no los objetos especiales.</td></tr>
+                        <tr><td><span class="rango-dado">2–5</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador no encuentra nada de valor en esa sala en particular.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> Al registrar, el jugador activa accidentalmente un mecanismo oculto: una trampa secundaria (d4 de daño) o un ruido que atrae a las ratas supervivientes si las había.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- FIN TIRADAS E4 -->
         
         <div class="npc-section">
             <h3>Fichas de Enemigos</h3>
@@ -522,6 +940,102 @@
         <p class="ambiente"><strong>Ambiente Detallado:</strong> Cabaña aislada en praderas abiertas, con vientos constantes y hierbas altas que se mueven sin parar. El interior huele fuertemente a reactivos químicos y azufre, con frascos burbujeando sobre todas las superficies disponibles. La luz es inestable, proyectada por los propios experimentos tanto como por las velas. La temperatura es contrastante: sofocante dentro por los reactivos y fresca fuera por el viento de la tarde. Este encuentro puede ubicarse sin dificultad en las afueras de la aldea próxima.</p>
         
         <p class="riesgos">⚠ Riesgos: Combate de dificultad Alta con el alquimista y sus guardias. Los viales explosivos hacen d6 de daño en área y pueden derribarse o esquivarse con una tirada de Agilidad Normal. El daño de los guardias es alto (d8 + F=5, entre 10 y 15 PV por impacto). Si los jugadores intentan interrogar al alquimista y fallan la tirada de Carisma Difícil, este libera un compuesto venenoso que inflige d4 de daño por hora hasta ser tratado. La probabilidad de muerte es del 15% si los jugadores ignoran los viales y no los neutralizan antes de que el alquimista los use todos. No hay magia en este encuentro, aunque los experimentos del alquimista rozan ese límite de forma inquietante.</p>
+
+        <!-- TABLA DE TIRADAS E5 -->
+        <div class="tiradas-section">
+            <h3>🎲 Tabla de Tiradas — d20</h3>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Sigilo — Aproximarse a la cabaña sin ser detectados</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Antes de llegar a la puerta, el grupo puede intentar acercarse con sigilo para evaluar la situación desde fuera (mirar por la ventana, escuchar conversaciones). Todos los jugadores deben superar esta tirada. Dificultad: 13. Si ya es de noche, la dificultad baja a 10. Si algún jugador lleva equipo ruidoso o metálico visible, sube a 16.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El grupo llega sin ser detectado en absoluto. Pueden escuchar al alquimista hablando solo sobre sus experimentos y al Dios Emperador Dovahkiin, obteniendo información narrativa crucial. Además, ven dónde están ubicados los viales explosivos sobre la mesa y pueden planear cómo neutralizarlos desde el primer turno.</td></tr>
+                        <tr><td><span class="rango-dado">13–19</span></td><td><span class="resultado-exito">Éxito.</span> El grupo llega sin ser detectado. Pueden observar la distribución interior de la cabaña: posición del alquimista, posición de los guardias y número de viales sobre la mesa. Tienen la opción de intentar sorprender al alquimista con una interpelación diplomática antes de que este se ponga en guardia (+2 a la tirada de Carisma inicial).</td></tr>
+                        <tr><td><span class="rango-dado">7–12</span></td><td><span class="resultado-parcial">Éxito parcial.</span> La mayoría del grupo llega en silencio, pero uno hace ruido. El alquimista no sale a mirar, pero está alerta: tiene +1 a iniciativa y ya tiene un vial en la mano cuando el grupo entra.</td></tr>
+                        <tr><td><span class="rango-dado">2–6</span></td><td><span class="resultado-fallo">Fallo.</span> El ruido alerta al alquimista antes de que el grupo llegue a la puerta. Cuando entran, el alquimista ya lanzó el primer vial a mitad de trayecto y los guardias están en posición de flanqueo desde el primer turno.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El grupo hace tanto ruido que el alquimista lleva minutos preparado cuando llegan. Ha colocado dos viales trampa en la entrada: el primero que cruce la puerta activa ambos simultáneamente (2d6 de daño en área, sin reducción posible por la sorpresa).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Carisma — Intentar calmar al alquimista antes de que lance más viales</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">El jugador intenta hablar con el alquimista con voz calmada, mostrando que no es una amenaza. Solo puede intentarse en el primer turno de interacción, antes de que el combate escale por completo. Dificultad Difícil: 16. Si el grupo menciona el nombre del Dios Emperador Dovahkiin o demuestra saber que dos bandas le persiguen, la dificultad baja a 12.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El alquimista se desmorona emocionalmente. Llora y habla durante varios minutos de forma incontrolable, revelando toda la información de su diario de viva voz, incluyendo la ubicación de la torre al sur de Casto y la naturaleza del contacto que le espera allí. Los guardias bajan las armas al ver esto. No hay combate.</td></tr>
+                        <tr><td><span class="rango-dado">16–19</span></td><td><span class="resultado-exito">Éxito.</span> El alquimista baja el vial y observa al grupo con suspicacia durante un momento. Exige que demuestren sus intenciones respondiendo una pregunta sobre sus experimentos (tirada de Inteligencia, dificultad 11) o entregando algo de valor como muestra de buena fe. Si el grupo cumple, el diálogo se abre sin combate y los guardias permanecen alerta pero no activos.</td></tr>
+                        <tr><td><span class="rango-dado">9–15</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El alquimista duda un instante pero lanza el vial de todas formas, aunque con menos precisión: el área de efecto se reduce (solo 1 casilla de radio en lugar de 2). El combate comienza, pero el alquimista tiene -1 a su iniciativa por la distracción.</td></tr>
+                        <tr><td><span class="rango-dado">4–8</span></td><td><span class="resultado-fallo">Fallo.</span> El alquimista lanza el vial con determinación y da la orden a los guardias. Combate normal, sin modificadores.</td></tr>
+                        <tr><td><span class="rango-dado">1–3 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> Las palabras del jugador convencen al alquimista de que son agentes de las bandas rivales disfrazados. Entra en pánico total y lanza dos viales a la vez: daño de 2d6 en área. Los guardias atacan con iniciativa extra (+2) por la señal de alarma del alquimista.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Agilidad — Esquivar o derribar los viales explosivos en vuelo</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Cuando el alquimista lanza un vial, cada jugador en el área de efecto puede intentar esquivar o, con una acción especial, intentar derribar el vial antes de que impacte (tirada dificultad 15 para derribarlo, 12 para esquivar).</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador derriba el vial en vuelo (si intentó derribarlo) o esquiva con tal elegancia que puede empujar a un compañero adyacente fuera del área también, salvando a dos personajes con una sola acción.</td></tr>
+                        <tr><td><span class="rango-dado">12–19 (esquivar) / 15–19 (derribar)</span></td><td><span class="resultado-exito">Éxito.</span> El jugador esquiva el área de efecto completamente (sin daño) o derriba el vial, que explota en el suelo a los pies del alquimista (d6 de daño al alquimista mismo, tirada de Agilidad del alquimista dificultad 12 para reducir a la mitad).</td></tr>
+                        <tr><td><span class="rango-dado">7–11</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador queda en el borde del área de efecto: recibe la mitad del daño (d3).</td></tr>
+                        <tr><td><span class="rango-dado">2–6</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador recibe el daño completo del vial (d6). Si ya tenía PV bajos, debe superar Resistencia (dificultad 11) para no quedar aturdido un turno.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador recibe el impacto directo del vial (d6+2) y además vuelca accidentalmente un frasco de la mesa del alquimista. El Director decide si esto genera otro pequeño incendio o explosión secundaria (d4 en área de 1 casilla).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Carisma (Difícil) — Interrogar al alquimista capturado sin que libere el compuesto venenoso</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Si el alquimista ha sido reducido a 0 PV o ha sido inmovilizado, puede ser interrogado. Sin embargo, en su estado paranoico, si siente que las preguntas son hostiles, intentará liberar un compuesto venenoso escondido en su bata. Dificultad: 16. Si el grupo demostró conocer el nombre de Dovahkiin o tener la nota chamuscada, la dificultad baja a 11.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El alquimista habla con calma y detalle durante una hora. Revela el contenido completo de su diario, la naturaleza exacta del contacto en la torre al sur de Casto, y proporciona un vial de antídoto propio (recupera d6 PV y neutraliza cualquier veneno activo). Además, entrega voluntariamente sus dovahs y la poción curativa.</td></tr>
+                        <tr><td><span class="rango-dado">16–19</span></td><td><span class="resultado-exito">Éxito.</span> El alquimista coopera sin liberar el veneno. Confirma la información del diario y añade que la torre al sur de Casto "solo se ve cuando uno no la busca". Entrega el diario de forma voluntaria.</td></tr>
+                        <tr><td><span class="rango-dado">9–15</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El alquimista habla pero de forma fragmentada y paranoica. La información es útil pero incompleta: menciona la torre y al Dios Emperador pero no da detalles sobre el contacto ni sobre el camino exacto. El diario debe encontrarse por cuenta propia.</td></tr>
+                        <tr><td><span class="rango-dado">3–8</span></td><td><span class="resultado-fallo">Fallo.</span> El alquimista libera el compuesto venenoso de su bata. Todos los jugadores en radio de 1 casilla reciben d4 de daño por hora hasta ser tratados (el ungüento de la aldea o el propio botín del alquimista son válidos como antídoto parcial). El alquimista no dice nada más.</td></tr>
+                        <tr><td><span class="rango-dado">1–2 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El alquimista libera el compuesto venenoso a máxima concentración y además destruye el diario con un reactivo incendiario antes de perder el conocimiento. El grupo sufre d4 de daño por hora y pierde la pista narrativa del diario, aunque puede recuperar fragmentos legibles con una tirada de Percepción Difícil (dificultad 17) entre los restos quemados.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Inteligencia — Analizar el laboratorio del alquimista sin activar reacciones peligrosas</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Si el grupo desea registrar el laboratorio para encontrar el diario u otros objetos de valor, un jugador puede intentar hacerlo con cuidado. Dificultad: 13. Si el laboratorio ha sufrido daño de explosiones durante el combate, la dificultad sube a 16 por la inestabilidad de los reactivos.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador no solo encuentra todos los objetos del botín sin incidentes, sino que también descifra parte de las anotaciones del alquimista, lo que proporciona al grupo un bonificador de +2 a cualquier tirada de Inteligencia o Carisma en el próximo encuentro con el contacto de la torre.</td></tr>
+                        <tr><td><span class="rango-dado">13–19</span></td><td><span class="resultado-exito">Éxito.</span> El jugador registra el laboratorio con cuidado y encuentra el botín completo: dovahs, poción curativa y el diario del alquimista. Sin incidentes.</td></tr>
+                        <tr><td><span class="rango-dado">7–12</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador encuentra los dovahs y el diario pero no la poción curativa, que está mezclada entre otros frascos similares y sería necesaria otra tirada (Percepción, dificultad 12) para identificarla.</td></tr>
+                        <tr><td><span class="rango-dado">2–6</span></td><td><span class="resultado-fallo">Fallo.</span> El jugador vuelca accidentalmente un frasco reactivo. No hay explosión, pero el ácido derramado destruye parte de las notas del alquimista: el diario queda incompleto (la última entrada sobre la torre al sur de Casto se vuelve parcialmente ilegible y el Director puede decidir qué detalles se pierden).</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador provoca una reacción química en cadena entre dos frascos. Se produce una pequeña explosión de reactivos (d4 de daño en área de 2 casillas) y un incendio localizado que se extiende por la mesa. El grupo tiene 1d4 turnos para sacar el diario antes de que arda por completo, debiendo superar una tirada de Agilidad (dificultad 13) para cogerlo entre las llamas sin quemarse (d4 de daño si falla).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tirada-bloque">
+                <div class="tirada-titulo">Resistencia — Aguantar el ambiente tóxico del laboratorio durante tiempo prolongado</div>
+                <p style="color:#aaa; font-size:0.95em; margin:0 0 8px 0;">Si el grupo permanece más de 10 minutos (2 turnos narrativos) dentro de la cabaña sin ventilar, los vapores de los reactivos empiezan a tener efecto. Dificultad: 11. Por cada turno adicional que permanezcan, la dificultad sube en 1.</p>
+                <table class="tirada-tabla">
+                    <thead><tr><th>Resultado d20</th><th>Interpretación</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rango-dado">20 (Crítico)</span></td><td><span class="resultado-critico">Éxito brillante.</span> El jugador parece inmune a los vapores. No solo no sufre efectos, sino que su olfato agudizado por la exposición le permite detectar con mayor facilidad reacciones peligrosas: tiene +2 a cualquier tirada de Percepción o Inteligencia relacionada con los reactivos durante el resto del encuentro.</td></tr>
+                        <tr><td><span class="rango-dado">11–19</span></td><td><span class="resultado-exito">Éxito.</span> Sin efecto. El jugador aguanta bien los vapores en ese turno.</td></tr>
+                        <tr><td><span class="rango-dado">6–10</span></td><td><span class="resultado-parcial">Éxito parcial.</span> El jugador siente mareo leve: -1 a todas sus tiradas durante ese turno específico, pero se recupera al siguiente.</td></tr>
+                        <tr><td><span class="rango-dado">2–5</span></td><td><span class="resultado-fallo">Fallo.</span> Los vapores afectan al jugador seriamente: -2 a Inteligencia y Percepción durante los próximos 2 turnos. Si coincide con combate activo, todas sus tiradas de ataque y defensa tienen -1 adicional.</td></tr>
+                        <tr><td><span class="rango-dado">1 (Pifia)</span></td><td><span class="resultado-pifia">Pifia.</span> El jugador inhala una bocanada de vapor especialmente concentrado y queda desorientado (sin acción ofensiva el siguiente turno). Además, sufre un efecto alucinatorio leve durante 1d4 turnos: el Director puede describir visiones breves relacionadas con el Dios Emperador Dovahkiin como detalle narrativo.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- FIN TIRADAS E5 -->
         
         <div class="npc-section">
             <h3>Fichas de NPCs</h3>
