@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Próxima Partida: Cenizas y Sombras | Sistema GATO - Encuentros Detallados</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0f0f;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #ff9900;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+        }
+        h1 { text-align: center; margin-bottom: 50px; font-size: 2.5em; }
+        .tab-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+            background: #1a1a1a;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+        .tabs li {
+            flex: 1;
+            text-align: center;
+        }
+        .tabs label {
+            display: block;
+            padding: 15px;
+            cursor: pointer;
+            background: #2a2a2a;
+            color: #ffcc66;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .tabs label:hover {
+            background: #333;
+        }
+        .tab-input {
+            display: none;
+        }
+        .tab-content {
+            display: none;
+            background: #1a1a1a;
+            padding: 25px;
+            border: 1px solid #444;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+        #tab1:checked ~ .tab-content[data-tab="1"],
+        #tab2:checked ~ .tab-content[data-tab="2"],
+        #tab3:checked ~ .tab-content[data-tab="3"],
+        #tab4:checked ~ .tab-content[data-tab="4"],
+        #tab5:checked ~ .tab-content[data-tab="5"] {
+            display: block;
+        }
+        #tab1:checked ~ .tabs label[for="tab1"],
+        #tab2:checked ~ .tabs label[for="tab2"],
+        #tab3:checked ~ .tabs label[for="tab3"],
+        #tab4:checked ~ .tabs label[for="tab4"],
+        #tab5:checked ~ .tabs label[for="tab5"] {
+            background: #1a1a1a;
+            color: #fff;
+            border-bottom: 3px solid #ff9900;
+        }
+        .narrativa {
+            background: #222;
+            padding: 20px;
+            border-left: 6px solid #666;
+            margin: 20px 0;
+            font-style: italic;
+            font-size: 1.1em;
+            line-height: 1.7;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .riesgos {
+            color: #ff6666;
+            font-weight: bold;
+            margin: 15px 0;
+            font-size: 1.1em;
+        }
+        .npc-section {
+            margin-top: 30px;
+        }
+        .npc-card {
+            background: #2a2a2a;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .npc-header {
+            font-size: 1.5em;
+            color: #ff9900;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #666;
+            padding-bottom: 8px;
+        }
+        .atributos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            margin: 12px 0;
+        }
+        .attr {
+            background: #333;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            color: #ffcc66;
+        }
+        .loot {
+            color: #66ff99;
+            font-weight: bold;
+            margin: 15px 0;
+            font-size: 1.1em;
+        }
+        .tracker-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: #222;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .tracker-table th, .tracker-table td {
+            border: 1px solid #444;
+            padding: 12px;
+            text-align: left;
+        }
+        .tracker-table th {
+            background: #333;
+            color: #ffcc66;
+            font-size: 1.1em;
+        }
+        .tracker-table input {
+            width: 100%;
+            background: #333;
+            color: #e0e0e0;
+            border: none;
+            padding: 8px;
+        }
+        .ambiente {
+            font-size: 1.05em;
+            margin: 15px 0;
+            color: #ccc;
+        }
+        .adaptacion {
+            background: #333;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            font-style: italic;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+<div class="tab-container">
+    <h1>Próxima Partida: Cenizas y Sombras<br><small>Sistema GATO - Encuentros Inmersivos con Trackers</small></h1>
+    
+    <p class="adaptacion"><strong>Nota de Enlace:</strong> Los encuentros 1 y 2 están entrelazados de forma deliberada. Los merodeadores del Encuentro 1 pertenecen a la banda conocida como "Los Lobos del Bosque", quienes hacen referencia durante el encuentro a su enemistad con "Los Cuervos de las Llanuras", los antagonistas del Encuentro 2. Entre el botín del Encuentro 1 se puede encontrar una nota robada a un mensajero que menciona emboscadas rivales, lo que siembra tensión y anticipación antes de que los jugadores lleguen al siguiente encuentro.</p>
+    
+    <input type="radio" id="tab1" name="tabs" class="tab-input" checked>
+    <input type="radio" id="tab2" name="tabs" class="tab-input">
+    <input type="radio" id="tab3" name="tabs" class="tab-input">
+    <input type="radio" id="tab4" name="tabs" class="tab-input">
+    <input type="radio" id="tab5" name="tabs" class="tab-input">
+    
+    <ul class="tabs">
+        <li><label for="tab1">Encuentro 1</label></li>
+        <li><label for="tab2">Encuentro 2</label></li>
+        <li><label for="tab3">Encuentro 3</label></li>
+        <li><label for="tab4">Encuentro 4</label></li>
+        <li><label for="tab5">Encuentro 5</label></li>
+    </ul>
+    
+    <!-- ENCUENTRO 1 -->
+    <div class="tab-content" data-tab="1">
+        <h2>Encuentro 1: Los Merodeadores del Claro</h2>
+        <div class="narrativa">
+            Mientras avanzáis por los senderos antiguos, dejando atrás ruinas ardientes y aldeas de desconfianza, el bosque se ensancha en claros amplios donde los pinos vetustos ceden ante hayedos frondosos y praderas fértiles que auguran tierras más clementes. El sol de mediodía filtra sus rayos dorados a través de hojas lustrosas, tejiendo patrones danzantes de luz y sombra sobre el suelo cubierto de musgo. El aire es benigno, impregnado del dulzor de flores silvestres y tierra húmeda tras las lluvias pasadas, y en la distancia se escucha el murmullo tranquilo de un riachuelo que serpentea hacia parajes aún desconocidos. De súbito, en un claro espacioso rodeado de matorrales densos y raíces que se retuercen como dedos entre la hojarasca, oís pisadas cautelosas que quiebran la paz del lugar. De la espesura surgen figuras encapuchadas envueltas en mantos raídos salpicados de barro, con semblantes endurecidos por vidas enteras dedicadas al pillaje y la supervivencia errante. Van armados con garrotes nudosos tallados de ramas robustas y cuchillos herrumbrosos que centellean bajo el sol de mediodía. Forman un semicírculo ominoso, cortando toda posible vía de escape. "¡Viajeros del norte!", ruge el cabecilla con una voz ronca como el rugido de un torrente en crecida, con ese deje áspero que evoca rencillas viejas con los Cuervos de las Llanuras. "Este claro es dominio nuestro... entregad vuestras bolsas o probad el acero de los Lobos del Bosque." El viento agita las frondas creando un susurro que se une a sus demandas, mientras aves atemorizadas alzan el vuelo desde las copas. ¿Parlamentáis con estos oportunistas, intentáis huir hacia la espesura, o desenvaináis vuestras armas para defender el periplo en este claro iluminado por el astro rey?
+        </div>
+        
+        <p class="ambiente"><strong>Ambiente Detallado:</strong> Claro en bosque transicional con olor a flores silvestres y tierra húmeda. Se escuchan el murmullo del riachuelo y el viento entre las ramas. La luz solar se filtra de forma moteada y la temperatura es templada y acogedora. Este encuentro puede adaptarse a terrenos cercanos a la aldea próxima sin mayor modificación.</p>
+        
+        <p class="riesgos">⚠ Riesgos: Combate Normal con 3 a 5 enemigos sobre un grid de 8x8. El daño es bajo (d4 + F=4 por garrotes, entre 5 y 10 PV por impacto). Existe riesgo de heridas leves con sangrado de -1 PV por turno si se falla una tirada de Resistencia Normal. Si los jugadores fallan una tirada de Carisma Difícil al intentar negociar, la situación escala al combate sin posibilidad de replanteo. La huida es posible con una tirada de Agilidad Normal, aunque los merodeadores perseguirán durante 1d4 turnos. Si los jugadores se ven completamente rodeados y caen a 0 PV, hay un 10% de posibilidades de muerte real; en la mayoría de casos quedan inconscientes y despojados. No hay magia en este encuentro.</p>
+        
+        <div class="npc-section">
+            <h3>Fichas de NPCs</h3>
+            <div class="npc-card">
+                <div class="npc-header">Cabecilla de los Lobos del Bosque</div>
+                <div class="atributos">
+                    <div class="attr">F 5</div><div class="attr">P 4</div><div class="attr">R 5</div>
+                    <div class="attr">C 6</div><div class="attr">I 3</div><div class="attr">A 4</div><div class="attr">S 2</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 25 &nbsp;|&nbsp; <strong>Equipo:</strong> Garrote nudoso (d4 de daño), manto raído (-1 armadura, +1 a sigilo en la espesura).</p>
+                <p><strong>Descripción Detallada:</strong> Es un varón de edad mediana con barba desgreñada teñida de gris en las puntas y ojos hundidos que reflejan años de pillaje en veredas olvidadas. Su manto huele permanentemente a humo de hoguera y sudor acumulado, y en sus brazos y cuello luce cicatrices frescas de refriegas recientes. Es astuto y sorprendentemente elocuente para ser un bandolero; prefiere amedrentar con palabras antes de recurrir a la violencia, usando su voz ronca para desmoralizar a sus víctimas y ganarse el tiempo que necesita para que sus hombres rodeen al enemigo. Cuando habla, suele hacer alusiones amargas a los Cuervos de las Llanuras, su banda rival, como si la enemistad con ellos le doliera más que cualquier herida de acero.</p>
+                <p><strong>Comportamiento en Combate:</strong> Tira iniciativa con d8 + A=4. Dirige a los merodeadores comunes con órdenes rápidas de flanqueo y nunca se lanza al frente si puede evitarlo. Si sus PV caen por debajo de 10, intentará parlamentar o huir entre la maleza, murmurando amenazas de venganza contra sus rivales. Si los jugadores le ofrecen una salida honrosa, la tomará.</p>
+            </div>
+            <div class="npc-card">
+                <div class="npc-header">Merodeadores Comunes de los Lobos (x3–4)</div>
+                <div class="atributos">
+                    <div class="attr">F 4</div><div class="attr">P 3</div><div class="attr">R 4</div>
+                    <div class="attr">C 3</div><div class="attr">I 2</div><div class="attr">A 3</div><div class="attr">S 1</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 20 cada uno &nbsp;|&nbsp; <strong>Equipo:</strong> Cuchillos herrumbrosos (d4 de daño), ropajes harapientos (sin armadura).</p>
+                <p><strong>Descripción Detallada:</strong> Son hombres y mujeres demacrados, con rostros sucios y ojos ávidos que delatan una vida marcada por la desesperación. Sus ropajes son un amasijo de retazos obtenidos de saqueos anteriores y huelen a tierra húmeda, sudor y privación. Son cobardes cuando actúan solos, pero se vuelven audaces y peligrosos cuando actúan en grupo. Gruñen amenazas en voz baja cuando se sienten seguros en número, y aunque son leales a la banda, tienen un miedo visible y apenas disimulado a los Cuervos de las Llanuras, su banda rival.</p>
+                <p><strong>Comportamiento en Combate:</strong> Tiran iniciativa con d8 + A=3. Atacan siempre en grupo, enfocándose en el miembro más vulnerable o más aislado del equipo. Si el cabecilla cae, entran en pánico y huyen en desbandada, dispersándose entre la maleza entre maldiciones contra sus rivales.</p>
+            </div>
+        </div>
+        
+        <h3>Tracker de Encuentro</h3>
+        <table class="tracker-table">
+            <thead>
+                <tr>
+                    <th>NPC / Jugador</th>
+                    <th>Iniciativa (d8 + A)</th>
+                    <th>PV Actual</th>
+                    <th>Estado (Heridas, Efectos)</th>
+                    <th>Notas (Acciones, Loot)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cabecilla de los Lobos</td>
+                    <td><input type="text" placeholder="Tira d8 +4"></td>
+                    <td><input type="text" value="25"></td>
+                    <td><input type="text" placeholder="Sano"></td>
+                    <td><input type="text" placeholder="Intenta intimidar primero"></td>
+                </tr>
+                <tr>
+                    <td>Merodeador 1</td>
+                    <td><input type="text" placeholder="Tira d8 +3"></td>
+                    <td><input type="text" value="20"></td>
+                    <td><input type="text" placeholder="Sano"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Merodeador 2</td>
+                    <td><input type="text" placeholder="Tira d8 +3"></td>
+                    <td><input type="text" value="20"></td>
+                    <td><input type="text" placeholder="Sano"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Merodeador 3</td>
+                    <td><input type="text" placeholder="Tira d8 +3"></td>
+                    <td><input type="text" value="20"></td>
+                    <td><input type="text" placeholder="Sano"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Merodeador 4 (opcional)</td>
+                    <td><input type="text" placeholder="Tira d8 +3"></td>
+                    <td><input type="text" value="20"></td>
+                    <td><input type="text" placeholder="Sano"></td>
+                    <td><input type="text"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p class="loot">💰 Botín Posible (Nivel Bajo): Con una tirada de Percepción Normal al registrar los cuerpos o el entorno: entre 10 y 20 dovahs repartidos en bolsas pequeñas y sucias, 1 daga herrumbrosa de poco valor (se puede vender por 5 dovahs), una nota robada a un mensajero que dice "Los Cuervos planean una emboscada en el camino; quieren robarnos nuestra presa" (pista narrativa que enlaza directamente con el Encuentro 2), y una piel de bestia rasgada que puede venderse por 10 dovahs si se conserva en buen estado.</p>
+    </div>
+    
+    <!-- ENCUENTRO 2 -->
+    <div class="tab-content" data-tab="2">
+        <h2>Encuentro 2: El Camino Embrujado</h2>
+        <div class="narrativa">
+            El sendero se extiende como una cinta polvorienta y vetusta a través de bosques antiguos, donde los pinos ceden su lugar a robles robustos y praderas ondulantes que guían el camino hacia la aldea próxima. El sol pende alto en el cielo, proyectando sombras cortas sobre el camino polvoriento, y el aire está cargado del zumbido constante de insectos y del aroma de las hierbas silvestres que crecen a ambos lados de la vereda. Las raíces expuestas y las piedras sueltas tornan el terreno traicionero bajo las botas, pero el horizonte lejano promete refugio y descanso. De improviso, el camino aparece obstruido por una carreta volcada de madera astillada, con las ruedas hundidas en el barro blando de la cuneta. Junto a ella yace un mercader herido, un varón de edad mediana con ropajes polvorientos y un vendaje improvisado y manchado en el brazo derecho. Gime con voz quebrada que resuena en el calor opresivo del mediodía. "¡Socorro, nobles viandantes! Bandidos me asaltaron al alba y me han despojado de todos mis bienes... ¡escoltadme a la aldea, os lo ruego!" Sus ojos brillan con una intensidad que va más allá del simple dolor, y algo en su mirada resulta difícil de descifrar: ¿son lágrimas verdaderas, o el astuto centelleo de alguien que miente con práctica? El viento cálido agita las hierbas altas, trayendo consigo ecos lejanos de aves y el crujido monótono de la carreta volcada, que deja ver cajas rotas con retazos de telas y frascos vacíos. ¿Lo auxiliáis, alzándolo del suelo fangoso sin hacer preguntas? ¿Lo ignoráis y proseguís vuestro camino con recelo? ¿O escrutáis la escena con calma, sondando las sombras entre las hierbas donde las amenazas podrían estar aguardando el momento oportuno?
+        </div>
+        
+        <p class="ambiente"><strong>Ambiente Detallado:</strong> Sendero polvoriento flanqueado de hierbas altas y robles centenarios, con olor a polvo caliente y hierbas aromáticas. Los insectos zumban sin descanso y el viento cálido y seco mueve la vegetación de forma constante. La luz solar es intensa y no da tregua. Este encuentro puede adaptarse fácilmente a cualquier camino principal que conduzca hacia la aldea próxima.</p>
+        
+        <p class="riesgos">⚠ Riesgos: Encuentro principalmente social con dificultad Alta. Se requiere una tirada de Carisma o Inteligencia para detectar la mentira del mercader antes de que la situación degenere. Si los jugadores deciden ayudarlo sin sospechar, caerán en una emboscada: 2 bandidos ocultos entre la maleza atacan con iniciativa por sorpresa (+2). El daño es medio (d6 + F=5, entre 8 y 12 PV). La carreta también oculta una trampa mecánica que puede detectarse con una tirada de Percepción Normal; si falla, provoca d6 de daño en área. Existe riesgo de robo de equipo si los jugadores quedan flanqueados. La probabilidad de muerte en caso de emboscada total es del 5%. No hay magia en este encuentro.</p>
+        
+        <div class="npc-section">
+            <h3>Fichas de NPCs</h3>
+            <div class="npc-card">
+                <div class="npc-header">Mercader Falso de los Cuervos</div>
+                <div class="atributos">
+                    <div class="attr">F 3</div><div class="attr">P 5</div><div class="attr">R 3</div>
+                    <div class="attr">C 7</div><div class="attr">I 5</div><div class="attr">A 4</div><div class="attr">S 4</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 18 &nbsp;|&nbsp; <strong>Equipo:</strong> Daga oculta bajo el vendaje (d4 de daño), ropajes de mercader fingidos (sin armadura, +2 a todas las tiradas de engaño).</p>
+                <p><strong>Descripción Detallada:</strong> Es un hombre de complexión delgada y aspecto cuidado, con un bigote recortado con esmero y unos ojos penetrantes que observan cada movimiento de sus interlocutores. Sus vendajes están manchados con una sustancia roja cuya procedencia es dudosa. Habla con una voz deliberadamente temblorosa y melosa, oliendo a tabaco rancio y a algo que podría ser miedo fingido. Es un experto en el arte de la falacia: teje relatos verosímiles sobre caravanas perdidas y asaltos brutales, intercalando pequeños detalles creíbles para ganarse la simpatía de los viajeros. Mantiene una postura encorvada que simula debilidad, pero sus manos son rápidas e inquietas, siempre cerca de la daga oculta. En el fondo desprecia a los Lobos del Bosque tanto como los teme, y si los jugadores mencionan haber tenido un altercado con ellos, su interés aumentará notablemente.</p>
+                <p><strong>Comportamiento en Combate:</strong> Tira iniciativa con d8 + A=4. Evita el combate directo a toda costa y usa su alto Carisma para distraer, confundir o llamar a sus compañeros emboscados con una señal convenida. Si es descubierto antes del combate, intentará huir o suplicar, mencionando deudas con los Lobos para sembrar confusión.</p>
+            </div>
+            <div class="npc-card">
+                <div class="npc-header">Bandidos Emboscados de los Cuervos (x2)</div>
+                <div class="atributos">
+                    <div class="attr">F 5</div><div class="attr">P 4</div><div class="attr">R 4</div>
+                    <div class="attr">C 3</div><div class="attr">I 3</div><div class="attr">A 5</div><div class="attr">S 2</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 22 cada uno &nbsp;|&nbsp; <strong>Equipo:</strong> Arcos cortos (d6 de daño, alcance de 20 metros), capas de tejido áspero y tonos terrosos (+2 a sigilo en terrenos abiertos y boscosos).</p>
+                <p><strong>Descripción Detallada:</strong> Son dos figuras disciplinadas y silenciosas, ocultas entre la maleza alta con paciencia de cazadores experimentados. Llevan los rostros cubiertos con telas raídas del color de la tierra y sus arcos ya están tensos cuando los jugadores llegan a la escena. Huelen a sudor seco y a tierra removida, como quien lleva horas tumbado entre la hierba esperando. Se comunican entre sí con gestos y señales apenas perceptibles, y su mirada es calculadora y fría. Son leales a la banda de los Cuervos, pero su lealtad es práctica más que emocional: si el riesgo supera la recompensa, saben cuándo retirarse.</p>
+                <p><strong>Comportamiento en Combate:</strong> Tiran iniciativa con d8 + A=5, con el bonificador adicional por sorpresa si la emboscada tiene éxito. Disparan primero desde la distancia y luego flanquean en caso de que el combate se acerque. Si uno de los dos cae, el superviviente huye sin mirar atrás, maldiciendo en voz baja a los Lobos del Bosque como si de algún modo les echara la culpa.</p>
+            </div>
+        </div>
+        
+        <h3>Tracker de Encuentro</h3>
+        <table class="tracker-table">
+            <thead>
+                <tr>
+                    <th>NPC / Jugador</th>
+                    <th>Iniciativa</th>
+                    <th>PV Actual</th>
+                    <th>Estado</th>
+                    <th>Notas</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Mercader Falso</td>
+                    <td><input type="text" placeholder="d8 +4"></td>
+                    <td><input type="text" value="18"></td>
+                    <td><input type="text" placeholder="Fingiendo estar herido"></td>
+                    <td><input type="text" placeholder="Engaña antes de actuar"></td>
+                </tr>
+                <tr>
+                    <td>Bandido Emboscado 1</td>
+                    <td><input type="text" placeholder="d8 +5 (sorpresa)"></td>
+                    <td><input type="text" value="22"></td>
+                    <td><input type="text" placeholder="Oculto en la maleza"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Bandido Emboscado 2</td>
+                    <td><input type="text" placeholder="d8 +5 (sorpresa)"></td>
+                    <td><input type="text" value="22"></td>
+                    <td><input type="text" placeholder="Oculto en la maleza"></td>
+                    <td><input type="text"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p class="loot">💰 Botín Posible (Nivel Bajo): Si los jugadores vencen o neutralizan la amenaza: entre 15 y 30 dovahs encontrados en la carreta o en los cuerpos, 1 ración de comida seca en buen estado (valor de 2 dovahs), un mapa rasgado de veredas secundarias del bosque (útil como ayuda narrativa, sin valor comercial), y una nota doblada de los Cuervos que dice: "Cuando los Lobos tengan su botín del claro, los interceptamos en el cruce" (pista narrativa que enlaza con el Encuentro 1 y confirma la rivalidad entre las dos bandas).</p>
+    </div>
+    
+    <!-- ENCUENTRO 3 -->
+    <div class="tab-content" data-tab="3">
+        <h2>Encuentro 3: La Aldea de las Sombras Susurrantes</h2>
+        <div class="narrativa">
+            Al progresar por tierras fértiles salpicadas de aldeas humildes, entre chozas de adobe y techos de paja que desafían los vientos clementes que soplan desde el norte, el ambiente cambia con sutileza. El aire es tibio y está cargado de humo de chimenea y del olor rancio del pan horneado en fogones antiguos. El sol poniente tiñe todo de un naranja sanguinolento que alarga las sombras y convierte las veredas polvorientas en caminos de oro viejo. Los aldeanos encorvados os observan desde portales entreabiertos con ojos recelosos, musitando entre ellos sobre los "fuegos del norte" y un "hombre de los polvos" que pasó por aquí hace pocos días sin detenerse. Una matrona robusta, con el delantal manchado de harina y hollín, se os acerca en la plaza central, donde un pozo vetusto rezuma agua tibia. Su rostro está surcado de arrugas profundas como surcos de arado, y su sonrisa es forzada aunque calculadora. "Extranjeros, con esas cicatrices y esas miradas cansadas... ¿buscáis acaso al loco del fuego que turbó nuestras siegas de otoño?" Os mira de arriba abajo antes de continuar. "Compartid vuestros relatos por un techo y un plato de estofado... mas guardad bien lo que digáis, que las sombras de esta aldea tienen oídos, y no todos los que aquí viven son hospitalarios con los forasteros." El viento del atardecer trae consigo el mugir lejano del ganado y el chirrido de una veleta oxidada. ¿Parlamentáis con ella y revelláis parte de vuestro periplo? ¿Exploráis el mercadillo raquítico de la plaza en busca de provisiones? ¿O sondáis los rincones oscuros de esta aldea antes de que el crepúsculo se convierta en noche cerrada?
+        </div>
+        
+        <p class="ambiente"><strong>Ambiente Detallado:</strong> Aldea de adobe enclavada en praderas secas, con olor a humo de leña y pan añejo. Los sonidos más constantes son el viento cálido, el mugido del ganado y el chirrido ocasional de puertas y veletas. La luz crepuscular baña todo en tonos naranjas y rojizos, y la temperatura es tibia con un punto de polvo. Este encuentro puede ajustarse fácilmente a la aldea próxima en vuestro mapa de campaña.</p>
+        
+        <p class="riesgos">⚠ Riesgos: Encuentro principalmente social de dificultad Normal. Se necesita una tirada de Carisma para extraer información útil de los aldeanos; si la tirada falla, los aldeanos se vuelven hostiles y puede desencadenarse una pelea con 2 o 3 de ellos. El daño en combate es bajo (d4, entre 4 y 8 PV). La exploración de la aldea requiere una tirada de Percepción Difícil; si falla, se activa un rumor que atrae a una patrulla del ducado en 1d4 turnos. Además, si los jugadores aceptan comer sin precaución, deben superar una tirada de Resistencia Normal o sufrir -2 a todos sus atributos durante aproximadamente una hora por culpa de una adulteración sutil en la comida. La probabilidad de muerte es muy baja, pero el aislamiento y la pérdida de recursos son riesgos reales. No hay magia en este encuentro.</p>
+        
+        <div class="npc-section">
+            <h3>Fichas de NPCs</h3>
+            <div class="npc-card">
+                <div class="npc-header">Matrona Aldeana</div>
+                <div class="atributos">
+                    <div class="attr">F 4</div><div class="attr">P 3</div><div class="attr">R 5</div>
+                    <div class="attr">C 5</div><div class="attr">I 4</div><div class="attr">A 2</div><div class="attr">S 3</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 24 &nbsp;|&nbsp; <strong>Equipo:</strong> Horquilla de labranza (d4 de daño), delantal con bolsillos ocultos (+1 a tiradas de persuasión en entornos locales).</p>
+                <p><strong>Descripción Detallada:</strong> Es una mujer robusta y de presencia imponente, con el cabello gris recogido en un moño tenso y el rostro cubierto de arrugas profundas ganadas bajo soles implacables. Huele a harina, humo de leña y a ese olor particular de quien pasa las horas junto al fuego. Su voz es cálida pero inquisitiva, con el tono de alguien que sabe más de lo que dice y espera que el interlocutor lo descubra tarde. Es la principal fuente de rumores y cotilleos de la aldea, y tiene información fragmentaria pero valiosa sobre el alquimista. No la revela de forma gratuita: primero tantea a los visitantes para determinar si son una amenaza, una oportunidad o simples viajeros de paso. Si se gana su confianza, puede convertirse en una aliada discreta.</p>
+                <p><strong>Comportamiento en Combate:</strong> Tira iniciativa con d8 + A=2. Evita el combate a toda costa y prefiere usar su Carisma para calmar situaciones tensas o, si lo considera necesario, para distraer mientras algún aldeano adultera discretamente la comida o la bebida. Revela información relevante si los jugadores superan una tirada de Carisma exitosa.</p>
+            </div>
+            <div class="npc-card">
+                <div class="npc-header">Aldeanos Sospechosos (x2–3)</div>
+                <div class="atributos">
+                    <div class="attr">F 3</div><div class="attr">P 4</div><div class="attr">R 3</div>
+                    <div class="attr">C 4</div><div class="attr">I 3</div><div class="attr">A 3</div><div class="attr">S 2</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 18 cada uno &nbsp;|&nbsp; <strong>Equipo:</strong> Herramientas de labranza adaptadas como armas improvisadas (d4 de daño), abrigos de lana gruesa (sin armadura efectiva).</p>
+                <p><strong>Descripción Detallada:</strong> Son hombres y mujeres encorvados por años de trabajo duro en el campo, con ojos que en su día fueron vivaces pero que ahora lucen vaciados por las sequías, las levas y los impuestos del ducado. Huelen a tierra, sudor y a la ropa guardada demasiado tiempo en el arcón. Murmuran entre ellos en voz baja cuando ven forasteros, y sus miradas deslizan juicios rápidos y desconfiados. Son leales al ducado por miedo más que por convicción, y no dudarán en informar a una patrulla si perciben que los visitantes representan algún tipo de peligro o rareza.</p>
+                <p><strong>Comportamiento en Combate:</strong> Tiran iniciativa con d8 + A=3. Se comportan de forma defensiva en todo momento y solo atacan si se sienten directamente amenazados o si los jugadores cometen alguna acción que perciban como agresiva. Tienen posibilidad de llamar a refuerzos si el combate dura más de dos rondas.</p>
+            </div>
+        </div>
+        
+        <h3>Tracker de Encuentro</h3>
+        <table class="tracker-table">
+            <thead>
+                <tr>
+                    <th>NPC / Jugador</th>
+                    <th>Iniciativa</th>
+                    <th>PV Actual</th>
+                    <th>Estado</th>
+                    <th>Notas</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Matrona Aldeana</td>
+                    <td><input type="text" placeholder="d8 +2"></td>
+                    <td><input type="text" value="24"></td>
+                    <td><input type="text" placeholder="Sana, alerta"></td>
+                    <td><input type="text" placeholder="Persuasiva, tiene información"></td>
+                </tr>
+                <tr>
+                    <td>Aldeano Sospechoso 1</td>
+                    <td><input type="text" placeholder="d8 +3"></td>
+                    <td><input type="text" value="18"></td>
+                    <td><input type="text" placeholder="Desconfiado"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Aldeano Sospechoso 2</td>
+                    <td><input type="text" placeholder="d8 +3"></td>
+                    <td><input type="text" value="18"></td>
+                    <td><input type="text" placeholder="Desconfiado"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Aldeano Sospechoso 3 (opcional)</td>
+                    <td><input type="text" placeholder="d8 +3"></td>
+                    <td><input type="text" value="18"></td>
+                    <td><input type="text" placeholder="Desconfiado"></td>
+                    <td><input type="text"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p class="loot">💰 Botín Posible (Nivel Bajo): Mediante regateo con una tirada de Carisma Normal en el mercadillo: entre 2 y 4 raciones de comida básica (1 dovah cada una), un ungüento curativo de fabricación casera (recupera d4 PV, valor de 10 dovahs), y una nota chamuscada en los bordes que pertenece al alquimista y que reza: "Busco refugio en una cueva oculta al norte del bosque; los bandidos me siguen de cerca y no puedo quedarme en ningún lugar más de una noche" (pista narrativa que enlaza con la mazmorra del Encuentro 4).</p>
+    </div>
+    
+    <!-- ENCUENTRO 4 -->
+    <div class="tab-content" data-tab="4">
+        <h2>Encuentro 4: La Mazmorra de las Cenizas Ocultas</h2>
+        <div class="narrativa">
+            Mientras atravesáis un tramo de bosque espeso que precede a las praderas abiertas, el suelo parece firme a primera vista, pero resulta traicionero bajo las botas: está cubierto de hojas caídas y raíces que se ocultan justo donde el paso es más confiado. El aire tiene una humedad densa y huele a musgo antiguo y tierra profunda, y los rayos de sol que se filtran entre el follaje crean destellos moteados sobre el verde intenso de las hojas. Sin previo aviso, un crujido siniestro resuena bajo vuestros pies y el suelo cede como una boca que se abre con hambre. Caéis en picado unos cinco metros a través de oscuridad y polvo, aterrizando con un impacto seco que levanta nubes asfixiantes de ceniza vieja y sacude osamentas dispersas por el suelo de tierra compacta. Cuando el polvo se asienta, os encontráis en una cámara subterránea de techos bajos y paredes de túneles excavados a mano, con grabados erosionados por el tiempo que ya no cuentan ninguna historia legible. El aire es sofocante y huele a azufre natural y estancamiento, con el eco constante de goteras que suenan como latidos en la oscuridad. Trampas mecánicas acechan en los rincones más oscuros, medio ocultas por la acumulación de años de polvo y olvido. Desde algún pasadizo, llega el gruñido gutural de algo que se mueve. Esta mazmorra olvidada podría ser un antiguo refugio, unas ruinas menores o una madriguera ampliada por las criaturas que la habitan. ¿Avanzáis por los pasadizos laberínticos buscando una salida? ¿Exploráis los nichos laterales en busca de reliquias y recursos? ¿O intentáis escalar de vuelta por el agujero, arriesgando otra caída en la oscuridad?
+        </div>
+        
+        <p class="ambiente"><strong>Ambiente Detallado:</strong> Sistema de túneles subterráneo accedido de forma accidental desde el bosque. Huele a musgo, azufre y tierra húmeda. Los únicos sonidos son el eco de las goteras, el crujido ocasional de la piedra y los ruidos de las criaturas que lo habitan. La temperatura es fría y la visibilidad es muy reducida sin una fuente de luz propia. Este encuentro se activa en un punto aleatorio del bosque cercano a la aldea próxima y puede reubicarse sin mayor dificultad.</p>
+        
+        <p class="riesgos">⚠ Riesgos: La caída inicial inflige d6 de daño, mitigable con una tirada de Agilidad Normal. La mazmorra se compone de 3 o 4 salas con dificultad progresiva. Las trampas mecánicas requieren tiradas de Percepción Difícil para ser detectadas; si fallan, infligen d8 de daño. Los enemigos representan un combate de dificultad Normal con ataques de mordisco que pueden envenenar (d4 de daño por veneno con tirada de Resistencia Normal para resistirlo). El puzle central requiere una tirada de Inteligencia Difícil; si falla, activa una trampa de gas que hace d6 de daño en área. La probabilidad de quedar inconsciente es del 20%, la más alta hasta ahora. Si hay elementos mágicos en la campaña, el Director puede introducirlos aquí de forma controlada.</p>
+        
+        <div class="npc-section">
+            <h3>Fichas de Enemigos</h3>
+            <div class="npc-card">
+                <div class="npc-header">Ratas Gigantes (x2–3)</div>
+                <div class="atributos">
+                    <div class="attr">F 4</div><div class="attr">P 5</div><div class="attr">R 3</div>
+                    <div class="attr">C 1</div><div class="attr">I 2</div><div class="attr">A 6</div><div class="attr">S 1</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 15 cada una &nbsp;|&nbsp; <strong>Ataque:</strong> Mordisco d4 + veneno (Resistencia Normal o -1 PV por turno hasta curar).</p>
+                <p><strong>Descripción Detallada:</strong> Son bestias de tamaño considerable, con el pelaje apelmazado y sucio de un color gris amarillento, y ojos de un rojo intenso que brillan en la oscuridad de los túneles. Huelen de forma nauseabunda a podredumbre y humedad orgánica. Se mueven en grupos coordinados por instinto, con movimientos rápidos y erráticos que dificultan predecir su trayectoria. Sus dientes amarillentos son desproporcionadamente largos para el tamaño de su cuerpo y producen un chasquido seco y amenazante cuando se sienten acorraladas.</p>
+                <p><strong>Comportamiento en Combate:</strong> Tiran iniciativa con d8 + A=6, siendo las criaturas más rápidas del encuentro. Atacan en oleadas coordinadas y siempre concentran sus mordiscos sobre el miembro del grupo que tenga menos PV o que esté más aislado. El veneno es persistente y se acumula. Si el tamaño de su grupo se reduce a la mitad, las supervivientes huyen al fondo de los túneles.</p>
+            </div>
+            <div class="npc-card">
+                <div class="npc-header">Guardián Espectral (Jefe opcional)</div>
+                <div class="atributos">
+                    <div class="attr">F 6</div><div class="attr">P 4</div><div class="attr">R 5</div>
+                    <div class="attr">C 2</div><div class="attr">I 3</div><div class="attr">A 4</div><div class="attr">S 3</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 30 &nbsp;|&nbsp; <strong>Ataque:</strong> Garras etéreas d6 (perforan la armadura física; inmune al fuego si se usa magia).</p>
+                <p><strong>Descripción Detallada:</strong> Es la aparición translúcida de un minero o excavador que murió hace décadas en estos túneles sin recibir sepultura ni ritual alguno. Se presenta como una figura vagamente humana de contornos difusos, con ojos completamente vacíos y cadenas etéreas que arrastran tras de sí produciendo un tintineo espectral. Su presencia va acompañada de un descenso notable de la temperatura y de un olor indefinible a muerte fría. Emite aullidos entrecortados que resuenan en los túneles como una advertencia que ya nadie entiende.</p>
+                <p><strong>Comportamiento en Combate:</strong> Tira iniciativa con d8 + A=4. Solo aparece si los jugadores se adentran en las salas más profundas de la mazmorra, como si hubiese estado esperando que alguien llegara hasta allí. Sus garras etéreas ignoran la armadura convencional. Si sus PV caen por debajo de 15, se desvanece en la oscuridad sin morir del todo, como si simplemente se disolviera en el aire frío.</p>
+            </div>
+        </div>
+        
+        <h3>Tracker de Encuentro</h3>
+        <table class="tracker-table">
+            <thead>
+                <tr>
+                    <th>NPC / Jugador</th>
+                    <th>Iniciativa</th>
+                    <th>PV Actual</th>
+                    <th>Estado</th>
+                    <th>Notas</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Rata Gigante 1</td>
+                    <td><input type="text" placeholder="d8 +6"></td>
+                    <td><input type="text" value="15"></td>
+                    <td><input type="text" placeholder="Veneno activo"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Rata Gigante 2</td>
+                    <td><input type="text" placeholder="d8 +6"></td>
+                    <td><input type="text" value="15"></td>
+                    <td><input type="text" placeholder="Veneno activo"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Rata Gigante 3 (opcional)</td>
+                    <td><input type="text" placeholder="d8 +6"></td>
+                    <td><input type="text" value="15"></td>
+                    <td><input type="text" placeholder="Veneno activo"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Guardián Espectral</td>
+                    <td><input type="text" placeholder="d8 +4"></td>
+                    <td><input type="text" value="30"></td>
+                    <td><input type="text" placeholder="Inmune al fuego, garras etéreas"></td>
+                    <td><input type="text" placeholder="Jefe opcional, salas profundas"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p class="loot">💰 Botín Posible (Nivel Bajo): Con una tirada de Percepción Normal por cada sala explorada: entre 20 y 40 dovahs en vetas de mineral o monedas enterradas, un frasco de polvo alquímico de procedencia desconocida (valor de 15 dovahs en mercado; existe un riesgo de explosión si se manipula sin cuidado), una runa grabada en piedra que produce una chispa inofensiva al activarla (objeto curioso, sin uso mecánico directo), y un pergamino antiguo que reza: "El alquimista huyó al norte, perseguido por hombres de dos bandas rivales; busca refugio donde el humo no le delate" (pista narrativa que enlaza directamente con la cabaña del Encuentro 5).</p>
+    </div>
+    
+    <!-- ENCUENTRO 5 -->
+    <div class="tab-content" data-tab="5">
+        <h2>Encuentro 5: El Eco del Alquimista</h2>
+        <div class="narrativa">
+            Siguiendo las pistas acumuladas a lo largo del camino, llegáis finalmente a una cabaña oculta entre las praderas ondulantes que rodean la aldea próxima. Es una construcción humilde de madera torcida y techos de paja viejos que resiste con dignidad los vientos constantes de la llanura. De la chimenea sale un hilo de humo continuo en volutas densas, pero el olor que llega a vuestras narices no es de leña ni de guiso: es un olor acre y penetrante a químicos, a azufre quemado y a algo metálico que pica en la garganta y hace llorar los ojos. El sol se está hundiendo en el horizonte, tiñendo las praderas de un oro sucio mientras las hierbas altas susurran con el viento del atardecer. Cuando empujáis la puerta o espiais por la ventana, encontráis a un hombre demacrado y de aspecto febril inclinado sobre una mesa cubierta de frascos burbujeantes, anotaciones ilegibles y restos de materiales quemados. Levanta la vista, y sus ojos brillan con una mezcla de paranoia y lucidez extraña. "¡Intrusos! ¡Mis experimentos con el fuego eterno no son para ojos profanos ni para manos de saqueadores!" Sin esperar respuesta, agarra un vial y lo lanza en vuestra dirección. Desde las sombras del interior, dos figuras se ponen en pie con las manos en las empuñaduras. El suelo de madera cruje bajo el peso del momento, y el calor intenso del laboratorio contrasta de forma brutal con la brisa fresca que entra desde la puerta abierta. ¿Intentáis dialogar con esta mente fracturada antes de que la situación se salga de control? ¿Lo neutralizáis con rapidez antes de que sus viales transformen la cabaña en una pira? ¿O combatís en este clímax tenso donde los secretos del fuego eterno podrían revelarse por fin, o consumiros junto con todo lo demás?
+        </div>
+        
+        <p class="ambiente"><strong>Ambiente Detallado:</strong> Cabaña aislada en praderas abiertas, con vientos constantes y hierbas altas que se mueven sin parar. El interior huele fuertemente a reactivos químicos y azufre, con frascos burbujeando sobre todas las superficies disponibles. La luz es inestable, proyectada por los propios experimentos tanto como por las velas. La temperatura es contrastante: sofocante dentro por los reactivos y fresca fuera por el viento de la tarde. Este encuentro puede ubicarse sin dificultad en las afueras de la aldea próxima.</p>
+        
+        <p class="riesgos">⚠ Riesgos: Combate de dificultad Alta con el alquimista y sus guardias. Los viales explosivos hacen d6 de daño en área y pueden derribarse o esquivarse con una tirada de Agilidad Normal. El daño de los guardias es alto (d8 + F=5, entre 10 y 15 PV por impacto). Si los jugadores intentan interrogar al alquimista y fallan la tirada de Carisma Difícil, este libera un compuesto venenoso que inflige d4 de daño por hora hasta ser tratado. La probabilidad de muerte es del 15% si los jugadores ignoran los viales y no los neutralizan antes de que el alquimista los use todos. No hay magia en este encuentro, aunque los experimentos del alquimista rozan ese límite de forma inquietante.</p>
+        
+        <div class="npc-section">
+            <h3>Fichas de NPCs</h3>
+            <div class="npc-card">
+                <div class="npc-header">El Alquimista</div>
+                <div class="atributos">
+                    <div class="attr">F 2</div><div class="attr">P 3</div><div class="attr">R 3</div>
+                    <div class="attr">C 4</div><div class="attr">I 7</div><div class="attr">A 3</div><div class="attr">S 5</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 20 &nbsp;|&nbsp; <strong>Ataque:</strong> Viales explosivos d6 en área (usa Inteligencia para colocar trampas y preparar compuestos).</p>
+                <p><strong>Descripción Detallada:</strong> Es un hombre demacrado y de aspecto frágil, con una bata de trabajo raída y manchada de quemaduras antiguas y reactivos de colores. Sus manos tiemblan levemente de forma constante, pero sus dedos se mueven con una precisión sorprendente cuando trabaja con los frascos. Tiene los ojos febriles y enrojecidos de quien lleva demasiados días sin dormir, y habla en voz alta aunque no haya nadie alrededor, balbuciendo fórmulas a medio terminar y fragmentos de razonamientos que no se completan nunca. Su obsesión con el "fuego eterno" ha fracturado su mente de una forma que hace difícil distinguir en él al genio del lunático. Si se le captura y se le habla con paciencia, puede revelar información vital sobre sus experimentos y sobre quiénes lo persiguen.</p>
+                <p><strong>Comportamiento en Combate:</strong> Tira iniciativa con d8 + A=3. Siempre lanza viales en primer lugar, intentando crear barreras de fuego o daño en área antes de que el combate cuerpo a cuerpo sea inevitable. Si es capturado y se siente a salvo, se relaja lo suficiente como para revelar pistas cruciales sobre sus investigaciones y sobre el señor oscuro al que menciona en su diario.</p>
+            </div>
+            <div class="npc-card">
+                <div class="npc-header">Guardias Leales del Alquimista (x1–2)</div>
+                <div class="atributos">
+                    <div class="attr">F 5</div><div class="attr">P 4</div><div class="attr">R 4</div>
+                    <div class="attr">C 3</div><div class="attr">I 2</div><div class="attr">A 4</div><div class="attr">S 3</div>
+                </div>
+                <p><strong>PV Inicial:</strong> 25 cada uno &nbsp;|&nbsp; <strong>Equipo:</strong> Espadas de filo recto (d6 de daño), armadura ligera de cuero endurecido (-2 al daño recibido).</p>
+                <p><strong>Descripción Detallada:</strong> Son hombres robustos y bien alimentados en comparación con los bandoleros del camino, con capas del ducado que llevan con orgullo aunque desgastadas por semanas de servicio en campo abierto. Sus ojos son decididos y sus movimientos son los de soldados con entrenamiento real, no improvisado. Huelen a metal, cuero aceitado y al sudor de quien lleva días patrullando sin descanso. No hacen preguntas ni vacilan: su misión es proteger al alquimista y eso es lo único que importa mientras quede aliento en sus cuerpos. Si se les pregunta por qué sirven a alguien que parece tan inestable, su respuesta es siempre la misma: "Las órdenes son las órdenes."</p>
+                <p><strong>Comportamiento en Combate:</strong> Tiran iniciativa con d8 + A=4. Adoptan posiciones de flanqueo de forma inmediata y coordinada, intentando cubrir al alquimista desde ángulos opuestos. Luchan hasta caer y no aceptan rendiciones ni negociaciones durante el combate activo.</p>
+            </div>
+        </div>
+        
+        <h3>Tracker de Encuentro</h3>
+        <table class="tracker-table">
+            <thead>
+                <tr>
+                    <th>NPC / Jugador</th>
+                    <th>Iniciativa</th>
+                    <th>PV Actual</th>
+                    <th>Estado</th>
+                    <th>Notas</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>El Alquimista</td>
+                    <td><input type="text" placeholder="d8 +3"></td>
+                    <td><input type="text" value="20"></td>
+                    <td><input type="text" placeholder="Febril, paranoico"></td>
+                    <td><input type="text" placeholder="Viales listos para lanzar"></td>
+                </tr>
+                <tr>
+                    <td>Guardia Leal 1</td>
+                    <td><input type="text" placeholder="d8 +4"></td>
+                    <td><input type="text" value="25"></td>
+                    <td><input type="text" placeholder="Alerta, posición de flanqueo"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Guardia Leal 2</td>
+                    <td><input type="text" placeholder="d8 +4"></td>
+                    <td><input type="text" value="25"></td>
+                    <td><input type="text" placeholder="Alerta, posición de flanqueo"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Jugador 1</td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Jugador 2</td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>Jugador 3</td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p class="loot">💰 Botín Posible (Nivel Bajo): Si los jugadores vencen o capturan al alquimista: entre 30 y 50 dovahs repartidos entre frascos sellados y una caja de metal bajo la mesa, una poción curativa de fabricación propia (recupera d6 PV, valor de 20 dovahs), y el diario personal del alquimista, chamuscado en las esquinas pero legible en su mayor parte. En él se relatan meses de experimentos fallidos con fuego de combustión prolongada, la persecución constante de dos bandas rivales que quieren robarle sus fórmulas, y una entrada final, escrita con mano temblorosa, que dice: "He contactado con alguien que puede protegerme. Me espera en una torre que no aparece en ningún mapa. No sé si es salvación o trampa, pero ya no me queda otra salida." Esta última entrada actúa como gancho directo para la siguiente aventura.</p>
+    </div>
+</div>
+
+</body>
+</html>
