@@ -182,6 +182,13 @@ font-weight: bold;
 color: #8b0000;
 text-decoration: underline;
 }
+/* Machacar estilos inline de Google Docs */
+#content * {
+    font-family: 'EB Garamond', serif !important;
+    color: #2c1b0f !important;
+    background: none !important;
+    max-width: 100% !important;
+}
 </style>
 </head>
 <body>
@@ -214,7 +221,6 @@ Localidades Mencionadas
 <div id="loading">Cargando la crónica...</div>
 </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
     const contentDiv = document.getElementById('content');
@@ -222,7 +228,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tocDiv = document.getElementById('toc');
     const localidadesDetails = document.getElementById('localidades');
     const percentSpan = document.getElementById('load-percent');
-
     try {
         const response = await fetch('LosErrantesdeKurghaimat.html');
         if (!response.ok) throw new Error('Archivo no encontrado');
@@ -231,31 +236,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         const doc = parser.parseFromString(html, 'text/html');
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = doc.body.innerHTML;
-
         // Procesar capítulos
-        const chapterHeaders = tempDiv.querySelectorAll('h1.c7');
+        const chapterHeaders = tempDiv.querySelectorAll('h1');
         const chapters = [];
         let chapterIndex = 1;
         chapterHeaders.forEach(header => {
-            const span = header.querySelector('span.c4');
-            let text = (span?.textContent || header.textContent || '').trim();
-            if (!text) { header.remove(); return; }
-            let chapterNum = text.split(' - ')[0]?.trim() || text;
-            let chapterSub = text.includes(' - ') ? text.split(' - ').slice(1).join(' - ').trim() : '';
+            let text = (header.textContent || '').trim();
+            if (!text.toLowerCase().includes('capítulo') && !text.toLowerCase().includes('capitulo')) {
+                return; // no es capítulo → saltar
+            }
+
+            // Limpiar posibles spans o basura
+            text = text.replace(/\s+/g, ' ').trim();
+
+            let chapterNum = '';
+            let chapterSub = '';
+
+            // Ejemplos de formatos típicos que salen de Docs
+            if (text.includes(' - ')) {
+                [chapterNum, chapterSub] = text.split(' - ').map(s => s.trim());
+            } else if (text.match(/^Cap[ií]tulo\s+[IVXLCDM0-9]+/i)) {
+                chapterNum = text.split(/\s+/).slice(0,2).join(' ');
+                chapterSub = text.split(/^\s*Cap[ií]tulo\s+[IVXLCDM0-9]+\s*-?\s*/i)[1] || '';
+                chapterSub = chapterSub.trim();
+            } else {
+                chapterNum = text;
+            }
+
+            if (!chapterNum) return;
+
             const h2Num = document.createElement('h2');
             h2Num.className = 'chapter-num';
             h2Num.textContent = chapterNum;
             h2Num.id = `chapter-${chapterIndex}`;
+
             const h2Sub = document.createElement('h2');
             h2Sub.className = 'chapter-title';
             h2Sub.textContent = chapterSub;
+
             header.parentNode.insertBefore(h2Num, header);
-            if (chapterSub) header.parentNode.insertBefore(h2Sub, header.nextSibling);
-            chapters.push({ num: chapterNum, id: `chapter-${chapterIndex}` });
+            if (chapterSub) {
+                header.parentNode.insertBefore(h2Sub, header.nextSibling);
+            }
+
+            chapters.push({ num: chapterNum + (chapterSub ? ' - ' + chapterSub : ''), id: `chapter-${chapterIndex}` });
             chapterIndex++;
+
             header.remove();
         });
-
         if (chapters.length > 0) {
             const tocH3 = document.createElement('h3');
             tocH3.textContent = 'Índice de Capítulos';
@@ -271,21 +299,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             tocDiv.appendChild(tocUl);
         }
-
         // Limpieza
         tempDiv.querySelectorAll('p').forEach(p => {
             const txt = (p.textContent || '').trim();
             if (txt.length < 3 || txt === ' ') p.remove();
         });
         tempDiv.querySelectorAll('p:empty, .c5, span:empty, br:only-child').forEach(el => el.remove());
-
         contentDiv.innerHTML = tempDiv.innerHTML;
         loading?.remove();
+
+        // Quitar contenedores raros de Google Docs que rompen el layout
+        contentDiv.querySelectorAll('.c7, .doc-content, [style*="max-width:362.8pt"], table').forEach(el => {
+            // Mover hijos al padre y eliminar el contenedor
+            while (el.firstChild) {
+                el.parentNode.insertBefore(el.firstChild, el);
+            }
+            el.remove();
+        });
+
+        // Forzar estilos propios en todo el contenido (por si traen fuentes o colores raros)
+        contentDiv.querySelectorAll('p, span, div').forEach(el => {
+            el.style.fontFamily = "'EB Garamond', serif";
+            el.style.color = '#2c1b0f';
+            el.style.background = 'transparent';
+        });
 
         // ────────────────────────────────────────────────
         // LOCALIDADES: solo las mencionadas → con límites de palabra
         // ────────────────────────────────────────────────
-
         // Ya no necesitamos comprobar .jpg → siempre enlazamos a la wiki
         const knownLower = new Set([
             "aldearares","aldequejas","alinomin","allares","allogollos","allos","alominchar",
@@ -307,7 +348,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             "torrio","torronza","torroso","tortilmadro","urriozascas","vallo","valmadroma",
             "valviste","valza","yundo","yunta","yuntatildea","zarmoveras"
         ]);
-
         // 1. Recolectar nodos de texto
         const textNodes = [];
         const walker = document.createTreeWalker(contentDiv, NodeFilter.SHOW_TEXT, null);
@@ -317,7 +357,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 textNodes.push(node);
             }
         }
-
         // 2. Encontrar menciones con límites de palabra (\b)
         const foundLower = new Set();
         const nameToDisplay = new Map(); // lower → forma real encontrada (primera ocurrencia)
@@ -334,26 +373,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         });
-
         // Ya no comprobamos existencia de imagen → todas las encontradas van a la wiki
         const validLocalidades = new Map(); // lower → displayName
         foundLower.forEach(lower => {
             const display = nameToDisplay.get(lower) || (lower.charAt(0).toUpperCase() + lower.slice(1));
             validLocalidades.set(lower, display);
         });
-
         if (percentSpan) percentSpan.remove();
-
         if (validLocalidades.size === 0) {
             localidadesDetails.remove();
             return;
         }
-
         // 4. Regex final para reemplazar
         const namesArray = Array.from(validLocalidades.values());
         const escaped = namesArray.map(n => n.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'));
         const regex = new RegExp('\\b(' + escaped.join('|') + ')\\b', 'g');
-
         // 5. Reemplazar en los nodos de texto → enlace a wiki
         textNodes.forEach(textNode => {
             const text = textNode.nodeValue;
@@ -385,13 +419,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             textNode.parentNode.replaceChild(fragment, textNode);
         });
-
         // 6. Generar lista ordenada alfabéticamente → enlace a wiki
         const locUl = document.createElement('ul');
         const sorted = Array.from(validLocalidades.entries())
             .map(([lower, display]) => ({lower, display}))
             .sort((a, b) => a.display.localeCompare(b.display, 'es'));
-
         sorted.forEach(({lower, display}) => {
             const li = document.createElement('li');
             const a = document.createElement('a');
@@ -401,9 +433,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             li.appendChild(a);
             locUl.appendChild(li);
         });
-
         localidadesDetails.appendChild(locUl);
-
     } catch (err) {
         contentDiv.innerHTML = `<p style="color:#b22222; text-align:center; font-size:1.5em; padding:120px 0;">
             Error: ${err.message}<br>Verifica que "LosErrantesdeKurghaimat.html" exista.
