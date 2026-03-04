@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Documentos del Alquimista</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=UnifrakturMaguntia&family=IM+Fell+English+SC&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --pergamino: linear-gradient(135deg, #f5e8c7 0%, #e8d5a3 50%, #d9c28c 100%);
+      --mancha1: rgba(180,140,90,0.12);
+      --mancha2: rgba(140,100,60,0.08);
+      --quemado: rgba(80,40,20,0.15);
+      --tinta: #1a0f00;
+      --tinta-desva: #3a2a10;
+      --tinta-roja: #5c1a1a;
+      --borde-irregular: 8px 12px 15px 10px / 10px 14px 9px 11px;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0d0a05;
+      font-family: 'EB Garamond', serif;
+      color: var(--tinta);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #8b5a2b;
+      font-family: 'Cinzel Decorative', cursive;
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 25px;
+    }
+
+    .tab-label {
+      background: #4a2c0f;
+      color: #d9c28c;
+      padding: 12px 24px;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-family: 'UnifrakturMaguntia', cursive;
+      font-size: 1.1rem;
+      transition: all 0.25s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      border: 1px solid #6b3e1a;
+    }
+
+    .tab-label:hover {
+      background: #6b3e1a;
+      transform: translateY(-2px);
+    }
+
+    input[type="radio"] {
+      display: none;
+    }
+
+    .tab-content {
+      display: none;
+      background: var(--pergamino);
+      border-radius: 12px;
+      padding: 40px 50px;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.4), 0 10px 30px rgba(0,0,0,0.7);
+      position: relative;
+      overflow: hidden;
+      min-height: 520px;
+      border: 1px solid #8b5a2b;
+    }
+
+    input[type="radio"]:checked + .tab-label {
+      background: #d9c28c;
+      color: #2c1505;
+      z-index: 1;
+    }
+
+    input#tab1:checked ~ .tab-content:nth-of-type(1),
+    input#tab2:checked ~ .tab-content:nth-of-type(2),
+    input#tab3:checked ~ .tab-content:nth-of-type(3),
+    input#tab4:checked ~ .tab-content:nth-of-type(4) {
+      display: block;
+    }
+
+    .pergamino {
+      position: relative;
+      background: var(--pergamino);
+      border-radius: var(--borde-irregular);
+      padding: 35px 45px;
+      box-shadow: 
+        inset 0 0 60px rgba(139,90,43,0.15),
+        inset 15px 0 30px var(--mancha1),
+        inset -20px 25px 40px var(--mancha2),
+        inset 30px -15px 35px var(--quemado);
+      border: 2px solid #8b5a2b;
+      border-image: linear-gradient(to bottom, #8b5a2b, #4a2c0f) 1;
+    }
+
+    .pergamino::before,
+    .pergamino::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0; left: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(0,0,0,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .pergamino::after {
+      background: radial-gradient(circle at 80% 70%, rgba(120,60,30,0.08) 0%, transparent 70%);
+    }
+
+    .titulo {
+      font-family: 'IM Fell English SC', serif;
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: 30px;
+      color: #3a2a10;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+      letter-spacing: 1.5px;
+    }
+
+    .texto {
+      font-size: 1.18rem;
+      line-height: 1.75;
+      text-align: justify;
+      hyphens: auto;
+      color: var(--tinta);
+    }
+
+    .resaltado {
+      color: var(--tinta-roja);
+      font-weight: bold;
+    }
+
+    .apresurado {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      color: #5c2a0a;
+      font-size: 1.05rem;
+    }
+
+    .simbolo {
+      font-size: 2.2rem;
+      color: #4a2c0f;
+      letter-spacing: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Documentos Recuperados</h1>
+
+  <div class="tabs">
+    <input type="radio" id="tab1" name="docs" checked>
+    <label for="tab1" class="tab-label">Lista de Materiales</label>
+
+    <input type="radio" id="tab2" name="docs">
+    <label for="tab2" class="tab-label">Carta sin Destinatario</label>
+
+    <input type="radio" id="tab3" name="docs">
+    <label for="tab3" class="tab-label">Mapa Parcial</label>
+
+    <input type="radio" id="tab4" name="docs">
+    <label for="tab4" class="tab-label">Sobre Lacrado</label>
+  </div>
+
+  <!-- Documento 1 -->
+  <div class="tab-content">
+    <div class="pergamino">
+      <div class="titulo">Inventario de Adquisiciones Recientes</div>
+      <div class="texto">
+        sulfato de cobre <span class="resaltado">(doce libras)</span> <span class="apresurado">B. / Esplera</span><br>
+        resina de abeto destilada <span class="resaltado">(dos arrobas)</span> <span class="apresurado">B. / Esplera</span><br>
+        alumbre de roca en polvo fino <span class="apresurado">A. / Gremio</span><br>
+        sal mineral primera variedad (enclave) <span class="apresurado">B. / Esplera</span><br>
+        sal mineral segunda variedad (allepa) <span class="apresurado">A. / Gremio</span><br>
+        sal mineral tercera variedad (carpiedra) <span class="apresurado">B. / Esplera</span><br><br>
+
+        <span class="apresurado" style="display:block; text-align:center; margin-top:40px; font-size:1.3rem;">
+          última entrega con retraso — preguntar a B.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documento 2 -->
+  <div class="tab-content">
+    <div class="pergamino">
+      <div class="titulo">Informe sobre el Experimento</div>
+      <div class="texto">
+        El guardia de Torrio fue expuesto al objeto durante diez minutos.<br>
+        Reaccionó con desorientación creciente hasta la cuarta exposición,<br>
+        momento en que los síntomas se volvieron <span class="resaltado">permanentes</span>.<br><br>
+
+        La acumulación no se detiene entre sesiones;<br>
+        el intervalo entre exposiciones <span class="resaltado">no reinicia el contador</span>.<br><br>
+
+        <span class="apresurado" style="display:block; text-align:right; margin-top:50px; font-size:1.4rem;">
+          TOR — no volver sin el método completo.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documento 3 -->
+  <div class="tab-content">
+    <div class="pergamino">
+      <div class="titulo">Esquema de Rutas de Entrega</div>
+      <div class="texto" style="text-align:center; font-size:1.3rem; line-height:2.2;">
+        <span style="font-size:2rem; letter-spacing:8px;">L</span>  ────────────  <span style="font-size:2rem; letter-spacing:8px;">E / mercado</span><br>
+        　　　↘　　　　　　　　　　　↙<br>
+        　　　　<span style="font-size:2.4rem; letter-spacing:10px;">TOR-C3E</span><br><br>
+
+        <span style="font-family: 'UnifrakturMaguntia', cursive; font-size:3.2rem; color:#4a2c0f; letter-spacing:6px; margin:0 20px;">○</span>
+        　　　<span style="font-family: 'UnifrakturMaguntia', cursive; font-size:3.2rem; color:#4a2c0f; letter-spacing:6px; margin:0 40px;">○</span><br>
+
+        <div style="margin-top:30px; font-size:1.1rem; color:#5c2a0a;">
+          Frecuencia: 8 días (L→E), 12 días (E→TOR-C3E)<br>
+          Tiempo estimado: 3 jornadas por tramo con carreta ligera
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documento 4 -->
+  <div class="tab-content">
+    <div class="pergamino" style="border: 3px dashed #6b3e1a; background: linear-gradient(135deg, #f5e8c7 0%, #e0c080 100%);">
+      <div class="titulo" style="color:#4a2c0f; text-shadow:none;">Encargo de Materiales</div>
+      <div class="texto" style="font-size:1.22rem; letter-spacing:0.4px;">
+        Preciso de lo habitual: resina de abeto en cantidad de<br>
+        <span style="color:#5c1a1a; font-weight:bold; font-style:italic; letter-spacing:1px;">
+          donde el río dobla la espalda al puente,
+        </span><br>
+        dos arrobas, alumbre de roca en polvo fino, y si tienes<br>
+        <span style="color:#5c1a1a; font-weight:bold; font-style:italic; letter-spacing:1px;">
+          busca al que vende lo que todos tiran.
+        </span><br>
+        existencias de sulfato de cobre hazme saber el precio<br>
+        <span style="color:#5c1a1a; font-weight:bold; font-style:italic; letter-spacing:1px;">
+          su nombre tiene cuatro letras y ninguna es la que crees.
+        </span><br>
+        antes del próximo mercado. Que sea discreta la entrega.<br>
+        <span style="color:#5c1a1a; font-weight:bold; font-style:italic; letter-spacing:1px;">
+          lleva el ojo de cobre. pregunta por el peso justo.
+        </span>
+      </div>
+      <div style="text-align:center; margin-top:40px; font-size:0.9rem; color:#6b3e1a; font-style:italic;">
+        (sellado con cera negra — borde chamuscado)
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
