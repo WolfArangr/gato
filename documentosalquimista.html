@@ -6,168 +6,290 @@
   <title>Documentos del Alquimista</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=UnifrakturMaguntia&family=IM+Fell+English+SC&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=UnifrakturMaguntia&family=IM+Fell+English+SC&family=EB+Garamond:ital@0;1&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --pergamino: linear-gradient(135deg, #f5e8c7 0%, #e8d5a3 50%, #d9c28c 100%);
-      --mancha1: rgba(180,140,90,0.12);
-      --mancha2: rgba(140,100,60,0.08);
-      --quemado: rgba(80,40,20,0.15);
-      --tinta: #1a0f00;
-      --tinta-desva: #3a2a10;
-      --tinta-roja: #5c1a1a;
-      --borde-irregular: 8px 12px 15px 10px / 10px 14px 9px 11px;
+      --pergamino: linear-gradient(135deg, #fdf6e3 0%, #f0e0b0 50%, #e0c98a 100%);
+      --tinta: #1c1200;
+      --tinta-desva: #4a381e;
+      --tinta-roja: #6b1e1e;
+      --mancha: rgba(139,90,43,0.08);
     }
+
+    *, *::before, *::after { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 20px;
-      background: #0d0a05;
-      font-family: 'EB Garamond', serif;
+      padding: 0;
+      background: #0d0a04;
+      font-family: 'EB Garamond', 'Cormorant Garamond', serif;
       color: var(--tinta);
       min-height: 100vh;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center,
+        transparent 25%,
+        rgba(0,0,0,0.5) 65%,
+        rgba(0,0,0,0.88) 100%);
     }
 
     .container {
-      max-width: 1100px;
+      position: relative;
+      z-index: 2;
+      max-width: 1000px;
       margin: 0 auto;
+      padding: 40px 20px 60px;
     }
 
     h1 {
       text-align: center;
-      color: #8b5a2b;
+      color: #c8933a;
       font-family: 'Cinzel Decorative', cursive;
-      letter-spacing: 2px;
-      margin-bottom: 30px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+      text-shadow: 0 0 18px rgba(200,147,58,0.6), 1px 1px 4px rgba(0,0,0,0.9);
+      animation: titleGlow 4s ease-in-out infinite alternate;
     }
 
+    .subtitle {
+      text-align: center;
+      font-family: 'IM Fell English SC', serif;
+      color: #8c6a30;
+      font-size: 0.95rem;
+      letter-spacing: 3px;
+      margin-bottom: 38px;
+      text-shadow: 0 0 8px rgba(140,106,48,0.4);
+    }
+
+    @keyframes titleGlow {
+      from { text-shadow: 0 0 10px rgba(200,147,58,0.4), 1px 1px 4px #000; }
+      to   { text-shadow: 0 0 28px rgba(200,147,58,0.9), 0 0 60px rgba(200,100,20,0.3), 1px 1px 4px #000; }
+    }
+
+    /* ─── TABS ─── */
     .tabs {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 25px;
+      gap: 10px;
+      margin-bottom: 0;
     }
 
     .tab-label {
-      background: #4a2c0f;
-      color: #d9c28c;
-      padding: 12px 24px;
-      border-radius: 8px 8px 0 0;
+      background: linear-gradient(180deg, #6b4420 0%, #3d2208 100%);
+      color: #e8d09a;
+      padding: 13px 26px;
+      border-radius: 10px 10px 0 0;
       cursor: pointer;
       font-family: 'UnifrakturMaguntia', cursive;
-      font-size: 1.1rem;
-      transition: all 0.25s;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-      border: 1px solid #6b3e1a;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+      box-shadow: 0 -3px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,220,150,0.15);
+      border: 1px solid #8b5a2b;
+      border-bottom: none;
     }
 
     .tab-label:hover {
-      background: #6b3e1a;
-      transform: translateY(-2px);
+      background: linear-gradient(180deg, #8b5a2b 0%, #5c3a1e 100%);
+      color: #fdf3d0;
+      transform: translateY(-4px);
     }
 
-    input[type="radio"] {
-      display: none;
+    input[type="radio"] { display: none; }
+
+    input[type="radio"]:checked + .tab-label {
+      background: linear-gradient(180deg, #f5e8c0 0%, #e8d09a 100%);
+      color: #2c1505;
+      font-weight: bold;
+      box-shadow: 0 -4px 16px rgba(200,150,50,0.5);
+      z-index: 2;
     }
 
+    /* ─── CONTENIDO ─── */
     .tab-content {
       display: none;
       background: var(--pergamino);
-      border-radius: 12px;
-      padding: 40px 50px;
-      box-shadow: inset 0 0 40px rgba(0,0,0,0.4), 0 10px 30px rgba(0,0,0,0.7);
+      border-radius: 0 14px 14px 14px;
+      box-shadow:
+        inset 0 0 60px rgba(0,0,0,0.18),
+        0 15px 50px rgba(0,0,0,0.85),
+        0 0 0 2px #8b5a2b,
+        0 0 40px rgba(180,100,20,0.12);
       position: relative;
       overflow: hidden;
-      min-height: 520px;
-      border: 1px solid #8b5a2b;
+      min-height: 580px;
     }
 
-    input[type="radio"]:checked + .tab-label {
-      background: #d9c28c;
-      color: #2c1505;
-      z-index: 1;
+    /* Manchas de humedad */
+    .tab-content::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 140px 100px at 4% 4%,   rgba(100,60,20,0.13) 0%, transparent 70%),
+        radial-gradient(ellipse 100px 130px at 96% 92%, rgba(100,60,20,0.11) 0%, transparent 70%),
+        radial-gradient(ellipse 80px  80px  at 92% 6%,  rgba(80,40,10,0.09)  0%, transparent 70%),
+        radial-gradient(ellipse 70px  90px  at 8%  88%, rgba(90,50,15,0.08)  0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      border-radius: inherit;
     }
 
-    input#tab1:checked ~ .tab-content:nth-of-type(1),
-    input#tab2:checked ~ .tab-content:nth-of-type(2),
-    input#tab3:checked ~ .tab-content:nth-of-type(3),
-    input#tab4:checked ~ .tab-content:nth-of-type(4) {
+    #tab1:checked ~ .tab-content:nth-of-type(1),
+    #tab2:checked ~ .tab-content:nth-of-type(2),
+    #tab3:checked ~ .tab-content:nth-of-type(3),
+    #tab4:checked ~ .tab-content:nth-of-type(4) {
       display: block;
+      animation: pageFlip 0.4s cubic-bezier(0.22,1,0.36,1);
     }
 
+    @keyframes pageFlip {
+      from { opacity: 0; transform: rotateX(6deg) translateY(10px) scale(0.985); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ─── PERGAMINO INTERIOR ─── */
     .pergamino {
       position: relative;
-      background: var(--pergamino);
-      border-radius: var(--borde-irregular);
-      padding: 35px 45px;
-      box-shadow: 
-        inset 0 0 60px rgba(139,90,43,0.15),
-        inset 15px 0 30px var(--mancha1),
-        inset -20px 25px 40px var(--mancha2),
-        inset 30px -15px 35px var(--quemado);
-      border: 2px solid #8b5a2b;
-      border-image: linear-gradient(to bottom, #8b5a2b, #4a2c0f) 1;
-    }
-
-    .pergamino::before,
-    .pergamino::after {
-      content: "";
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0; left: 0;
-      background: radial-gradient(circle at 20% 30%, rgba(0,0,0,0.06) 0%, transparent 60%);
-      pointer-events: none;
-    }
-
-    .pergamino::after {
-      background: radial-gradient(circle at 80% 70%, rgba(120,60,30,0.08) 0%, transparent 70%);
+      z-index: 1;
+      padding: 45px 55px 55px;
     }
 
     .titulo {
       font-family: 'IM Fell English SC', serif;
-      font-size: 1.8rem;
+      font-size: 2rem;
       text-align: center;
       margin-bottom: 30px;
-      color: #3a2a10;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-      letter-spacing: 1.5px;
+      color: #3c2a10;
+      letter-spacing: 1.2px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .titulo::after {
+      content: '';
+      display: block;
+      width: 60%;
+      height: 1px;
+      margin: 10px auto 0;
+      background: linear-gradient(90deg, transparent, #9c6b35, transparent);
     }
 
     .texto {
-      font-size: 1.18rem;
-      line-height: 1.75;
+      font-size: 1.28rem;
+      line-height: 1.9;
       text-align: justify;
-      hyphens: auto;
       color: var(--tinta);
+      position: relative;
+      z-index: 1;
     }
 
-    .resaltado {
-      color: var(--tinta-roja);
-      font-weight: bold;
-    }
+    .resaltado { color: var(--tinta-roja); font-weight: 600; }
 
     .apresurado {
-      font-family: 'EB Garamond', serif;
+      font-family: 'Cormorant Garamond', serif;
       font-style: italic;
-      color: #5c2a0a;
-      font-size: 1.05rem;
+      color: #6b2a0a;
+      font-size: 1.15rem;
     }
 
-    .simbolo {
-      font-size: 2.2rem;
-      color: #4a2c0f;
-      letter-spacing: 4px;
+    .entre-lineas {
+      font-size: 0.78rem !important;
+      line-height: 1.1;
+      font-style: italic;
+      color: #5c4a2e;
+      display: block;
+      margin: 6px 0;
+      padding-left: 20px;
+      border-left: 2px solid #8b5a2b80;
+      font-family: 'Cormorant Garamond', serif;
+    }
+
+    /* ─── DOCS 3 y 4: imagen ─── */
+    .doc-imagen {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .doc-imagen img {
+      max-width: 100%;
+      max-height: 680px;
+      border-radius: 6px;
+      box-shadow: 0 0 0 2px #9c6b35, 0 8px 30px rgba(0,0,0,0.5);
+      filter: sepia(15%) contrast(1.05);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: zoom-in;
+    }
+
+    .doc-imagen img:hover {
+      transform: scale(1.015);
+      box-shadow: 0 0 0 2px #c8933a, 0 12px 45px rgba(0,0,0,0.65), 0 0 30px rgba(180,100,20,0.25);
+    }
+
+    /* ─── LIGHTBOX ─── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(0,0,0,0.9);
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+      backdrop-filter: blur(4px);
+    }
+    #lightbox.open { display: flex; animation: fadeIn 0.2s ease; }
+    #lightbox img {
+      max-width: 92vw;
+      max-height: 92vh;
+      border-radius: 6px;
+      box-shadow: 0 0 0 2px #9c6b35, 0 20px 80px rgba(0,0,0,0.9);
+      filter: sepia(10%) contrast(1.05);
+    }
+    @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.4rem; }
+      .tab-label { font-size: 1rem; padding: 10px 14px; }
+      .pergamino { padding: 25px 20px 35px; }
+      .titulo { font-size: 1.5rem; }
+      .texto { font-size: 1.1rem; }
     }
   </style>
 </head>
 <body>
 
+<canvas id="bg-canvas"></canvas>
+<div class="vignette"></div>
+
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="documento ampliado">
+</div>
+
 <div class="container">
-  <h1>Documentos Recuperados</h1>
+  <h1>Documentos Recuperados del Archivador</h1>
+  <div class="subtitle">✦ &nbsp; Archivos Sellados &nbsp; ✦</div>
 
   <div class="tabs">
     <input type="radio" id="tab1" name="docs" checked>
@@ -183,10 +305,10 @@
     <label for="tab4" class="tab-label">Sobre Lacrado</label>
   </div>
 
-  <!-- Documento 1 -->
+  <!-- Doc 1 -->
   <div class="tab-content">
     <div class="pergamino">
-      <div class="titulo">Inventario de Adquisiciones Recientes</div>
+      <div class="titulo">Inventario de Adquisiciones</div>
       <div class="texto">
         sulfato de cobre <span class="resaltado">(doce libras)</span> <span class="apresurado">B. / Esplera</span><br>
         resina de abeto destilada <span class="resaltado">(dos arrobas)</span> <span class="apresurado">B. / Esplera</span><br>
@@ -194,81 +316,220 @@
         sal mineral primera variedad (enclave) <span class="apresurado">B. / Esplera</span><br>
         sal mineral segunda variedad (allepa) <span class="apresurado">A. / Gremio</span><br>
         sal mineral tercera variedad (carpiedra) <span class="apresurado">B. / Esplera</span><br><br>
-
-        <span class="apresurado" style="display:block; text-align:center; margin-top:40px; font-size:1.3rem;">
+        <span class="apresurado" style="display:block;text-align:center;font-size:1.4rem;margin-top:50px;">
           última entrega con retraso — preguntar a B.
         </span>
       </div>
     </div>
   </div>
 
-  <!-- Documento 2 -->
+  <!-- Doc 2 -->
   <div class="tab-content">
     <div class="pergamino">
-      <div class="titulo">Informe sobre el Experimento</div>
+      <div class="titulo">Informe del Experimento</div>
       <div class="texto">
-        El guardia de Torrio fue expuesto al objeto durante diez minutos.<br>
+        El guardia de Torrio fue expuesto al objeto estudiado durante diez minutos.<br>
+        <span class="entre-lineas">la acumulación no se detiene entre sesiones</span>
         Reaccionó con desorientación creciente hasta la cuarta exposición,<br>
+        <span class="entre-lineas">el intervalo entre exposiciones no reinicia el contador</span>
         momento en que los síntomas se volvieron <span class="resaltado">permanentes</span>.<br><br>
-
-        La acumulación no se detiene entre sesiones;<br>
-        el intervalo entre exposiciones <span class="resaltado">no reinicia el contador</span>.<br><br>
-
-        <span class="apresurado" style="display:block; text-align:right; margin-top:50px; font-size:1.4rem;">
+        <span class="apresurado" style="display:block;text-align:right;margin-top:60px;font-size:1.45rem;">
           TOR — no volver sin el método completo.
         </span>
       </div>
     </div>
   </div>
 
-  <!-- Documento 3 -->
+  <!-- Doc 3: imagen -->
   <div class="tab-content">
-    <div class="pergamino">
-      <div class="titulo">Esquema de Rutas de Entrega</div>
-      <div class="texto" style="text-align:center; font-size:1.3rem; line-height:2.2;">
-        <span style="font-size:2rem; letter-spacing:8px;">L</span>  ────────────  <span style="font-size:2rem; letter-spacing:8px;">E / mercado</span><br>
-        　　　↘　　　　　　　　　　　↙<br>
-        　　　　<span style="font-size:2.4rem; letter-spacing:10px;">TOR-C3E</span><br><br>
-
-        <span style="font-family: 'UnifrakturMaguntia', cursive; font-size:3.2rem; color:#4a2c0f; letter-spacing:6px; margin:0 20px;">○</span>
-        　　　<span style="font-family: 'UnifrakturMaguntia', cursive; font-size:3.2rem; color:#4a2c0f; letter-spacing:6px; margin:0 40px;">○</span><br>
-
-        <div style="margin-top:30px; font-size:1.1rem; color:#5c2a0a;">
-          Frecuencia: 8 días (L→E), 12 días (E→TOR-C3E)<br>
-          Tiempo estimado: 3 jornadas por tramo con carreta ligera
-        </div>
-      </div>
+    <div class="doc-imagen">
+      <img src="/documento3.jpg" alt="Mapa Parcial"
+           onclick="document.getElementById('lb-img').src=this.src;document.getElementById('lightbox').classList.add('open')">
     </div>
   </div>
 
-  <!-- Documento 4 -->
+  <!-- Doc 4: imagen -->
   <div class="tab-content">
-    <div class="pergamino" style="border: 3px dashed #6b3e1a; background: linear-gradient(135deg, #f5e8c7 0%, #e0c080 100%);">
-      <div class="titulo" style="color:#4a2c0f; text-shadow:none;">Encargo de Materiales</div>
-      <div class="texto" style="font-size:1.22rem; letter-spacing:0.4px;">
-        Preciso de lo habitual: resina de abeto en cantidad de<br>
-        <span style="color:#5c1a1a; font-weight:bold; font-style:italic; letter-spacing:1px;">
-          donde el río dobla la espalda al puente,
-        </span><br>
-        dos arrobas, alumbre de roca en polvo fino, y si tienes<br>
-        <span style="color:#5c1a1a; font-weight:bold; font-style:italic; letter-spacing:1px;">
-          busca al que vende lo que todos tiran.
-        </span><br>
-        existencias de sulfato de cobre hazme saber el precio<br>
-        <span style="color:#5c1a1a; font-weight:bold; font-style:italic; letter-spacing:1px;">
-          su nombre tiene cuatro letras y ninguna es la que crees.
-        </span><br>
-        antes del próximo mercado. Que sea discreta la entrega.<br>
-        <span style="color:#5c1a1a; font-weight:bold; font-style:italic; letter-spacing:1px;">
-          lleva el ojo de cobre. pregunta por el peso justo.
-        </span>
-      </div>
-      <div style="text-align:center; margin-top:40px; font-size:0.9rem; color:#6b3e1a; font-style:italic;">
-        (sellado con cera negra — borde chamuscado)
-      </div>
+    <div class="doc-imagen">
+      <img src="/documento4.jpg" alt="Sobre Lacrado"
+           onclick="document.getElementById('lb-img').src=this.src;document.getElementById('lightbox').classList.add('open')">
     </div>
   </div>
+
 </div>
 
+<script>
+/* ═══════════════════════════════════════════
+   FONDO: cenizas + humo denso
+═══════════════════════════════════════════ */
+const canvas = document.getElementById('bg-canvas');
+const ctx    = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+/* ── PARTÍCULAS DE CENIZA ── */
+const ASH_COUNT = 160;
+const ashes = [];
+
+function mkAsh(fromBottom) {
+  return {
+    x:      Math.random() * W,
+    y:      fromBottom ? H + 8 : Math.random() * H,
+    r:      0.4 + Math.random() * 2.2,
+    vx:     (Math.random() - 0.5) * 0.5,
+    vy:     -(0.1 + Math.random() * 0.7),
+    alpha:  fromBottom ? 0 : Math.random() * 0.5,
+    maxA:   0.1 + Math.random() * 0.45,
+    phase:  Math.random() * Math.PI * 2,
+    wobble: 0.008 + Math.random() * 0.018,
+    warm:   Math.random() < 0.45   // dorado o gris
+  };
+}
+for (let i = 0; i < ASH_COUNT; i++) ashes.push(mkAsh(false));
+
+/* ── VOLUTAS DE HUMO ── */
+const SMOKE_COUNT = 22;
+const smokes = [];
+
+function mkSmoke(fromBottom) {
+  return {
+    x:      Math.random() * W,
+    y:      fromBottom ? H + 80 : Math.random() * H,
+    r:      45 + Math.random() * 110,
+    vx:     (Math.random() - 0.5) * 0.18,
+    vy:     -(0.06 + Math.random() * 0.22),
+    alpha:  fromBottom ? 0 : Math.random() * 0.07,
+    maxA:   0.04 + Math.random() * 0.09,
+    phase:  Math.random() * Math.PI * 2,
+    wobble: 0.0006 + Math.random() * 0.0014,
+    growing:true
+  };
+}
+for (let i = 0; i < SMOKE_COUNT; i++) smokes.push(mkSmoke(false));
+
+/* ── BRASAS (puntos brillantes que suben) ── */
+const EMBER_COUNT = 30;
+const embers = [];
+
+function mkEmber(fromBottom) {
+  return {
+    x:     Math.random() * W,
+    y:     fromBottom ? H + 4 : Math.random() * H,
+    r:     0.8 + Math.random() * 1.4,
+    vx:    (Math.random() - 0.5) * 0.4,
+    vy:    -(0.3 + Math.random() * 1.1),
+    alpha: fromBottom ? 0 : Math.random() * 0.8,
+    maxA:  0.5 + Math.random() * 0.5,
+    phase: Math.random() * Math.PI * 2,
+    flick: 0.04 + Math.random() * 0.08
+  };
+}
+for (let i = 0; i < EMBER_COUNT; i++) embers.push(mkEmber(false));
+
+let tick = 0;
+
+function draw() {
+  tick++;
+  ctx.clearRect(0, 0, W, H);
+
+  /* Fondo oscuro con gradiente cálido en la parte baja */
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0,    '#080502');
+  bg.addColorStop(0.65, '#0d0804');
+  bg.addColorStop(1,    '#1a0e04');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  /* Resplandor rojizo tenue en la base */
+  const glow = ctx.createRadialGradient(W/2, H, 0, W/2, H, W * 0.7);
+  glow.addColorStop(0,   'rgba(120,40,8,0.18)');
+  glow.addColorStop(0.5, 'rgba(80,20,4,0.08)');
+  glow.addColorStop(1,   'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  /* ── Dibujar humo ── */
+  smokes.forEach((s, i) => {
+    s.x += s.vx + Math.sin(tick * s.wobble + s.phase) * 0.4;
+    s.y += s.vy;
+    if (s.growing) {
+      s.alpha += 0.0006;
+      if (s.alpha >= s.maxA) s.growing = false;
+    } else {
+      s.alpha -= 0.0003;
+    }
+    if (s.alpha <= 0 || s.y < -s.r * 3) {
+      smokes[i] = mkSmoke(true); return;
+    }
+    const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
+    g.addColorStop(0,   `rgba(70,45,22,${s.alpha})`);
+    g.addColorStop(0.4, `rgba(45,28,12,${s.alpha * 0.6})`);
+    g.addColorStop(1,   'transparent');
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+  });
+
+  /* ── Dibujar cenizas ── */
+  ashes.forEach((a, i) => {
+    a.x += a.vx + Math.sin(tick * a.wobble + a.phase) * 0.25;
+    a.y += a.vy;
+    if (a.alpha < a.maxA) a.alpha += 0.004;
+    if (a.y < -6 || a.alpha <= 0) {
+      ashes[i] = mkAsh(true); return;
+    }
+    ctx.globalAlpha = Math.max(0, a.alpha);
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+    ctx.fillStyle = a.warm ? '#c8a060' : '#b0a898';
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  /* ── Dibujar brasas ── */
+  embers.forEach((e, i) => {
+    e.x += e.vx + Math.sin(tick * e.flick + e.phase) * 0.2;
+    e.y += e.vy;
+    const flicker = 0.5 + 0.5 * Math.sin(tick * e.flick * 6 + e.phase);
+    const a = Math.max(0, Math.min(e.maxA, e.alpha) * flicker);
+    if (a <= 0.02 && e.y < H * 0.3) {
+      embers[i] = mkEmber(true); return;
+    }
+    if (e.alpha < e.maxA) e.alpha += 0.012;
+
+    /* Halo */
+    const halo = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r * 5);
+    halo.addColorStop(0,   `rgba(255,160,40,${a * 0.6})`);
+    halo.addColorStop(0.4, `rgba(220,80,10,${a * 0.3})`);
+    halo.addColorStop(1,   'transparent');
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.r * 5, 0, Math.PI * 2);
+    ctx.fillStyle = halo;
+    ctx.fill();
+
+    /* Núcleo */
+    ctx.globalAlpha = Math.min(1, a * 1.4);
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffe090';
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('lightbox').classList.remove('open');
+});
+</script>
 </body>
 </html>
