@@ -9,15 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=UnifrakturMaguntia&family=IM+Fell+English+SC&family=EB+Garamond:ital@0;1&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 
   <style>
-    :root {
-      --perg-bg: #f0dda0;
-    }
-
     *, *::before, *::after { box-sizing: border-box; }
 
     body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       background: #0d0a04;
       font-family: 'EB Garamond', 'Cormorant Garamond', serif;
       color: #1c1200;
@@ -26,32 +21,22 @@
       overflow-x: hidden;
     }
 
-    /* Canvas siempre al fondo */
     #bg-canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 0;
-      pointer-events: none;
+      position: fixed; top:0; left:0;
+      width:100%; height:100%;
+      z-index: 0; pointer-events: none;
     }
 
-    /* Viñeta encima del canvas, debajo de todo lo demás */
     .vignette {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 1;
-      pointer-events: none;
+      position: fixed; top:0; left:0;
+      width:100%; height:100%;
+      z-index: 1; pointer-events: none;
       background: radial-gradient(ellipse at center,
-        transparent 25%,
-        rgba(0,0,0,0.45) 65%,
-        rgba(0,0,0,0.85) 100%);
+        transparent 25%, rgba(0,0,0,0.45) 65%, rgba(0,0,0,0.85) 100%);
     }
 
-    /* Todo el contenido de la página por encima */
     .container {
-      position: relative;
-      z-index: 10;
+      position: relative; z-index: 10;
       max-width: 1000px;
       margin: 0 auto;
       padding: 40px 20px 60px;
@@ -66,32 +51,25 @@
       text-shadow: 0 0 18px rgba(200,147,58,0.6), 1px 1px 4px rgba(0,0,0,0.9);
       animation: titleGlow 4s ease-in-out infinite alternate;
     }
-
-    .subtitle {
-      text-align: center;
-      font-family: 'IM Fell English SC', serif;
-      color: #8c6a30;
-      font-size: 0.95rem;
-      letter-spacing: 3px;
-      margin-bottom: 38px;
-      text-shadow: 0 0 8px rgba(140,106,48,0.4);
-    }
-
     @keyframes titleGlow {
       from { text-shadow: 0 0 10px rgba(200,147,58,0.4), 1px 1px 4px #000; }
       to   { text-shadow: 0 0 28px rgba(200,147,58,0.9), 0 0 60px rgba(200,100,20,0.3), 1px 1px 4px #000; }
     }
 
-    /* ─── TABS ─── */
-    .tabs {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 0;
+    .subtitle {
+      text-align: center;
+      font-family: 'IM Fell English SC', serif;
+      color: #8c6a30; font-size: 0.95rem;
+      letter-spacing: 3px; margin-bottom: 38px;
     }
 
-    .tab-label {
+    /* ── TABS ── */
+    .tabs {
+      display: flex; justify-content: center;
+      flex-wrap: wrap; gap: 10px; margin-bottom: 0;
+    }
+
+    .tab-btn {
       background: linear-gradient(180deg, #6b4420 0%, #3d2208 100%);
       color: #e8d09a;
       padding: 13px 26px;
@@ -99,163 +77,111 @@
       cursor: pointer;
       font-family: 'UnifrakturMaguntia', cursive;
       font-size: 1.2rem;
-      transition: all 0.3s;
       border: 1px solid #8b5a2b;
       border-bottom: none;
+      transition: all 0.3s;
       user-select: none;
     }
-
-    .tab-label:hover {
+    .tab-btn:hover {
       background: linear-gradient(180deg, #8b5a2b 0%, #5c3a1e 100%);
-      color: #fdf3d0;
-      transform: translateY(-4px);
+      color: #fdf3d0; transform: translateY(-4px);
+    }
+    .tab-btn.active {
+      background: linear-gradient(180deg, #fdf6e3 0%, #e8d09a 100%);
+      color: #2c1505; font-weight: bold;
     }
 
-    input[type="radio"] { display: none; }
-
-    input[type="radio"]:checked + .tab-label {
-      background: linear-gradient(180deg, #f5e8c0 0%, var(--perg-bg) 100%);
-      color: #2c1505;
-      font-weight: bold;
-    }
-
-    /* ─── PANEL DEL DOCUMENTO ─── */
-    .tab-content {
+    /* ── PANELES ── */
+    .tab-panel {
       display: none;
-      /* fondo sólido opaco, sin transparencias */
-      background: #f0dda0;
       background: linear-gradient(135deg, #fdf6e3 0%, #f0e0b0 50%, #e0c98a 100%);
       border-radius: 0 14px 14px 14px;
       border: 2px solid #8b5a2b;
-      box-shadow:
-        0 15px 50px rgba(0,0,0,0.85),
-        0 0 40px rgba(180,100,20,0.15);
-      /* sin overflow hidden para no cortar nada */
       min-height: 540px;
-      /* manchas de pergamino como sombra interna */
       box-shadow:
-        inset 30px 0  60px rgba(139,90,43,0.07),
+        inset 30px 0 60px rgba(139,90,43,0.07),
         inset -20px 25px 50px rgba(100,70,40,0.07),
         0 15px 50px rgba(0,0,0,0.85),
         0 0 0 2px #8b5a2b;
     }
-
-    #tab1:checked ~ .tab-content:nth-of-type(1),
-    #tab2:checked ~ .tab-content:nth-of-type(2),
-    #tab3:checked ~ .tab-content:nth-of-type(3),
-    #tab4:checked ~ .tab-content:nth-of-type(4) {
+    .tab-panel.active {
       display: block;
       animation: pageFlip 0.4s cubic-bezier(0.22,1,0.36,1);
     }
-
     @keyframes pageFlip {
-      from { opacity: 0; transform: translateY(12px) scale(0.985); }
-      to   { opacity: 1; transform: none; }
+      from { opacity:0; transform: translateY(12px) scale(0.985); }
+      to   { opacity:1; transform: none; }
     }
 
-    /* ─── CONTENIDO DEL PERGAMINO ─── */
-    .pergamino {
-      padding: 45px 55px 55px;
-    }
+    /* ── INTERIOR ── */
+    .pergamino { padding: 45px 55px 55px; }
 
     .titulo {
       font-family: 'IM Fell English SC', serif;
-      font-size: 2rem;
-      text-align: center;
-      margin-bottom: 30px;
-      color: #3c2a10;
-      letter-spacing: 1.2px;
+      font-size: 2rem; text-align: center;
+      margin-bottom: 30px; color: #3c2a10; letter-spacing: 1.2px;
     }
-
     .titulo::after {
-      content: '';
-      display: block;
-      width: 60%;
-      height: 1px;
+      content:''; display:block; width:60%; height:1px;
       margin: 10px auto 0;
       background: linear-gradient(90deg, transparent, #9c6b35, transparent);
     }
 
     .texto {
-      font-size: 1.28rem;
-      line-height: 1.9;
-      text-align: justify;
-      color: #1c1200;
+      font-size: 1.28rem; line-height: 1.9;
+      text-align: justify; color: #1c1200;
     }
 
     .resaltado { color: #6b1e1e; font-weight: 600; }
 
     .apresurado {
       font-family: 'Cormorant Garamond', serif;
-      font-style: italic;
-      color: #6b2a0a;
-      font-size: 1.15rem;
+      font-style: italic; color: #6b2a0a; font-size: 1.15rem;
     }
 
     .entre-lineas {
-      font-size: 0.78rem !important;
-      line-height: 1.1;
-      font-style: italic;
-      color: #5c4a2e;
-      display: block;
-      margin: 6px 0;
-      padding-left: 20px;
+      font-size: 0.78rem !important; line-height: 1.1;
+      font-style: italic; color: #5c4a2e;
+      display: block; margin: 6px 0; padding-left: 20px;
       border-left: 2px solid rgba(139,90,43,0.5);
       font-family: 'Cormorant Garamond', serif;
     }
 
-    /* ─── DOCS 3 y 4: imagen ─── */
+    /* ── IMAGEN ── */
     .doc-imagen {
-      width: 100%;
-      min-height: 520px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 30px;
+      width:100%; min-height:520px;
+      display:flex; align-items:center; justify-content:center;
+      padding:30px;
     }
-
     .doc-imagen img {
-      max-width: 100%;
-      max-height: 680px;
-      border-radius: 6px;
+      max-width:100%; max-height:680px; border-radius:6px;
       box-shadow: 0 0 0 2px #9c6b35, 0 8px 30px rgba(0,0,0,0.5);
       filter: sepia(15%) contrast(1.05);
       transition: transform 0.3s, box-shadow 0.3s;
       cursor: zoom-in;
     }
-
     .doc-imagen img:hover {
-      transform: scale(1.015);
-      box-shadow: 0 0 0 2px #c8933a, 0 12px 45px rgba(0,0,0,0.65), 0 0 30px rgba(180,100,20,0.25);
+      transform:scale(1.015);
+      box-shadow: 0 0 0 2px #c8933a, 0 12px 45px rgba(0,0,0,0.65);
     }
 
-    /* ─── LIGHTBOX ─── */
+    /* ── LIGHTBOX ── */
     #lightbox {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 999;
-      background: rgba(0,0,0,0.9);
-      align-items: center;
-      justify-content: center;
-      cursor: zoom-out;
-      backdrop-filter: blur(4px);
+      display:none; position:fixed; inset:0; z-index:999;
+      background:rgba(0,0,0,0.9); align-items:center;
+      justify-content:center; cursor:zoom-out; backdrop-filter:blur(4px);
     }
-    #lightbox.open { display: flex; animation: fadeIn 0.2s ease; }
-    #lightbox img {
-      max-width: 92vw;
-      max-height: 92vh;
-      border-radius: 6px;
-      box-shadow: 0 0 0 2px #9c6b35, 0 20px 80px rgba(0,0,0,0.9);
-    }
+    #lightbox.open { display:flex; animation:fadeIn 0.2s ease; }
+    #lightbox img { max-width:92vw; max-height:92vh; border-radius:6px;
+      box-shadow:0 0 0 2px #9c6b35, 0 20px 80px rgba(0,0,0,0.9); }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
-    @media (max-width: 600px) {
-      h1 { font-size: 1.4rem; }
-      .tab-label { font-size: 1rem; padding: 10px 14px; }
-      .pergamino { padding: 25px 20px 35px; }
-      .titulo { font-size: 1.5rem; }
-      .texto { font-size: 1.1rem; }
+    @media(max-width:600px){
+      h1{font-size:1.4rem;}
+      .tab-btn{font-size:1rem;padding:10px 14px;}
+      .pergamino{padding:25px 20px 35px;}
+      .titulo{font-size:1.5rem;}
+      .texto{font-size:1.1rem;}
     }
   </style>
 </head>
@@ -273,21 +199,14 @@
   <div class="subtitle">✦ &nbsp; Archivos Sellados &nbsp; ✦</div>
 
   <div class="tabs">
-    <input type="radio" id="tab1" name="docs" checked>
-    <label for="tab1" class="tab-label">Lista de Materiales</label>
-
-    <input type="radio" id="tab2" name="docs">
-    <label for="tab2" class="tab-label">Carta sin Destinatario</label>
-
-    <input type="radio" id="tab3" name="docs">
-    <label for="tab3" class="tab-label">Mapa Parcial</label>
-
-    <input type="radio" id="tab4" name="docs">
-    <label for="tab4" class="tab-label">Sobre Lacrado</label>
+    <button class="tab-btn active" onclick="showTab(0)">Lista de Materiales</button>
+    <button class="tab-btn"        onclick="showTab(1)">Carta sin Destinatario</button>
+    <button class="tab-btn"        onclick="showTab(2)">Mapa Parcial</button>
+    <button class="tab-btn"        onclick="showTab(3)">Sobre Lacrado</button>
   </div>
 
-  <!-- Doc 1 -->
-  <div class="tab-content">
+  <!-- Panel 0 -->
+  <div class="tab-panel active">
     <div class="pergamino">
       <div class="titulo">Inventario de Adquisiciones</div>
       <div class="texto">
@@ -304,8 +223,8 @@
     </div>
   </div>
 
-  <!-- Doc 2 -->
-  <div class="tab-content">
+  <!-- Panel 1 -->
+  <div class="tab-panel">
     <div class="pergamino">
       <div class="titulo">Informe del Experimento</div>
       <div class="texto">
@@ -321,161 +240,102 @@
     </div>
   </div>
 
-  <!-- Doc 3: imagen -->
-  <div class="tab-content">
+  <!-- Panel 2 -->
+  <div class="tab-panel">
     <div class="doc-imagen">
       <img src="/documento3.jpg" alt="Mapa Parcial"
            onclick="document.getElementById('lb-img').src=this.src;document.getElementById('lightbox').classList.add('open')">
     </div>
   </div>
 
-  <!-- Doc 4: imagen -->
-  <div class="tab-content">
-    <div class="tab-content">
+  <!-- Panel 3 -->
+  <div class="tab-panel">
     <div class="doc-imagen">
       <img src="/documento4.jpg" alt="Sobre Lacrado"
            onclick="document.getElementById('lb-img').src=this.src;document.getElementById('lightbox').classList.add('open')">
     </div>
-    </div>
   </div>
 
-</div><!-- /container -->
+</div>
 
 <script>
+/* ── TABS ── */
+function showTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i===idx));
+}
+
+/* ── LIGHTBOX ── */
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') document.getElementById('lightbox').classList.remove('open');
+});
+
 /* ═══════════════════════════════════════════
    FONDO: cenizas + humo + brasas
 ═══════════════════════════════════════════ */
 const canvas = document.getElementById('bg-canvas');
 const ctx    = canvas.getContext('2d');
 let W, H;
-
-function resize() {
-  W = canvas.width  = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
+function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
 resize();
 window.addEventListener('resize', resize);
 
-function mkAsh(fromBottom) {
-  return {
-    x:      Math.random() * W,
-    y:      fromBottom ? H + 8 : Math.random() * H,
-    r:      0.4 + Math.random() * 2.2,
-    vx:     (Math.random() - 0.5) * 0.5,
-    vy:     -(0.1 + Math.random() * 0.7),
-    alpha:  fromBottom ? 0 : Math.random() * 0.5,
-    maxA:   0.1 + Math.random() * 0.45,
-    phase:  Math.random() * Math.PI * 2,
-    wobble: 0.008 + Math.random() * 0.018,
-    warm:   Math.random() < 0.45
-  };
-}
+function mkAsh(b){return{x:Math.random()*W,y:b?H+8:Math.random()*H,r:.4+Math.random()*2.2,vx:(Math.random()-.5)*.5,vy:-(0.1+Math.random()*.7),alpha:b?0:Math.random()*.5,maxA:.1+Math.random()*.45,phase:Math.random()*Math.PI*2,wobble:.008+Math.random()*.018,warm:Math.random()<.45};}
+function mkSmoke(b){return{x:Math.random()*W,y:b?H+80:Math.random()*H,r:45+Math.random()*110,vx:(Math.random()-.5)*.18,vy:-(0.06+Math.random()*.22),alpha:b?0:Math.random()*.07,maxA:.04+Math.random()*.09,phase:Math.random()*Math.PI*2,wobble:.0006+Math.random()*.0014,growing:true};}
+function mkEmber(b){return{x:Math.random()*W,y:b?H+4:Math.random()*H,r:.8+Math.random()*1.4,vx:(Math.random()-.5)*.4,vy:-(0.3+Math.random()*1.1),alpha:b?0:Math.random()*.8,maxA:.5+Math.random()*.5,phase:Math.random()*Math.PI*2,flick:.04+Math.random()*.08};}
 
-function mkSmoke(fromBottom) {
-  return {
-    x:       Math.random() * W,
-    y:       fromBottom ? H + 80 : Math.random() * H,
-    r:       45 + Math.random() * 110,
-    vx:      (Math.random() - 0.5) * 0.18,
-    vy:      -(0.06 + Math.random() * 0.22),
-    alpha:   fromBottom ? 0 : Math.random() * 0.07,
-    maxA:    0.04 + Math.random() * 0.09,
-    phase:   Math.random() * Math.PI * 2,
-    wobble:  0.0006 + Math.random() * 0.0014,
-    growing: true
-  };
-}
+const ashes  = Array.from({length:160},()=>mkAsh(false));
+const smokes = Array.from({length:22}, ()=>mkSmoke(false));
+const embers = Array.from({length:30}, ()=>mkEmber(false));
+let tick=0;
 
-function mkEmber(fromBottom) {
-  return {
-    x:     Math.random() * W,
-    y:     fromBottom ? H + 4 : Math.random() * H,
-    r:     0.8 + Math.random() * 1.4,
-    vx:    (Math.random() - 0.5) * 0.4,
-    vy:    -(0.3 + Math.random() * 1.1),
-    alpha: fromBottom ? 0 : Math.random() * 0.8,
-    maxA:  0.5 + Math.random() * 0.5,
-    phase: Math.random() * Math.PI * 2,
-    flick: 0.04 + Math.random() * 0.08
-  };
-}
-
-const ashes  = Array.from({length: 160}, () => mkAsh(false));
-const smokes = Array.from({length: 22},  () => mkSmoke(false));
-const embers = Array.from({length: 30},  () => mkEmber(false));
-
-let tick = 0;
-
-function draw() {
+function draw(){
   tick++;
-  ctx.clearRect(0, 0, W, H);
+  ctx.clearRect(0,0,W,H);
 
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0,    '#080502');
-  bg.addColorStop(0.65, '#0d0804');
-  bg.addColorStop(1,    '#1a0e04');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#080502'); bg.addColorStop(.65,'#0d0804'); bg.addColorStop(1,'#1a0e04');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
 
-  const glow = ctx.createRadialGradient(W/2, H, 0, W/2, H, W * 0.7);
-  glow.addColorStop(0,   'rgba(120,40,8,0.18)');
-  glow.addColorStop(0.5, 'rgba(80,20,4,0.08)');
-  glow.addColorStop(1,   'transparent');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
+  const gl=ctx.createRadialGradient(W/2,H,0,W/2,H,W*.7);
+  gl.addColorStop(0,'rgba(120,40,8,.18)'); gl.addColorStop(.5,'rgba(80,20,4,.08)'); gl.addColorStop(1,'transparent');
+  ctx.fillStyle=gl; ctx.fillRect(0,0,W,H);
 
-  smokes.forEach((s, i) => {
-    s.x += s.vx + Math.sin(tick * s.wobble + s.phase) * 0.4;
-    s.y += s.vy;
-    if (s.growing) { s.alpha += 0.0006; if (s.alpha >= s.maxA) s.growing = false; }
-    else s.alpha -= 0.0003;
-    if (s.alpha <= 0 || s.y < -s.r * 3) { smokes[i] = mkSmoke(true); return; }
-    const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
-    g.addColorStop(0,   `rgba(70,45,22,${s.alpha})`);
-    g.addColorStop(0.4, `rgba(45,28,12,${s.alpha * 0.6})`);
-    g.addColorStop(1,   'transparent');
-    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-    ctx.fillStyle = g; ctx.fill();
+  smokes.forEach((s,i)=>{
+    s.x+=s.vx+Math.sin(tick*s.wobble+s.phase)*.4; s.y+=s.vy;
+    if(s.growing){s.alpha+=.0006; if(s.alpha>=s.maxA)s.growing=false;}else s.alpha-=.0003;
+    if(s.alpha<=0||s.y<-s.r*3){smokes[i]=mkSmoke(true);return;}
+    const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r);
+    g.addColorStop(0,`rgba(70,45,22,${s.alpha})`); g.addColorStop(.4,`rgba(45,28,12,${s.alpha*.6})`); g.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
   });
 
-  ashes.forEach((a, i) => {
-    a.x += a.vx + Math.sin(tick * a.wobble + a.phase) * 0.25;
-    a.y += a.vy;
-    if (a.alpha < a.maxA) a.alpha += 0.004;
-    if (a.y < -6) { ashes[i] = mkAsh(true); return; }
-    ctx.globalAlpha = Math.max(0, a.alpha);
-    ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI*2);
-    ctx.fillStyle = a.warm ? '#c8a060' : '#b0a898';
-    ctx.fill();
-    ctx.globalAlpha = 1;
+  ashes.forEach((a,i)=>{
+    a.x+=a.vx+Math.sin(tick*a.wobble+a.phase)*.25; a.y+=a.vy;
+    if(a.alpha<a.maxA)a.alpha+=.004;
+    if(a.y<-6){ashes[i]=mkAsh(true);return;}
+    ctx.globalAlpha=Math.max(0,a.alpha);
+    ctx.beginPath(); ctx.arc(a.x,a.y,a.r,0,Math.PI*2);
+    ctx.fillStyle=a.warm?'#c8a060':'#b0a898'; ctx.fill(); ctx.globalAlpha=1;
   });
 
-  embers.forEach((e, i) => {
-    e.x += e.vx + Math.sin(tick * e.flick + e.phase) * 0.2;
-    e.y += e.vy;
-    if (e.alpha < e.maxA) e.alpha += 0.012;
-    const flicker = 0.5 + 0.5 * Math.sin(tick * e.flick * 6 + e.phase);
-    const a = Math.max(0, Math.min(e.maxA, e.alpha) * flicker);
-    if (e.y < -10) { embers[i] = mkEmber(true); return; }
-    const halo = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r * 5);
-    halo.addColorStop(0,   `rgba(255,160,40,${a * 0.6})`);
-    halo.addColorStop(0.4, `rgba(220,80,10,${a * 0.3})`);
-    halo.addColorStop(1,   'transparent');
-    ctx.beginPath(); ctx.arc(e.x, e.y, e.r*5, 0, Math.PI*2);
-    ctx.fillStyle = halo; ctx.fill();
-    ctx.globalAlpha = Math.min(1, a * 1.4);
-    ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
-    ctx.fillStyle = '#ffe090'; ctx.fill();
-    ctx.globalAlpha = 1;
+  embers.forEach((e,i)=>{
+    e.x+=e.vx+Math.sin(tick*e.flick+e.phase)*.2; e.y+=e.vy;
+    if(e.alpha<e.maxA)e.alpha+=.012;
+    const flicker=.5+.5*Math.sin(tick*e.flick*6+e.phase);
+    const a=Math.max(0,Math.min(e.maxA,e.alpha)*flicker);
+    if(e.y<-10){embers[i]=mkEmber(true);return;}
+    const h=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,e.r*5);
+    h.addColorStop(0,`rgba(255,160,40,${a*.6})`); h.addColorStop(.4,`rgba(220,80,10,${a*.3})`); h.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(e.x,e.y,e.r*5,0,Math.PI*2); ctx.fillStyle=h; ctx.fill();
+    ctx.globalAlpha=Math.min(1,a*1.4);
+    ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fillStyle='#ffe090'; ctx.fill();
+    ctx.globalAlpha=1;
   });
 
   requestAnimationFrame(draw);
 }
 draw();
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') document.getElementById('lightbox').classList.remove('open');
-});
 </script>
 </body>
 </html>
