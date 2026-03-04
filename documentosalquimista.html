@@ -10,11 +10,7 @@
 
   <style>
     :root {
-      --pergamino: linear-gradient(135deg, #fdf6e3 0%, #f0e0b0 50%, #e0c98a 100%);
-      --tinta: #1c1200;
-      --tinta-desva: #4a381e;
-      --tinta-roja: #6b1e1e;
-      --mancha: rgba(139,90,43,0.08);
+      --perg-bg: #f0dda0;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -24,33 +20,38 @@
       padding: 0;
       background: #0d0a04;
       font-family: 'EB Garamond', 'Cormorant Garamond', serif;
-      color: var(--tinta);
+      color: #1c1200;
       min-height: 100vh;
       line-height: 1.7;
       overflow-x: hidden;
     }
 
+    /* Canvas siempre al fondo */
     #bg-canvas {
       position: fixed;
-      inset: 0;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: 0;
       pointer-events: none;
     }
 
+    /* Viñeta encima del canvas, debajo de todo lo demás */
     .vignette {
       position: fixed;
-      inset: 0;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: 1;
       pointer-events: none;
       background: radial-gradient(ellipse at center,
         transparent 25%,
-        rgba(0,0,0,0.5) 65%,
-        rgba(0,0,0,0.88) 100%);
+        rgba(0,0,0,0.45) 65%,
+        rgba(0,0,0,0.85) 100%);
     }
 
+    /* Todo el contenido de la página por encima */
     .container {
       position: relative;
-      z-index: 2;
+      z-index: 10;
       max-width: 1000px;
       margin: 0 auto;
       padding: 40px 20px 60px;
@@ -99,9 +100,9 @@
       font-family: 'UnifrakturMaguntia', cursive;
       font-size: 1.2rem;
       transition: all 0.3s;
-      box-shadow: 0 -3px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,220,150,0.15);
       border: 1px solid #8b5a2b;
       border-bottom: none;
+      user-select: none;
     }
 
     .tab-label:hover {
@@ -113,41 +114,30 @@
     input[type="radio"] { display: none; }
 
     input[type="radio"]:checked + .tab-label {
-      background: linear-gradient(180deg, #f5e8c0 0%, #e8d09a 100%);
+      background: linear-gradient(180deg, #f5e8c0 0%, var(--perg-bg) 100%);
       color: #2c1505;
       font-weight: bold;
-      box-shadow: 0 -4px 16px rgba(200,150,50,0.5);
-      z-index: 2;
     }
 
-    /* ─── CONTENIDO ─── */
+    /* ─── PANEL DEL DOCUMENTO ─── */
     .tab-content {
       display: none;
-      background: var(--pergamino);
+      /* fondo sólido opaco, sin transparencias */
+      background: #f0dda0;
+      background: linear-gradient(135deg, #fdf6e3 0%, #f0e0b0 50%, #e0c98a 100%);
       border-radius: 0 14px 14px 14px;
+      border: 2px solid #8b5a2b;
       box-shadow:
-        inset 0 0 60px rgba(0,0,0,0.18),
         0 15px 50px rgba(0,0,0,0.85),
-        0 0 0 2px #8b5a2b,
-        0 0 40px rgba(180,100,20,0.12);
-      position: relative;
-      overflow: hidden;
-      min-height: 580px;
-    }
-
-    /* Manchas de humedad */
-    .tab-content::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 140px 100px at 4% 4%,   rgba(100,60,20,0.13) 0%, transparent 70%),
-        radial-gradient(ellipse 100px 130px at 96% 92%, rgba(100,60,20,0.11) 0%, transparent 70%),
-        radial-gradient(ellipse 80px  80px  at 92% 6%,  rgba(80,40,10,0.09)  0%, transparent 70%),
-        radial-gradient(ellipse 70px  90px  at 8%  88%, rgba(90,50,15,0.08)  0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-      border-radius: inherit;
+        0 0 40px rgba(180,100,20,0.15);
+      /* sin overflow hidden para no cortar nada */
+      min-height: 540px;
+      /* manchas de pergamino como sombra interna */
+      box-shadow:
+        inset 30px 0  60px rgba(139,90,43,0.07),
+        inset -20px 25px 50px rgba(100,70,40,0.07),
+        0 15px 50px rgba(0,0,0,0.85),
+        0 0 0 2px #8b5a2b;
     }
 
     #tab1:checked ~ .tab-content:nth-of-type(1),
@@ -159,14 +149,12 @@
     }
 
     @keyframes pageFlip {
-      from { opacity: 0; transform: rotateX(6deg) translateY(10px) scale(0.985); }
+      from { opacity: 0; transform: translateY(12px) scale(0.985); }
       to   { opacity: 1; transform: none; }
     }
 
-    /* ─── PERGAMINO INTERIOR ─── */
+    /* ─── CONTENIDO DEL PERGAMINO ─── */
     .pergamino {
-      position: relative;
-      z-index: 1;
       padding: 45px 55px 55px;
     }
 
@@ -177,8 +165,6 @@
       margin-bottom: 30px;
       color: #3c2a10;
       letter-spacing: 1.2px;
-      position: relative;
-      z-index: 1;
     }
 
     .titulo::after {
@@ -194,12 +180,10 @@
       font-size: 1.28rem;
       line-height: 1.9;
       text-align: justify;
-      color: var(--tinta);
-      position: relative;
-      z-index: 1;
+      color: #1c1200;
     }
 
-    .resaltado { color: var(--tinta-roja); font-weight: 600; }
+    .resaltado { color: #6b1e1e; font-weight: 600; }
 
     .apresurado {
       font-family: 'Cormorant Garamond', serif;
@@ -216,14 +200,12 @@
       display: block;
       margin: 6px 0;
       padding-left: 20px;
-      border-left: 2px solid #8b5a2b80;
+      border-left: 2px solid rgba(139,90,43,0.5);
       font-family: 'Cormorant Garamond', serif;
     }
 
     /* ─── DOCS 3 y 4: imagen ─── */
     .doc-imagen {
-      position: relative;
-      z-index: 1;
       width: 100%;
       min-height: 520px;
       display: flex;
@@ -265,9 +247,8 @@
       max-height: 92vh;
       border-radius: 6px;
       box-shadow: 0 0 0 2px #9c6b35, 0 20px 80px rgba(0,0,0,0.9);
-      filter: sepia(10%) contrast(1.05);
     }
-    @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
     @media (max-width: 600px) {
       h1 { font-size: 1.4rem; }
@@ -350,17 +331,19 @@
 
   <!-- Doc 4: imagen -->
   <div class="tab-content">
+    <div class="tab-content">
     <div class="doc-imagen">
       <img src="/documento4.jpg" alt="Sobre Lacrado"
            onclick="document.getElementById('lb-img').src=this.src;document.getElementById('lightbox').classList.add('open')">
     </div>
+    </div>
   </div>
 
-</div>
+</div><!-- /container -->
 
 <script>
 /* ═══════════════════════════════════════════
-   FONDO: cenizas + humo denso
+   FONDO: cenizas + humo + brasas
 ═══════════════════════════════════════════ */
 const canvas = document.getElementById('bg-canvas');
 const ctx    = canvas.getContext('2d');
@@ -373,10 +356,6 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 
-/* ── PARTÍCULAS DE CENIZA ── */
-const ASH_COUNT = 160;
-const ashes = [];
-
 function mkAsh(fromBottom) {
   return {
     x:      Math.random() * W,
@@ -388,34 +367,24 @@ function mkAsh(fromBottom) {
     maxA:   0.1 + Math.random() * 0.45,
     phase:  Math.random() * Math.PI * 2,
     wobble: 0.008 + Math.random() * 0.018,
-    warm:   Math.random() < 0.45   // dorado o gris
+    warm:   Math.random() < 0.45
   };
 }
-for (let i = 0; i < ASH_COUNT; i++) ashes.push(mkAsh(false));
-
-/* ── VOLUTAS DE HUMO ── */
-const SMOKE_COUNT = 22;
-const smokes = [];
 
 function mkSmoke(fromBottom) {
   return {
-    x:      Math.random() * W,
-    y:      fromBottom ? H + 80 : Math.random() * H,
-    r:      45 + Math.random() * 110,
-    vx:     (Math.random() - 0.5) * 0.18,
-    vy:     -(0.06 + Math.random() * 0.22),
-    alpha:  fromBottom ? 0 : Math.random() * 0.07,
-    maxA:   0.04 + Math.random() * 0.09,
-    phase:  Math.random() * Math.PI * 2,
-    wobble: 0.0006 + Math.random() * 0.0014,
-    growing:true
+    x:       Math.random() * W,
+    y:       fromBottom ? H + 80 : Math.random() * H,
+    r:       45 + Math.random() * 110,
+    vx:      (Math.random() - 0.5) * 0.18,
+    vy:      -(0.06 + Math.random() * 0.22),
+    alpha:   fromBottom ? 0 : Math.random() * 0.07,
+    maxA:    0.04 + Math.random() * 0.09,
+    phase:   Math.random() * Math.PI * 2,
+    wobble:  0.0006 + Math.random() * 0.0014,
+    growing: true
   };
 }
-for (let i = 0; i < SMOKE_COUNT; i++) smokes.push(mkSmoke(false));
-
-/* ── BRASAS (puntos brillantes que suben) ── */
-const EMBER_COUNT = 30;
-const embers = [];
 
 function mkEmber(fromBottom) {
   return {
@@ -430,7 +399,10 @@ function mkEmber(fromBottom) {
     flick: 0.04 + Math.random() * 0.08
   };
 }
-for (let i = 0; i < EMBER_COUNT; i++) embers.push(mkEmber(false));
+
+const ashes  = Array.from({length: 160}, () => mkAsh(false));
+const smokes = Array.from({length: 22},  () => mkSmoke(false));
+const embers = Array.from({length: 30},  () => mkEmber(false));
 
 let tick = 0;
 
@@ -438,7 +410,6 @@ function draw() {
   tick++;
   ctx.clearRect(0, 0, W, H);
 
-  /* Fondo oscuro con gradiente cálido en la parte baja */
   const bg = ctx.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0,    '#080502');
   bg.addColorStop(0.65, '#0d0804');
@@ -446,7 +417,6 @@ function draw() {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  /* Resplandor rojizo tenue en la base */
   const glow = ctx.createRadialGradient(W/2, H, 0, W/2, H, W * 0.7);
   glow.addColorStop(0,   'rgba(120,40,8,0.18)');
   glow.addColorStop(0.5, 'rgba(80,20,4,0.08)');
@@ -454,72 +424,48 @@ function draw() {
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  /* ── Dibujar humo ── */
   smokes.forEach((s, i) => {
     s.x += s.vx + Math.sin(tick * s.wobble + s.phase) * 0.4;
     s.y += s.vy;
-    if (s.growing) {
-      s.alpha += 0.0006;
-      if (s.alpha >= s.maxA) s.growing = false;
-    } else {
-      s.alpha -= 0.0003;
-    }
-    if (s.alpha <= 0 || s.y < -s.r * 3) {
-      smokes[i] = mkSmoke(true); return;
-    }
+    if (s.growing) { s.alpha += 0.0006; if (s.alpha >= s.maxA) s.growing = false; }
+    else s.alpha -= 0.0003;
+    if (s.alpha <= 0 || s.y < -s.r * 3) { smokes[i] = mkSmoke(true); return; }
     const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
     g.addColorStop(0,   `rgba(70,45,22,${s.alpha})`);
     g.addColorStop(0.4, `rgba(45,28,12,${s.alpha * 0.6})`);
     g.addColorStop(1,   'transparent');
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = g;
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = g; ctx.fill();
   });
 
-  /* ── Dibujar cenizas ── */
   ashes.forEach((a, i) => {
     a.x += a.vx + Math.sin(tick * a.wobble + a.phase) * 0.25;
     a.y += a.vy;
     if (a.alpha < a.maxA) a.alpha += 0.004;
-    if (a.y < -6 || a.alpha <= 0) {
-      ashes[i] = mkAsh(true); return;
-    }
+    if (a.y < -6) { ashes[i] = mkAsh(true); return; }
     ctx.globalAlpha = Math.max(0, a.alpha);
-    ctx.beginPath();
-    ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI*2);
     ctx.fillStyle = a.warm ? '#c8a060' : '#b0a898';
     ctx.fill();
     ctx.globalAlpha = 1;
   });
 
-  /* ── Dibujar brasas ── */
   embers.forEach((e, i) => {
     e.x += e.vx + Math.sin(tick * e.flick + e.phase) * 0.2;
     e.y += e.vy;
+    if (e.alpha < e.maxA) e.alpha += 0.012;
     const flicker = 0.5 + 0.5 * Math.sin(tick * e.flick * 6 + e.phase);
     const a = Math.max(0, Math.min(e.maxA, e.alpha) * flicker);
-    if (a <= 0.02 && e.y < H * 0.3) {
-      embers[i] = mkEmber(true); return;
-    }
-    if (e.alpha < e.maxA) e.alpha += 0.012;
-
-    /* Halo */
+    if (e.y < -10) { embers[i] = mkEmber(true); return; }
     const halo = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r * 5);
     halo.addColorStop(0,   `rgba(255,160,40,${a * 0.6})`);
     halo.addColorStop(0.4, `rgba(220,80,10,${a * 0.3})`);
     halo.addColorStop(1,   'transparent');
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, e.r * 5, 0, Math.PI * 2);
-    ctx.fillStyle = halo;
-    ctx.fill();
-
-    /* Núcleo */
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.r*5, 0, Math.PI*2);
+    ctx.fillStyle = halo; ctx.fill();
     ctx.globalAlpha = Math.min(1, a * 1.4);
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffe090';
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+    ctx.fillStyle = '#ffe090'; ctx.fill();
     ctx.globalAlpha = 1;
   });
 
