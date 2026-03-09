@@ -4,6 +4,7 @@
 **Date:** March 2026  
 **Prepared by:** El Gato (Compiled as an open-access scholarly document)  
 **License:** Creative Commons Attribution 4.0 International (CC BY 4.0) — Feel free to fork, modify, cite, and distribute with attribution.  
+**GitHub Repository Recommendation:** Place this exact file in `/hydrogen/hydrogen.md`. All equations are now using GitHub-native KaTeX `$$` blocks for perfect rendering.
 
 ---
 
@@ -63,9 +64,9 @@ For solid-state focus, we examine chemisorption thermodynamics and kinetics.
 
 The equilibrium pressure \( P \) of a hydride follows the Van’t Hoff equation:
 
-\[
+$$
 \ln\left(\frac{P}{P_0}\right) = \frac{\Delta H}{RT} - \frac{\Delta S}{R}
-\]
+$$
 
 where \(\Delta H\) is enthalpy of desorption (kJ mol⁻¹ H₂), \(\Delta S\) ≈ 130 J mol⁻¹ K⁻¹ (standard for hydrides), \( R \) = 8.314 J mol⁻¹ K⁻¹, and \( P_0 = 1 \) bar.
 
@@ -75,9 +76,9 @@ Ideal onboard operation requires plateau pressures of 1–10 bar at 80–120 °C
 
 Desorption rate follows:
 
-\[
+$$
 k = A \exp\left(-\frac{E_a}{RT}\right)
-\]
+$$
 
 Target \( E_a < 60 \) kJ mol⁻¹ for practical refueling/delivery.
 
@@ -259,9 +260,9 @@ This document is released publicly on GitHub to accelerate research and foster o
 **Example Van’t Hoff Derivation for Ideal Material**  
 For \( P = 5 \) bar at \( T = 100^\circ \)C (373 K):  
 
-\[
+$$
 \Delta H = RT \left( \ln\left(\frac{P}{P_0}\right) + \frac{\Delta S}{R} \right) \approx 37 \, \text{kJ mol}^{-1} \text{H}_2
-\]
+$$
 
 (Full derivation and Python simulation code available in repo `/supplementary/vanthoff.py`.)
 
