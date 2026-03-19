@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Editor de Texto</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'Asturica';
+      src:
+        url('https://www.gato.red/fuentes/Asturica.woff2') format('woff2'),
+        url('https://www.gato.red/fuentes/Asturica.woff') format('woff'),
+        url('https://www.gato.red/fuentes/ASTURICA.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --bg-light: #f8f4eb;
+      --text-blue: #19345a;
+      --text-black: #111111;
+      --accent-blue: #19345a;
+      --accent-black: #111111;
+      --accent-dark: #a0c0ff;
+      --paper: url('https://plus.unsplash.com/premium_photo-1725347346926-f568729d43b3?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fHBhcGVyJTIwdGV4dHVyZXxlbnwwfHwwfHx8MA%3D%3D') center/cover no-repeat;
+      /* DIN A4: 210mm × 297mm. A 96dpi: 794 × 1123px */
+      --a4-width: 794px;
+      --a4-height: 1123px;
+    }
+    [data-theme="dark"] {
+      --bg-light: #14100a;
+      --accent-blue: #a0c0ff;
+      --accent-black: #a0c0ff;
+      --accent-dark: #a0c0ff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Asturica', Georgia, serif;
+      background: var(--bg-light);
+      color: var(--text-blue);
+      min-height: 100vh;
+      padding: 20px;
+      transition: all 0.4s ease;
+    }
+    body[data-textcolor="black"] { color: var(--text-black); }
+    body[data-theme="dark"] { color: #ffffff; }
+    .container { max-width: 860px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 2rem; color: var(--accent-blue); }
+    body[data-textcolor="black"] header { color: var(--accent-black); }
+    body[data-theme="dark"] header { color: var(--accent-dark); }
+    h1 { font-size: 2.9rem; letter-spacing: 1.5px; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: rgba(25,52,90,0.06);
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      align-items: center;
+      border: 1px solid rgba(25,52,90,0.12);
+    }
+    body[data-textcolor="black"] .toolbar { background: rgba(17,17,17,0.06); border-color: rgba(17,17,17,0.12); }
+    body[data-theme="dark"] .toolbar { background: rgba(160,192,255,0.08); border-color: rgba(160,192,255,0.15); }
+
+    button, select {
+      background: rgba(25,52,90,0.08);
+      color: var(--accent-blue);
+      border: 1px solid rgba(25,52,90,0.25);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Asturica', serif;
+      font-size: 0.93rem;
+      transition: all 0.2s;
+    }
+    body[data-textcolor="black"] button, body[data-textcolor="black"] select {
+      background: rgba(17,17,17,0.08); color: var(--accent-black); border-color: rgba(17,17,17,0.25);
+    }
+    body[data-theme="dark"] button, body[data-theme="dark"] select {
+      background: rgba(160,192,255,0.12); color: var(--accent-dark); border-color: rgba(160,192,255,0.3);
+    }
+    button:hover, select:hover { background: rgba(25,52,90,0.18); }
+    body[data-textcolor="black"] button:hover, body[data-textcolor="black"] select:hover { background: rgba(17,17,17,0.18); }
+    body[data-theme="dark"] button:hover, body[data-theme="dark"] select:hover { background: rgba(160,192,255,0.22); }
+
+    .toolbar-sep {
+      width: 1px;
+      height: 28px;
+      background: rgba(25,52,90,0.2);
+      margin: 0 4px;
+    }
+
+    /* ── EDITOR: proporciones DIN A4 ── */
+    .editor-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+    .editor-container {
+      position: relative;
+      width: var(--a4-width);
+      min-height: var(--a4-height);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      background: #f8f4eb;
+    }
+    body[data-theme="dark"] .editor-container {
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      background: #1a140e;
+    }
+    .paper-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--paper);
+      opacity: 0.12;
+      pointer-events: none;
+      transition: opacity 0.4s;
+      z-index: 0;
+    }
+    [data-papiro="off"] .paper-bg { opacity: 0; }
+
+    .editor {
+      position: relative;
+      z-index: 1;
+      min-height: var(--a4-height);
+      /* Márgenes A4 estándar: 25mm ≈ 94px top/bottom, 20mm ≈ 75px lados */
+      padding: 94px 75px;
+      font-size: 1.05rem;
+      line-height: 1.72;
+      background: transparent;
+      outline: none;
+      width: 100%;
+      font-family: 'Asturica', Georgia, serif;
+      caret-color: var(--accent-blue);
+      color: inherit;
+    }
+    body[data-textcolor="black"] .editor { caret-color: var(--accent-black); }
+    body[data-theme="dark"] .editor { caret-color: var(--accent-dark); }
+
+    .editor blockquote {
+      margin: 1.6em 2.8em;
+      padding: 0.4em 1.2em 0.4em 1.8em;
+      border-left: 4px solid var(--accent-blue);
+      color: var(--accent-blue);
+      font-style: italic;
+      background: rgba(25,52,90,0.04);
+    }
+    body[data-textcolor="black"] .editor blockquote { border-left-color: var(--accent-black); color: var(--accent-black); background: rgba(17,17,17,0.04); }
+    body[data-theme="dark"] .editor blockquote { border-left-color: var(--accent-dark); color: var(--accent-dark); background: rgba(160,192,255,0.06); }
+
+    .editor .fuentes {
+      margin: 2.5em 1.5em 1em;
+      padding: 1.2em 2em;
+      border-top: 2px solid rgba(25,52,90,0.4);
+      border-bottom: 2px solid rgba(25,52,90,0.4);
+      font-size: 0.95rem;
+      color: var(--accent-blue);
+      background: rgba(25,52,90,0.03);
+    }
+    body[data-textcolor="black"] .editor .fuentes { border-color: rgba(17,17,17,0.5); color: var(--accent-black); background: rgba(17,17,17,0.03); }
+    body[data-theme="dark"] .editor .fuentes { border-color: rgba(160,192,255,0.5); color: var(--accent-dark); background: rgba(160,192,255,0.05); }
+
+    .editor h1, .editor h2 { color: var(--accent-blue); margin: 1.4em 0 0.6em; }
+    body[data-textcolor="black"] .editor h1, body[data-textcolor="black"] .editor h2 { color: var(--accent-black); }
+    body[data-theme="dark"] .editor h1, body[data-theme="dark"] .editor h2 { color: var(--accent-dark); }
+
+    .status {
+      margin-top: 1.2rem;
+      text-align: center;
+      font-size: 0.88rem;
+      opacity: 0.7;
+    }
+
+    /* ── MODAL PIN ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal-box {
+      background: #f8f4eb;
+      border: 2px solid rgba(25,52,90,0.3);
+      border-radius: 14px;
+      padding: 2.5rem 3rem;
+      text-align: center;
+      font-family: 'Asturica', serif;
+      color: #19345a;
+      min-width: 320px;
+      box-shadow: 0 12px 50px rgba(0,0,0,0.25);
+    }
+    .modal-box h2 { margin-bottom: 1rem; font-size: 1.4rem; }
+    .modal-box p { margin-bottom: 1.4rem; font-size: 0.95rem; opacity: 0.8; }
+    .modal-box input[type="password"] {
+      width: 140px;
+      padding: 10px 14px;
+      font-size: 1.2rem;
+      letter-spacing: 6px;
+      border: 2px solid rgba(25,52,90,0.35);
+      border-radius: 8px;
+      text-align: center;
+      font-family: 'Asturica', serif;
+      background: #fff;
+      color: #19345a;
+      margin-bottom: 1.2rem;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .modal-box .btn-row { display: flex; gap: 12px; justify-content: center; }
+    .modal-box .btn-confirm {
+      background: #19345a; color: #f8f4eb; border: none;
+      padding: 10px 24px; border-radius: 8px; font-family: 'Asturica', serif;
+      font-size: 0.95rem; cursor: pointer;
+    }
+    .modal-box .btn-confirm:hover { background: #0f2040; }
+    .modal-box .btn-cancel {
+      background: transparent; color: #19345a;
+      border: 1px solid rgba(25,52,90,0.3);
+      padding: 10px 24px; border-radius: 8px; font-family: 'Asturica', serif;
+      font-size: 0.95rem; cursor: pointer;
+    }
+    .modal-box .pin-error { color: #c0392b; font-size: 0.88rem; margin-top: -0.6rem; margin-bottom: 0.8rem; min-height: 1.2em; }
+
+    /* ── CARTA OFICIAL (renderizado invisible) ── */
+    #carta-render {
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      width: 794px;
+      min-height: 1123px;
+      background: #f8f4eb;
+      font-family: 'Asturica', Georgia, serif;
+      color: #19345a;
+      overflow: hidden;
+      z-index: -1;
+    }
+    #carta-render .carta-paper-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--paper);
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 0;
+    }
+    #carta-render .carta-watermark {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1;
+    }
+    #carta-render .carta-watermark img {
+      width: 520px;
+      height: auto;
+      opacity: 0.20;
+    }
+    #carta-render .carta-body {
+      position: relative;
+      z-index: 2;
+      padding: 0 75px 80px;
+    }
+    #carta-render .carta-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 36px 0 24px;
+      border-bottom: 2px solid rgba(25,52,90,0.35);
+      margin-bottom: 36px;
+    }
+    #carta-render .carta-header img.escudo-header {
+      height: 90px;
+      width: auto;
+    }
+    #carta-render .carta-header .header-text {
+      text-align: right;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      opacity: 0.75;
+      color: #19345a;
+    }
+    #carta-render .carta-header .header-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: #19345a;
+      text-align: center;
+      flex: 1;
+      padding: 0 20px;
+    }
+    #carta-render .carta-content {
+      font-size: 1.05rem;
+      line-height: 1.72;
+    }
+  </style>
+</head>
+<body data-theme="light" data-textcolor="blue" data-papiro="on">
+  <div class="container">
+    <header>
+      <h1></h1>
+      <p style="margin-top:10px;opacity:0.9;">Editor de Texto</p>
+    </header>
+
+    <div class="toolbar">
+      <!-- Formato de texto -->
+      <button onclick="execCmd('bold')">Negrita</button>
+      <button onclick="execCmd('italic')">Cursiva</button>
+      <button onclick="insertQuote()">Cita</button>
+      <select id="fontSize" onchange="changeFontSize()">
+        <option value="">Tamaño</option>
+        <option value="2">Pequeño</option>
+        <option value="5">Grande</option>
+        <option value="7">Enorme</option>
+      </select>
+      <button onclick="formatBlock('h1')">Título grande</button>
+      <button onclick="formatBlock('h2')">Título medio</button>
+      <button onclick="formatBlock('p')">Párrafo</button>
+      <button onclick="insertFuentes()">Fuentes</button>
+
+      <div class="toolbar-sep"></div>
+
+      <!-- Descargas -->
+      <button onclick="copyFormatted()">Copiar con formato</button>
+      <button onclick="downloadHTML()">Descargar HTML</button>
+      <button onclick="downloadPNG()">Descargar PNG</button>
+      <button onclick="downloadPDF()">Descargar PDF</button>
+      <button onclick="solicitarCartaOficial()">Carta Oficial</button>
+
+      <div class="toolbar-sep"></div>
+
+      <!-- Apariencia -->
+      <button id="toggleTheme" onclick="toggleTheme()">Modo oscuro</button>
+      <button id="toggleTextColor" onclick="toggleTextColor()">Texto negro</button>
+      <button id="togglePapiro" onclick="togglePapiro()">Quitar papiro</button>
+    </div>
+
+    <div class="editor-wrapper">
+      <div class="editor-container">
+        <div class="paper-bg"></div>
+        <div contenteditable="true" class="editor" id="editor"></div>
+      </div>
+    </div>
+
+    <div class="status">
+      Usa botones o atajos (Ctrl+B, Ctrl+I). Formato DIN A4 · Los bloques se crean con Enter.
+    </div>
+  </div>
+
+  <!-- MODAL PIN -->
+  <div class="modal-overlay" id="pinModal">
+    <div class="modal-box">
+      <h2>🔒 Carta Oficial</h2>
+      <p>Introduce el PIN para generar la Carta Oficial con membrete y sello de la Casa Arango.</p>
+      <input type="password" id="pinInput" maxlength="6" placeholder="····" autocomplete="off" />
+      <div class="pin-error" id="pinError"></div>
+      <div class="btn-row">
+        <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn-confirm" onclick="verificarPin()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARTA OFICIAL: nodo invisible para renderizar -->
+  <div id="carta-render">
+    <div class="carta-paper-bg"></div>
+    <div class="carta-watermark">
+      <img src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente.png" alt="Marca de agua" crossorigin="anonymous" />
+    </div>
+    <div class="carta-body">
+      <div class="carta-header">
+        <img class="escudo-header" src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente.png" alt="Escudo Arango" crossorigin="anonymous" />
+        <div class="header-title">CASA ARANGO</div>
+        <div class="header-text" id="carta-fecha"></div>
+      </div>
+      <div class="carta-content" id="carta-content"></div>
+    </div>
+  </div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const ESCUDO_URL = 'https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente.png';
+
+    /* ── Comandos básicos ── */
+    function execCmd(cmd) {
+      document.execCommand(cmd, false, null);
+      editor.focus();
+    }
+    function formatBlock(tag) {
+      document.execCommand('formatBlock', false, tag);
+      editor.focus();
+    }
+    function changeFontSize() {
+      const size = document.getElementById('fontSize').value;
+      if (size) { document.execCommand('fontSize', false, size); editor.focus(); }
+    }
+    function insertQuote() {
+      document.execCommand('formatBlock', false, 'blockquote');
+      editor.focus();
+    }
+    function insertFuentes() {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) { editor.focus(); return; }
+      const range = selection.getRangeAt(0);
+      let container = range.commonAncestorContainer;
+      while (container && container !== editor) {
+        if (container.nodeType === 1 && container.classList && container.classList.contains('fuentes')) {
+          const fuentesBlock = container;
+          const newBullet = document.createElement('div');
+          newBullet.innerHTML = '• ';
+          fuentesBlock.appendChild(document.createElement('br'));
+          fuentesBlock.appendChild(newBullet);
+          const newRange = document.createRange();
+          newRange.setStart(newBullet, 0);
+          newRange.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+          editor.focus();
+          return;
+        }
+        container = container.parentElement;
+      }
+      document.execCommand('formatBlock', false, 'div');
+      const newSelection = window.getSelection();
+      if (newSelection.rangeCount) {
+        const newRange = newSelection.getRangeAt(0);
+        const div = document.createElement('div');
+        div.className = 'fuentes';
+        div.innerHTML = '<strong>Fuentes:</strong><br>• ';
+        newRange.deleteContents();
+        newRange.insertNode(div);
+        const bulletRange = document.createRange();
+        const firstBullet = div.querySelector('div') || div.lastChild;
+        if (firstBullet) {
+          bulletRange.setStart(firstBullet, firstBullet.textContent.length);
+          bulletRange.collapse(true);
+          newSelection.removeAllRanges();
+          newSelection.addRange(bulletRange);
+        }
+      }
+      editor.focus();
+    }
+
+    /* ── Apariencia ── */
+    function toggleTheme() {
+      const body = document.body;
+      const isDark = body.dataset.theme === 'dark';
+      body.dataset.theme = isDark ? 'light' : 'dark';
+      document.getElementById('toggleTheme').textContent = isDark ? 'Modo oscuro' : 'Modo claro';
+    }
+    function toggleTextColor() {
+      const body = document.body;
+      const next = body.dataset.textcolor === 'blue' ? 'black' : 'blue';
+      body.dataset.textcolor = next;
+      document.getElementById('toggleTextColor').textContent = next === 'blue' ? 'Texto negro' : 'Texto azul';
+    }
+    function togglePapiro() {
+      const body = document.body;
+      const isOn = body.dataset.papiro === 'on';
+      body.dataset.papiro = isOn ? 'off' : 'on';
+      document.getElementById('togglePapiro').textContent = isOn ? 'Poner papiro' : 'Quitar papiro';
+    }
+
+    /* ── Copiar con formato ── */
+    async function copyFormatted() {
+      try {
+        const blob = new Blob([editor.innerHTML], { type: 'text/html' });
+        await navigator.clipboard.write([new ClipboardItem({ 'text/html': blob })]);
+        alert('Copiado con formato');
+      } catch(e) { alert('Error al copiar'); }
+    }
+
+    /* ── Descargar HTML ── */
+    function downloadHTML() {
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Texto Asturianizado</title>
+<style>body{font-family:'Asturica',serif;background:#f8f4eb;padding:75px 94px;font-size:1.05rem;line-height:1.72;}</style></head>
+<body>${editor.innerHTML}</body></html>`;
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'texto-asturiano.html'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ── Descargar PNG (DIN A4 a 2x = 1588×2246px) ── */
+    async function downloadPNG() {
+      try {
+        const container = document.querySelector('.editor-container');
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          backgroundColor: '#f8f4eb',
+          width: 794,
+          height: container.scrollHeight,
+          windowWidth: 794,
+          useCORS: true,
+          allowTaint: false
+        });
+        const link = document.createElement('a');
+        link.download = 'texto-asturiano.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch(e) { alert('Error al generar PNG: ' + e.message); }
+    }
+
+    /* ── Descargar PDF (DIN A4) ── */
+    async function downloadPDF() {
+      try {
+        const { jsPDF } = window.jspdf;
+        const container = document.querySelector('.editor-container');
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          backgroundColor: '#f8f4eb',
+          width: 794,
+          windowWidth: 794,
+          useCORS: true,
+          allowTaint: false
+        });
+        const imgData = canvas.toDataURL('image/png');
+        // A4 en mm: 210 × 297
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pdfW = 210;
+        const pdfH = Math.round((canvas.height / canvas.width) * pdfW);
+        let yPos = 0;
+        const pageH = 297;
+        // Si el contenido es más alto que una página, paginar
+        if (pdfH <= pageH) {
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
+        } else {
+          let remaining = pdfH;
+          let page = 0;
+          while (remaining > 0) {
+            const sliceH = Math.min(pageH, remaining);
+            const sliceCanvas = document.createElement('canvas');
+            const ratio = canvas.width / pdfW;
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = Math.round(sliceH * ratio);
+            const ctx = sliceCanvas.getContext('2d');
+            ctx.drawImage(canvas, 0, Math.round(page * pageH * ratio), canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+            if (page > 0) pdf.addPage();
+            pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, sliceH);
+            remaining -= sliceH;
+            page++;
+          }
+        }
+        pdf.save('texto-asturiano.pdf');
+      } catch(e) { alert('Error al generar PDF: ' + e.message); }
+    }
+
+    /* ── MODAL PIN ── */
+    function solicitarCartaOficial() {
+      document.getElementById('pinInput').value = '';
+      document.getElementById('pinError').textContent = '';
+      document.getElementById('pinModal').classList.add('visible');
+      setTimeout(() => document.getElementById('pinInput').focus(), 100);
+    }
+    function cerrarModal() {
+      document.getElementById('pinModal').classList.remove('visible');
+    }
+    function verificarPin() {
+      const pin = document.getElementById('pinInput').value;
+      if (pin === '4322') {
+        cerrarModal();
+        generarCartaOficial();
+      } else {
+        document.getElementById('pinError').textContent = 'PIN incorrecto. Inténtalo de nuevo.';
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinInput').focus();
+      }
+    }
+    // Confirmar con Enter
+    document.addEventListener('keydown', e => {
+      if (document.getElementById('pinModal').classList.contains('visible')) {
+        if (e.key === 'Enter') verificarPin();
+        if (e.key === 'Escape') cerrarModal();
+      }
+    });
+
+    /* ── Generar Carta Oficial ── */
+    async function generarCartaOficial() {
+      // Rellenar fecha
+      const ahora = new Date();
+      const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('carta-fecha').textContent = ahora.toLocaleDateString('es-ES', opciones);
+
+      // Copiar contenido del editor
+      document.getElementById('carta-content').innerHTML = editor.innerHTML;
+
+      // Esperar a que las imágenes carguen
+      await new Promise(r => setTimeout(r, 600));
+
+      const cartaEl = document.getElementById('carta-render');
+      cartaEl.style.left = '0';
+      cartaEl.style.zIndex = '1';
+      cartaEl.style.position = 'absolute';
+      cartaEl.style.top = '0';
+
+      try {
+        const canvas = await html2canvas(cartaEl, {
+          scale: 2,
+          backgroundColor: '#f8f4eb',
+          width: 794,
+          windowWidth: 794,
+          useCORS: true,
+          allowTaint: false
+        });
+
+        const { jsPDF } = window.jspdf;
+        const imgData = canvas.toDataURL('image/png');
+        const pdfW = 210;
+        const pdfH = Math.round((canvas.height / canvas.width) * pdfW);
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        if (pdfH <= 297) {
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
+        } else {
+          let remaining = pdfH;
+          let page = 0;
+          const pageH = 297;
+          while (remaining > 0) {
+            const sliceH = Math.min(pageH, remaining);
+            const ratio = canvas.width / pdfW;
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = Math.round(sliceH * ratio);
+            const ctx = sliceCanvas.getContext('2d');
+            ctx.drawImage(canvas, 0, Math.round(page * pageH * ratio), canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+            if (page > 0) pdf.addPage();
+            pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, sliceH);
+            remaining -= sliceH;
+            page++;
+          }
+        }
+        pdf.save('carta-oficial-arango.pdf');
+      } catch(e) {
+        alert('Error al generar la Carta Oficial: ' + e.message);
+      } finally {
+        cartaEl.style.left = '-9999px';
+        cartaEl.style.zIndex = '-1';
+        cartaEl.style.position = 'fixed';
+      }
+    }
+
+    /* Evitar que los botones de la toolbar quiten la selección del editor */
+    document.querySelectorAll('.toolbar button, .toolbar select').forEach(el => {
+      el.addEventListener('mousedown', e => e.preventDefault());
+    });
+
+    editor.focus();
+  </script>
+</body>
+</html>
