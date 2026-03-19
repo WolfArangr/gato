@@ -25,7 +25,6 @@
       --accent-black: #111111;
       --accent-dark: #a0c0ff;
       --paper: url('https://plus.unsplash.com/premium_photo-1725347346926-f568729d43b3?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fHBhcGVyJTIwdGV4dHVyZXxlbnwwfHwwfHx8MA%3D%3D') center/cover no-repeat;
-      /* DIN A4: 210mm × 297mm. A 96dpi: 794 × 1123px */
       --a4-width: 794px;
       --a4-height: 1123px;
     }
@@ -94,7 +93,6 @@
       margin: 0 4px;
     }
 
-    /* ── EDITOR: proporciones DIN A4 ── */
     .editor-wrapper {
       display: flex;
       justify-content: center;
@@ -127,7 +125,6 @@
       position: relative;
       z-index: 1;
       min-height: var(--a4-height);
-      /* Márgenes A4 estándar: 25mm ≈ 94px top/bottom, 20mm ≈ 75px lados */
       padding: 94px 75px;
       font-size: 1.05rem;
       line-height: 1.72;
@@ -230,7 +227,49 @@
     }
     .modal-box .pin-error { color: #c0392b; font-size: 0.88rem; margin-top: -0.6rem; margin-bottom: 0.8rem; min-height: 1.2em; }
 
-    /* ── CARTA OFICIAL (renderizado invisible) ── */
+    /* ── MODAL CARTA OFICIAL (visualización) ── */
+    #cartaModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 10000;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 30px 20px;
+    }
+    #cartaModal.visible { display: flex; }
+    .carta-modal-inner {
+      position: relative;
+      width: 794px;
+      flex-shrink: 0;
+    }
+    .carta-modal-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .carta-modal-toolbar button {
+      background: #f8f4eb;
+      color: #19345a;
+      border: 1px solid rgba(25,52,90,0.35);
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-family: 'Asturica', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .carta-modal-toolbar button:hover { background: #e8e2d5; }
+    .carta-modal-toolbar .btn-close-carta {
+      background: #19345a;
+      color: #f8f4eb;
+      border-color: transparent;
+    }
+    .carta-modal-toolbar .btn-close-carta:hover { background: #0f2040; }
+
+    /* ── CARTA OFICIAL: nodo de renderizado / display ── */
     #carta-render {
       position: fixed;
       left: -9999px;
@@ -243,7 +282,19 @@
       overflow: hidden;
       z-index: -1;
     }
-    #carta-render .carta-paper-bg {
+
+    /* Estilos compartidos para el nodo de render y la vista en modal */
+    .carta-shell {
+      position: relative;
+      width: 794px;
+      min-height: 1123px;
+      background: #f8f4eb;
+      font-family: 'Asturica', Georgia, serif;
+      color: #19345a;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+    }
+    .carta-paper-bg {
       position: absolute;
       inset: 0;
       background: var(--paper);
@@ -251,7 +302,7 @@
       pointer-events: none;
       z-index: 0;
     }
-    #carta-render .carta-watermark {
+    .carta-watermark {
       position: absolute;
       inset: 0;
       display: flex;
@@ -260,17 +311,20 @@
       pointer-events: none;
       z-index: 1;
     }
-    #carta-render .carta-watermark img {
+    .carta-watermark img {
       width: 520px;
       height: auto;
       opacity: 0.18;
     }
-    #carta-render .carta-body {
+    .carta-body {
       position: relative;
       z-index: 2;
       padding: 0 75px 80px;
     }
-    #carta-render .carta-header {
+
+    /* ── CAMBIO 2: encabezado con posicionamiento absoluto para centrado real ── */
+    .carta-header {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -278,27 +332,35 @@
       border-bottom: 2px solid rgba(25,52,90,0.35);
       margin-bottom: 36px;
     }
-    #carta-render .carta-header img.escudo-header {
+    .carta-header img.escudo-header {
       height: 90px;
       width: auto;
+      flex-shrink: 0;
     }
-    #carta-render .carta-header .header-text {
+    /* El título se posiciona absolutamente para estar centrado respecto al contenedor,
+       sin que los elementos laterales de distinto ancho lo desplacen */
+    .carta-header .header-title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: #19345a;
+      pointer-events: none;
+    }
+    .carta-header .header-text {
       text-align: right;
       font-size: 0.82rem;
       line-height: 1.5;
       opacity: 0.75;
       color: #19345a;
+      flex-shrink: 0;
+      margin-left: auto;
     }
-    #carta-render .carta-header .header-title {
-      font-size: 1.25rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-      color: #19345a;
-      text-align: center;
-      flex: 1;
-      padding: 0 20px;
-    }
-    #carta-render .carta-content {
+
+    .carta-content {
       font-size: 1.05rem;
       line-height: 1.72;
     }
@@ -312,7 +374,6 @@
     </header>
 
     <div class="toolbar">
-      <!-- Formato de texto -->
       <button onclick="execCmd('bold')">Negrita</button>
       <button onclick="execCmd('italic')">Cursiva</button>
       <button onclick="insertQuote()">Cita</button>
@@ -323,7 +384,6 @@
 
       <div class="toolbar-sep"></div>
 
-      <!-- Descargas -->
       <button onclick="copyFormatted()">Copiar con formato</button>
       <button onclick="downloadHTML()">Descargar HTML</button>
       <button onclick="downloadPNG()">Descargar PNG</button>
@@ -332,7 +392,6 @@
 
       <div class="toolbar-sep"></div>
 
-      <!-- Apariencia -->
       <button id="toggleTheme" onclick="toggleTheme()">Modo oscuro</button>
       <button id="toggleTextColor" onclick="toggleTextColor()">Texto negro</button>
       <button id="togglePapiro" onclick="togglePapiro()">Quitar papiro</button>
@@ -345,9 +404,7 @@
       </div>
     </div>
 
-    <div class="status">
-      El Gato Arango
-    </div>
+    <div class="status">El Gato Arango</div>
   </div>
 
   <!-- MODAL PIN -->
@@ -364,8 +421,33 @@
     </div>
   </div>
 
-  <!-- CARTA OFICIAL: nodo invisible para renderizar -->
-  <div id="carta-render">
+  <!-- MODAL CARTA OFICIAL (visualización) — CAMBIO 1 -->
+  <div id="cartaModal">
+    <div class="carta-modal-inner">
+      <div class="carta-modal-toolbar">
+        <button onclick="descargarCartaPDF()">⬇ Descargar PDF</button>
+        <button class="btn-close-carta" onclick="cerrarCartaModal()">✕ Cerrar</button>
+      </div>
+      <!-- La carta se construye aquí dinámicamente -->
+      <div class="carta-shell" id="carta-display">
+        <div class="carta-paper-bg"></div>
+        <div class="carta-watermark">
+          <img src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente%20HQ.png" alt="Marca de agua" crossorigin="anonymous" />
+        </div>
+        <div class="carta-body">
+          <div class="carta-header">
+            <img class="escudo-header" src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente.png" alt="Escudo Arango" crossorigin="anonymous" />
+            <div class="header-title">Casa Arango</div>
+            <div class="header-text" id="carta-fecha-display"></div>
+          </div>
+          <div class="carta-content" id="carta-content-display"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nodo invisible para html2canvas (solo para la descarga PDF) -->
+  <div id="carta-render" class="carta-shell" style="position:fixed;left:-9999px;top:0;z-index:-1;">
     <div class="carta-paper-bg"></div>
     <div class="carta-watermark">
       <img src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente%20HQ.png" alt="Marca de agua" crossorigin="anonymous" />
@@ -374,15 +456,14 @@
       <div class="carta-header">
         <img class="escudo-header" src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente.png" alt="Escudo Arango" crossorigin="anonymous" />
         <div class="header-title">Casa Arango</div>
-        <div class="header-text" id="carta-fecha"></div>
+        <div class="header-text" id="carta-fecha-render"></div>
       </div>
-      <div class="carta-content" id="carta-content"></div>
+      <div class="carta-content" id="carta-content-render"></div>
     </div>
   </div>
 
   <script>
     const editor = document.getElementById('editor');
-    const ESCUDO_URL = 'https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente.png';
 
     /* ── Comandos básicos ── */
     function execCmd(cmd) {
@@ -392,10 +473,6 @@
     function formatBlock(tag) {
       document.execCommand('formatBlock', false, tag);
       editor.focus();
-    }
-    function changeFontSize() {
-      const size = document.getElementById('fontSize').value;
-      if (size) { document.execCommand('fontSize', false, size); editor.focus(); }
     }
     function insertQuote() {
       document.execCommand('formatBlock', false, 'blockquote');
@@ -484,7 +561,7 @@
       URL.revokeObjectURL(url);
     }
 
-    /* ── Descargar PNG (DIN A4 a 2x = 1588×2246px) ── */
+    /* ── Descargar PNG ── */
     async function downloadPNG() {
       try {
         const container = document.querySelector('.editor-container');
@@ -504,7 +581,7 @@
       } catch(e) { alert('Error al generar PNG: ' + e.message); }
     }
 
-    /* ── Descargar PDF (DIN A4) ── */
+    /* ── Descargar PDF (editor normal) ── */
     async function downloadPDF() {
       try {
         const { jsPDF } = window.jspdf;
@@ -518,18 +595,14 @@
           allowTaint: false
         });
         const imgData = canvas.toDataURL('image/png');
-        // A4 en mm: 210 × 297
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         const pdfW = 210;
         const pdfH = Math.round((canvas.height / canvas.width) * pdfW);
-        let yPos = 0;
         const pageH = 297;
-        // Si el contenido es más alto que una página, paginar
         if (pdfH <= pageH) {
           pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
         } else {
-          let remaining = pdfH;
-          let page = 0;
+          let remaining = pdfH, page = 0;
           while (remaining > 0) {
             const sliceH = Math.min(pageH, remaining);
             const sliceCanvas = document.createElement('canvas');
@@ -562,39 +635,52 @@
       const pin = document.getElementById('pinInput').value;
       if (pin === '4322') {
         cerrarModal();
-        generarCartaOficial();
+        mostrarCartaOficial();   // ← CAMBIO 1: muestra en vez de descargar
       } else {
         document.getElementById('pinError').textContent = 'PIN incorrecto. Inténtalo de nuevo.';
         document.getElementById('pinInput').value = '';
         document.getElementById('pinInput').focus();
       }
     }
-    // Confirmar con Enter
     document.addEventListener('keydown', e => {
       if (document.getElementById('pinModal').classList.contains('visible')) {
         if (e.key === 'Enter') verificarPin();
         if (e.key === 'Escape') cerrarModal();
       }
+      if (document.getElementById('cartaModal').classList.contains('visible')) {
+        if (e.key === 'Escape') cerrarCartaModal();
+      }
     });
 
-    /* ── Generar Carta Oficial ── */
-    async function generarCartaOficial() {
-      // Rellenar fecha
+    /* ── CAMBIO 1: Mostrar Carta Oficial en modal ── */
+    function mostrarCartaOficial() {
       const ahora = new Date();
       const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
-      document.getElementById('carta-fecha').textContent = ahora.toLocaleDateString('es-ES', opciones);
+      const fecha = ahora.toLocaleDateString('es-ES', opciones);
 
-      // Copiar contenido del editor
-      document.getElementById('carta-content').innerHTML = editor.innerHTML;
+      document.getElementById('carta-fecha-display').textContent = fecha;
+      document.getElementById('carta-content-display').innerHTML = editor.innerHTML;
 
-      // Esperar a que las imágenes carguen
-      await new Promise(r => setTimeout(r, 600));
+      // También preparar el nodo de render para la descarga
+      document.getElementById('carta-fecha-render').textContent = fecha;
+      document.getElementById('carta-content-render').innerHTML = editor.innerHTML;
 
+      document.getElementById('cartaModal').classList.add('visible');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarCartaModal() {
+      document.getElementById('cartaModal').classList.remove('visible');
+      document.body.style.overflow = '';
+    }
+
+    /* ── Descargar PDF desde la vista de Carta Oficial ── */
+    async function descargarCartaPDF() {
       const cartaEl = document.getElementById('carta-render');
-      cartaEl.style.left = '0';
-      cartaEl.style.zIndex = '1';
-      cartaEl.style.position = 'absolute';
-      cartaEl.style.top = '0';
+
+      // Sacarlo a la vista para que html2canvas lo pinte
+      cartaEl.style.cssText = 'position:absolute;left:0;top:0;z-index:1;width:794px;min-height:1123px;';
+      await new Promise(r => setTimeout(r, 400));
 
       try {
         const canvas = await html2canvas(cartaEl, {
@@ -611,13 +697,12 @@
         const pdfW = 210;
         const pdfH = Math.round((canvas.height / canvas.width) * pdfW);
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageH = 297;
 
-        if (pdfH <= 297) {
+        if (pdfH <= pageH) {
           pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
         } else {
-          let remaining = pdfH;
-          let page = 0;
-          const pageH = 297;
+          let remaining = pdfH, page = 0;
           while (remaining > 0) {
             const sliceH = Math.min(pageH, remaining);
             const ratio = canvas.width / pdfW;
@@ -636,9 +721,7 @@
       } catch(e) {
         alert('Error al generar la Carta Oficial: ' + e.message);
       } finally {
-        cartaEl.style.left = '-9999px';
-        cartaEl.style.zIndex = '-1';
-        cartaEl.style.position = 'fixed';
+        cartaEl.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;width:794px;min-height:1123px;';
       }
     }
 
