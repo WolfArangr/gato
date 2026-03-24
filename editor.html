@@ -108,62 +108,40 @@
       position: relative; z-index: 1;
       min-height: var(--a4-height);
       padding: 94px 75px;
-      font-size: 1.05rem; 
-      line-height: 1.72;
-      background: transparent; 
-      outline: none; 
-      width: 100%;
+      font-size: 1.05rem; line-height: 1.72;
+      background: transparent; outline: none; width: 100%;
       font-family: 'Asturica', Georgia, serif;
-      caret-color: var(--accent-blue); 
-      color: inherit;
-      /* JUSTIFICACIÓN: aplicada al contenedor y a todos sus hijos */
+      caret-color: var(--accent-blue); color: inherit;
       text-align: justify;
-      -webkit-hyphens: auto;
-      hyphens: auto;
     }
-    /* Fuerza justificación en TODOS los elementos hijo del editor, incluyendo nodos directos */
-    .editor > *,
+    /* ── JUSTIFICADO: forzar en todos los hijos del editor ── */
     .editor p,
-    .editor div,
-    .editor blockquote,
+    .editor div:not(.fuentes),
     .editor li,
-    .editor .fuentes {
-      text-align: justify !important;
-      -webkit-hyphens: auto;
-      hyphens: auto;
+    .editor span {
+      text-align: justify;
     }
     body[data-textcolor="black"] .editor { caret-color: var(--accent-black); }
     body[data-theme="dark"] .editor { caret-color: var(--accent-dark); }
     .editor blockquote {
-      margin: 1.6em 2.8em; 
-      padding: 0.4em 1.2em 0.4em 1.8em;
-      border-left: 4px solid var(--accent-blue); 
-      color: var(--accent-blue);
-      font-style: italic; 
-      background: rgba(25,52,90,0.04);
+      margin: 1.6em 2.8em; padding: 0.4em 1.2em 0.4em 1.8em;
+      border-left: 4px solid var(--accent-blue); color: var(--accent-blue);
+      font-style: italic; background: rgba(25,52,90,0.04);
     }
     body[data-textcolor="black"] .editor blockquote { border-left-color: var(--accent-black); color: var(--accent-black); background: rgba(17,17,17,0.04); }
     body[data-theme="dark"] .editor blockquote { border-left-color: var(--accent-dark); color: var(--accent-dark); background: rgba(160,192,255,0.06); }
     .editor .fuentes {
-      margin: 2.5em 1.5em 1em; 
-      padding: 1.2em 2em;
-      border-top: 2px solid rgba(25,52,90,0.4); 
-      border-bottom: 2px solid rgba(25,52,90,0.4);
-      font-size: 0.95rem; 
-      color: var(--accent-blue); 
-      background: rgba(25,52,90,0.03);
+      margin: 2.5em 1.5em 1em; padding: 1.2em 2em;
+      border-top: 2px solid rgba(25,52,90,0.4); border-bottom: 2px solid rgba(25,52,90,0.4);
+      font-size: 0.95rem; color: var(--accent-blue); background: rgba(25,52,90,0.03);
     }
     body[data-textcolor="black"] .editor .fuentes { border-color: rgba(17,17,17,0.5); color: var(--accent-black); background: rgba(17,17,17,0.03); }
     body[data-theme="dark"] .editor .fuentes { border-color: rgba(160,192,255,0.5); color: var(--accent-dark); background: rgba(160,192,255,0.05); }
-    .editor h1, .editor h2 { 
-      color: var(--accent-blue); 
-      margin: 1.4em 0 0.6em; 
-      text-align: left; /* Los títulos normalmente no se justifican */
-    }
+    .editor h1, .editor h2 { color: var(--accent-blue); margin: 1.4em 0 0.6em; }
     body[data-textcolor="black"] .editor h1, body[data-textcolor="black"] .editor h2 { color: var(--accent-black); }
     body[data-theme="dark"] .editor h1, body[data-theme="dark"] .editor h2 { color: var(--accent-dark); }
     .status { margin-top: 1.2rem; text-align: center; font-size: 0.88rem; opacity: 0.7; }
-    /* Resto de estilos del modal y carta (sin cambios) */
+    /* ── MODAL PIN ── */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.55); z-index: 9999;
@@ -199,6 +177,7 @@
       font-size: 0.95rem; cursor: pointer;
     }
     .modal-box .pin-error { color: #c0392b; font-size: 0.88rem; margin-top: -0.6rem; margin-bottom: 0.8rem; min-height: 1.2em; }
+    /* ── MODAL CARTA OFICIAL ── */
     #cartaModal {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.72); z-index: 10000;
@@ -223,6 +202,7 @@
     }
     .carta-modal-toolbar .btn-close-carta:hover { background: #0f2040; }
     .btn-downloading { opacity: 0.6; cursor: wait !important; pointer-events: none; }
+    /* ── CARTA: estilos compartidos display y render ── */
     .carta-shell {
       position: relative; width: 794px; min-height: 1123px;
       background: #f8f4eb; font-family: 'Asturica', Georgia, serif;
@@ -241,6 +221,7 @@
     }
     .carta-watermark img { width: 520px; height: auto; opacity: 0.18; }
     .carta-body { position: relative; z-index: 2; padding: 0 75px 60px; }
+    /* Encabezado con título centrado de forma absoluta */
     .carta-header {
       position: relative; display: flex;
       align-items: center; justify-content: space-between;
@@ -258,16 +239,18 @@
       text-align: right; font-size: 1rem; line-height: 1.5;
       opacity: 0.75; color: #19345a; flex-shrink: 0; margin-left: auto;
     }
+    /* ── JUSTIFICADO en carta display ── */
     .carta-content {
       font-size: 1.05rem; line-height: 1.72;
       text-align: justify;
     }
-    /* Justificación en el contenido de la carta también */
-    .carta-content > *,
     .carta-content p,
-    .carta-content div {
-      text-align: justify !important;
+    .carta-content div,
+    .carta-content li,
+    .carta-content span {
+      text-align: justify;
     }
+    /* ── PIE DE PÁGINA ── */
     .carta-footer {
       position: absolute; bottom: 0; left: 0; right: 0; height: 50px;
       display: flex; align-items: center; justify-content: space-between;
@@ -317,8 +300,7 @@
     </div>
     <div class="status">El Gato Arango</div>
   </div>
-
-  <!-- MODAL PIN y MODAL CARTA (sin cambios) -->
+  <!-- MODAL PIN -->
   <div class="modal-overlay" id="pinModal">
     <div class="modal-box">
       <h2>🔒 Carta Oficial</h2>
@@ -331,7 +313,7 @@
       </div>
     </div>
   </div>
-
+  <!-- MODAL CARTA OFICIAL (visualización) -->
   <div id="cartaModal">
     <div class="carta-modal-inner">
       <div class="carta-modal-toolbar">
@@ -361,21 +343,19 @@
       </div>
     </div>
   </div>
-
   <div id="carta-render"></div>
-
   <script>
     const editor = document.getElementById('editor');
+    /* ── PIN de sesión: se pide solo una vez ── */
     let pinVerificado = false;
-
+    /* ── Precarga explícita de imágenes al arrancar ── */
     ['https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente%20HQ.png',
      'https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente.png'
     ].forEach(url => { const i = new Image(); i.crossOrigin = 'anonymous'; i.src = url; });
-
+    /* ── Comandos básicos ── */
     function execCmd(cmd) { document.execCommand(cmd, false, null); editor.focus(); }
     function formatBlock(tag) { document.execCommand('formatBlock', false, tag); editor.focus(); }
     function insertQuote() { document.execCommand('formatBlock', false, 'blockquote'); editor.focus(); }
-
     function insertFuentes() {
       const sel = window.getSelection();
       if (!sel.rangeCount) { editor.focus(); return; }
@@ -409,7 +389,7 @@
       }
       editor.focus();
     }
-
+    /* ── Apariencia ── */
     function toggleTheme() {
       const d = document.body.dataset.theme === 'dark';
       document.body.dataset.theme = d ? 'light' : 'dark';
@@ -425,7 +405,7 @@
       document.body.dataset.papiro = on ? 'off' : 'on';
       document.getElementById('togglePapiro').textContent = on ? 'Poner papiro' : 'Quitar papiro';
     }
-
+    /* ── Copiar con formato ── */
     async function copyFormatted() {
       try {
         const blob = new Blob([editor.innerHTML], { type: 'text/html' });
@@ -433,111 +413,196 @@
         alert('Copiado con formato');
       } catch(e) { alert('Error al copiar'); }
     }
-
+    /* ── Descargar HTML ── */
     function downloadHTML() {
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Texto Asturianizado</title>
-<style>
-body{font-family:'Asturica',serif;background:#f8f4eb;padding:75px 94px;font-size:1.05rem;line-height:1.72;}
-body, body *{text-align:justify;}
-h1,h2{text-align:left;}
-</style></head>
+<style>body{font-family:'Asturica',serif;background:#f8f4eb;padding:75px 94px;font-size:1.05rem;line-height:1.72;text-align:justify;}p,div,li,span{text-align:justify;}</style></head>
 <body>${editor.innerHTML}</body></html>`;
       const blob = new Blob([html], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'texto-asturiano.html'; a.click();
       URL.revokeObjectURL(url);
     }
-
+    /* ── Descargar PNG ── */
     async function downloadPNG() {
-      const container = document.querySelector('.editor-container');
-      const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: false });
-      const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
-      a.download = 'texto-asturiano.png';
-      a.click();
+      try {
+        const c = document.querySelector('.editor-container');
+        const canvas = await html2canvas(c, { scale:2, backgroundColor:'#f8f4eb', width:794, height:c.scrollHeight, windowWidth:794, useCORS:true, allowTaint:false });
+        const a = document.createElement('a'); a.download='texto-asturiano.png'; a.href=canvas.toDataURL('image/png'); a.click();
+      } catch(e) { alert('Error al generar PNG: '+e.message); }
     }
-
+    /* ── Descargar PDF (editor normal) ── */
     async function downloadPDF() {
-      const { jsPDF } = window.jspdf;
-      const container = document.querySelector('.editor-container');
-      const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: false });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [794, 1123] });
-      pdf.addImage(imgData, 'PNG', 0, 0, 794, 1123);
-      pdf.save('texto-asturiano.pdf');
+      try {
+        const { jsPDF } = window.jspdf;
+        const c = document.querySelector('.editor-container');
+        const canvas = await html2canvas(c, { scale:2, backgroundColor:'#f8f4eb', width:794, windowWidth:794, useCORS:true, allowTaint:false });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+        const pdfW = 210, pageH = 297;
+        const pdfH = Math.round((canvas.height / canvas.width) * pdfW);
+        if (pdfH <= pageH) {
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
+        } else {
+          let rem = pdfH, pg = 0;
+          while (rem > 0) {
+            const sh = Math.min(pageH, rem);
+            const sc = document.createElement('canvas');
+            const ratio = canvas.width / pdfW;
+            sc.width = canvas.width; sc.height = Math.round(sh * ratio);
+            sc.getContext('2d').drawImage(canvas, 0, Math.round(pg*pageH*ratio), canvas.width, sc.height, 0, 0, canvas.width, sc.height);
+            if (pg > 0) pdf.addPage();
+            pdf.addImage(sc.toDataURL('image/png'), 'PNG', 0, 0, pdfW, sh);
+            rem -= sh; pg++;
+          }
+        }
+        pdf.save('texto-asturiano.pdf');
+      } catch(e) { alert('Error al generar PDF: '+e.message); }
     }
-
+    /* ── MODAL PIN ── */
     function solicitarCartaOficial() {
-      if (pinVerificado) { mostrarCarta(); return; }
-      document.getElementById('pinModal').classList.add('visible');
+      if (pinVerificado) { mostrarCartaOficial(); return; }
       document.getElementById('pinInput').value = '';
       document.getElementById('pinError').textContent = '';
+      document.getElementById('pinModal').classList.add('visible');
       setTimeout(() => document.getElementById('pinInput').focus(), 100);
     }
-
-    function cerrarModal() {
-      document.getElementById('pinModal').classList.remove('visible');
-    }
-
+    function cerrarModal() { document.getElementById('pinModal').classList.remove('visible'); }
     function verificarPin() {
       const pin = document.getElementById('pinInput').value;
-      if (pin === '1234') {
+      if (pin === '4322') {
         pinVerificado = true;
         cerrarModal();
-        mostrarCarta();
+        mostrarCartaOficial();
       } else {
         document.getElementById('pinError').textContent = 'PIN incorrecto. Inténtalo de nuevo.';
         document.getElementById('pinInput').value = '';
         document.getElementById('pinInput').focus();
       }
     }
-
-    document.getElementById('pinInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') verificarPin();
+    document.addEventListener('keydown', e => {
+      if (document.getElementById('pinModal').classList.contains('visible')) {
+        if (e.key === 'Enter') verificarPin();
+        if (e.key === 'Escape') cerrarModal();
+      }
+      if (document.getElementById('cartaModal').classList.contains('visible')) {
+        if (e.key === 'Escape') cerrarCartaModal();
+      }
     });
-
-    function mostrarCarta() {
-      const now = new Date();
-      const fechaStr = now.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-      document.getElementById('carta-fecha-display').textContent = fechaStr;
+    /* ── Mostrar Carta Oficial en modal ── */
+    function mostrarCartaOficial() {
+      const fecha = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
+      document.getElementById('carta-fecha-display').textContent = fecha;
       document.getElementById('carta-content-display').innerHTML = editor.innerHTML;
+      // Estimar páginas para el pie del display
+      const totalPgs = calcularTotalPaginas();
+      document.getElementById('footer-page-display').textContent =
+        totalPgs > 1 ? `Páginas 1–${totalPgs}` : 'Página 1 de 1';
       document.getElementById('cartaModal').classList.add('visible');
+      document.body.style.overflow = 'hidden';
     }
-
     function cerrarCartaModal() {
       document.getElementById('cartaModal').classList.remove('visible');
+      document.body.style.overflow = '';
     }
-
+    /* Altura usable por página (px a 96dpi):
+       A4 = 1123px | cabecera (solo pág.1) ≈ 188px | pie ≈ 50px | padding-bottom = 60px */
+    const PAGE_PX = 1123;
+    const HEADER_PX = 188; // solo primera página
+    const FOOTER_PX = 50;
+    const PAD_PX = 60;
+    const USABLE_P1 = PAGE_PX - HEADER_PX - FOOTER_PX - PAD_PX; // primera página
+    const USABLE_PN = PAGE_PX - FOOTER_PX - PAD_PX; // páginas siguientes
+    function calcularTotalPaginas() {
+      // Medir la altura real del contenido del editor con un nodo temporal
+      const m = document.createElement('div');
+      m.style.cssText = 'position:fixed;left:-9999px;top:0;width:644px;font-family:\'Asturica\',Georgia,serif;font-size:1.05rem;line-height:1.72;visibility:hidden;pointer-events:none;';
+      m.innerHTML = editor.innerHTML;
+      document.body.appendChild(m);
+      const h = m.scrollHeight;
+      document.body.removeChild(m);
+      if (h <= USABLE_P1) return 1;
+      return 1 + Math.ceil((h - USABLE_P1) / USABLE_PN);
+    }
+    /* ── Descargar PDF Carta Oficial con pie de página por página ── */
     async function descargarCartaPDF() {
       const btn = document.getElementById('btnDescargaCarta');
       btn.classList.add('btn-downloading');
-      btn.textContent = 'Generando…';
-      try {
-        const { jsPDF } = window.jspdf;
-        const shell = document.getElementById('carta-display');
-        const canvas = await html2canvas(shell, { scale: 2, useCORS: true, allowTaint: false });
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [794, 1123] });
-        pdf.addImage(imgData, 'PNG', 0, 0, 794, 1123);
-        pdf.save('carta-oficial-arango.pdf');
-      } catch(e) { alert('Error al generar PDF'); }
+      btn.textContent = '⏳ Generando…';
+      const fecha = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
+      const contenido = editor.innerHTML;
+      const totalPgs = calcularTotalPaginas();
+      const renderEl = document.getElementById('carta-render');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      for (let p = 0; p < totalPgs; p++) {
+        const esP1 = p === 0;
+        const usable = esP1 ? USABLE_P1 : USABLE_PN;
+        // Desplazamiento vertical del contenido para esta página
+        const offsetPx = esP1 ? 0 : USABLE_P1 + (p - 1) * USABLE_PN;
+        renderEl.innerHTML = `
+          <div style="position:relative;width:794px;height:${PAGE_PX}px;background:#f8f4eb;
+                      font-family:'Asturica',Georgia,serif;color:#19345a;overflow:hidden;">
+            <!-- Papel -->
+            <div style="position:absolute;inset:0;
+              background:url('https://plus.unsplash.com/premium_photo-1725347346926-f568729d43b3?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fHBhcGVyJTIwdGV4dHVyZXxlbnwwfHwwfHx8MA%3D%3D') center/cover no-repeat;
+              opacity:0.2;pointer-events:none;z-index:0;"></div>
+            <!-- Marca de agua -->
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;">
+              <img src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente%20HQ.png"
+                   crossorigin="anonymous" style="width:520px;height:auto;opacity:0.18;" />
+            </div>
+            <!-- Cuerpo -->
+            <div style="position:relative;z-index:2;padding:0 75px 60px;">
+              ${esP1 ? `
+              <div style="position:relative;display:flex;align-items:center;justify-content:space-between;
+                           padding:36px 0 24px;border-bottom:2px solid rgba(25,52,90,0.35);margin-bottom:36px;">
+                <img src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente.png"
+                     crossorigin="anonymous" style="height:90px;width:auto;flex-shrink:0;" />
+                <div style="position:absolute;left:0;right:0;text-align:center;font-size:1.25rem;
+                             font-weight:bold;letter-spacing:1px;color:#19345a;">Casa Arango</div>
+                <div style="text-align:right;font-size:0.82rem;line-height:1.5;opacity:0.75;
+                             color:#19345a;flex-shrink:0;margin-left:auto;">${fecha}</div>
+              </div>` : ''}
+              <!-- Ventana de contenido -->
+              <div style="overflow:hidden;height:${usable}px;">
+                <div style="margin-top:-${offsetPx}px;font-size:1.05rem;line-height:1.72;text-align:justify;">
+                  ${contenido}
+                </div>
+              </div>
+            </div>
+            <!-- Pie de página -->
+            <div style="position:absolute;bottom:0;left:0;right:0;height:50px;
+                         display:flex;align-items:center;justify-content:space-between;
+                         padding:0 75px;border-top:1px solid rgba(25,52,90,0.25);
+                         font-size:0.75rem;color:#19345a;opacity:0.65;
+                         font-family:'Asturica',Georgia,serif;z-index:3;">
+              <span style="font-style:italic;">Documento Oficial · Casa Arango</span>
+              <span>${totalPgs > 1 ? `Página ${p+1} de ${totalPgs}` : 'Página 1 de 1'}</span>
+            </div>
+          </div>`;
+        renderEl.style.visibility = 'visible';
+        // Esperar dos frames para que el navegador pinte el DOM
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const pagEl = renderEl.firstElementChild;
+        const canvas = await html2canvas(pagEl, {
+          scale: 2, backgroundColor: '#f8f4eb',
+          width: 794, height: PAGE_PX,
+          windowWidth: 794, useCORS: true, allowTaint: false
+        });
+        if (p > 0) pdf.addPage();
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+        renderEl.innerHTML = '';
+      }
+      renderEl.style.visibility = 'hidden';
+      pdf.save('documento-oficial-arango.pdf');
       btn.classList.remove('btn-downloading');
       btn.textContent = '⬇ Descargar PDF';
     }
-
-    // Fuerza justificación en todos los nodos hijo tras cada edición
-    editor.addEventListener('input', () => {
-      editor.querySelectorAll('p, div, blockquote, li, .fuentes').forEach(el => {
-        if (!el.matches('h1, h2')) {
-          el.style.textAlign = 'justify';
-        }
-      });
-    });
-
-    document.querySelectorAll('.toolbar button').forEach(el => {
+    /* Evitar que los botones de la toolbar quiten la selección del editor */
+    document.querySelectorAll('.toolbar button, .toolbar select').forEach(el => {
       el.addEventListener('mousedown', e => e.preventDefault());
     });
-
     editor.focus();
   </script>
 </body>
