@@ -115,35 +115,25 @@
     body[data-theme="dark"] .editor h1, body[data-theme="dark"] .editor h2 { color: var(--accent-dark); }
 
     /* ── SALTO DE PÁGINA MANUAL ── */
-    .editor .page-break {
-      display: block;
-      width: 100%;
-      height: 0;
-      border: none;
-      border-top: 2px dashed rgba(25,52,90,0.35);
-      margin: 1.6em 0;
-      position: relative;
-      cursor: default;
-      contenteditable: false;
+    .page-break {
+      display: block; width: 100%; height: 2px;
+      border: none; border-top: 2px dashed rgba(25,52,90,0.35);
+      margin: 1.6em 0; position: relative; cursor: default;
+      user-select: none;
     }
-    .editor .page-break::after {
-      content: '— salto de página —';
-      position: absolute;
-      left: 50%;
-      top: 50%;
+    .page-break::after {
+      content: '— nueva página —';
+      position: absolute; left: 50%; top: 50%;
       transform: translate(-50%, -50%);
-      background: #f8f4eb;
-      padding: 0 12px;
-      font-size: 0.75rem;
-      opacity: 0.5;
+      background: #f8f4eb; padding: 0 12px;
+      font-size: 0.75rem; opacity: 0.55;
       font-family: 'Asturica', Georgia, serif;
-      letter-spacing: 1px;
-      white-space: nowrap;
-      pointer-events: none;
+      letter-spacing: 1px; white-space: nowrap; pointer-events: none;
+      color: #19345a;
     }
-    body[data-theme="dark"] .editor .page-break { border-color: rgba(160,192,255,0.3); }
-    body[data-theme="dark"] .editor .page-break::after { background: #1a140e; color: #a0c0ff; }
-    body[data-textcolor="black"] .editor .page-break { border-color: rgba(17,17,17,0.3); }
+    body[data-theme="dark"] .page-break { border-color: rgba(160,192,255,0.3); }
+    body[data-theme="dark"] .page-break::after { background: #1a140e; color: #a0c0ff; }
+    body[data-textcolor="black"] .page-break { border-color: rgba(17,17,17,0.3); }
 
     .status { margin-top: 1.2rem; text-align: center; font-size: 0.88rem; opacity: 0.7; }
 
@@ -192,7 +182,10 @@
     }
     #cartaModal.visible { display: flex; }
     .carta-modal-inner { position: relative; width: 794px; flex-shrink: 0; }
-    .carta-modal-toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 12px; }
+    .carta-modal-toolbar {
+      display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
     .carta-modal-toolbar button {
       background: #f8f4eb; color: #19345a; border: 1px solid rgba(25,52,90,0.35);
       padding: 8px 18px; border-radius: 8px; font-family: 'Asturica', serif;
@@ -203,20 +196,27 @@
     .carta-modal-toolbar .btn-close-carta:hover { background: #0f2040; }
     .btn-downloading { opacity: 0.6; cursor: wait !important; pointer-events: none; }
 
+    /* ── CARTA SHELL ── */
     .carta-shell {
       position: relative; width: 794px; min-height: 1123px;
       background: #f8f4eb; font-family: 'Asturica', Georgia, serif;
       color: #19345a; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.35);
     }
+    /* Fondo papiro carta — controlado por data-carta-papiro */
     .carta-paper-bg {
       position: absolute; inset: 0; background: var(--paper);
       opacity: 0.2; pointer-events: none; z-index: 0;
+      transition: opacity 0.4s;
     }
+    [data-carta-papiro="off"] .carta-paper-bg { opacity: 0; }
+
+    /* Marca de agua / escudo — NUNCA se toca con el toggle papiro */
     .carta-watermark {
       position: absolute; inset: 0; display: flex;
       align-items: center; justify-content: center; pointer-events: none; z-index: 1;
     }
     .carta-watermark img { width: 520px; height: auto; opacity: 0.18; }
+
     .carta-body { position: relative; z-index: 2; padding: 0 75px 60px; }
     .carta-header {
       position: relative; display: flex; align-items: center;
@@ -235,8 +235,8 @@
     }
     .carta-content { font-size: 1.05rem; line-height: 1.72; text-align: justify; }
     .carta-content p, .carta-content div, .carta-content li, .carta-content span { text-align: justify; }
-    /* Ocultar el salto de página visual en la previsualización de carta */
-    .carta-content .page-break { display: none; }
+    /* Ocultar marcadores de salto en la previsualización */
+    .carta-content .page-break { display: none !important; }
 
     .carta-footer {
       position: absolute; bottom: 0; left: 0; right: 0; height: 50px;
@@ -247,6 +247,7 @@
     }
     .carta-footer .footer-left { font-style: italic; }
 
+    /* Nodo de render fuera de pantalla */
     #carta-render {
       position: fixed; left: -9999px; top: 0; width: 794px;
       visibility: hidden; pointer-events: none; z-index: 1;
@@ -267,7 +268,7 @@
       <button onclick="formatBlock('h2')">Título medio</button>
       <button onclick="formatBlock('p')">Párrafo</button>
       <button onclick="insertFuentes()">Fuentes</button>
-      <button onclick="insertPageBreak()">+ Página</button>
+      <button onclick="insertPageBreak()" title="Insertar salto de página manual">+ Página</button>
       <div class="toolbar-sep"></div>
       <button onclick="copyFormatted()">Copiar con formato</button>
       <button onclick="downloadHTML()">Descargar HTML</button>
@@ -303,14 +304,16 @@
   </div>
 
   <!-- MODAL CARTA OFICIAL -->
-  <div id="cartaModal">
+  <div id="cartaModal" data-carta-papiro="on">
     <div class="carta-modal-inner">
       <div class="carta-modal-toolbar">
+        <button id="btnToggleCartaPapiro" onclick="toggleCartaPapiro()">Quitar papiro</button>
         <button id="btnDescargaCarta" onclick="descargarCartaPDF()">⬇ Descargar PDF</button>
         <button class="btn-close-carta" onclick="cerrarCartaModal()">✕ Cerrar</button>
       </div>
       <div class="carta-shell" id="carta-display">
         <div class="carta-paper-bg"></div>
+        <!-- El escudo marca de agua NO se afecta por el toggle papiro -->
         <div class="carta-watermark">
           <img src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente%20HQ.png"
                alt="Marca de agua" crossorigin="anonymous" />
@@ -356,20 +359,17 @@
       const range = sel.getRangeAt(0);
       range.collapse(false);
 
-      // El salto: div no editable con clase page-break
       const brDiv = document.createElement('div');
       brDiv.className = 'page-break';
       brDiv.setAttribute('contenteditable', 'false');
       brDiv.setAttribute('data-page-break', 'true');
 
-      // Párrafo vacío después del salto para seguir escribiendo
       const after = document.createElement('p');
       after.innerHTML = '<br>';
 
       range.insertNode(after);
       range.insertNode(brDiv);
 
-      // Mover el cursor al párrafo siguiente
       const newRange = document.createRange();
       newRange.setStart(after, 0);
       newRange.collapse(true);
@@ -412,7 +412,7 @@
       editor.focus();
     }
 
-    /* ── Apariencia ── */
+    /* ── Apariencia editor ── */
     function toggleTheme() {
       const d = document.body.dataset.theme === 'dark';
       document.body.dataset.theme = d ? 'light' : 'dark';
@@ -427,6 +427,14 @@
       const on = document.body.dataset.papiro === 'on';
       document.body.dataset.papiro = on ? 'off' : 'on';
       document.getElementById('togglePapiro').textContent = on ? 'Poner papiro' : 'Quitar papiro';
+    }
+
+    /* ── Toggle papiro CARTA OFICIAL (solo textura, escudo intacto) ── */
+    function toggleCartaPapiro() {
+      const modal = document.getElementById('cartaModal');
+      const on = modal.dataset.cartaPapiro === 'on';
+      modal.dataset.cartaPapiro = on ? 'off' : 'on';
+      document.getElementById('btnToggleCartaPapiro').textContent = on ? 'Poner papiro' : 'Quitar papiro';
     }
 
     /* ── Copiar con formato ── */
@@ -453,18 +461,23 @@
     async function downloadPNG() {
       try {
         const c = document.querySelector('.editor-container');
-        const canvas = await html2canvas(c, { scale:2, backgroundColor:'#f8f4eb', width:794, height:c.scrollHeight, windowWidth:794, useCORS:true, allowTaint:false });
-        const a = document.createElement('a'); a.download='texto-asturiano.png'; a.href=canvas.toDataURL('image/png'); a.click();
-      } catch(e) { alert('Error al generar PNG: '+e.message); }
+        const canvas = await html2canvas(c, {
+          scale: 2, backgroundColor: '#f8f4eb',
+          width: 794, height: c.scrollHeight,
+          windowWidth: 794, useCORS: true, allowTaint: false
+        });
+        const a = document.createElement('a');
+        a.download = 'texto-asturiano.png'; a.href = canvas.toDataURL('image/png'); a.click();
+      } catch(e) { alert('Error al generar PNG: ' + e.message); }
     }
 
     /*
      * ════════════════════════════════════════════════════════════════
-     * paginarPorSaltos()
+     * paginarPorSaltos(html)
      *
-     * Divide los nodos hijo del editor en páginas usando ÚNICAMENTE
+     * Divide el contenido del editor en páginas usando ÚNICAMENTE
      * los saltos manuales (data-page-break="true") como puntos de corte.
-     * Si no hay ningún salto, todo el contenido va en una sola página.
+     * Si no hay ningún salto, devuelve un array con una sola página.
      *
      * Devuelve: array de arrays de nodos clonados, uno por página.
      * ════════════════════════════════════════════════════════════════
@@ -477,25 +490,26 @@
       let current = [];
 
       for (const node of Array.from(probe.childNodes)) {
-        // Nodo de salto de página → cerrar página actual y abrir nueva
         if (node.nodeType === Node.ELEMENT_NODE &&
             node.getAttribute && node.getAttribute('data-page-break') === 'true') {
+          // Siempre cerrar la página actual aunque esté vacía,
+          // para respetar múltiples saltos seguidos
           pages.push(current);
           current = [];
           continue;
         }
         current.push(node.cloneNode(true));
       }
-      if (current.length > 0) pages.push(current);
-      return pages;
+      if (current.length > 0 || pages.length === 0) pages.push(current);
+      return pages.filter(p => p.length > 0 || pages.length === 1);
     }
 
-    /* ── Descargar PDF (editor normal) — paginado por saltos manuales ── */
+    /* ── Descargar PDF editor normal — paginado por saltos manuales ── */
     async function downloadPDF() {
       try {
         const { jsPDF } = window.jspdf;
         const renderEl = document.getElementById('carta-render');
-        const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
         const PAGE_PX  = 1123;
         const PAD_TOP  = 94;
@@ -506,7 +520,17 @@
 
         for (let p = 0; p < pages.length; p++) {
           const pageDiv = document.createElement('div');
-          pageDiv.style.cssText = `width:794px;min-height:${PAGE_PX}px;background:#f8f4eb;font-family:'Asturica',Georgia,serif;color:#19345a;padding:${PAD_TOP}px ${PAD_SIDE}px ${PAD_BOT}px;box-sizing:border-box;text-align:justify;`;
+          pageDiv.style.cssText = [
+            'width:794px',
+            `min-height:${PAGE_PX}px`,
+            'background:#f8f4eb',
+            "font-family:'Asturica',Georgia,serif",
+            'color:#19345a',
+            `padding:${PAD_TOP}px ${PAD_SIDE}px ${PAD_BOT}px`,
+            'box-sizing:border-box',
+            'text-align:justify'
+          ].join(';');
+
           pages[p].forEach(n => pageDiv.appendChild(n.cloneNode(true)));
 
           renderEl.innerHTML = '';
@@ -565,13 +589,15 @@
 
     /* ── Mostrar Carta Oficial en modal ── */
     function mostrarCartaOficial() {
-      const fecha = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
+      const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
       document.getElementById('carta-fecha-display').textContent = fecha;
       document.getElementById('carta-content-display').innerHTML = editor.innerHTML;
+
       const totalPgs = paginarPorSaltos(editor.innerHTML).length;
-      // Solo mostrar numeración si hay más de una página
-      const footerPag = document.getElementById('footer-page-display');
-      footerPag.textContent = totalPgs > 1 ? `Páginas 1–${totalPgs}` : '';
+      // Número de página solo si hay más de una
+      const footerSpan = document.getElementById('footer-page-display');
+      footerSpan.textContent = totalPgs > 1 ? `Páginas 1–${totalPgs}` : '';
+
       document.getElementById('cartaModal').classList.add('visible');
       document.body.style.overflow = 'hidden';
     }
@@ -584,7 +610,6 @@
     const CARTA_PAGE_PX  = 1123;
     const CARTA_PAD_SIDE = 75;
     const CARTA_PAD_BOT  = 60;
-    const CARTA_HEADER_H = 188;
     const CARTA_FOOTER_H = 50;
 
     /* ── Descargar PDF Carta Oficial — paginado por saltos manuales ── */
@@ -593,10 +618,13 @@
       btn.classList.add('btn-downloading');
       btn.textContent = '⏳ Generando…';
 
-      const fecha = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
+      const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
       const renderEl = document.getElementById('carta-render');
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      // Leer si el papiro está activo en la carta (según el toggle del modal)
+      const cartaPapiroOn = document.getElementById('cartaModal').dataset.cartaPapiro !== 'off';
 
       const pages = paginarPorSaltos(editor.innerHTML);
       const totalPgs = pages.length;
@@ -604,16 +632,31 @@
       for (let p = 0; p < totalPgs; p++) {
         const esP1 = p === 0;
 
-        // Construir la página como nodos DOM
+        /* Construir la página como nodos DOM — nunca serializar a string
+           para evitar que los estilos de justificado se pierdan */
         const pageWrap = document.createElement('div');
-        pageWrap.style.cssText = `position:relative;width:794px;min-height:${CARTA_PAGE_PX}px;background:#f8f4eb;font-family:'Asturica',Georgia,serif;color:#19345a;overflow:hidden;`;
+        pageWrap.style.cssText = [
+          'position:relative',
+          'width:794px',
+          `min-height:${CARTA_PAGE_PX}px`,
+          'background:#f8f4eb',
+          "font-family:'Asturica',Georgia,serif",
+          'color:#19345a',
+          'overflow:hidden'
+        ].join(';');
 
-        // Fondo papiro
-        const papiro = document.createElement('div');
-        papiro.style.cssText = `position:absolute;inset:0;background:url('https://plus.unsplash.com/premium_photo-1725347346926-f568729d43b3?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fHBhcGVyJTIwdGV4dHVyZXxlbnwwfHwwfHx8MA%3D%3D') center/cover no-repeat;opacity:0.2;pointer-events:none;z-index:0;`;
-        pageWrap.appendChild(papiro);
+        /* ── Fondo papiro (respeta toggle) ── */
+        if (cartaPapiroOn) {
+          const papiro = document.createElement('div');
+          papiro.style.cssText = [
+            'position:absolute', 'inset:0',
+            "background:url('https://plus.unsplash.com/premium_photo-1725347346926-f568729d43b3?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fHBhcGVyJTIwdGV4dHVyZXxlbnwwfHwwfHx8MA%3D%3D') center/cover no-repeat",
+            'opacity:0.2', 'pointer-events:none', 'z-index:0'
+          ].join(';');
+          pageWrap.appendChild(papiro);
+        }
 
-        // Marca de agua
+        /* ── Marca de agua / escudo (SIEMPRE visible) ── */
         const wmDiv = document.createElement('div');
         wmDiv.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;';
         const wmImg = document.createElement('img');
@@ -623,23 +666,32 @@
         wmDiv.appendChild(wmImg);
         pageWrap.appendChild(wmDiv);
 
-        // Cuerpo
+        /* ── Cuerpo ── */
         const bodyDiv = document.createElement('div');
         bodyDiv.style.cssText = `position:relative;z-index:2;padding:0 ${CARTA_PAD_SIDE}px ${CARTA_PAD_BOT}px;`;
 
         if (esP1) {
+          /* Cabecera solo en primera página */
           const header = document.createElement('div');
-          header.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:space-between;padding:36px 0 24px;border-bottom:2px solid rgba(25,52,90,0.35);margin-bottom:36px;';
+          header.style.cssText = [
+            'position:relative', 'display:flex', 'align-items:center',
+            'justify-content:space-between', 'padding:36px 0 24px',
+            'border-bottom:2px solid rgba(25,52,90,0.35)', 'margin-bottom:36px'
+          ].join(';');
+
           const escudo = document.createElement('img');
           escudo.src = 'https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/escudo/Escudo%20Arango%20transparente.png';
           escudo.crossOrigin = 'anonymous';
           escudo.style.cssText = 'height:90px;width:auto;flex-shrink:0;';
+
           const titulo = document.createElement('div');
           titulo.style.cssText = 'position:absolute;left:0;right:0;text-align:center;font-size:1.25rem;font-weight:bold;letter-spacing:1px;color:#19345a;';
           titulo.textContent = 'Casa Arango';
+
           const fechaDiv = document.createElement('div');
           fechaDiv.style.cssText = 'text-align:right;font-size:0.82rem;line-height:1.5;opacity:0.75;color:#19345a;flex-shrink:0;margin-left:auto;';
           fechaDiv.textContent = fecha;
+
           header.appendChild(escudo);
           header.appendChild(titulo);
           header.appendChild(fechaDiv);
@@ -650,20 +702,30 @@
           bodyDiv.appendChild(spacer);
         }
 
-        // Contenido de la página
+        /* ── Contenido de esta página ── */
         const contentDiv = document.createElement('div');
         contentDiv.style.cssText = 'font-size:1.05rem;line-height:1.72;text-align:justify;';
         pages[p].forEach(n => contentDiv.appendChild(n.cloneNode(true)));
         bodyDiv.appendChild(contentDiv);
         pageWrap.appendChild(bodyDiv);
 
-        // Pie de página — sin número si solo hay una página
+        /* ── Pie de página — sin número si es la única página ── */
         const footer = document.createElement('div');
-        footer.style.cssText = `position:absolute;bottom:0;left:0;right:0;height:${CARTA_FOOTER_H}px;display:flex;align-items:center;justify-content:space-between;padding:0 ${CARTA_PAD_SIDE}px;border-top:1px solid rgba(25,52,90,0.25);font-size:0.75rem;color:#19345a;opacity:0.65;font-family:'Asturica',Georgia,serif;z-index:3;`;
+        footer.style.cssText = [
+          'position:absolute', 'bottom:0', 'left:0', 'right:0',
+          `height:${CARTA_FOOTER_H}px`,
+          'display:flex', 'align-items:center', 'justify-content:space-between',
+          `padding:0 ${CARTA_PAD_SIDE}px`,
+          'border-top:1px solid rgba(25,52,90,0.25)',
+          'font-size:0.75rem', 'color:#19345a', 'opacity:0.65',
+          "font-family:'Asturica',Georgia,serif", 'z-index:3'
+        ].join(';');
+
         const footL = document.createElement('span');
         footL.style.fontStyle = 'italic';
         footL.textContent = 'Documento Oficial · Casa Arango';
         footer.appendChild(footL);
+
         if (totalPgs > 1) {
           const footR = document.createElement('span');
           footR.textContent = `Página ${p + 1} de ${totalPgs}`;
@@ -671,12 +733,12 @@
         }
         pageWrap.appendChild(footer);
 
+        /* ── Renderizar ── */
         renderEl.innerHTML = '';
         renderEl.appendChild(pageWrap);
         renderEl.style.visibility = 'visible';
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-        // Altura real del contenido de esta página
         const realH = Math.max(CARTA_PAGE_PX, pageWrap.scrollHeight);
         pageWrap.style.height = realH + 'px';
 
