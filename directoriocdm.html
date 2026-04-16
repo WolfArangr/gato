@@ -517,12 +517,7 @@
 
 <div class="results-info" id="resultsInfo"></div>
 
-<div class="grid" id="grid">
-  <div class="loading" style="grid-column:1/-1">
-    <div class="spinner"></div>
-    <p>Cargando directorio…</p>
-  </div>
-</div>
+<div class="grid" id="grid"></div>
 
 <footer>
   <strong>Club de Mar Mallorca</strong> &nbsp;·&nbsp; Directorio interno de empresas
@@ -587,7 +582,58 @@ const MEDIA = {
 };
 // ═══════════════════════════════════════════════════════════════
 
-const CSV_URL = "https://www.clubdemar-mallorca.com/wp-content/uploads/2026/04/Info-locales-para-directorio-webSheet1-1.csv";
+// ═══════════════════════════════════════════════════════════════
+// DATOS DEL DIRECTORIO — Pega aquí el contenido actualizado del
+// CSV cuando lo renueves en WordPress. Mantén el formato exacto.
+// ═══════════════════════════════════════════════════════════════
+const CSV_DATA = `Nº local mapa;Nombre Negocio;Categoría;Email;;Info para la web;Nombre Negocio (Qué quieren poner en la web?);página web;numero de telefono;email u otros contactos;redes sociales;logo provisto por ellos? (sí o no);Fotos provistas por ellos? (sí o no);Copy (descripción de sus servicios, anuncio, etc)
+1;Swisspath Yachting ;Charter;thomas@swisspath-yachting.com;;;Swisspath Yachting ;;;;;;;
+2;MOTYVEL YACHT CHARTER S.L.;Charter;oriolmas@motyvel.com;;;MOTYVEL YACHT CHARTER S.L.;;;;;;;
+4;ABSOLUTE Yachts Spain;Venta de embarcaciones;info@absmarinesales.com;;;ABSOLUTE Yachts Spain;;;;;;;
+5;Nautichandler S.L.;Productos náuticos;maena@nautichandler.com;;;Nautichandler S.L.;;971 229 578 / +34656476959;cdm@nautichandler.com;;si;si;"Nautichandler es una empresa especializada en el suministro de productos náuticos para embarcaciones profesionales y de recreo. Ofrece más de 20.000 referencias de más de 450 marcas, cubriendo todas las categorías necesarias para el mantenimiento, equipamiento y operación de un barco: pintura, mantenimiento, seguridad, electrónica, cubierta, confort a bordo, entre muchas otras.
+La compañía combina cinco tiendas físicas en ubicaciones estratégicas del Mediterráneo con un e-commerce con envíos internacionales, atendiendo tanto a empresas y profesionales del sector como a propietarios de embarcaciones de cualquier eslora.
+La tienda de Nautichandler en Club de Mar Mallorca está pensada para dar servicio tanto a visitantes aficionados a la náutica como a barcos amarrados en la marina, con recogida y entrega de pedidos en el puerto, gestión de productos bajo demanda y servicio Click & Collect para compras online."
+6;Ocean Independence;Charter y venta de embarcaciones;barbara@ocyachts.com;;;Ocean Independence;;;;;;;
+7;SASGA / NAUTIC CENTER PALMA REPAIR & REFIT, S.L;Reparaciones;jonas@nauticcentermallorca.com;;;SASGA / NAUTIC CENTER PALMA REPAIR & REFIT, S.L;sasgayachts.com;+34 971 772 700 / 619 756 617;;;si;;"Sasga Palma es la sede oficial de Sasga Yachts en Mallorca y su centro de operaciones para la venta, el servicio postventa y la gestión integral de embarcaciones en el Mediterráneo.
+
+Desde su base en el Club de Mar de Mallorca, centraliza la comercialización de embarcaciones nuevas y de ocasión, junto con un servicio técnico completo que abarca mantenimiento, Boat Care, varadas, invernaje y proyectos de refit.
+
+Como extensión del astillero, Sasga Palma actúa como interlocutor único para el armador, gestionando cada embarcación con una visión global y acompañando su evolución a lo largo del tiempo."
+8;Supermercado;Alimentación;;;;Supermercado;;;;;;;
+9;Acquera Spain yachting;Charter y venta de embarcaciones;alejo.trullas@acquera.com;;;Acquera Spain yachting;;;;;;;
+10;Blue BNC;Charter y venta de embarcaciones;;;;Blue BNC;;;;;;;
+10b;Shipmotion;Materiales y otros;jan.bruggeman@shipmotiongroup.com;;;Shipmotion;;;;;;;
+11;Falcao Uno;Charter y venta de embarcaciones;info@falcaouno.com;;;Falcao Uno;;;;;;;
+12;Lengers / Boatster;Charter y venta de embarcaciones;david@boatsters.com;;;Lengers / Boatster;;971180020;info@boatsters.com;;si;si;"Boatsters Black is an international yachting company specialising in yacht sales, charter, management, and new build construction, delivering a refined and comprehensive service to owners and clients worldwide. With a curated portfolio of exceptional yachts, the company combines deep industry expertise with a modern approach to the evolving landscape of luxury yachting.
+
+Headquartered at Club de Mar-Mallorca, one of the Mediterraneans most prestigious marinas, Boatsters Black operates at the centre of the European yachting community while maintaining a global reach across the worlds leading cruising destinations.
+
+Innovation lies at the core of the companys philosophy. Through advanced digital strategies, contemporary marketing, and a strong international network of shipyards and industry partners, Boatsters Black continues to elevate how yachts are represented, built, and experienced.
+
+Guided by professionalism, discretion, and meticulous attention to detail, the company is committed to building lasting relationships with owners, charterers, and partners across the global superyacht sector."
+15a;RIB Club;Charter y venta de embarcaciones;micaela@ribclub.com;;;RIB Club;;;;;;;
+17;Baltic Yachts;Charter y venta de embarcaciones;malin.strom@balticyachts.fi;;;Baltic Yachts;;;;;;;
+18;Sa Gelatería;Alimentación;direccion@sagelateriademallorca.com;;;Sa Gelatería;;;;;;;
+19;Sunlight Bootschule;Formación;s@bootsschule-sunlight.com;;;Sunlight Bootschule;www.bootsschule-sunlight.com;+49 152 3789 3086;s@bootsschule-sunlight.com;;si;si;"Bootsschule Sunlight is a German boating school located directly in the harbour of Club de Mar Mallorca in Palma. We specialise in training for internationally recognised German boating licences such as SBF See, SBF Binnen, SRC radio licence and SKS (Sport Coastal Skipper Licence).
+Our courses are designed primarily for German-speaking clients from Germany, Switzerland and Austria who wish to obtain their boating licence in a professional yet relaxed environment on Mallorca. Most of our students complete their theory and practical training within one week.
+With a highly motivated team, modern training boats and a strong focus on quality education, we aim to make boating accessible, safe and enjoyable. Our mission is not only to prepare students for the official exams but also to inspire a lifelong passion for boating and the Mediterranean sea.
+Bootsschule Sunlight has trained thousands of students over the years and is known for its excellent success rate, personal atmosphere and high training standards."
+20;Moya Joyeros;Joyería;moyajoyeros@hotmail.com;;;Moya Joyeros;;;;;;;
+21;Kidama;Ropa;andrea.lasauca@abusinessgs.com;;;Kidama;;;;;;;
+22;Majorica;Joyería;dechauri@majorica.com;;;Majorica;;;;;;;
+23;Digital Cinema;Otros;admin@digitalcinema.es;;;Digital Cinema;;;;;;;
+24;PITT;Ropa;pittmallorca@gmail.com;;;PITT;www.pitt.es;971754274;mallorca@pitt.es;;si;si;PITT es la boutique especializada en moda íntima y baño para todo tipo de mujeres y hombres. Un concepto en el que la calidad y el diseño son los pilares a la hora de seleccionar nuestros productos. Las marcas referentes en el sector garantizan un plus de calidad y patronaje para una satisfacción total del cliente, así como la garantía de durabilidad del producto.
+26;Joseph Ribkoff;Otros;anarocharaya@yahoo.es;;;Joseph Ribkoff;;;;;;;
+32;Club Lounge;Entretenimiento;josemanuel@azoteagrupo.com;;;Club Lounge;;;;;;;
+33;Mar Salada by Crudo;Entretenimiento;joliver.mercant@outlook.com;;;Mar Salada by Crudo;;;;;;;
+34;Restaurante Ppal PB;Alimentación;josemanuel@azoteagrupo.com;;;Restaurante Ppal PB;;;;;;;
+35 y 36;Doacantina S.L.;Alimentación;periconsulting@me.com;;;Doacantina S.L.;;;;;;;
+C-5;Dolphin Yachts;Charter y venta de embarcaciones;info@dolphin-yachts.com;;;Dolphin Yachts;www.dolphin-yachts.com;+34 971 700844 / 609 622 313;info@dolphin-yachts.com;;si;si;"Dolphin Yachts, de André Barbier, es la empresa más veterana del Club de Mar. Desde 1994 ofrece sus servicios de compraventa de yates a clientes de todo el mundo. Se encuentra en la punta del pantalán 7, al lado del café.
+Miembro MYBA.
+
+Dolphin Yachts, owned by André Barbier, is the longest-established company at Club de Mar. Since 1994, it has been offering yacht sales and brokerage services to clients from all over the world. It is located at the end of key 7, next to the coffee truck.
+MYBA member."`;
+// ═══════════════════════════════════════════════════════════════
 
 // Parse CSV with semicolons, respecting quoted fields
 function parseCSV(text) {
@@ -619,12 +665,9 @@ function normalizeYesNo(val) {
   return /^s[íi]/i.test(val.trim());
 }
 
-async function loadDirectory() {
+function loadDirectory() {
   try {
-    const res = await fetch(CSV_URL);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const rawText = await res.text();
-    const rows = parseCSV(rawText);
+    const rows = parseCSV(CSV_DATA);
     if (rows.length < 2) throw new Error('CSV vacío');
     // headers: 0=nLocal, 1=nombre, 2=cat, 3=email_int, 4=_, 5=_, 6=nombre_web, 7=web, 8=tel, 9=contact, 10=social, 11=logo, 12=fotos, 13=copy
     const companies = [];
@@ -633,9 +676,8 @@ async function loadDirectory() {
       if (r.length < 7) continue;
       const nombre_web = r[6] || r[1] || '';
       const categoria = r[2] || '';
-      // Skip empty or placeholder rows
       if (!nombre_web || /^sin asignar$/i.test(nombre_web.trim()) || nombre_web.trim() === '') continue;
-      if (!categoria && !r[13]) continue; // skip totally blank rows
+      if (!categoria && !r[13]) continue;
       companies.push({
         nombre: nombre_web.trim(),
         categoria: categoria.trim(),
@@ -782,8 +824,8 @@ function renderCards(companies) {
 }
 
 // Main
-(async () => {
-  const allCompanies = await loadDirectory();
+(() => {
+  const allCompanies = loadDirectory();
   const grid = document.getElementById('grid');
 
   if (!allCompanies) {
