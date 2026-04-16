@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Empresas — Club de Mar Mallorca</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #19345a;
+    --navy-dark: #0f2040;
+    --navy-light: #2a4a7a;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --white: #ffffff;
+    --off-white: #f7f8fa;
+    --gray-light: #eef0f4;
+    --gray-mid: #b0b8c8;
+    --gray-text: #5a6478;
+    --shadow: 0 2px 24px rgba(25,52,90,0.09);
+    --shadow-hover: 0 8px 40px rgba(25,52,90,0.18);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--navy);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(15,32,64,0.3);
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .header-logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+  }
+  .header-emblem {
+    width: 44px;
+    height: 44px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .header-emblem svg { width: 26px; height: 26px; }
+  .header-titles h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+  }
+  .header-titles span {
+    font-size: 0.7rem;
+    color: var(--gold-light);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  /* ── HERO STRIP ── */
+  .hero {
+    background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 60%, var(--navy-light) 100%);
+    padding: 60px 32px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-wave {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: var(--off-white);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+  .hero h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 400;
+    color: var(--white);
+    margin-bottom: 10px;
+    letter-spacing: 0.01em;
+    position: relative;
+  }
+  .hero h2 em { color: var(--gold); font-style: italic; }
+  .hero p {
+    color: var(--gold-light);
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 300;
+    position: relative;
+  }
+
+  /* ── SEARCH & FILTER ── */
+  .controls {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 32px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .search-bar {
+    position: relative;
+    max-width: 520px;
+  }
+  .search-bar input {
+    width: 100%;
+    padding: 14px 20px 14px 48px;
+    border: 2px solid var(--gray-light);
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--navy);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-bar input:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 4px rgba(25,52,90,0.08);
+  }
+  .search-bar input::placeholder { color: var(--gray-mid); }
+  .search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-mid);
+    pointer-events: none;
+  }
+
+  .categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .cat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gray-text);
+    font-weight: 500;
+    margin-right: 4px;
+  }
+  .cat-btn {
+    padding: 7px 16px;
+    border-radius: 50px;
+    border: 1.5px solid var(--gray-light);
+    background: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    color: var(--gray-text);
+    cursor: pointer;
+    transition: all 0.18s;
+    font-weight: 400;
+  }
+  .cat-btn:hover { border-color: var(--navy); color: var(--navy); }
+  .cat-btn.active {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  /* ── RESULTS COUNT ── */
+  .results-info {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px 16px;
+    font-size: 0.82rem;
+    color: var(--gray-text);
+  }
+  .results-info strong { color: var(--navy); }
+
+  /* ── GRID ── */
+  .grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+
+  /* ── CARD BASE ── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    animation: fadeUp 0.4s ease both;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── CARD WITH MEDIA (logo + photos) ── */
+  .card-rich .card-gallery {
+    position: relative;
+    height: 200px;
+    background: var(--gray-light);
+    overflow: hidden;
+  }
+  .card-rich .gallery-main {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .card-rich:hover .gallery-main { transform: scale(1.04); }
+  .card-rich .gallery-thumbs {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+  }
+  .card-rich .gallery-thumbs img {
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid var(--white);
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  .card-rich .gallery-thumbs img:hover { transform: scale(1.1); }
+  .card-logo-wrap {
+    position: absolute;
+    bottom: -22px;
+    left: 20px;
+    width: 60px;
+    height: 60px;
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(25,52,90,0.15);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--white);
+  }
+  .card-logo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 6px;
+  }
+  .card-rich .card-body { padding: 36px 20px 20px; }
+
+  /* ── CARD COMPACT (no media) ── */
+  .card-compact .card-top {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    padding: 24px 20px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-compact .card-top::after {
+    content: '';
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .card-compact .card-top::before {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: -30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .card-compact .card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.2;
+    position: relative;
+  }
+  .card-compact .card-category-badge {
+    margin-top: 8px;
+    display: inline-block;
+    background: rgba(201,168,76,0.3);
+    border: 1px solid rgba(201,168,76,0.5);
+    color: var(--gold-light);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 10px;
+    border-radius: 50px;
+    position: relative;
+  }
+  .card-compact .card-body { padding: 20px; }
+
+  /* ── CARD RICH NAME/CATEGORY ── */
+  .card-rich .card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .card-rich .card-category-badge {
+    display: inline-block;
+    background: var(--gray-light);
+    color: var(--gray-text);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 10px;
+    border-radius: 50px;
+    margin-bottom: 14px;
+  }
+
+  /* ── COPY ── */
+  .card-copy {
+    font-size: 0.865rem;
+    color: var(--gray-text);
+    line-height: 1.65;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .card-copy.expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+  }
+  .read-more {
+    background: none;
+    border: none;
+    color: var(--navy);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    margin-bottom: 16px;
+  }
+
+  /* ── CONTACTS ── */
+  .card-contacts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-top: 1px solid var(--gray-light);
+    padding-top: 14px;
+    margin-top: auto;
+  }
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--gray-text);
+  }
+  .contact-item a {
+    color: var(--navy);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .contact-item a:hover { text-decoration: underline; }
+  .contact-item svg {
+    flex-shrink: 0;
+    color: var(--gold);
+  }
+
+  /* ── PLACEHOLDER gallery (no foto) ── */
+  .gallery-placeholder {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, var(--gray-light) 0%, #dce3ee 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-mid);
+  }
+
+  /* ── NO RESULTS ── */
+  .no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--gray-text);
+  }
+  .no-results svg { margin-bottom: 16px; opacity: 0.3; }
+  .no-results p { font-size: 1rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy-dark);
+    text-align: center;
+    padding: 28px;
+    color: var(--gray-mid);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+  }
+  footer strong { color: var(--gold); }
+
+  /* ── LOADING ── */
+  .loading {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--gray-text);
+  }
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--gray-light);
+    border-top-color: var(--navy);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .header-inner { padding: 14px 20px; }
+    .hero { padding: 44px 20px 40px; }
+    .controls { padding: 28px 20px 16px; }
+    .results-info { padding: 0 20px 12px; }
+    .grid { padding: 0 16px 60px; grid-template-columns: 1fr; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-logo-area">
+      <div class="header-emblem">
+        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 2C7.477 2 3 6.477 3 12c0 3.18 1.49 6.017 3.81 7.854L13 24l6.19-4.146A9.96 9.96 0 0023 12C23 6.477 18.523 2 13 2z" fill="white" fill-opacity="0.15"/>
+          <path d="M4 15h18M13 4v18M7 7l12 12M19 7L7 19" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>
+          <circle cx="13" cy="12" r="3" fill="white"/>
+        </svg>
+      </div>
+      <div class="header-titles">
+        <h1>Club de Mar Mallorca</h1>
+        <span>Directorio de Empresas</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <h2>Nuestros <em>negocios</em></h2>
+  <p>Servicios y empresas en el puerto</p>
+  <div class="hero-wave"></div>
+</section>
+
+<div class="controls">
+  <div class="search-bar">
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" placeholder="Buscar empresa…" autocomplete="off">
+  </div>
+  <div class="categories" id="categoriesBar">
+    <span class="cat-label">Categoría:</span>
+    <button class="cat-btn active" data-cat="all">Todas</button>
+  </div>
+</div>
+
+<div class="results-info" id="resultsInfo"></div>
+
+<div class="grid" id="grid">
+  <div class="loading" style="grid-column:1/-1">
+    <div class="spinner"></div>
+    <p>Cargando directorio…</p>
+  </div>
+</div>
+
+<footer>
+  <strong>Club de Mar Mallorca</strong> &nbsp;·&nbsp; Directorio interno de empresas
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONFIGURACIÓN DE MEDIOS — Edita las rutas aquí
+// ═══════════════════════════════════════════════════════════════
+// Para cada empresa con logo/fotos provistas, añade su entrada
+// usando el nombre exacto del campo "nombre_web" del CSV.
+// Ejemplo:
+//   "Nombre Empresa": {
+//     logo: "https://www.clubdemar-mallorca.com/wp-content/uploads/2026/04/nombre-logo.png",
+//     foto1: "https://www.clubdemar-mallorca.com/wp-content/uploads/2026/04/foto1.jpg",
+//     foto2: "https://www.clubdemar-mallorca.com/wp-content/uploads/2026/04/foto2.jpg",
+//     foto3: "https://www.clubdemar-mallorca.com/wp-content/uploads/2026/04/foto3.jpg",
+//   }
+const MEDIA = {
+  "Nautichandler S.L.": {
+    logo:  "RUTA_LOGO_NAUTICHANDLER",
+    foto1: "RUTA_FOTO1_NAUTICHANDLER",
+    foto2: "RUTA_FOTO2_NAUTICHANDLER",
+    foto3: "RUTA_FOTO3_NAUTICHANDLER",
+  },
+  "SASGA / NAUTIC CENTER PALMA REPAIR & REFIT, S.L": {
+    logo:  "RUTA_LOGO_SASGA",
+    foto1: "",
+    foto2: "",
+    foto3: "",
+  },
+  "Lengers / Boatster": {
+    logo:  "RUTA_LOGO_BOATSTERS",
+    foto1: "RUTA_FOTO1_BOATSTERS",
+    foto2: "RUTA_FOTO2_BOATSTERS",
+    foto3: "RUTA_FOTO3_BOATSTERS",
+  },
+  "Lengers/Boatster": {
+    logo:  "RUTA_LOGO_BOATSTERS",
+    foto1: "RUTA_FOTO1_BOATSTERS",
+    foto2: "RUTA_FOTO2_BOATSTERS",
+    foto3: "RUTA_FOTO3_BOATSTERS",
+  },
+  "Sunlight Bootschule": {
+    logo:  "RUTA_LOGO_SUNLIGHT",
+    foto1: "RUTA_FOTO1_SUNLIGHT",
+    foto2: "RUTA_FOTO2_SUNLIGHT",
+    foto3: "RUTA_FOTO3_SUNLIGHT",
+  },
+  "PITT": {
+    logo:  "RUTA_LOGO_PITT",
+    foto1: "RUTA_FOTO1_PITT",
+    foto2: "RUTA_FOTO2_PITT",
+    foto3: "RUTA_FOTO3_PITT",
+  },
+  "Dolphin Yachts": {
+    logo:  "RUTA_LOGO_DOLPHIN",
+    foto1: "RUTA_FOTO1_DOLPHIN",
+    foto2: "RUTA_FOTO2_DOLPHIN",
+    foto3: "RUTA_FOTO3_DOLPHIN",
+  },
+};
+// ═══════════════════════════════════════════════════════════════
+
+const CSV_URL = "https://www.clubdemar-mallorca.com/wp-content/uploads/2026/04/Info-locales-para-directorio-webSheet1-1.csv";
+
+// Parse CSV with semicolons, respecting quoted fields
+function parseCSV(text) {
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  const result = [];
+  for (const line of lines) {
+    const row = [];
+    let field = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i+1] === '"') { field += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (ch === ';' && !inQuotes) {
+        row.push(field.trim()); field = '';
+      } else {
+        field += ch;
+      }
+    }
+    row.push(field.trim());
+    result.push(row);
+  }
+  return result;
+}
+
+function normalizeYesNo(val) {
+  if (!val) return false;
+  return /^s[íi]/i.test(val.trim());
+}
+
+async function loadDirectory() {
+  try {
+    const res = await fetch(CSV_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rawText = await res.text();
+    const rows = parseCSV(rawText);
+    if (rows.length < 2) throw new Error('CSV vacío');
+    // headers: 0=nLocal, 1=nombre, 2=cat, 3=email_int, 4=_, 5=_, 6=nombre_web, 7=web, 8=tel, 9=contact, 10=social, 11=logo, 12=fotos, 13=copy
+    const companies = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (r.length < 7) continue;
+      const nombre_web = r[6] || r[1] || '';
+      const categoria = r[2] || '';
+      // Skip empty or placeholder rows
+      if (!nombre_web || /^sin asignar$/i.test(nombre_web.trim()) || nombre_web.trim() === '') continue;
+      if (!categoria && !r[13]) continue; // skip totally blank rows
+      companies.push({
+        nombre: nombre_web.trim(),
+        categoria: categoria.trim(),
+        web: r[7] ? r[7].trim() : '',
+        tel: r[8] ? r[8].trim() : '',
+        contacto: r[9] ? r[9].trim() : '',
+        social: r[10] ? r[10].trim() : '',
+        tienelogo: normalizeYesNo(r[11]),
+        tienefotos: normalizeYesNo(r[12]),
+        copy: r[13] ? r[13].trim() : '',
+      });
+    }
+    return companies;
+  } catch(e) {
+    console.error(e);
+    return null;
+  }
+}
+
+function getMedia(nombre) {
+  // Try exact match first, then partial
+  if (MEDIA[nombre]) return MEDIA[nombre];
+  for (const key of Object.keys(MEDIA)) {
+    if (nombre.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(nombre.toLowerCase())) {
+      return MEDIA[key];
+    }
+  }
+  return null;
+}
+
+function iconPhone() {
+  return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.17 6.17l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>`;
+}
+function iconMail() {
+  return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`;
+}
+function iconWeb() {
+  return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>`;
+}
+
+function buildContacts(c) {
+  let html = '<div class="card-contacts">';
+  if (c.tel) html += `<div class="contact-item">${iconPhone()} <span>${c.tel}</span></div>`;
+  if (c.contacto) {
+    const isEmail = c.contacto.includes('@');
+    html += `<div class="contact-item">${iconMail()} ${isEmail ? `<a href="mailto:${c.contacto}">${c.contacto}</a>` : `<span>${c.contacto}</span>`}</div>`;
+  }
+  if (c.web) {
+    let url = c.web;
+    if (!url.startsWith('http')) url = 'https://' + url;
+    html += `<div class="contact-item">${iconWeb()} <a href="${url}" target="_blank" rel="noopener">${c.web.replace(/^https?:\/\//,'')}</a></div>`;
+  }
+  html += '</div>';
+  if (html === '<div class="card-contacts"></div>') return '';
+  return html;
+}
+
+function buildCopy(copy) {
+  if (!copy) return '';
+  const shortEnough = copy.length < 280;
+  const id = 'cp_' + Math.random().toString(36).slice(2,8);
+  return `<p class="card-copy" id="${id}">${copy}</p>
+    ${!shortEnough ? `<button class="read-more" onclick="toggleCopy('${id}',this)">Leer más</button>` : ''}`;
+}
+
+function toggleCopy(id, btn) {
+  const el = document.getElementById(id);
+  if (el.classList.contains('expanded')) {
+    el.classList.remove('expanded');
+    btn.textContent = 'Leer más';
+  } else {
+    el.classList.add('expanded');
+    btn.textContent = 'Ver menos';
+  }
+}
+
+function switchGalleryMain(src, thumbEl) {
+  const main = thumbEl.closest('.card-gallery').querySelector('.gallery-main');
+  if (main) main.src = src;
+}
+
+function buildRichCard(c, media) {
+  const fotos = [media.foto1, media.foto2, media.foto3].filter(f => f && !f.startsWith('RUTA_'));
+  const logo = media.logo && !media.logo.startsWith('RUTA_') ? media.logo : null;
+  const mainFoto = fotos[0] || null;
+  const thumbs = fotos.slice(1);
+
+  let galleryHtml = '';
+  if (mainFoto) {
+    galleryHtml = `<div class="card-gallery">
+      <img class="gallery-main" src="${mainFoto}" alt="${c.nombre}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=gallery-placeholder><svg width=40 height=40 viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'1\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\' ry=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><polyline points=\'21 15 16 10 5 21\'/></svg></div>'">
+      ${thumbs.length ? `<div class="gallery-thumbs">${thumbs.map(t => `<img src="${t}" alt="" loading="lazy" onclick="switchGalleryMain('${t}',this)">`).join('')}</div>` : ''}
+      ${logo ? `<div class="card-logo-wrap"><img src="${logo}" alt="Logo ${c.nombre}" loading="lazy"></div>` : ''}
+    </div>`;
+  } else {
+    galleryHtml = `<div class="card-gallery">
+      <div class="gallery-placeholder">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      ${logo ? `<div class="card-logo-wrap"><img src="${logo}" alt="Logo ${c.nombre}" loading="lazy"></div>` : ''}
+    </div>`;
+  }
+
+  return `<div class="card card-rich">
+    ${galleryHtml}
+    <div class="card-body">
+      <h3 class="card-name">${c.nombre}</h3>
+      ${c.categoria ? `<span class="card-category-badge">${c.categoria}</span>` : ''}
+      ${buildCopy(c.copy)}
+      ${buildContacts(c)}
+    </div>
+  </div>`;
+}
+
+function buildCompactCard(c) {
+  return `<div class="card card-compact">
+    <div class="card-top">
+      <div class="card-name">${c.nombre}</div>
+      ${c.categoria ? `<div class="card-category-badge">${c.categoria}</div>` : ''}
+    </div>
+    <div class="card-body">
+      ${buildCopy(c.copy)}
+      ${buildContacts(c)}
+    </div>
+  </div>`;
+}
+
+function renderCards(companies) {
+  const grid = document.getElementById('grid');
+  if (!companies.length) {
+    grid.innerHTML = `<div class="no-results">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#19345a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <p>No se encontraron empresas con ese criterio.</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = companies.map((c, i) => {
+    const media = getMedia(c.nombre);
+    const isRich = (c.tienelogo || c.tienefotos) && media;
+    const html = isRich ? buildRichCard(c, media) : buildCompactCard(c);
+    // stagger animation
+    return html.replace('class="card ', `class="card " style="animation-delay:${i * 0.04}s" `).replace('"card "', '"card"').replace('class="card"', `class="${isRich ? 'card card-rich' : 'card card-compact'}" style="animation-delay:${i * 0.04}s"`);
+  }).join('');
+}
+
+// Main
+(async () => {
+  const allCompanies = await loadDirectory();
+  const grid = document.getElementById('grid');
+
+  if (!allCompanies) {
+    grid.innerHTML = `<div class="no-results" style="grid-column:1/-1"><p>⚠️ No se pudo cargar el directorio. Comprueba la URL del CSV o los permisos CORS.</p></div>`;
+    return;
+  }
+
+  // Build categories
+  const cats = ['all', ...new Set(allCompanies.map(c => c.categoria).filter(Boolean).sort())];
+  const bar = document.getElementById('categoriesBar');
+  bar.innerHTML = '<span class="cat-label">Categoría:</span>';
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (cat === 'all' ? ' active' : '');
+    btn.dataset.cat = cat;
+    btn.textContent = cat === 'all' ? 'Todas' : cat;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    });
+    bar.appendChild(btn);
+  });
+
+  function applyFilters() {
+    const query = document.getElementById('searchInput').value.toLowerCase().trim();
+    const activeCat = document.querySelector('.cat-btn.active').dataset.cat;
+    const filtered = allCompanies.filter(c => {
+      const matchCat = activeCat === 'all' || c.categoria === activeCat;
+      const matchSearch = !query || c.nombre.toLowerCase().includes(query) || (c.copy && c.copy.toLowerCase().includes(query));
+      return matchCat && matchSearch;
+    });
+    document.getElementById('resultsInfo').innerHTML = `Mostrando <strong>${filtered.length}</strong> empresa${filtered.length !== 1 ? 's' : ''}`;
+    renderCards(filtered);
+  }
+
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+  applyFilters();
+})();
+</script>
+</body>
+</html>
