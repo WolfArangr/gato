@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coordinador de Horarios</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f11;
+    --surface: #17171b;
+    --surface2: #1e1e24;
+    --border: #2a2a33;
+    --accent: #f0c040;
+    --accent2: #5f8aff;
+    --text: #e8e8f0;
+    --text-dim: #7a7a90;
+    --text-dimmer: #44445a;
+    --warn: #ff9940;
+    --danger: #ff4060;
+    --ok: #40e0a0;
+    --radius: 8px;
+    --px-per-min: 1.6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Mono', monospace; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  /* HEADER */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 26px; border-bottom: 1px solid var(--border);
+    background: var(--surface); position: sticky; top: 0; z-index: 100;
+  }
+  header h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .subtitle { font-size: 0.62rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-top: 1px; }
+  .header-actions { display: flex; gap: 8px; }
+
+  /* BUTTONS */
+  .btn { font-family: 'DM Mono', monospace; font-size: 0.7rem; padding: 7px 13px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; transition: all .15s; }
+  .btn-primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .btn-primary:hover { background: #ffd060; }
+  .btn-ghost { background: transparent; color: var(--text-dim); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-blue { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+  .btn-blue:hover { opacity: .85; }
+
+  /* LAYOUT */
+  main { display: grid; grid-template-columns: 268px 1fr; height: calc(100vh - 55px); overflow: hidden; }
+
+  /* SIDEBAR */
+  aside { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .aside-header { padding: 13px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .aside-header h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+  .employees-list { flex: 1; overflow-y: auto; padding: 9px; display: flex; flex-direction: column; gap: 7px; }
+  .employees-list::-webkit-scrollbar { width: 3px; }
+  .employees-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* EMPLOYEE CARD */
+  .employee-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 11px;
+    cursor: grab; transition: border-color .18s; user-select: none;
+  }
+  .employee-card:hover { border-color: var(--accent); }
+  .employee-card.dragging { opacity: .4; cursor: grabbing; }
+  .employee-card.has-warnings { border-color: var(--warn); }
+  .employee-card.has-errors   { border-color: var(--danger); }
+
+  .emp-r1 { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+  .emp-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .emp-name-input { font-family: 'DM Mono', monospace; font-size: 0.77rem; font-weight: 500; background: transparent; border: none; color: var(--text); outline: none; flex: 1; min-width: 0; }
+  .emp-name-input:focus { color: var(--accent); }
+  .emp-del { width: 19px; height: 19px; border-radius: 4px; border: none; background: transparent; color: var(--text-dimmer); cursor: pointer; font-size: 0.58rem; display: flex; align-items: center; justify-content: center; transition: all .15s; flex-shrink: 0; }
+  .emp-del:hover { background: var(--danger); color: #fff; }
+
+  .emp-r2 { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+  .emp-lbl { font-size: 0.58rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+  .emp-hours-inp { font-family: 'DM Mono', monospace; font-size: 0.7rem; width: 46px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 3px 5px; outline: none; text-align: center; }
+  .emp-hours-inp:focus { border-color: var(--accent2); }
+  .emp-actual { font-size: 0.65rem; margin-left: auto; }
+
+  .emp-r3 { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 7px; }
+  .badge { font-size: 0.57rem; padding: 2px 5px; border-radius: 3px; }
+  .badge-ok   { background: rgba(64,224,160,.14); color: var(--ok); }
+  .badge-warn { background: rgba(255,153,64,.14); color: var(--warn); }
+  .badge-err  { background: rgba(255,64,96,.14);  color: var(--danger); }
+
+  .emp-abs-lbl { font-size: 0.57rem; color: var(--text-dimmer); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .abs-days { display: flex; gap: 3px; flex-wrap: wrap; }
+  .abs-btn { font-family: 'DM Mono', monospace; font-size: 0.57rem; padding: 2px 5px; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; transition: all .12s; }
+  .abs-btn.active { background: rgba(255,64,96,.18); border-color: var(--danger); color: var(--danger); }
+  .empty-emp { padding: 26px 12px; text-align: center; color: var(--text-dimmer); font-size: 0.68rem; line-height: 2; }
+
+  /* RIGHT SIDE */
+  .content { display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ALERTS */
+  .alerts-bar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px; padding: 7px 14px;
+    flex-shrink: 0; min-height: 40px; flex-wrap: wrap; overflow: hidden;
+  }
+  .alerts-title { font-family:'Syne',sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); flex-shrink: 0; white-space: nowrap; }
+  .alert-pill { display: flex; align-items: center; gap: 5px; font-size: 0.63rem; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .a-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .no-alerts-msg { font-size: 0.65rem; color: var(--ok); }
+
+  /* CALENDAR */
+  .cal-outer { flex: 1; overflow: auto; }
+  .cal-outer::-webkit-scrollbar { width: 6px; height: 6px; }
+  .cal-outer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .cal-wrap { display: flex; min-width: 700px; }
+
+  /* Time gutter */
+  .time-gutter { width: 50px; flex-shrink: 0; position: sticky; left: 0; background: var(--bg); z-index: 10; }
+  .tg-header { height: 46px; background: var(--surface); border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); position: sticky; top: 0; z-index: 12; }
+  .time-tick {
+    height: 48px; /* = 30 min × 1.6px/min */
+    display: flex; align-items: flex-start; padding: 3px 6px 0 0;
+    justify-content: flex-end;
+    font-size: 0.55rem; color: var(--text-dimmer);
+    border-right: 1px solid var(--border);
+  }
+
+  /* Day columns */
+  .day-cols { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); }
+  .day-col { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 95px; }
+  .day-col:last-child { border-right: none; }
+
+  .day-header {
+    height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-bottom: 1px solid var(--border); background: var(--surface);
+    position: sticky; top: 0; z-index: 11; gap: 2px;
+  }
+  .day-name { font-family:'Syne',sans-serif; font-weight: 700; font-size: 0.67rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); }
+  .day-cov { font-size: 0.56rem; padding: 1px 6px; border-radius: 10px; }
+
+  /* Day body — 780 min × 1.6 = 1248px tall */
+  .day-body { position: relative; height: 1248px; flex-shrink: 0; }
+
+  .hour-line { position: absolute; left: 0; right: 0; height: 1px; background: var(--border); pointer-events: none; }
+  .hour-line.half { opacity: 0.3; }
+
+  .drop-zone { position: absolute; inset: 0; z-index: 1; }
+  .drop-zone.drag-over { background: rgba(240,192,64,.05); }
+
+  /* SHIFT BLOCK */
+  .shift-block {
+    position: absolute;
+    left: 3px; right: 3px;
+    border-radius: 5px;
+    padding: 4px 6px 4px 8px;
+    cursor: pointer;
+    z-index: 3;
+    overflow: hidden;
+    border-left: 3px solid transparent;
+    transition: filter .12s, box-shadow .12s;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .shift-block:hover { filter: brightness(1.3); box-shadow: 0 2px 14px rgba(0,0,0,.45); z-index: 5; }
+  .shift-block.warn-block  { outline: 1px solid var(--warn); }
+  .shift-block.error-block { outline: 1px solid var(--danger); }
+  .shift-block.sub-block   { border-left-style: dashed; opacity: .85; }
+
+  .sb-name { font-size: 0.64rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sb-time { font-size: 0.57rem; opacity: .75; white-space: nowrap; }
+  .sb-sub  { font-size: 0.5rem; background: var(--accent2); color: #fff; border-radius: 2px; padding: 1px 3px; display: inline-block; width: fit-content; margin-top: 1px; }
+  .sb-del {
+    position: absolute; top: 3px; right: 3px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: rgba(0,0,0,.5); border: none; color: rgba(255,255,255,.8);
+    font-size: 0.5rem; cursor: pointer;
+    display: none; align-items: center; justify-content: center; z-index: 6;
+  }
+  .shift-block:hover .sb-del { display: flex; }
+
+  /* COVERAGE STRIP */
+  .coverage-strip { display: flex; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
+  .cov-gutter { width: 50px; flex-shrink: 0; border-right: 1px solid var(--border); }
+  .cov-cells  { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); }
+  .cov-cell   { font-size: 0.6rem; padding: 5px 6px; text-align: center; border-right: 1px solid var(--border); }
+  .cov-cell:last-child { border-right: none; }
+  .cov-ok   { color: var(--ok); }
+  .cov-warn { color: var(--warn); }
+  .cov-bad  { color: var(--danger); }
+
+  /* POPUP */
+  .popup-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 200; align-items: center; justify-content: center; }
+  .popup-overlay.show { display: flex; }
+  .popup { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; width: 316px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .popup h3 { font-family:'Syne',sans-serif; font-weight: 700; font-size: 0.88rem; margin-bottom: 15px; }
+  .pf { margin-bottom: 11px; }
+  .pf label { display: block; font-size: 0.58rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .pf select, .pf input[type=time] { width: 100%; font-family:'DM Mono',monospace; font-size: 0.77rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 7px 9px; outline: none; appearance: none; }
+  .pf select:focus, .pf input:focus { border-color: var(--accent2); }
+  .pf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .popup-actions { display: flex; gap: 7px; margin-top: 15px; justify-content: flex-end; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 18px; right: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 8px 14px; font-size: 0.68rem; z-index: 300; opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; max-width: 280px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>⬡ HORARIO TIENDA</h1>
+    <div class="subtitle">Coordinador de turnos · 9:30 – 22:30</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="clearAll()">Limpiar semana</button>
+    <button class="btn btn-blue"  onclick="autoFillSubstitutes()">⚡ Auto-sustitutos</button>
+    <button class="btn btn-primary" onclick="exportSchedule()">Exportar</button>
+  </div>
+</header>
+
+<main>
+  <aside>
+    <div class="aside-header">
+      <h2>Empleados</h2>
+      <button class="btn btn-primary" onclick="addEmployee()" style="padding:5px 10px;font-size:.67rem">+ Nuevo</button>
+    </div>
+    <div class="employees-list" id="empList">
+      <div class="empty-emp" id="emptyEmp">Añade empleados<br>para planificar turnos</div>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="alerts-bar" id="alertsBar">
+      <span class="alerts-title">⚠ alertas</span>
+      <span class="no-alerts-msg">✓ Sin alertas — horario correcto</span>
+    </div>
+
+    <div class="cal-outer">
+      <div class="cal-wrap" id="calWrap">
+        <div class="time-gutter" id="timeGutter">
+          <div class="tg-header"></div>
+        </div>
+        <div class="day-cols" id="dayCols"></div>
+      </div>
+    </div>
+
+    <div class="coverage-strip">
+      <div class="cov-gutter"></div>
+      <div class="cov-cells" id="covCells"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Popup -->
+<div class="popup-overlay" id="shiftPopup">
+  <div class="popup">
+    <h3 id="popupTitle">Asignar turno</h3>
+    <div class="pf">
+      <label>Empleado</label>
+      <select id="popupEmployee"></select>
+    </div>
+    <div class="pf">
+      <label>Día</label>
+      <select id="popupDay"></select>
+    </div>
+    <div class="pf pf-row">
+      <div class="pf"><label>Inicio</label><input type="time" id="popupStart" min="09:30" max="22:30"></div>
+      <div class="pf"><label>Fin</label>  <input type="time" id="popupEnd"   min="09:30" max="22:30"></div>
+    </div>
+    <div class="popup-actions">
+      <button class="btn btn-danger" id="popupDelBtn" onclick="deleteShiftFromPopup()">Eliminar</button>
+      <button class="btn btn-ghost"  onclick="closePopup()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveShift()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
+const DAYS      = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const DAY_SHORT = ['L','M','X','J','V','S','D'];
+const OPEN_MIN  = 9*60+30;   // 570
+const CLOSE_MIN = 22*60+30;  // 1350
+const TOTAL_MIN = CLOSE_MIN - OPEN_MIN; // 780
+const PX_MIN    = 1.6;                  // px per minute
+const TOTAL_PX  = Math.round(TOTAL_MIN * PX_MIN); // 1248
+
+const COLORS = ['#f0c040','#5f8aff','#ff5f7a','#40e0a0','#c07aff','#ff9940','#40c8e0','#e07a40','#a0e040','#ff70b0','#70c0ff','#40ffa0'];
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let employees    = [];
+let shifts       = {}; // empId → { dayIdx → { start, end, isSubstitute } }
+let empIdCounter = 1;
+let editingShift = null;
+let dragEmpId    = null;
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+const t2m = t => { const [h,m]=t.split(':').map(Number); return h*60+m; };
+const m2t = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+const dur  = s => s ? (t2m(s.end)-t2m(s.start))/60 : 0;
+const hexRgba = (hex,a) => { const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; };
+const topPx    = start => Math.round((t2m(start)-OPEN_MIN)*PX_MIN);
+const heightPx = (s,e) => Math.max(Math.round((t2m(e)-t2m(s))*PX_MIN), 22);
+
+const calcActualHours = id => DAYS.reduce((sum,_,i)=>sum+dur(shifts[id]?.[i]),0);
+const getShiftsOnDay  = day => employees.map(e=>({emp:e,shift:shifts[e.id]?.[day]})).filter(x=>x.shift);
+const save = () => { try{localStorage.setItem('ht_v4',JSON.stringify({employees,shifts,empIdCounter}));}catch(e){} };
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+function init() {
+  buildTimeGutter();
+  buildDayColumns();
+  buildCoverageStrip();
+  try {
+    const d=JSON.parse(localStorage.getItem('ht_v4')||'null');
+    if(d){employees=d.employees||[];shifts=d.shifts||{};empIdCounter=d.empIdCounter||1;}
+  } catch(e){}
+  renderEmployees();
+  renderAllShifts();
+  validateAll();
+}
+
+// ── BUILD GRID ─────────────────────────────────────────────────────────────
+function buildTimeGutter() {
+  const g = document.getElementById('timeGutter');
+  for (let m=OPEN_MIN; m<CLOSE_MIN; m+=30) {
+    const tick = document.createElement('div');
+    tick.className = 'time-tick';
+    tick.textContent = m2t(m);
+    g.appendChild(tick);
+  }
+}
+
+function buildDayColumns() {
+  const cols = document.getElementById('dayCols');
+  cols.innerHTML = '';
+  DAYS.forEach((day,i) => {
+    const col = document.createElement('div');
+    col.className = 'day-col';
+
+    const header = document.createElement('div');
+    header.className = 'day-header';
+    header.innerHTML = `<span class="day-name">${day.toUpperCase()}</span><span class="day-cov cov-bad" id="dayCov_${i}">0 emp.</span>`;
+    col.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'day-body';
+    body.id = `dayBody_${i}`;
+    body.style.height = TOTAL_PX + 'px';
+
+    // Hour/half-hour lines
+    for (let m=OPEN_MIN; m<=CLOSE_MIN; m+=30) {
+      const line = document.createElement('div');
+      line.className = 'hour-line' + (m%60===0?'':' half');
+      line.style.top = Math.round((m-OPEN_MIN)*PX_MIN)+'px';
+      body.appendChild(line);
+    }
+
+    // Drop zone
+    const dz = document.createElement('div');
+    dz.className = 'drop-zone';
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault();
+      dz.classList.remove('drag-over');
+      if (dragEmpId !== null) {
+        const rect = body.getBoundingClientRect();
+        const rawMins = OPEN_MIN + Math.round((e.clientY-rect.top)/PX_MIN/30)*30;
+        const snapped = Math.max(OPEN_MIN, Math.min(rawMins, CLOSE_MIN-60));
+        openPopup(dragEmpId, i, m2t(snapped), m2t(Math.min(snapped+240,CLOSE_MIN)));
+        dragEmpId = null;
+      }
+    });
+    body.appendChild(dz);
+    col.appendChild(body);
+    cols.appendChild(col);
+  });
+}
+
+function buildCoverageStrip() {
+  const cells = document.getElementById('covCells');
+  cells.innerHTML = '';
+  DAYS.forEach((day,i) => {
+    const c = document.createElement('div');
+    c.className = 'cov-cell';
+    c.id = `covCell_${i}`;
+    c.textContent = day.substring(0,3);
+    cells.appendChild(c);
+  });
+}
+
+// ── EMPLOYEES ─────────────────────────────────────────────────────────────
+function addEmployee() {
+  const color = COLORS[employees.length % COLORS.length];
+  const emp = {id:empIdCounter++, name:`Empleado ${empIdCounter-1}`, targetHours:40, color, absences:[]};
+  employees.push(emp);
+  shifts[emp.id] = {};
+  renderEmployees(); validateAll(); save();
+  showToast(`${emp.name} añadido`);
+}
+
+function removeEmployee(id) {
+  employees = employees.filter(e=>e.id!==id);
+  delete shifts[id];
+  renderEmployees(); renderAllShifts(); validateAll(); save();
+}
+
+function renderEmployees() {
+  const list = document.getElementById('empList');
+  list.innerHTML = '';
+  if (!employees.length) {
+    const d=document.createElement('div'); d.className='empty-emp';
+    d.innerHTML='Añade empleados<br>para planificar turnos'; list.appendChild(d); return;
+  }
+  employees.forEach(emp => list.appendChild(buildEmpCard(emp)));
+}
+
+function buildEmpCard(emp) {
+  const issues = getEmpIssues(emp.id);
+  const actual = calcActualHours(emp.id);
+  const hColor = Math.abs(actual-emp.targetHours)>.5 ? (actual>emp.targetHours?'var(--warn)':'var(--danger)') : 'var(--ok)';
+
+  const card = document.createElement('div');
+  card.className = 'employee-card'+(issues.errors>0?' has-errors':issues.warnings>0?' has-warnings':'');
+  card.draggable = true;
+  card.addEventListener('dragstart', e=>{dragEmpId=emp.id;card.classList.add('dragging');e.dataTransfer.effectAllowed='copy';});
+  card.addEventListener('dragend', ()=>card.classList.remove('dragging'));
+
+  const badgeHtml = issues.total===0
+    ? `<span class="badge badge-ok">✓ OK</span>`
+    : `${issues.errors>0?`<span class="badge badge-err">✕ ${issues.errors} error${issues.errors>1?'es':''}</span>`:''}
+       ${issues.warnings>0?`<span class="badge badge-warn">⚠ ${issues.warnings} aviso${issues.warnings>1?'s':''}</span>`:''}`;
+
+  card.innerHTML = `
+    <div class="emp-r1">
+      <div class="emp-dot" style="background:${emp.color}"></div>
+      <input class="emp-name-input" value="${emp.name}" onchange="updateName(${emp.id},this.value)" onclick="event.stopPropagation()">
+      <button class="emp-del" onclick="removeEmployee(${emp.id})">✕</button>
+    </div>
+    <div class="emp-r2">
+      <span class="emp-lbl">Horas/sem</span>
+      <input class="emp-hours-inp" type="number" value="${emp.targetHours}" min="1" max="60"
+        onchange="updateHours(${emp.id},this.value)" onclick="event.stopPropagation()">
+      <span class="emp-actual" style="color:${hColor}">${actual.toFixed(1)}h</span>
+    </div>
+    <div class="emp-r3">${badgeHtml}</div>
+    <div class="emp-abs-lbl">Ausencias / Vacaciones</div>
+    <div class="abs-days" id="absDays_${emp.id}"></div>
+  `;
+
+  const absRow = card.querySelector(`#absDays_${emp.id}`);
+  DAYS.forEach((_,i)=>{
+    const b=document.createElement('button');
+    b.className='abs-btn'+(emp.absences.includes(i)?' active':'');
+    b.textContent=DAY_SHORT[i]; b.title=DAYS[i];
+    b.onclick=e=>{e.stopPropagation();toggleAbsence(emp.id,i);};
+    absRow.appendChild(b);
+  });
+  return card;
+}
+
+const updateName  = (id,v) => { const e=employees.find(e=>e.id===id); if(e){e.name=v;renderAllShifts();validateAll();save();} };
+const updateHours = (id,v) => { const e=employees.find(e=>e.id===id); if(e){e.targetHours=parseFloat(v)||40;validateAll();renderEmployees();save();} };
+function toggleAbsence(id,dayIdx) {
+  const e=employees.find(e=>e.id===id); if(!e) return;
+  const i=e.absences.indexOf(dayIdx);
+  i>=0?e.absences.splice(i,1):e.absences.push(dayIdx);
+  renderEmployees(); validateAll(); save();
+  showToast(i>=0?`Ausencia eliminada: ${DAYS[dayIdx]}`:`${e.name} ausente el ${DAYS[dayIdx]}`);
+}
+
+// ── RENDER SHIFTS ─────────────────────────────────────────────────────────
+function renderAllShifts() {
+  document.querySelectorAll('.shift-block').forEach(b=>b.remove());
+  const allAlerts = runValidation();
+
+  employees.forEach(emp => {
+    DAYS.forEach((_,dayIdx) => {
+      const shift = shifts[emp.id]?.[dayIdx];
+      if (!shift) return;
+      const body = document.getElementById(`dayBody_${dayIdx}`);
+      if (!body) return;
+
+      const empAlerts = allAlerts.filter(a=>a.empId===emp.id&&(a.dayIdx===dayIdx||a.dayIdx==null));
+      const hasErr  = empAlerts.some(a=>a.level==='error');
+      const hasWarn = empAlerts.some(a=>a.level==='warn');
+
+      const block = document.createElement('div');
+      block.className = 'shift-block'
+        +(shift.isSubstitute?' sub-block':'')
+        +(hasErr?' error-block':hasWarn?' warn-block':'');
+      block.style.top    = topPx(shift.start)+'px';
+      block.style.height = heightPx(shift.start,shift.end)+'px';
+      block.style.background = hexRgba(emp.color,.17);
+      block.style.borderLeftColor = emp.color;
+      block.style.color  = emp.color;
+
+      block.innerHTML = `
+        <span class="sb-name">${emp.name}</span>
+        <span class="sb-time">${shift.start}–${shift.end} · ${dur(shift).toFixed(1)}h</span>
+        ${shift.isSubstitute?'<span class="sb-sub">SUSTITUTO</span>':''}
+        <button class="sb-del" onclick="removeShiftDirect(event,${emp.id},${dayIdx})">✕</button>
+      `;
+      block.addEventListener('click', e=>{
+        if(e.target.classList.contains('sb-del')) return;
+        openPopup(emp.id,dayIdx,shift.start,shift.end);
+      });
+      body.appendChild(block);
+    });
+  });
+
+  updateCoverage();
+}
+
+function removeShiftDirect(e,empId,dayIdx) {
+  e.stopPropagation();
+  delete shifts[empId][dayIdx];
+  renderAllShifts(); validateAll(); save();
+}
+
+function updateCoverage() {
+  DAYS.forEach((_,i)=>{
+    const n=getShiftsOnDay(i).length;
+    const cls=n===0?'cov-bad':n===1?'cov-warn':'cov-ok';
+    const hdr=document.getElementById(`dayCov_${i}`);
+    const cel=document.getElementById(`covCell_${i}`);
+    if(hdr){hdr.textContent=`${n} emp.`;hdr.className=`day-cov ${cls}`;}
+    if(cel){cel.textContent=`${DAYS[i].substring(0,3)} · ${n}`;cel.className=`cov-cell ${cls}`;}
+  });
+}
+
+// ── POPUP ─────────────────────────────────────────────────────────────────
+function openPopup(empId, dayIdx, startDef, endDef) {
+  editingShift = {empId, dayIdx, isNew: !shifts[empId]?.[dayIdx]};
+
+  const esel=document.getElementById('popupEmployee');
+  esel.innerHTML='';
+  employees.forEach(e=>{
+    const o=document.createElement('option');
+    o.value=e.id; o.textContent=e.name;
+    if(e.id===empId) o.selected=true;
+    esel.appendChild(o);
+  });
+
+  const dsel=document.getElementById('popupDay');
+  dsel.innerHTML='';
+  DAYS.forEach((d,i)=>{
+    const o=document.createElement('option');
+    o.value=i; o.textContent=d;
+    if(i===dayIdx) o.selected=true;
+    dsel.appendChild(o);
+  });
+
+  const existing=shifts[empId]?.[dayIdx];
+  document.getElementById('popupStart').value = existing?existing.start:startDef;
+  document.getElementById('popupEnd').value   = existing?existing.end:endDef;
+  document.getElementById('popupTitle').textContent = editingShift.isNew?'Asignar turno':'Editar turno';
+  document.getElementById('popupDelBtn').style.display = editingShift.isNew?'none':'';
+  document.getElementById('shiftPopup').classList.add('show');
+}
+
+function closePopup(){ document.getElementById('shiftPopup').classList.remove('show'); editingShift=null; }
+
+function saveShift() {
+  const empId  = parseInt(document.getElementById('popupEmployee').value);
+  const dayIdx = parseInt(document.getElementById('popupDay').value);
+  const start  = document.getElementById('popupStart').value;
+  const end    = document.getElementById('popupEnd').value;
+
+  if(t2m(end)<=t2m(start)){showToast('La hora fin debe ser posterior al inicio',true);return;}
+  if(t2m(start)<OPEN_MIN) {showToast(`La tienda abre a las ${m2t(OPEN_MIN)}`,true);return;}
+  if(t2m(end)>CLOSE_MIN)  {showToast(`La tienda cierra a las ${m2t(CLOSE_MIN)}`,true);return;}
+
+  if(!shifts[empId]) shifts[empId]={};
+  if(editingShift && editingShift.dayIdx!==dayIdx) delete shifts[editingShift.empId][editingShift.dayIdx];
+  shifts[empId][dayIdx]={start,end,isSubstitute:false};
+
+  closePopup(); renderAllShifts(); validateAll(); save();
+}
+
+function deleteShiftFromPopup(){
+  if(!editingShift) return;
+  delete shifts[editingShift.empId][editingShift.dayIdx];
+  closePopup(); renderAllShifts(); validateAll(); save();
+}
+
+document.getElementById('shiftPopup').addEventListener('click',function(e){if(e.target===this)closePopup();});
+
+// ── VALIDATION ────────────────────────────────────────────────────────────
+function runValidation() {
+  const alerts=[];
+  employees.forEach(emp=>{
+    const es=shifts[emp.id]||{};
+    const worked=DAYS.map((_,i)=>es[i]?i:null).filter(x=>x!=null);
+    const off   =DAYS.map((_,i)=>!es[i]?i:null).filter(x=>x!=null);
+
+    // 1. Más de 3h solo
+    DAYS.forEach((_,d)=>{
+      const s=es[d]; if(!s) return;
+      const others=getShiftsOnDay(d).filter(x=>x.emp.id!==emp.id);
+      if(others.length===0 && dur(s)>3)
+        alerts.push({empId:emp.id,dayIdx:d,level:'warn',msg:`${emp.name} trabaja ${dur(s).toFixed(1)}h solo el ${DAYS[d]}`});
+    });
+
+    // 2. No 2 días consecutivos libres
+    if(worked.length>0){
+      let max=0,c=0;
+      DAYS.forEach((_,i)=>{if(off.includes(i)){c++;max=Math.max(max,c);}else c=0;});
+      if(max<2) alerts.push({empId:emp.id,dayIdx:null,level:'warn',msg:`${emp.name} no libra 2 días consecutivos`});
+    }
+
+    // 3. Menos de 12h descanso
+    const sorted=[...worked].sort((a,b)=>a-b);
+    for(let i=0;i<sorted.length-1;i++){
+      const dA=sorted[i],dB=sorted[i+1];
+      if(dB-dA===1){
+        const rest=(t2m(es[dB].start)+24*60-t2m(es[dA].end))/60;
+        if(rest<12) alerts.push({empId:emp.id,dayIdx:dB,level:'error',
+          msg:`${emp.name}: ${rest.toFixed(1)}h descanso entre ${DAYS[dA]} y ${DAYS[dB]} (mín 12h)`});
+      }
+    }
+
+    // 4. Horas incorrectas
+    if(worked.length>0){
+      const actual=calcActualHours(emp.id);
+      const diff=Math.abs(actual-emp.targetHours);
+      if(diff>.5){
+        const over=actual>emp.targetHours;
+        alerts.push({empId:emp.id,dayIdx:null,level:over?'warn':'error',
+          msg:`${emp.name}: ${actual.toFixed(1)}h vs ${emp.targetHours}h obj (${over?'+':''}${(actual-emp.targetHours).toFixed(1)}h)`});
+      }
+    }
+  });
+  return alerts;
+}
+
+function getEmpIssues(id){
+  const a=runValidation().filter(x=>x.empId===id);
+  return{errors:a.filter(x=>x.level==='error').length,warnings:a.filter(x=>x.level==='warn').length,total:a.length};
+}
+
+function validateAll(){
+  const alerts=runValidation();
+  const bar=document.getElementById('alertsBar');
+  bar.innerHTML=`<span class="alerts-title">⚠ alertas</span>`;
+  if(!alerts.length){
+    bar.innerHTML+=`<span class="no-alerts-msg">✓ Sin alertas — horario correcto</span>`;
+  } else {
+    alerts.forEach(a=>{
+      const p=document.createElement('div');
+      p.className='alert-pill';
+      p.style.background=a.level==='error'?'rgba(255,64,96,.12)':'rgba(255,153,64,.12)';
+      p.style.color=a.level==='error'?'var(--danger)':'var(--warn)';
+      p.innerHTML=`<div class="a-dot" style="background:currentColor"></div>${a.msg}`;
+      bar.appendChild(p);
+    });
+  }
+  renderEmployees(); updateCoverage();
+}
+
+// ── AUTO SUBSTITUTE ───────────────────────────────────────────────────────
+function autoFillSubstitutes(){
+  if(!employees.length){showToast('No hay empleados configurados',true);return;}
+  let filled=0;
+  employees.forEach(emp=>{
+    emp.absences.forEach(dayIdx=>{
+      const cs=shifts[emp.id]?.[dayIdx]; if(!cs) return;
+      const candidates=employees.filter(c=>{
+        if(c.id===emp.id||c.absences.includes(dayIdx)||shifts[c.id]?.[dayIdx]) return false;
+        return true;
+      });
+      if(!candidates.length) return;
+      const scored=candidates.map(c=>{
+        const rem=c.targetHours-calcActualHours(c.id);
+        let ok=true;
+        const prev=dayIdx-1,next=dayIdx+1;
+        if(prev>=0&&shifts[c.id]?.[prev]&&(t2m(cs.start)+24*60-t2m(shifts[c.id][prev].end))/60<12) ok=false;
+        if(next<7&&shifts[c.id]?.[next]&&(t2m(shifts[c.id][next].start)+24*60-t2m(cs.end))/60<12) ok=false;
+        return{c,score:(rem>0?rem:-99)+(ok?10:0)};
+      }).sort((a,b)=>b.score-a.score);
+      const best=scored[0]?.c; if(!best) return;
+      if(!shifts[best.id]) shifts[best.id]={};
+      shifts[best.id][dayIdx]={start:cs.start,end:cs.end,isSubstitute:true};
+      filled++;
+    });
+  });
+  renderAllShifts(); validateAll(); save();
+  showToast(filled>0?`✓ ${filled} turno${filled>1?'s':''} cubierto${filled>1?'s':''} automáticamente`:'No hay turnos pendientes de cubrir');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function clearAll(){
+  if(!confirm('¿Limpiar todos los turnos de la semana?')) return;
+  employees.forEach(e=>{shifts[e.id]={};});
+  renderAllShifts(); validateAll(); save(); showToast('Semana limpiada');
+}
+
+function exportSchedule(){
+  let text='HORARIO SEMANAL\n'+'='.repeat(60)+'\n\n';
+  employees.forEach(emp=>{
+    text+=`${emp.name} (objetivo: ${emp.targetHours}h · real: ${calcActualHours(emp.id).toFixed(1)}h)\n`;
+    DAYS.forEach((day,i)=>{
+      const s=shifts[emp.id]?.[i];
+      text+=s?`  ${day}: ${s.start}–${s.end}${s.isSubstitute?' [SUSTITUTO]':''}\n`
+            :emp.absences.includes(i)?`  ${day}: AUSENTE\n`:`  ${day}: LIBRE\n`;
+    });
+    text+='\n';
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+  a.download='horario-semana.txt'; a.click();
+  showToast('Horario exportado');
+}
+
+function showToast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.borderColor=err?'var(--danger)':'var(--accent)';
+  t.style.color=err?'var(--danger)':'var(--text)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+init();
+</script>
+</body>
+</html>
