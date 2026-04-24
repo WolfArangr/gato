@@ -1,0 +1,561 @@
+
+<style>
+  :root {
+    --neon-cyan: #00f5ff;
+    --neon-pink: #ff00c8;
+    --neon-green: #39ff14;
+    --neon-yellow: #ffea00;
+    --neon-purple: #bf00ff;
+    --dark-bg: #0a0a0f;
+    --dark-surface: #12121a;
+    --dark-card: #1a1a28;
+    --dark-border: #2a2a40;
+    --text-primary: #e8e8ff;
+    --text-muted: #8888aa;
+    --box-size: clamp(90px, 18vw, 150px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .game-wrap {
+    background: var(--dark-bg);
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: var(--text-primary);
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .header h1 {
+    font-size: clamp(1.3rem, 4vw, 2rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header p {
+    font-size: clamp(0.75rem, 2vw, 0.9rem);
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    min-width: 90px;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .stat-value.wins { color: var(--neon-green); }
+  .stat-value.losses { color: var(--neon-pink); }
+  .stat-value.swapped { color: var(--neon-cyan); }
+  .stat-value.stayed { color: var(--neon-yellow); }
+  .stat-value.pct { color: var(--neon-purple); }
+
+  .win-rate-row {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .rate-block {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    padding: 0.5rem 1.2rem;
+    text-align: center;
+    font-size: 0.8rem;
+  }
+
+  .rate-block .rate-label { color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .rate-block .rate-val { font-size: 1.1rem; font-weight: 700; margin-top: 2px; }
+  .rate-block.swap-rate .rate-val { color: var(--neon-cyan); }
+  .rate-block.stay-rate .rate-val { color: var(--neon-yellow); }
+
+  .stage-label {
+    text-align: center;
+    font-size: clamp(0.8rem, 2.5vw, 1rem);
+    color: var(--neon-cyan);
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    min-height: 1.4em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .message-box {
+    background: var(--dark-surface);
+    border: 1px solid var(--dark-border);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+    color: var(--text-primary);
+    margin: 0 auto 1.2rem;
+    max-width: 480px;
+    min-height: 2.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.4;
+  }
+
+  .boxes-row {
+    display: flex;
+    justify-content: center;
+    gap: clamp(12px, 3vw, 28px);
+    margin-bottom: 1.5rem;
+    flex-wrap: nowrap;
+  }
+
+  .box {
+    width: var(--box-size);
+    height: var(--box-size);
+    border-radius: 14px;
+    border: 2px solid var(--dark-border);
+    background: var(--dark-card);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    position: relative;
+    transition: transform 0.15s, border-color 0.2s, background 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .box:hover:not(.disabled):not(.revealed) {
+    transform: translateY(-4px);
+    border-color: var(--neon-cyan);
+    background: #1e1e30;
+  }
+
+  .box.selected {
+    border-color: var(--neon-cyan);
+    background: #0e1e2a;
+    box-shadow: 0 0 18px rgba(0,245,255,0.25);
+  }
+
+  .box.revealed-empty {
+    border-color: #333348;
+    background: #0f0f18;
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .box.revealed-empty .box-emoji { filter: grayscale(1); }
+
+  .box.winner {
+    border-color: var(--neon-green);
+    background: #0b1a0b;
+    box-shadow: 0 0 22px rgba(57,255,20,0.3);
+    animation: winPulse 0.6s ease;
+  }
+
+  .box.loser {
+    border-color: var(--neon-pink);
+    background: #1a0b14;
+    box-shadow: 0 0 22px rgba(255,0,200,0.25);
+  }
+
+  .box.prize-was-here {
+    border-color: var(--neon-yellow);
+    background: #1a1500;
+    box-shadow: 0 0 18px rgba(255,234,0,0.25);
+  }
+
+  .box.disabled { cursor: default; }
+
+  @keyframes winPulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  .box-num {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    position: absolute;
+    top: 8px;
+  }
+
+  .box-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    position: absolute;
+    bottom: 7px;
+    font-weight: 600;
+  }
+
+  .label-selected { color: var(--neon-cyan); }
+  .label-empty { color: #555568; }
+  .label-win { color: var(--neon-green); }
+  .label-lose { color: var(--neon-pink); }
+  .label-prize { color: var(--neon-yellow); }
+
+  .actions-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 0.65rem 1.4rem;
+    border-radius: 10px;
+    border: none;
+    font-size: clamp(0.8rem, 2.5vw, 0.92rem);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn:active { transform: scale(0.96); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-swap {
+    background: linear-gradient(135deg, #003d4d, #005f6b);
+    color: var(--neon-cyan);
+    border: 1.5px solid var(--neon-cyan);
+  }
+
+  .btn-stay {
+    background: linear-gradient(135deg, #2a2200, #3a3000);
+    color: var(--neon-yellow);
+    border: 1.5px solid var(--neon-yellow);
+  }
+
+  .btn-new {
+    background: linear-gradient(135deg, #1a0030, #2a0050);
+    color: var(--neon-purple);
+    border: 1.5px solid var(--neon-purple);
+  }
+
+  .result-banner {
+    text-align: center;
+    font-size: clamp(1.1rem, 4vw, 1.6rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    min-height: 1.8em;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-win { color: var(--neon-green); }
+  .result-lose { color: var(--neon-pink); }
+
+  .progress-bars {
+    max-width: 380px;
+    margin: 0 auto 1rem;
+    background: var(--dark-surface);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    padding: 0.8rem 1.1rem;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .bar-row:last-child { margin-bottom: 0; }
+
+  .bar-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    width: 62px;
+    flex-shrink: 0;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: #22223a;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .bar-fill.swap { background: var(--neon-cyan); }
+  .bar-fill.stay { background: var(--neon-yellow); }
+
+  .bar-pct {
+    font-size: 0.7rem;
+    font-weight: 700;
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .bar-pct.swap { color: var(--neon-cyan); }
+  .bar-pct.stay { color: var(--neon-yellow); }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+</style>
+
+<div class="game-wrap">
+  <h2 class="sr-only">Minijuego del problema de Monty Hall — elige una caja, se revela una vacía y luego decide cambiar o quedarte.</h2>
+
+  <div class="header">
+    <h1>Problema de Monty Hall</h1>
+    <p>Elige una caja — una esconde un premio...</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Partidas</div><div class="stat-value" id="s-total" style="color:var(--text-primary)">0</div></div>
+    <div class="stat-card"><div class="stat-label">Victorias</div><div class="stat-value wins" id="s-wins">0</div></div>
+    <div class="stat-card"><div class="stat-label">Derrotas</div><div class="stat-value losses" id="s-losses">0</div></div>
+    <div class="stat-card"><div class="stat-label">Cambiado</div><div class="stat-value swapped" id="s-swapped">0</div></div>
+    <div class="stat-card"><div class="stat-label">Mantenido</div><div class="stat-value stayed" id="s-stayed">0</div></div>
+  </div>
+
+  <div class="progress-bars">
+    <div class="bar-row">
+      <span class="bar-label">Victorias al cambiar</span>
+      <div class="bar-track"><div class="bar-fill swap" id="bar-swap" style="width:0%"></div></div>
+      <span class="bar-pct swap" id="pct-swap">—</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">Victorias al mantener</span>
+      <div class="bar-track"><div class="bar-fill stay" id="bar-stay" style="width:0%"></div></div>
+      <span class="bar-pct stay" id="pct-stay">—</span>
+    </div>
+  </div>
+
+  <div class="stage-label" id="stage-label">Elige una caja para comenzar</div>
+  <div class="message-box" id="message">Tres cajas. Un premio. Tu destino te espera.</div>
+
+  <div class="boxes-row" id="boxes-row">
+    <div class="box" id="box-0" onclick="pickBox(0)">
+      <span class="box-num">Caja 1</span>
+      <span class="box-emoji" style="font-size:clamp(1.6rem,4vw,2.4rem)">📦</span>
+    </div>
+    <div class="box" id="box-1" onclick="pickBox(1)">
+      <span class="box-num">Caja 2</span>
+      <span class="box-emoji" style="font-size:clamp(1.6rem,4vw,2.4rem)">📦</span>
+    </div>
+    <div class="box" id="box-2" onclick="pickBox(2)">
+      <span class="box-num">Caja 3</span>
+      <span class="box-emoji" style="font-size:clamp(1.6rem,4vw,2.4rem)">📦</span>
+    </div>
+  </div>
+
+  <div class="result-banner" id="result-banner"></div>
+
+  <div class="actions-row" id="actions-row">
+    <button class="btn btn-swap" id="btn-swap" onclick="makeChoice('swap')" style="display:none">⇄ Cambiar caja</button>
+    <button class="btn btn-stay" id="btn-stay" onclick="makeChoice('stay')" style="display:none">★ Mantener</button>
+    <button class="btn btn-new" id="btn-new" onclick="newGame()" style="display:none">↺ Nueva partida</button>
+  </div>
+</div>
+
+<script>
+const state = {
+  prizeBox: -1,
+  selectedBox: -1,
+  revealedBox: -1,
+  phase: 'pick',
+  stats: { total:0, wins:0, losses:0, swapped:0, stayed:0, swapWins:0, stayWins:0 }
+};
+
+function rnd(n) { return Math.floor(Math.random() * n); }
+
+function getBox(i) { return document.getElementById('box-' + i); }
+
+function setBoxContent(i, emoji, label, labelClass) {
+  const b = getBox(i);
+  b.querySelector('.box-emoji').textContent = emoji;
+  let lbl = b.querySelector('.box-label');
+  if (!lbl) { lbl = document.createElement('span'); lbl.className = 'box-label'; b.appendChild(lbl); }
+  lbl.textContent = label;
+  lbl.className = 'box-label ' + (labelClass || '');
+}
+
+function resetBoxes() {
+  for (let i = 0; i < 3; i++) {
+    const b = getBox(i);
+    b.className = 'box';
+    b.onclick = () => pickBox(i);
+    const lbl = b.querySelector('.box-label');
+    if (lbl) lbl.remove();
+    b.querySelector('.box-emoji').textContent = '📦';
+    b.querySelector('.box-emoji').style.filter = '';
+  }
+}
+
+function newGame() {
+  state.prizeBox = rnd(3);
+  state.selectedBox = -1;
+  state.revealedBox = -1;
+  state.phase = 'pick';
+  resetBoxes();
+  document.getElementById('stage-label').textContent = 'Paso 1 — Elige una caja';
+  document.getElementById('message').textContent = 'Elige cualquier caja. Una de ellas esconde el premio.';
+  document.getElementById('result-banner').textContent = '';
+  document.getElementById('btn-swap').style.display = 'none';
+  document.getElementById('btn-stay').style.display = 'none';
+  document.getElementById('btn-new').style.display = 'none';
+}
+
+function pickBox(i) {
+  if (state.phase !== 'pick') return;
+  state.selectedBox = i;
+  state.phase = 'reveal';
+
+  for (let j = 0; j < 3; j++) {
+    getBox(j).onclick = null;
+    getBox(j).classList.add('disabled');
+  }
+  getBox(i).classList.remove('disabled');
+  getBox(i).classList.add('selected');
+  setBoxContent(i, '📦', 'Tu elección', 'label-selected');
+
+  const empties = [0,1,2].filter(j => j !== i && j !== state.prizeBox);
+  const reveal = empties[rnd(empties.length)];
+  state.revealedBox = reveal;
+
+  setTimeout(() => {
+    getBox(reveal).classList.remove('disabled');
+    getBox(reveal).classList.add('revealed-empty');
+    setBoxContent(reveal, '💨', '¡Vacía!', 'label-empty');
+
+    document.getElementById('stage-label').textContent = 'Paso 2 — ¿Cambiar o mantener?';
+    document.getElementById('message').textContent = 'La caja ' + (reveal+1) + ' está vacía. ¿Cambias a la otra caja o mantienes tu elección?';
+
+    document.getElementById('btn-swap').style.display = 'inline-block';
+    document.getElementById('btn-stay').style.display = 'inline-block';
+    state.phase = 'choose';
+  }, 520);
+}
+
+function makeChoice(choice) {
+  if (state.phase !== 'choose') return;
+  state.phase = 'done';
+  document.getElementById('btn-swap').style.display = 'none';
+  document.getElementById('btn-stay').style.display = 'none';
+
+  let finalBox;
+  if (choice === 'swap') {
+    finalBox = [0,1,2].find(j => j !== state.selectedBox && j !== state.revealedBox);
+    state.stats.swapped++;
+  } else {
+    finalBox = state.selectedBox;
+    state.stats.stayed++;
+  }
+
+  const won = finalBox === state.prizeBox;
+  state.stats.total++;
+  if (won) {
+    state.stats.wins++;
+    if (choice === 'swap') state.stats.swapWins++;
+    else state.stats.stayWins++;
+  } else {
+    state.stats.losses++;
+  }
+
+  for (let j = 0; j < 3; j++) {
+    const b = getBox(j);
+    b.classList.remove('selected', 'disabled');
+    if (j === state.revealedBox) continue;
+    if (j === finalBox && won) {
+      b.classList.add('winner');
+      setBoxContent(j, '🏆', '★ ¡Premio!', 'label-win');
+    } else if (j === finalBox && !won) {
+      b.classList.add('loser');
+      setBoxContent(j, '💀', '✗ Vacía', 'label-lose');
+    } else if (j === state.prizeBox && !won) {
+      b.classList.add('prize-was-here');
+      setBoxContent(j, '🏆', 'El premio estaba aquí', 'label-prize');
+    } else if (j !== state.revealedBox) {
+      setBoxContent(j, '📦', '', '');
+    }
+  }
+
+  const verb = choice === 'swap' ? 'Cambiaste' : 'Mantuviste';
+  if (won) {
+    document.getElementById('result-banner').textContent = '🏆 ¡Ganaste!';
+    document.getElementById('result-banner').className = 'result-banner result-win';
+    document.getElementById('message').textContent = verb + ' — ¡y ganaste el premio!';
+    document.getElementById('stage-label').textContent = 'Resultado — ¡Ganador!';
+  } else {
+    document.getElementById('result-banner').textContent = '✗ Sin premio';
+    document.getElementById('result-banner').className = 'result-banner result-lose';
+    document.getElementById('message').textContent = verb + ' — el premio estaba en la caja ' + (state.prizeBox+1) + '. ¡Mejor suerte la próxima vez!';
+    document.getElementById('stage-label').textContent = 'Resultado — Sin premio';
+  }
+
+  document.getElementById('btn-new').style.display = 'inline-block';
+  updateStats();
+}
+
+function updateStats() {
+  const s = state.stats;
+  document.getElementById('s-total').textContent = s.total;
+  document.getElementById('s-wins').textContent = s.wins;
+  document.getElementById('s-losses').textContent = s.losses;
+  document.getElementById('s-swapped').textContent = s.swapped;
+  document.getElementById('s-stayed').textContent = s.stayed;
+
+  const swapPct = s.swapped > 0 ? Math.round(s.swapWins / s.swapped * 100) : null;
+  const stayPct = s.stayed > 0 ? Math.round(s.stayWins / s.stayed * 100) : null;
+
+  document.getElementById('pct-swap').textContent = swapPct !== null ? swapPct + '%' : '—';
+  document.getElementById('pct-stay').textContent = stayPct !== null ? stayPct + '%' : '—';
+  document.getElementById('bar-swap').style.width = (swapPct !== null ? swapPct : 0) + '%';
+  document.getElementById('bar-stay').style.width = (stayPct !== null ? stayPct : 0) + '%';
+}
+
+newGame();
+</script>
