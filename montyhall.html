@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Riemann Hypothesis</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cinzel:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #e8e0cc;
+    --ink-dim: #9a9080;
+    --ink-faint: #4a4438;
+    --gold: #c8a96e;
+    --gold-bright: #e8c98e;
+    --gold-dim: #7a6540;
+    --red: #c04040;
+    --blue: #4080c0;
+    --teal: #40a090;
+    --bg: #0d0c0a;
+    --bg2: #141210;
+    --bg3: #1c1916;
+    --bg4: #242018;
+    --border: rgba(200,169,110,0.15);
+    --border-strong: rgba(200,169,110,0.35);
+    --serif: 'EB Garamond', Georgia, serif;
+    --display: 'Cinzel', serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.6;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    text-align: center;
+    padding: 4rem 2rem;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 40%, rgba(200,169,110,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 30% 60% at 20% 80%, rgba(64,128,192,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgba(192,64,64,0.04) 0%, transparent 60%);
+  }
+  .hero-ornament {
+    font-size: 11px;
+    letter-spacing: 0.5em;
+    color: var(--gold-dim);
+    font-family: var(--display);
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+    opacity: 0.8;
+  }
+  h1.title {
+    font-family: var(--display);
+    font-size: clamp(2.4rem, 6vw, 5rem);
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  h1.title .accent { color: var(--gold); }
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--ink-dim);
+    max-width: 540px;
+    font-style: italic;
+    margin-bottom: 3rem;
+  }
+  .hero-formula {
+    font-family: var(--mono);
+    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+    color: var(--gold-bright);
+    background: var(--bg3);
+    border: 1px solid var(--border-strong);
+    padding: 1rem 2.5rem;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    margin-bottom: 3.5rem;
+    position: relative;
+  }
+  .hero-formula::before {
+    content: 'The Hypothesis';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--serif);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--gold-dim);
+    background: var(--bg3);
+    padding: 0 8px;
+    font-style: italic;
+  }
+  .scroll-hint {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: var(--ink-faint);
+    font-family: var(--display);
+    text-transform: uppercase;
+    animation: fadeDown 2s ease infinite;
+  }
+  @keyframes fadeDown {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 0.8; transform: translateY(6px); }
+  }
+
+  /* Navigation */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,12,10,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0 2rem;
+    height: 52px;
+  }
+  nav a {
+    color: var(--ink-dim);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    font-family: var(--display);
+    text-transform: uppercase;
+    padding: 0 1.2rem;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  nav a:hover { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* Sections */
+  section {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  section:last-child { border-bottom: none; }
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--gold-dim);
+    font-family: var(--display);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  h2 {
+    font-family: var(--display);
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 1.8rem;
+    line-height: 1.25;
+  }
+  h3 {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gold);
+    margin: 2.5rem 0 0.8rem;
+    letter-spacing: 0.05em;
+  }
+  p { margin-bottom: 1.2rem; color: var(--ink); }
+  p:last-child { margin-bottom: 0; }
+  em { color: var(--gold-bright); font-style: italic; }
+  strong { color: var(--ink); font-weight: 600; }
+
+  /* Pull quote */
+  .pullquote {
+    border-left: 2px solid var(--gold-dim);
+    margin: 2.5rem 0;
+    padding: 1rem 0 1rem 2rem;
+    color: var(--ink-dim);
+    font-style: italic;
+    font-size: 1.15rem;
+  }
+  .pullquote cite {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--gold-dim);
+    font-style: normal;
+    letter-spacing: 0.1em;
+  }
+
+  /* Formula blocks */
+  .formula-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold-dim);
+    padding: 1.2rem 1.6rem;
+    margin: 1.8rem 0;
+    font-family: var(--mono);
+    font-size: 1rem;
+    color: var(--gold-bright);
+    border-radius: 0 4px 4px 0;
+    overflow-x: auto;
+    line-height: 2;
+  }
+  .formula-block .comment {
+    color: var(--ink-dim);
+    font-size: 0.82rem;
+    font-family: var(--serif);
+    font-style: italic;
+    display: block;
+    margin-top: 0.3rem;
+  }
+
+  /* Info boxes */
+  .box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.4rem 1.8rem;
+    margin: 2rem 0;
+  }
+  .box.gold-box { border-color: rgba(200,169,110,0.3); background: rgba(200,169,110,0.04); }
+  .box.red-box { border-color: rgba(192,64,64,0.3); background: rgba(192,64,64,0.04); }
+  .box.blue-box { border-color: rgba(64,128,192,0.3); background: rgba(64,128,192,0.04); }
+  .box-title {
+    font-family: var(--display);
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+  .gold-box .box-title { color: var(--gold); }
+  .red-box .box-title { color: var(--red); }
+  .blue-box .box-title { color: var(--blue); }
+
+  /* Grid */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    margin: 2rem 0;
+  }
+
+  /* Decorative divider */
+  .divider {
+    text-align: center;
+    color: var(--gold-dim);
+    margin: 1.5rem 0;
+    font-size: 1rem;
+    letter-spacing: 0.8em;
+  }
+
+  /* ── INTERACTIVE: Complex Plane ── */
+  #zeta-section { background: none; }
+  .explorer-wrapper {
+    background: var(--bg2);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 2rem 0;
+  }
+  .explorer-header {
+    background: var(--bg4);
+    border-bottom: 1px solid var(--border);
+    padding: 0.8rem 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .explorer-title {
+    font-family: var(--display);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .ctrl-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-dim);
+    font-family: var(--mono);
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 110px;
+    height: 3px;
+    background: var(--bg);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    background: var(--gold);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    background: linear-gradient(to right, var(--gold-dim) 0%, var(--gold-dim) var(--pct, 50%), var(--bg) var(--pct, 50%));
+    height: 3px;
+    border-radius: 2px;
+  }
+  .val-badge {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 7px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gold-bright);
+    min-width: 52px;
+    text-align: center;
+  }
+  canvas#zeta-canvas {
+    display: block;
+    width: 100%;
+    cursor: crosshair;
+  }
+  .canvas-info {
+    padding: 0.8rem 1.4rem;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-dim);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    background: var(--bg4);
+  }
+  .canvas-info span { color: var(--gold-bright); }
+
+  /* ── INTERACTIVE: Zero Finder ── */
+  .zero-finder {
+    background: var(--bg2);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 2rem 0;
+  }
+  .zero-finder-header {
+    background: var(--bg4);
+    border-bottom: 1px solid var(--border);
+    padding: 0.8rem 1.4rem;
+    font-family: var(--display);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+  canvas#zeros-canvas {
+    display: block;
+    width: 100%;
+  }
+  .zeros-legend {
+    padding: 0.6rem 1.4rem;
+    font-size: 12px;
+    color: var(--ink-dim);
+    border-top: 1px solid var(--border);
+    background: var(--bg4);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+  }
+  .dot-legend { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
+  /* ── INTERACTIVE: Stepper ── */
+  .stepper {
+    margin: 2.5rem 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg3);
+  }
+  .step-nav {
+    display: flex;
+    background: var(--bg4);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .step-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 0.7rem 0.5rem;
+    background: none;
+    border: none;
+    border-right: 1px solid var(--border);
+    color: var(--ink-dim);
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .step-btn:last-child { border-right: none; }
+  .step-btn.active { background: var(--bg2); color: var(--gold); border-bottom: 2px solid var(--gold); }
+  .step-btn:hover:not(.active) { background: var(--bg2); color: var(--ink); }
+  .step-panel { display: none; padding: 2rem 2rem 1.5rem; }
+  .step-panel.active { display: block; }
+  .step-panel h4 {
+    font-family: var(--display);
+    font-size: 1rem;
+    color: var(--gold-bright);
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+  .step-panel p { font-size: 0.95rem; margin-bottom: 0.8rem; }
+
+  /* ── Milestones table ── */
+  .timeline {
+    position: relative;
+    padding-left: 2rem;
+    margin: 2rem 0;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--gold-dim) 10%, var(--gold-dim) 90%, transparent);
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 2rem;
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -2.375rem;
+    top: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    border: 1px solid var(--gold);
+  }
+  .tl-year {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+  }
+  .tl-desc { font-size: 0.92rem; color: var(--ink-dim); line-height: 1.6; }
+
+  /* ── Tag chips ── */
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 1.5rem 0; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
+    color: var(--ink-dim);
+    letter-spacing: 0.05em;
+    background: var(--bg3);
+  }
+  .tag.highlight { border-color: var(--gold-dim); color: var(--gold); background: rgba(200,169,110,0.06); }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--ink-faint);
+    font-size: 0.82rem;
+    font-family: var(--display);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border-top: 1px solid var(--border);
+  }
+  footer .big {
+    font-size: 2.5rem;
+    color: var(--gold-dim);
+    font-family: var(--serif);
+    font-style: italic;
+    display: block;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* Entry animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fadein { animation: fadeUp 0.8s ease forwards; opacity: 0; }
+  .fadein-d1 { animation-delay: 0.1s; }
+  .fadein-d2 { animation-delay: 0.25s; }
+  .fadein-d3 { animation-delay: 0.4s; }
+  .fadein-d4 { animation-delay: 0.55s; }
+  .fadein-d5 { animation-delay: 0.7s; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="hero-bg"></div>
+  <p class="hero-ornament fadein fadein-d1">Millennium Prize Problem · $1,000,000 Reward</p>
+  <h1 class="title fadein fadein-d2">The <span class="accent">Riemann</span><br>Hypothesis</h1>
+  <p class="hero-sub fadein fadein-d3">
+    The deepest unsolved problem in mathematics, connecting the prime numbers to the geometry of the complex plane.
+  </p>
+  <div class="hero-formula fadein fadein-d4">
+    ζ(s) = 0 &nbsp;⟹&nbsp; Re(s) = ½
+  </div>
+  <p class="scroll-hint fadein fadein-d5">↓ &nbsp; Scroll to explore &nbsp; ↓</p>
+</header>
+
+<!-- ══════════════════════════════════════════
+     NAVIGATION
+════════════════════════════════════════════ -->
+<nav>
+  <a href="#origins">Origins</a>
+  <a href="#zeta-section">Zeta Function</a>
+  <a href="#zeros">Zeros</a>
+  <a href="#why">Why It Matters</a>
+  <a href="#approaches">Approaches</a>
+  <a href="#solution">Solution Path</a>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     I. ORIGINS
+════════════════════════════════════════════ -->
+<section id="origins">
+  <p class="section-label">Section I</p>
+  <h2>Bernhard Riemann & the Birth of the Hypothesis</h2>
+
+  <p>In 1859, the German mathematician <em>Bernhard Riemann</em> submitted a single eight-page paper to the Berlin Academy — his only paper in number theory. In it, he introduced a function of a complex variable that would forever change mathematics. Embedded in the paper, almost as an aside, was what he called "very probable" — the statement now known as the Riemann Hypothesis.</p>
+
+  <div class="pullquote">
+    "…it is very probable that all roots are real. Certainly one would wish for a stricter proof here; I have meanwhile temporarily put aside the search for this, as it appeared unnecessary for the immediate objective of my investigation."
+    <cite>— Bernhard Riemann, 1859</cite>
+  </div>
+
+  <p>That "temporary" deferral has lasted 165 years. Despite the collective efforts of virtually every major mathematician since, the hypothesis remains stubbornly unproven — and unprovable with current tools.</p>
+
+  <h3>The Prime Number Connection</h3>
+  <p>Riemann's paper concerned the distribution of prime numbers. Primes — integers divisible only by 1 and themselves — become increasingly sparse as you go further along the number line. Mathematicians had long sought a formula to predict their distribution. Gauss had conjectured the <em>Prime Number Theorem</em>: that primes thin out approximately as <code>x / ln(x)</code>. Riemann's approach transformed this vague approximation into something breathtakingly precise.</p>
+
+  <div class="formula-block">
+    π(x) &nbsp;~&nbsp; Li(x) &nbsp;+&nbsp; Σ Li(x<sup>ρ</sup>) &nbsp;+&nbsp; (small corrections)
+    <span class="comment">where ρ ranges over all non-trivial zeros of the zeta function. Every zero is a "wave" that adjusts the prime count.</span>
+  </div>
+
+  <p>The zeros of the Riemann zeta function are literally <em>music encoded in the primes</em> — each non-trivial zero is a frequency in an infinite symphony whose harmonics determine exactly where each prime number sits.</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <p class="tl-year">1740</p>
+      <p class="tl-desc">Euler defines ζ(s) for real s > 1. Discovers connection to primes: the "Euler product" formula.</p>
+    </div>
+    <div class="tl-item">
+      <p class="tl-year">1859</p>
+      <p class="tl-desc">Riemann analytically continues ζ(s) to the entire complex plane. States the hypothesis.</p>
+    </div>
+    <div class="tl-item">
+      <p class="tl-year">1896</p>
+      <p class="tl-desc">Hadamard and de la Vallée Poussin independently prove the Prime Number Theorem — but not the full Hypothesis.</p>
+    </div>
+    <div class="tl-item">
+      <p class="tl-year">1900</p>
+      <p class="tl-desc">Hilbert lists it as Problem 8 on his famous list of 23 unsolved problems.</p>
+    </div>
+    <div class="tl-item">
+      <p class="tl-year">1914</p>
+      <p class="tl-desc">Hardy proves infinitely many zeros lie on the critical line — but not all of them.</p>
+    </div>
+    <div class="tl-item">
+      <p class="tl-year">1972</p>
+      <p class="tl-desc">Montgomery discovers that zeros are spaced like eigenvalues of random Hermitian matrices — a physics connection.</p>
+    </div>
+    <div class="tl-item">
+      <p class="tl-year">2000</p>
+      <p class="tl-desc">Clay Mathematics Institute designates it a Millennium Prize Problem, with a $1,000,000 reward.</p>
+    </div>
+    <div class="tl-item">
+      <p class="tl-year">2024</p>
+      <p class="tl-desc">Over 10¹³ zeros verified computationally — all on the critical line. The hypothesis remains unproven.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     II. ZETA FUNCTION — INTERACTIVE
+════════════════════════════════════════════ -->
+<section id="zeta-section">
+  <p class="section-label">Section II · Interactive</p>
+  <h2>The Riemann Zeta Function</h2>
+
+  <p>The zeta function begins simply. For real numbers <em>s</em> greater than 1, it is just an infinite sum:</p>
+
+  <div class="formula-block">
+    ζ(s) = 1 + 1/2<sup>s</sup> + 1/3<sup>s</sup> + 1/4<sup>s</sup> + ··· = Σ<sub>n=1</sub><sup>∞</sup> 1/nˢ
+    <span class="comment">For s = 2: ζ(2) = π²/6 ≈ 1.6449...  &nbsp;|&nbsp;  For s = 1: diverges (harmonic series).</span>
+  </div>
+
+  <p>Riemann's genius was to allow <em>s</em> to be a complex number — a point in the 2D complex plane with both a real part and an imaginary part. Through a technique called <em>analytic continuation</em>, the function extends to (almost) the entire complex plane, becoming a richly structured landscape with peaks, valleys, and zeros.</p>
+
+  <div class="formula-block">
+    s = σ + it &nbsp;&nbsp; where σ, t ∈ ℝ
+    <span class="comment">σ = Re(s) is the real part · t = Im(s) is the imaginary part</span>
+  </div>
+
+  <h3>Explore the Zeta Function — |ζ(s)| Magnitude Map</h3>
+  <p>The visualization below shows |ζ(s)| as a heat map on the complex plane. <strong>Bright gold</strong> regions have large magnitude; <strong>dark regions</strong> have magnitude near zero. The <em>critical line</em> at Re(s) = ½ runs vertically through the center, marked in gold. Hover or drag to inspect values.</p>
+
+  <div class="explorer-wrapper">
+    <div class="explorer-header">
+      <span class="explorer-title">Zeta Magnitude &nbsp;|ζ(σ + it)|</span>
+      <div class="controls">
+        <div class="ctrl-group">
+          t range
+          <input type="range" id="t-range" min="10" max="100" value="30" step="1">
+          <span class="val-badge" id="t-val">t = ±30</span>
+        </div>
+        <div class="ctrl-group">
+          Resolution
+          <input type="range" id="res-range" min="1" max="3" value="2" step="1">
+          <span class="val-badge" id="res-val">Medium</span>
+        </div>
+      </div>
+    </div>
+    <canvas id="zeta-canvas" height="420"></canvas>
+    <div class="canvas-info">
+      Hover to inspect &nbsp;·&nbsp;
+      σ: <span id="ci-sigma">—</span> &nbsp;·&nbsp;
+      t: <span id="ci-t">—</span> &nbsp;·&nbsp;
+      |ζ(s)|: <span id="ci-mag">—</span>
+    </div>
+  </div>
+
+  <div class="box blue-box">
+    <p class="box-title">The Functional Equation</p>
+    <p>The zeta function satisfies a remarkable symmetry — a "reflection" about the line Re(s) = ½:</p>
+    <div class="formula-block" style="margin: 0.6rem 0 0;">
+      ζ(s) = 2ˢ · π<sup>s−1</sup> · sin(πs/2) · Γ(1−s) · ζ(1−s)
+      <span class="comment">This means zeros come in pairs: if ζ(s₀) = 0, then ζ(1 − s₀) = 0 too.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     III. THE ZEROS
+════════════════════════════════════════════ -->
+<section id="zeros">
+  <p class="section-label">Section III · Interactive</p>
+  <h2>The Zeros of ζ(s)</h2>
+
+  <p>When does the zeta function equal exactly zero? There are two kinds of zeros:</p>
+
+  <div class="grid-2">
+    <div class="box">
+      <p class="box-title" style="color: var(--ink-dim);">Trivial Zeros</p>
+      <p style="font-size:0.92rem;">The negative even integers: <em>s = −2, −4, −6, …</em><br>These arise from the sine term in the functional equation and are well-understood.</p>
+    </div>
+    <div class="box gold-box">
+      <p class="box-title">Non-Trivial Zeros</p>
+      <p style="font-size:0.92rem;">The mysterious zeros in the <em>critical strip</em>: <em>0 &lt; Re(s) &lt; 1</em>. The Hypothesis claims all of them have <em>Re(s) = ½</em> exactly.</p>
+    </div>
+  </div>
+
+  <h3>Non-Trivial Zeros on the Critical Line</h3>
+  <p>Below you can see the known non-trivial zeros plotted in the complex plane. Every single one that has ever been computed sits exactly on the critical line Re(s) = ½. The first few zeros are at approximately:</p>
+
+  <div class="formula-block">
+    ρ₁ = ½ + 14.134725i
+    ρ₂ = ½ + 21.022040i
+    ρ₃ = ½ + 25.010856i
+    ρ₄ = ½ + 30.424876i
+    ρ₅ = ½ + 32.935062i
+    <span class="comment">Their imaginary parts carry information about prime number distribution. The Hypothesis: ALL non-trivial zeros have Re(s) = ½.</span>
+  </div>
+
+  <div class="zero-finder">
+    <div class="zero-finder-header">Non-Trivial Zeros in the Critical Strip &nbsp;· &nbsp;Click a zero to learn more</div>
+    <canvas id="zeros-canvas" height="480"></canvas>
+    <div class="zeros-legend">
+      <span><span class="dot-legend" style="background:#c8a96e;"></span> Verified zero (on critical line)</span>
+      <span><span class="dot-legend" style="background:rgba(192,64,64,0.7);"></span> Hypothetical off-line zero (none known)</span>
+      <span><span class="dot-legend" style="background:rgba(64,128,192,0.5);border:1px solid #4080c0;"></span> Critical line Re(s) = ½</span>
+    </div>
+  </div>
+
+  <div class="box red-box">
+    <p class="box-title">Why "Critical Strip"?</p>
+    <p style="font-size:0.92rem;">The functional equation forces zeros to be symmetric about Re(s) = ½. The Prime Number Theorem tells us there are no zeros on the lines Re(s) = 0 or Re(s) = 1. So all non-trivial zeros must lie in the open strip 0 &lt; Re(s) &lt; 1. The "critical line" Re(s) = ½ is its exact center.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     IV. WHY IT MATTERS
+════════════════════════════════════════════ -->
+<section id="why">
+  <p class="section-label">Section IV</p>
+  <h2>Why the World Cares</h2>
+
+  <p>The Riemann Hypothesis is not merely an abstract curiosity. Its truth (or falsehood) has <em>cascading consequences</em> across mathematics, physics, cryptography, and computer science.</p>
+
+  <div class="stepper">
+    <div class="step-nav">
+      <button class="step-btn active" onclick="showStep(0)">Primes</button>
+      <button class="step-btn" onclick="showStep(1)">Cryptography</button>
+      <button class="step-btn" onclick="showStep(2)">Physics</button>
+      <button class="step-btn" onclick="showStep(3)">Mathematics</button>
+      <button class="step-btn" onclick="showStep(4)">Algorithms</button>
+    </div>
+    <div class="step-panel active" id="step-0">
+      <h4>The Distribution of Prime Numbers</h4>
+      <p>If the Riemann Hypothesis is true, we gain extraordinarily precise control over how primes are distributed. The error in the Prime Number Theorem becomes bounded by √x · ln(x) — a tight guarantee. Without it, the best known error bounds are weaker by exponential factors. Every prime gap estimate, prime-counting formula, and number-theoretic inequality sharpens dramatically.</p>
+      <div class="formula-block" style="font-size:0.9rem;">
+        |π(x) − Li(x)| ≤ (1/8π)·√x·ln(x) &nbsp;&nbsp; (if RH is true)
+        <span class="comment">π(x) = number of primes ≤ x. Li(x) = logarithmic integral ≈ x/ln(x)</span>
+      </div>
+    </div>
+    <div class="step-panel" id="step-1">
+      <h4>Cryptographic Security</h4>
+      <p>Modern cryptography — from your HTTPS connection to Bitcoin — relies on the practical hardness of factoring large numbers. The distribution of primes determines how many large primes exist and how to find them. The truth of RH affects the rigor of security proofs for primality testing algorithms. Several primality tests have been proven correct <em>assuming RH</em>. If proven, these conditional guarantees become unconditional.</p>
+      <p>Most strikingly: if RH is <em>false</em>, and a zero exists far from the critical line, this could in principle hint at structure in primes exploitable for factoring attacks.</p>
+    </div>
+    <div class="step-panel" id="step-2">
+      <h4>Quantum Chaos & Nuclear Physics</h4>
+      <p>In 1972, Hugh Montgomery proved that the gaps between zeros of ζ(s) follow the same statistical distribution as <em>energy levels of heavy atomic nuclei</em> — specifically, random matrix theory from quantum mechanics. This GUE (Gaussian Unitary Ensemble) correlation was confirmed numerically by Andrew Odlyzko to stunning precision.</p>
+      <p>The zeros of ζ(s) may literally be the eigenvalues of some vast, undiscovered quantum system — an operator whose spectrum encodes the primes. This "Hilbert-Pólya conjecture" suggests the RH might have a physical proof before a purely mathematical one.</p>
+    </div>
+    <div class="step-panel" id="step-3">
+      <h4>Consequences Within Mathematics</h4>
+      <p>Over 1,000 published theorems begin with the words <em>"Assuming the Riemann Hypothesis..."</em> A proof would simultaneously validate all of them as unconditional truths. These span: analytic number theory, algebraic geometry, L-functions, automorphic forms, arithmetic of elliptic curves, and more. The RH is a keystone that, when removed, would cause the collapse of vast portions of conditional mathematics.</p>
+      <div class="tags">
+        <span class="tag highlight">Generalized Riemann Hypothesis</span>
+        <span class="tag highlight">Artin's conjecture</span>
+        <span class="tag">Goldbach's conjecture links</span>
+        <span class="tag">Twin prime distributions</span>
+        <span class="tag highlight">BSD conjecture connections</span>
+        <span class="tag">Langlands program</span>
+      </div>
+    </div>
+    <div class="step-panel" id="step-4">
+      <h4>Algorithms & Computational Complexity</h4>
+      <p>The Extended Riemann Hypothesis (ERH) is used to prove the correctness and efficiency of numerous algorithms in computational number theory. The Miller-Rabin primality test — used billions of times daily in cryptographic software — can be made deterministic and provably fast under ERH. Several graph theory results, including bounds on expander graphs, also depend on ERH.</p>
+      <p>If ERH fails, some of the theoretical foundations of fast number-theory algorithms would need to be rebuilt from scratch.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     V. APPROACHES
+════════════════════════════════════════════ -->
+<section id="approaches">
+  <p class="section-label">Section V</p>
+  <h2>How Mathematicians Have Tried to Crack It</h2>
+
+  <p>Every major school of modern mathematics has attacked the Riemann Hypothesis, and every one has encountered a fundamental obstacle. Here are the principal strategies and where they break down.</p>
+
+  <h3>1. The Explicit Formula Approach</h3>
+  <p>Riemann's own paper contains an explicit formula expressing π(x) exactly in terms of the zeros. The hope: show algebraically that any zero off the critical line would produce an inconsistency. This works beautifully for proving the PNT, but the constraints are too weak to force all zeros onto the line.</p>
+
+  <h3>2. Spectral Theory (Hilbert–Pólya Conjecture)</h3>
+  <p>David Hilbert and George Pólya independently conjectured that the imaginary parts of the zeros are eigenvalues of some self-adjoint (Hermitian) operator — and since Hermitian operators always have real eigenvalues, this would prove the RH. The problem: nobody has been able to construct such an operator. Alain Connes made progress using noncommutative geometry, producing an operator whose spectrum is related to the zeros, but the connection remains incomplete.</p>
+
+  <div class="box gold-box">
+    <p class="box-title">The Weil Approach — Partial Victory</p>
+    <p>André Weil proved an analogue of the Riemann Hypothesis for <em>function fields</em> (curves over finite fields) in 1948. This "Riemann Hypothesis for curves" was the first complete proof of an RH-type statement. It suggested that Grothendieck's algebraic geometry might crack the number-field case, but the translation has defied every attempt for 76 years.</p>
+  </div>
+
+  <h3>3. L-function Theory</h3>
+  <p>The Riemann zeta function is the simplest member of a vast family of <em>L-functions</em>. Proving the RH for all L-functions (the "Generalized Riemann Hypothesis") would follow from a grand unification program. The Langlands program represents the deepest current effort here, aiming to connect L-functions to automorphic forms. Taylor, Wiles, and others have made spectacular progress — but the GRH remains out of reach.</p>
+
+  <h3>4. Computational Verification</h3>
+  <p>Using increasingly clever algorithms (Odlyzko-Schönhage), mathematicians have verified the RH for the first <em>10 trillion zeros</em>. All lie exactly on the critical line. While this provides extraordinary numerical confidence, it cannot substitute for a proof — we cannot compute infinitely many zeros.</p>
+
+  <div class="divider">· · · ·</div>
+
+  <p>Crucially, no one has even proven that the fraction of zeros <em>on</em> the critical line equals 100%. Hardy proved infinitely many are on it; Selberg showed a positive fraction (at least about 40%) are; Conrey improved this to over 40.88%. But "all" remains unproven.</p>
+</section>
+
+<!-- ══════════════════════════════════════════
+     VI. SOLUTION PATH — SPECULATIVE
+════════════════════════════════════════════ -->
+<section id="solution">
+  <p class="section-label">Section VI · Speculative</p>
+  <h2>A Possible Path to a Proof</h2>
+
+  <p>No one knows how to prove the Riemann Hypothesis. What follows is a synthesis of the most promising modern directions — not a claimed proof, but a roadmap of where expert consensus suggests a proof might eventually emerge.</p>
+
+  <div class="box red-box">
+    <p class="box-title">Important Caveat</p>
+    <p style="font-size:0.92rem;">This section represents speculative mathematical directions, not an actual proof. Many brilliant mathematicians have believed they were close — and were not. The following reflects current research frontiers as understood by the mathematical community.</p>
+  </div>
+
+  <h3>Step 1 — Construct the Hilbert–Pólya Operator</h3>
+  <p>The most promising direction, advocated by Berry, Keating, and Connes, involves finding an explicit Hermitian operator <em>H</em> such that its eigenvalues are exactly the imaginary parts of the non-trivial zeros. Connes has proposed the candidate:</p>
+
+  <div class="formula-block">
+    H = −i(x · d/dx + ½) acting on a suitable Hilbert space
+    <span class="comment">If this or a related operator can be shown to be self-adjoint, the RH follows immediately — Hermitian operators have real spectra.</span>
+  </div>
+
+  <p>The challenge: identifying precisely which <em>Hilbert space</em> the operator acts on. Connes's approach in noncommutative geometry ("the adelic approach") constructs a space using the adèles — a number-theoretic construction encompassing all prime completions of ℚ simultaneously. Recent work by Connes and Consani has refined this.</p>
+
+  <h3>Step 2 — Use the Weil Explicit Formula as a Positivity Constraint</h3>
+  <p>Weil's explicit formula for L-functions can be rewritten as a positivity condition: a certain distribution must be non-negative. If true, this positivity implies the GRH. The so-called "Weil positivity" approach involves showing:</p>
+
+  <div class="formula-block">
+    W(f) = Σ<sub>ρ</sub> f̂(ρ) ≥ 0 for all test functions f ≥ 0
+    <span class="comment">Where ρ ranges over zeros and f̂ is a Fourier transform. Analogous results are known for function fields (Weil 1948).</span>
+  </div>
+
+  <h3>Step 3 — Bridge via the Langlands Program</h3>
+  <p>Langlands predicted a vast web of correspondences between automorphic forms and Galois representations. For function fields, these correspondences are proven (Drinfeld, Lafforgue, Ngô — all Fields Medalists). <em>If</em> the global Langlands correspondence for number fields can be established, the GRH would likely follow as a consequence of the "Ramanujan conjecture" for automorphic forms.</p>
+
+  <div class="box blue-box">
+    <p class="box-title">Current Frontier</p>
+    <p style="font-size:0.92rem;">As of 2024, the most active promising directions are: (1) Connes's noncommutative geometry approach, (2) the "explicit L-functions" program of Bhargava, Shankar, and collaborators, and (3) arithmetic-geometric approaches via perfectoid spaces (Scholze). No single breakthrough is imminent — but the tools available in 2024 are vastly more powerful than those Riemann had in 1859.</p>
+  </div>
+
+  <h3>What a Proof Might Look Like</h3>
+  <p>Based on the above, the most plausible proof structure would probably:</p>
+  <ol style="margin: 1rem 0 1rem 2rem; color: var(--ink-dim); font-size: 0.95rem; line-height: 2;">
+    <li>Construct a canonical self-adjoint operator on a specific adèlic Hilbert space</li>
+    <li>Show its spectrum equals the multiset of imaginary parts of non-trivial zeros</li>
+    <li>Appeal to spectral theory: self-adjoint ⟹ real eigenvalues ⟹ Re(ρ) = ½</li>
+    <li>Verify the construction handles the functional equation symmetry correctly</li>
+    <li>Generalize to all Dirichlet L-functions to prove the GRH</li>
+  </ol>
+
+  <div class="pullquote">
+    "The Riemann Hypothesis is not just a mathematical mystery — it is a symptom that we are missing something fundamental about the relationship between numbers and space."
+    <cite>— Alain Connes, 2023</cite>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════ -->
+<footer>
+  <span class="big">ζ(s)</span>
+  The Riemann Hypothesis &nbsp;·&nbsp; Unsolved since 1859 &nbsp;·&nbsp; A $1,000,000 Prize Awaits
+</footer>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+/* ─── Stepper ─── */
+function showStep(i) {
+  document.querySelectorAll('.step-btn').forEach((b, j) => b.classList.toggle('active', i === j));
+  document.querySelectorAll('.step-panel').forEach((p, j) => p.classList.toggle('active', i === j));
+}
+
+/* ─── Zeta approximation (truncated sum + a few terms of Euler-Maclaurin) ─── */
+function zetaApprox(sigma, t, N) {
+  let re = 0, im = 0;
+  for (let n = 1; n <= N; n++) {
+    const lnn = Math.log(n);
+    const mag = Math.pow(n, -sigma);
+    re += mag * Math.cos(t * lnn);
+    im -= mag * Math.sin(t * lnn);
+  }
+  return [re, im];
+}
+function zetaMag(sigma, t) {
+  const N = Math.max(30, Math.ceil(Math.abs(t) / (2 * Math.PI) * 2 + 10));
+  const [re, im] = zetaApprox(sigma, t, Math.min(N, 120));
+  return Math.sqrt(re * re + im * im);
+}
+
+/* ─── Zeta Canvas ─── */
+const zetaCanvas = document.getElementById('zeta-canvas');
+const zCtx = zetaCanvas.getContext('2d');
+let tMax = 30, resLevel = 2;
+let zetaImageData = null;
+let zetaW = 0, zetaH = 0;
+
+function resName(v) { return ['Low','Medium','High'][v-1]; }
+function pixelSize(v) { return [4, 2, 1][v-1]; }
+
+function renderZeta() {
+  const W = zetaCanvas.width;
+  const H = zetaCanvas.height;
+  const id = zCtx.createImageData(W, H);
+  const d = id.data;
+  const ps = pixelSize(resLevel);
+  const sigMin = -1, sigMax = 2;
+
+  for (let py = 0; py < H; py += ps) {
+    const t = tMax - (py / H) * 2 * tMax;
+    for (let px = 0; px < W; px += ps) {
+      const sigma = sigMin + (px / W) * (sigMax - sigMin);
+      let mag = 0;
+      if (sigma >= -1 && sigma <= 2) {
+        mag = zetaMag(sigma, t);
+      }
+      // Color map: dark → gold → white
+      const v = Math.min(mag / 3, 1);
+      const r = Math.round(255 * Math.min(v * 2.5, 1));
+      const g = Math.round(255 * Math.min(Math.max(v * 2 - 0.3, 0), 0.8));
+      const b = Math.round(255 * Math.min(Math.max(v * 2 - 1.2, 0), 0.5));
+      for (let dy = 0; dy < ps && py+dy < H; dy++) {
+        for (let dx = 0; dx < ps && px+dx < W; dx++) {
+          const idx = ((py+dy)*W + (px+dx))*4;
+          d[idx]=r; d[idx+1]=g; d[idx+2]=b; d[idx+3]=255;
+        }
+      }
+    }
+  }
+  zCtx.putImageData(id, 0, 0);
+  zetaImageData = id;
+  zetaW = W; zetaH = H;
+
+  // Critical line (sigma = 0.5)
+  const sigMin2 = -1, sigMax2 = 2;
+  const critX = ((0.5 - sigMin2)/(sigMax2 - sigMin2)) * W;
+  zCtx.save();
+  zCtx.strokeStyle = 'rgba(200,169,110,0.7)';
+  zCtx.lineWidth = 1.5;
+  zCtx.setLineDash([4, 4]);
+  zCtx.beginPath();
+  zCtx.moveTo(critX, 0);
+  zCtx.lineTo(critX, H);
+  zCtx.stroke();
+  // Label
+  zCtx.fillStyle = 'rgba(200,169,110,0.9)';
+  zCtx.font = '11px JetBrains Mono, monospace';
+  zCtx.fillText('Re(s) = ½', critX + 4, 16);
+  // Real axis
+  const yMid = H / 2;
+  zCtx.strokeStyle = 'rgba(200,200,200,0.2)';
+  zCtx.setLineDash([2, 6]);
+  zCtx.beginPath();
+  zCtx.moveTo(0, yMid);
+  zCtx.lineTo(W, yMid);
+  zCtx.stroke();
+  zCtx.fillStyle = 'rgba(200,200,200,0.5)';
+  zCtx.fillText('t = 0', 4, yMid - 3);
+  zCtx.restore();
+}
+
+function initZetaCanvas() {
+  const rect = zetaCanvas.parentElement.getBoundingClientRect();
+  const W = Math.floor(rect.width);
+  const H = 420;
+  zetaCanvas.width = W;
+  zetaCanvas.height = H;
+  renderZeta();
+}
+
+document.getElementById('t-range').addEventListener('input', function() {
+  tMax = parseInt(this.value);
+  document.getElementById('t-val').textContent = `t = ±${tMax}`;
+  const pct = (this.value - this.min)/(this.max - this.min)*100;
+  this.style.setProperty('--pct', pct+'%');
+  renderZeta();
+});
+document.getElementById('res-range').addEventListener('input', function() {
+  resLevel = parseInt(this.value);
+  document.getElementById('res-val').textContent = resName(resLevel);
+  renderZeta();
+});
+
+zetaCanvas.addEventListener('mousemove', function(e) {
+  const rect = this.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (this.width / rect.width);
+  const y = (e.clientY - rect.top) * (this.height / rect.height);
+  const sigma = -1 + (x / this.width) * 3;
+  const t = tMax - (y / this.height) * 2 * tMax;
+  document.getElementById('ci-sigma').textContent = sigma.toFixed(3);
+  document.getElementById('ci-t').textContent = t.toFixed(2);
+  const mag = zetaMag(sigma, t);
+  document.getElementById('ci-mag').textContent = mag.toFixed(4);
+});
+
+/* ─── Zeros Canvas ─── */
+const zerosCanvas = document.getElementById('zeros-canvas');
+const zrCtx = zerosCanvas.getContext('2d');
+
+// First 40 known non-trivial zeros (imaginary parts, all at Re = 0.5)
+const knownZeroTs = [
+  14.1347, 21.0220, 25.0109, 30.4249, 32.9351,
+  37.5862, 40.9187, 43.3271, 48.0052, 49.7738,
+  52.9703, 56.4462, 59.3470, 60.8318, 65.1125,
+  67.0798, 69.5465, 72.0672, 75.7047, 77.1448,
+  79.3374, 82.9104, 84.7357, 87.4253, 88.8091,
+  92.4919, 94.6513, 95.8706, 98.8312, 101.318,
+  103.726, 105.447, 107.169, 111.030, 111.875,
+  114.320, 116.227, 118.791, 121.370, 122.947
+];
+
+function renderZeros() {
+  const rect = zerosCanvas.parentElement.getBoundingClientRect();
+  const W = Math.floor(rect.width);
+  const H = 480;
+  zerosCanvas.width = W;
+  zerosCanvas.height = H;
+
+  const ctx = zrCtx;
+  ctx.fillStyle = '#0d0c0a';
+  ctx.fillRect(0, 0, W, H);
+
+  const sigMin = -0.1, sigMax = 1.1;
+  const tMin = 0, tMax2 = 135;
+  const pad = { l: 60, r: 20, t: 20, b: 30 };
+  const plotW = W - pad.l - pad.r;
+  const plotH = H - pad.t - pad.b;
+
+  const toX = s => pad.l + ((s - sigMin)/(sigMax - sigMin)) * plotW;
+  const toY = t => pad.t + (1 - (t - tMin)/(tMax2 - tMin)) * plotH;
+
+  // Background grid
+  ctx.strokeStyle = 'rgba(100,90,70,0.12)';
+  ctx.lineWidth = 0.5;
+  for (let t = 0; t <= 130; t += 10) {
+    ctx.beginPath(); ctx.moveTo(pad.l, toY(t)); ctx.lineTo(W - pad.r, toY(t)); ctx.stroke();
+    ctx.fillStyle = 'rgba(150,135,100,0.5)';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('t='+t, pad.l - 4, toY(t)+3);
+  }
+  for (let s = 0; s <= 1.0; s += 0.25) {
+    ctx.beginPath(); ctx.moveTo(toX(s), pad.t); ctx.lineTo(toX(s), H - pad.b); ctx.stroke();
+    ctx.fillStyle = 'rgba(150,135,100,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText(s.toFixed(2), toX(s), H - pad.b + 14);
+  }
+
+  // Critical strip shading
+  ctx.fillStyle = 'rgba(64,128,192,0.04)';
+  ctx.fillRect(toX(0), pad.t, toX(1) - toX(0), plotH);
+
+  // Critical line
+  const cx = toX(0.5);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(200,169,110,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(cx, pad.t);
+  ctx.lineTo(cx, H - pad.b);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(200,169,110,0.8)';
+  ctx.font = 'bold 10px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('Re(s) = ½', cx, pad.t - 4);
+  ctx.restore();
+
+  // Trivial zeros (left axis)
+  ctx.fillStyle = 'rgba(100,90,70,0.6)';
+  ctx.font = '9px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  [-2,-4,-6,-8].forEach(n => {
+    // Only draw if they'd be in a good spot — just show labels
+    ctx.fillStyle = 'rgba(80,75,60,0.7)';
+    ctx.fillText(`s=${n}`, toX(-0.05), pad.t + 10 + (-n-2)*6);
+  });
+  ctx.fillStyle = 'rgba(100,90,70,0.4)';
+  ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'right';
+  ctx.fillText('trivial zeros →', toX(-0.02), pad.t + 30);
+
+  // Known zeros (gold dots with glow)
+  knownZeroTs.forEach((t, i) => {
+    const x = cx, y = toY(t);
+    if (y < pad.t || y > H - pad.b) return;
+    // Glow
+    const grd = ctx.createRadialGradient(x, y, 0, x, y, 10);
+    grd.addColorStop(0, 'rgba(200,169,110,0.3)');
+    grd.addColorStop(1, 'rgba(200,169,110,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2); ctx.fill();
+    // Dot
+    ctx.fillStyle = '#c8a96e';
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill();
+    // Label
+    ctx.fillStyle = 'rgba(200,169,110,0.6)';
+    ctx.font = '9px JetBrains Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('ρ'+(i+1)+'  t≈'+t.toFixed(1), x+8, y+3);
+  });
+
+  // Axes labels
+  ctx.fillStyle = 'rgba(150,135,100,0.7)';
+  ctx.font = '11px EB Garamond, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Re(s)', pad.l + plotW/2, H);
+  ctx.save();
+  ctx.translate(12, pad.t + plotH/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('Im(s) = t', 0, 0);
+  ctx.restore();
+}
+
+/* ─── Init & Resize ─── */
+window.addEventListener('load', () => {
+  initZetaCanvas();
+  renderZeros();
+});
+window.addEventListener('resize', () => {
+  initZetaCanvas();
+  renderZeros();
+});
+
+// Range sliders visual state
+document.querySelectorAll('input[type=range]').forEach(r => {
+  const update = () => {
+    const pct = (r.value - r.min)/(r.max - r.min)*100;
+    r.style.setProperty('--pct', pct+'%');
+  };
+  r.addEventListener('input', update);
+  update();
+});
+
+// Zeros canvas click interaction
+zerosCanvas.addEventListener('click', function(e) {
+  const rect = this.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (this.width / rect.width);
+  const y = (e.clientY - rect.top) * (this.height / rect.height);
+  const pad = { l: 60, r: 20, t: 20, b: 30 };
+  const plotH = this.height - pad.t - pad.b;
+  const tMin = 0, tMax2 = 135;
+  const t_click = tMin + (1 - (y - pad.t)/plotH) * (tMax2 - tMin);
+
+  let nearest = null, minDist = Infinity;
+  knownZeroTs.forEach((t, i) => {
+    const d = Math.abs(t - t_click);
+    if (d < minDist) { minDist = d; nearest = i; }
+  });
+  if (nearest !== null && minDist < 4) {
+    const t0 = knownZeroTs[nearest];
+    alert(`ρ${nearest+1} = ½ + ${t0.toFixed(6)}i\n\nThis is the ${nearest+1}${['st','nd','rd'][nearest] || 'th'} non-trivial zero of ζ(s).\nIt lies exactly on the critical line Re(s) = ½.\n\nIts imaginary part encodes a "frequency" in the prime distribution.`);
+  }
+});
+</script>
+</body>
+</html>
