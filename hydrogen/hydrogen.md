@@ -4,7 +4,6 @@
 **Date:** March 2026  
 **Prepared by:** El Gato (Compiled as an open-access scholarly document)  
 **License:** Creative Commons Attribution 4.0 International (CC BY 4.0) — Feel free to fork, modify, cite, and distribute with attribution.  
-**GitHub Repository Recommendation:** Place this exact file in `/hydrogen/hydrogen.md`. All equations are now using GitHub-native KaTeX `$$` blocks for perfect rendering.
 
 ---
 
@@ -230,16 +229,11 @@ Projected system meets 2025 DOE targets and approaches ultimate with further opt
 
 ---
 
-## 10. Conclusions and Future Roadmap
+## 10. Conclusions
 
 Solid-state storage is viable and superior for light-duty FCEVs once materials meet combined thermodynamic, kinetic, and system requirements. The proposed DN-RHC, synthesizable today with existing technology, represents a breakthrough pathway toward DOE ultimate targets. Immediate next steps: lab-scale synthesis and PCT/isothermal testing, followed by 1 kg prototype tank validation, then automotive OEM collaboration.
 
 This document is released publicly on GitHub to accelerate research and foster open collaboration. Contributions, experimental validation, and forks are encouraged.
-
-**Future Roadmap (2026–2035):**  
-- 2026–2028: Material optimization and 5 kg prototype.  
-- 2028–2030: Vehicle integration and crash testing.  
-- 2030+: Commercial deployment in next-gen FCEVs.
 
 ---
 
