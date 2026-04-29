@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESCUDO • La Palma</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cinzel:wght@400;700&family=Inter:wght@300;400;500&display=swap');
+
+        :root {
+            --gold: #D4AF37;
+            --dark: #0A0A0A;
+            --deep: #111111;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--dark);
+            color: #EDEDED;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.8;
+        }
+
+        /* HERO - Centrado perfecto */
+        header {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: radial-gradient(circle at 50% 30%, #1F1F1F 0%, var(--dark) 70%);
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/Logo%20en%20PNG%20color.png') center/contain no-repeat;
+            opacity: 0.04;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            max-width: 920px;
+            padding: 0 20px;
+        }
+
+        .logo-hero {
+            width: 400px;
+            padding: 45px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(212,175,55,0.25);
+            border-radius: 50%;
+            backdrop-filter: blur(12px);
+            box-shadow: 
+                0 0 90px rgba(212,175,55,0.3),
+                inset 0 0 70px rgba(0,0,0,0.5);
+            margin: 0 auto 2.8rem;
+            transition: all 0.8s cubic-bezier(0.23,1,0.32,1);
+        }
+
+        .logo-hero:hover {
+            transform: scale(1.07) rotate(4deg);
+            box-shadow: 0 0 130px rgba(212,175,55,0.45);
+        }
+
+        .logo-hero img {
+            width: 100%;
+            filter: drop-shadow(0 25px 40px rgba(0,0,0,0.75));
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 5.5rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.3rem;
+            background: linear-gradient(90deg, #fff, var(--gold), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.45rem;
+            color: var(--gold);
+            letter-spacing: 0.4em;
+            font-weight: 400;
+        }
+
+        /* Secciones */
+        section {
+            padding: 120px 8% 100px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 3.1rem;
+            text-align: center;
+            margin-bottom: 4rem;
+            color: var(--gold);
+            letter-spacing: 0.08em;
+        }
+
+        .descripcion {
+            background: var(--deep);
+            border: 1px solid rgba(212,175,55,0.2);
+            padding: 70px 80px;
+            border-radius: 24px;
+            text-align: center;
+        }
+
+        .texto {
+            font-size: 1.25rem;
+            max-width: 780px;
+            margin: 0 auto;
+            text-align: justify;
+            color: #D8D8D8;
+        }
+
+        /* GALERÍA VERTICAL ALTERNADA */
+        .galeria {
+            display: flex;
+            flex-direction: column;
+            gap: 100px;
+        }
+
+        .item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .item:nth-child(even) {
+            direction: rtl;
+        }
+
+        .item:nth-child(even) .content {
+            direction: ltr;
+        }
+
+        .preview {
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1C1C1C;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        .preview.bg-white {
+            background: #f8f8f8;
+        }
+
+        .preview img {
+            max-width: 82%;
+            max-height: 82%;
+            filter: drop-shadow(0 30px 45px rgba(0,0,0,0.85));
+            transition: transform 0.6s ease;
+        }
+
+        .item:hover .preview img {
+            transform: scale(1.06);
+        }
+
+        .content h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        .content p {
+            font-size: 1.15rem;
+            color: #B8B8B8;
+            line-height: 1.7;
+        }
+
+        /* Descargas */
+        .descargas {
+            background: var(--deep);
+            text-align: center;
+            padding: 100px 8%;
+            border-radius: 24px;
+        }
+
+        .download-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 20px 42px;
+            background: transparent;
+            color: var(--gold);
+            border: 2px solid var(--gold);
+            border-radius: 50px;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            transition: all 0.4s ease;
+            text-decoration: none;
+        }
+
+        .download-btn:hover {
+            background: var(--gold);
+            color: #111;
+            transform: translateY(-6px);
+        }
+
+        footer {
+            text-align: center;
+            padding: 80px 20px 60px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="hero-content">
+            <div class="logo-hero">
+                <img src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/Logo%20en%20PNG%20color.png" 
+                     alt="Escudo La Palma">
+            </div>
+            <h1>La Palma</h1>
+            <p class="subtitle">Escuela de Esgrima Histórica</p>
+        </div>
+    </header>
+
+    <section id="descripcion" class="descripcion">
+        <h2>El Concepto</h2>
+        <p class="texto">
+            Un emblema que fusiona tradición marcial y raíz canaria. La composición circular institucional y la tipografía estilo románica trazada de la Asturica serif clásica transmiten autoridad y continuidad histórica. En el centro, una espada recta de doble filo —inspirada en la esgrima medieval europea pero genérica para mayor universalidad del periodo de tiempo estudiado— simboliza disciplina y honor. Se superpone a un escudo dividido en torre (fortaleza y patrimonio de Santa Cruz de La Palma) y palmera sobre olas (identidad insular y atlántica). Paleta en negro, blanco y dorado para un resultado elegante, atemporal y profundamente arraigado.
+        </p>
+    </section>
+
+    <section>
+        <h2>Versiones del Logo</h2>
+        <div class="galeria">
+
+            <!-- Versión 1 -->
+            <div class="item">
+                <div class="preview">
+                    <img src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/Logo%20en%20PNG%20color.png" alt="PNG Transparente">
+                </div>
+                <div class="content">
+                    <h3>PNG — Transparente</h3>
+                    <p>Versión principal con fondo transparente. Perfecta para webs, camisetas, trofeos y cualquier fondo.</p>
+                </div>
+            </div>
+
+            <!-- Versión 2 -->
+            <div class="item">
+                <div class="preview bg-white">
+                    <img src="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/Logo%20en%20JPG%20Color.jpg" alt="JPG Fondo Blanco">
+                </div>
+                <div class="content">
+                    <h3>JPG — Fondo Blanco</h3>
+                    <p>Ideal para impresiones, documentos oficiales y presentaciones donde se necesita fondo claro.</p>
+                </div>
+            </div>
+
+            <!-- Versión 3 -->
+            <div class="item">
+                <div class="preview">
+                    <img src="http://raw.githubusercontent.com/WolfArangr/gato/bae4ca337afb21a9bb1960bbf43024783d3a824e/Logo%20en%20SVG%20Color.svg" alt="SVG Vectorial">
+                </div>
+                <div class="content">
+                    <h3>SVG — Vectorial</h3>
+                    <p>Formato escalable infinito sin perder calidad. Recomendado para impresión grande, bordados y edición.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="descargas">
+        <h2>Descargar Archivos</h2>
+        <div class="download-grid">
+            <a href="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/Logo%20en%20PNG%20color.png" download class="download-btn">
+                📥 PNG Transparente
+            </a>
+            <a href="https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/Logo%20en%20JPG%20Color.jpg" download class="download-btn">
+                📥 JPG Fondo Blanco
+            </a>
+            <a href="http://raw.githubusercontent.com/WolfArangr/gato/bae4ca337afb21a9bb1960bbf43024783d3a824e/Logo%20en%20SVG%20Color.svg" download class="download-btn">
+                📥 SVG Vectorial
+            </a>
+        </div>
+    </section>
+
+    <footer>
+        <p>El Gato Media • 2026</p>
+    </footer>
+</body>
+</html>
