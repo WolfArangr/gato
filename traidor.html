@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>IMPOSTOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3d;
+    --accent: #e63946;
+    --accent2: #ff6b6b;
+    --gold: #ffd60a;
+    --text: #f0f0f0;
+    --muted: #666680;
+    --good: #06d6a0;
+    --traitor: #e63946;
+  }
+
+  * {
+    margin: 0; padding: 0;
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* SCREENS */
+  .screen {
+    display: none;
+    min-height: 100vh;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+  .screen.active { display: flex; flex-direction: column; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== HERO / HOME ===== */
+  #screen-home {
+    background: radial-gradient(ellipse at 50% 0%, #2a0a14 0%, var(--bg) 60%);
+    align-items: center;
+    text-align: center;
+    justify-content: space-between;
+    padding: 40px 20px;
+  }
+
+  .logo-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .logo-badge {
+    width: 90px; height: 90px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    box-shadow: 0 0 60px rgba(230,57,70,0.6), 0 0 120px rgba(230,57,70,0.2);
+    animation: pulse 3s ease-in-out infinite;
+    position: relative;
+  }
+
+  .logo-badge::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid rgba(230,57,70,0.3);
+    animation: ripple 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 60px rgba(230,57,70,0.6), 0 0 120px rgba(230,57,70,0.2); }
+    50% { box-shadow: 0 0 80px rgba(230,57,70,0.8), 0 0 160px rgba(230,57,70,0.3); }
+  }
+
+  @keyframes ripple {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 0; }
+  }
+
+  .logo-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px;
+    line-height: 0.9;
+    letter-spacing: 6px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(230,57,70,0.4));
+  }
+
+  .logo-sub {
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  .home-bottom { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px 24px;
+    border: none;
+    border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    letter-spacing: 0.5px;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 8px 30px rgba(230,57,70,0.4);
+  }
+  .btn-primary:active { box-shadow: 0 4px 15px rgba(230,57,70,0.3); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  .btn-gold {
+    background: var(--gold);
+    color: #0a0a0f;
+    box-shadow: 0 8px 30px rgba(255,214,10,0.4);
+  }
+
+  .btn-good {
+    background: var(--good);
+    color: #0a0a0f;
+    box-shadow: 0 8px 30px rgba(6,214,160,0.4);
+    font-size: 18px;
+    padding: 20px 24px;
+  }
+
+  .btn-sm {
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 10px;
+    width: auto;
+  }
+
+  .btn-icon {
+    width: 40px; height: 40px;
+    padding: 0;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+
+  /* ===== SECTION HEADER ===== */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .back-btn {
+    width: 40px; height: 40px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .back-btn:active { transform: scale(0.93); }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+
+  /* ===== INSTRUCTIONS ===== */
+  #screen-instructions {
+    background: var(--bg);
+  }
+
+  .instr-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .instr-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--accent);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 28px;
+  }
+
+  .instr-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #ccc;
+  }
+
+  .instr-text strong { color: var(--text); }
+
+  .tip-box {
+    background: rgba(255,214,10,0.08);
+    border: 1px solid rgba(255,214,10,0.3);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--gold);
+    margin-top: 4px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  /* ===== PLAYERS SETUP ===== */
+  #screen-players {
+    background: var(--bg);
+    gap: 0;
+  }
+
+  .players-list {
+    flex: 1;
+    overflow-y: auto;
+    margin: 0 -20px;
+    padding: 0 20px;
+  }
+
+  .player-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .player-avatar {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .player-name-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  .player-name-input::placeholder { color: var(--muted); }
+
+  .player-remove {
+    width: 32px; height: 32px;
+    background: rgba(230,57,70,0.1);
+    border: 1px solid rgba(230,57,70,0.2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--accent);
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .player-remove:active { background: rgba(230,57,70,0.3); }
+
+  .add-player-row {
+    padding: 16px 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .config-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+
+  .config-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--surface2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .stepper-btn {
+    width: 48px; height: 48px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .stepper-btn:active { background: var(--border); }
+
+  .stepper-val {
+    flex: 1;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  .players-bottom {
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .count-info {
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .count-info span { color: var(--text); font-weight: 700; }
+
+  /* ===== REVEAL SCREEN ===== */
+  #screen-reveal {
+    background: radial-gradient(ellipse at 50% 30%, #1a0a1a 0%, var(--bg) 70%);
+    align-items: center;
+    text-align: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .reveal-progress {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .progress-dots {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 280px;
+  }
+
+  .progress-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+  }
+  .progress-dot.done { background: var(--accent); }
+  .progress-dot.current { background: var(--gold); transform: scale(1.4); }
+
+  .reveal-player-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .reveal-turn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .reveal-instruction {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 280px;
+  }
+
+  .tap-zone {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 24px;
+  }
+
+  .tap-card {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s;
+  }
+  .tap-card:active { transform: scale(0.97); }
+
+  .tap-card.hidden-state {
+    background: var(--surface);
+    border: 2px dashed var(--border);
+  }
+
+  .tap-card.show-state-good {
+    background: linear-gradient(135deg, #0a2a1f 0%, #0d3326 100%);
+    border: 2px solid var(--good);
+    box-shadow: 0 0 60px rgba(6,214,160,0.3);
+  }
+
+  .tap-card.show-state-bad {
+    background: linear-gradient(135deg, #2a0a0f 0%, #330d10 100%);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 60px rgba(230,57,70,0.4);
+  }
+
+  .tap-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tap-icon {
+    font-size: 50px;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .tap-text {
+    font-size: 15px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .reveal-role {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .role-badge {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 100px;
+  }
+
+  .role-badge.good { background: rgba(6,214,160,0.2); color: var(--good); border: 1px solid var(--good); }
+  .role-badge.bad { background: rgba(230,57,70,0.2); color: var(--accent); border: 1px solid var(--accent); }
+
+  .reveal-word {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 3px;
+    line-height: 1;
+  }
+
+  .reveal-word.good { color: var(--good); text-shadow: 0 0 40px rgba(6,214,160,0.5); }
+  .reveal-word.bad { color: var(--accent); text-shadow: 0 0 40px rgba(230,57,70,0.5); }
+
+  .reveal-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    text-align: center;
+    max-width: 220px;
+  }
+
+  .reveal-bottom {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ===== GAME SCREEN ===== */
+  #screen-game {
+    background: var(--bg);
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    padding: 30px 20px;
+  }
+
+  .game-header {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .game-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: var(--muted);
+  }
+
+  .game-subtitle {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 2px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .game-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .game-info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .game-info-icon { font-size: 24px; }
+  .game-info-val { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 2px; }
+  .game-info-val.red { color: var(--accent); }
+  .game-info-val.green { color: var(--good); }
+  .game-info-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+  .game-players-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .game-bottom {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: auto;
+  }
+
+  /* ===== CATEGORY SELECTOR ===== */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .cat-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .cat-card:active { transform: scale(0.97); }
+  .cat-card.selected { border-color: var(--accent); background: rgba(230,57,70,0.1); }
+  .cat-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .cat-icon { font-size: 28px; }
+  .cat-name { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }
+  .cat-count { font-size: 11px; color: var(--muted); }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .spacer { flex: 1; }
+
+  /* ===== ANIMATIONS ===== */
+  .shake {
+    animation: shake 0.4s ease;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  .error-msg {
+    color: var(--accent);
+    font-size: 13px;
+    text-align: center;
+    padding: 8px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .select-all-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 6px 0;
+  }
+
+  .toggle {
+    width: 44px; height: 24px;
+    background: var(--border);
+    border-radius: 100px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: left 0.2s;
+  }
+  .toggle.on::after { left: 23px; }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0;
+  }
+
+  .avatar-colors {
+    background: #1a1a2e;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HOME ===== -->
+<div id="screen-home" class="screen active">
+  <div class="logo-area">
+    <div class="logo-badge">🕵️</div>
+    <div>
+      <div class="logo-title">IMPOSTOR</div>
+      <div class="logo-sub">El juego de la traición</div>
+    </div>
+  </div>
+  <div class="home-bottom">
+    <button class="btn btn-primary" onclick="showScreen('screen-players')">
+      🎮 Nueva Partida
+    </button>
+    <button class="btn btn-secondary" onclick="showScreen('screen-instructions')">
+      📖 Cómo Jugar
+    </button>
+  </div>
+</div>
+
+<!-- ===== INSTRUCTIONS ===== -->
+<div id="screen-instructions" class="screen">
+  <div class="section-header">
+    <div class="back-btn" onclick="showScreen('screen-home')">←</div>
+    <div class="section-title">CÓMO JUGAR</div>
+  </div>
+
+  <div style="flex:1; overflow-y:auto; padding-bottom:20px;">
+    <div class="instr-card">
+      <div class="instr-num">1</div>
+      <div class="instr-text"><strong>Añade jugadores</strong> — Entre 3 y 24 personas. Ponle un nombre a cada uno para saber a quién tocarle el turno.</div>
+    </div>
+    <div class="instr-card">
+      <div class="instr-num">2</div>
+      <div class="instr-text"><strong>Elige traidores</strong> — Decide cuántos impostores habrá en la partida. Al menos 1, máximo la mitad del grupo.</div>
+    </div>
+    <div class="instr-card">
+      <div class="instr-num">3</div>
+      <div class="instr-text"><strong>Recibe tu palabra</strong> — Cada jugador verá en privado una palabra secreta. <strong>Los traidores no la saben</strong> y deben descubrirla por el contexto.</div>
+    </div>
+    <div class="instr-card">
+      <div class="instr-num">4</div>
+      <div class="instr-text"><strong>Debate</strong> — Por turnos, cada jugador da una pista relacionada con la palabra. ¡Sé creativo sin desvelarla!</div>
+    </div>
+    <div class="instr-card">
+      <div class="instr-num">5</div>
+      <div class="instr-text"><strong>Vota</strong> — El grupo debate y vota quién cree que es el impostor. ¡Los traidores intentan pasar desapercibidos!</div>
+    </div>
+    <div class="instr-card">
+      <div class="instr-num">6</div>
+      <div class="instr-text"><strong>Último recurso</strong> — Si un impostor es descubierto, tiene un intento de adivinar la palabra. ¡Si la acierta, gana el equipo traidor!</div>
+    </div>
+
+    <div class="tip-box">
+      💡 <strong>Consejo pro:</strong> Los civiles deben dar pistas claras para los demás civiles pero confusas para los impostores. ¡El equilibrio es la clave!
+    </div>
+
+    <button class="btn btn-primary" onclick="showScreen('screen-players')">
+      ¡Empezar a jugar! 🎮
+    </button>
+  </div>
+</div>
+
+<!-- ===== PLAYERS SETUP ===== -->
+<div id="screen-players" class="screen">
+  <div class="section-header">
+    <div class="back-btn" onclick="showScreen('screen-home')">←</div>
+    <div class="section-title">JUGADORES</div>
+  </div>
+
+  <div class="players-list" id="players-list"></div>
+
+  <div class="add-player-row">
+    <button class="btn btn-secondary" style="flex:1" onclick="addPlayer()">
+      + Añadir jugador
+    </button>
+  </div>
+
+  <div class="config-section">
+    <div class="config-label">Número de traidores</div>
+    <div class="stepper">
+      <button class="stepper-btn" onclick="changeTraitors(-1)">−</button>
+      <div class="stepper-val" id="traitor-count">1</div>
+      <button class="stepper-btn" onclick="changeTraitors(1)">+</button>
+    </div>
+  </div>
+
+  <div class="players-bottom">
+    <div class="count-info" id="count-info">
+      <span id="player-count">0</span> jugadores · <span id="traitor-display">1</span> traidor(es)
+    </div>
+    <div id="setup-error" class="error-msg" style="display:none"></div>
+    <button class="btn btn-primary" onclick="goToCategories()">
+      Elegir categorías →
+    </button>
+  </div>
+</div>
+
+<!-- ===== CATEGORIES ===== -->
+<div id="screen-categories" class="screen">
+  <div class="section-header">
+    <div class="back-btn" onclick="showScreen('screen-players')">←</div>
+    <div class="section-title">CATEGORÍAS</div>
+  </div>
+
+  <div style="font-size:13px; color:var(--muted); margin-bottom:16px;">
+    Elige las categorías de palabras para esta partida:
+  </div>
+
+  <label class="select-all-label" onclick="toggleAllCats()">
+    <div class="toggle" id="all-toggle" style="background:var(--accent)">
+      <style>#all-toggle::after{left:23px}</style>
+    </div>
+    Seleccionar todas
+  </label>
+
+  <div class="divider"></div>
+
+  <div class="cat-grid" id="cat-grid" style="overflow-y:auto; flex:1; align-content:start;"></div>
+
+  <button class="btn btn-primary" onclick="startReveal()" style="margin-top:12px; flex-shrink:0;">
+    ¡Comenzar! 🎯
+  </button>
+</div>
+
+<!-- ===== REVEAL ===== -->
+<div id="screen-reveal" class="screen">
+  <div style="width:100%; text-align:center;">
+    <div class="reveal-player-name" id="reveal-player-name">JUGADOR</div>
+    <div class="reveal-turn" id="reveal-turn">Turno de</div>
+    <div class="progress-dots" id="progress-dots" style="margin:12px auto 0;"></div>
+  </div>
+
+  <div class="reveal-instruction" id="reveal-instruction">
+    Muestra la pantalla solo a ti.<br>Pulsa para ver tu rol.
+  </div>
+
+  <div class="tap-zone" id="tap-zone" onclick="handleTap()">
+    <div class="tap-card hidden-state" id="tap-card">
+      <div class="tap-hint" id="tap-hint">
+        <div class="tap-icon">👁️</div>
+        <div class="tap-text">Toca para revelar</div>
+      </div>
+      <div class="reveal-role" id="reveal-role" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="reveal-bottom" id="reveal-bottom" style="display:none;">
+    <button class="btn btn-good" onclick="nextPlayer()">
+      Siguiente jugador →
+    </button>
+  </div>
+</div>
+
+<!-- ===== GAME (all revealed) ===== -->
+<div id="screen-game" class="screen">
+  <div class="game-header">
+    <div class="game-title">🕵️ PARTIDA EN CURSO</div>
+    <div class="game-subtitle">¡QUE EMPIECE LA CAZA!</div>
+  </div>
+
+  <div class="game-info-grid">
+    <div class="game-info-card">
+      <div class="game-info-icon">👥</div>
+      <div class="game-info-val green" id="g-players">0</div>
+      <div class="game-info-label">Jugadores</div>
+    </div>
+    <div class="game-info-card">
+      <div class="game-info-icon">🎭</div>
+      <div class="game-info-val red" id="g-traitors">0</div>
+      <div class="game-info-label">Traidores</div>
+    </div>
+  </div>
+
+  <div class="game-players-chips" id="g-chips"></div>
+
+  <div class="game-bottom">
+    <button class="btn btn-primary" onclick="restartReveal()">
+      🔄 Ver roles de nuevo
+    </button>
+    <button class="btn btn-ghost" onclick="showScreen('screen-players')">
+      Nueva partida
+    </button>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const WORDS = {
+  'Animales': {
+    icon: '🐾',
+    words: ['Elefante','Delfín','Pingüino','Jaguar','Koala','Flamenco','Camaleón','Murciélago','Tiburón','Pulpo',
+            'Canguro','Panda','Cocodrilo','Mariposa','Tortuga','Lobo','Zorro','Jirafa','Hipopótamo','Oso polar',
+            'Águila','Serpiente','Rana','Escarabajo','Cangrejo','Medusa','Caballo','Cebra','León','Orangután']
+  },
+  'Comida': {
+    icon: '🍕',
+    words: ['Sushi','Pizza','Croissant','Paella','Hamburguesa','Sopa de miso','Tacos','Fondue','Ramen','Dim sum',
+            'Ceviche','Gazpacho','Curry','Tiramisú','Macarrones','Gofre','Crepe','Guacamole','Empanada','Falafel',
+            'Lasaña','Kebab','Brownie','Natillas','Churros','Carpaccio','Hummus','Cachopo','Tortilla','Poké']
+  },
+  'Lugares': {
+    icon: '🌍',
+    words: ['Playa','Iglú','Castillo','Submarino','Piramide','Treehouse','Cueva','Rascacielos','Cementerio','Faro',
+            'Volcán','Islas Maldivas','Biblioteca','Mercado','Circo','Catedral','Aeropuerto','Barco','Mansión','Acantilado',
+            'Oasis','Selva','Templo','Puerto','Balneario','Parque de atracciones','Fortaleza','Monasterio','Desierto','Fábrica']
+  },
+  'Películas': {
+    icon: '🎬',
+    words: ['Matrix','Titanic','Avatar','El Padrino','Interstellar','Inception','Jurassic Park','El Rey León','Frozen','Shrek',
+            'Pulp Fiction','Indiana Jones','Star Wars','El Señor de los Anillos','Harry Potter','Avengers','Batman','Gladiator',
+            'Toy Story','Forrest Gump','El Exorcista','Alien','El Hobbit','Piratas del Caribe','Up','Joker','Dune','Top Gun','Rocky','Blade Runner']
+  },
+  'Deportes': {
+    icon: '⚽',
+    words: ['Surf','Esgrima','Polo','Curling','Boxeo','Escalada','Windsurf','Triatlón','Waterpolo','Patinaje artístico',
+            'Rugby','Bádminton','Kayak','Arquería','Halterofilia','Parkour','Snowboard','Natación sincronizada','Pelota vasca','Cricket',
+            'Ping pong','Lacrosse','Canotaje','Salto con pértiga','Lucha sumo','Bmx','Fútbol americano','Polo acuático','Bobsled','Squash']
+  },
+  'Profesiones': {
+    icon: '👷',
+    words: ['Astronauta','Sommelier','Croupier','Pirotécnico','Taxidermista','Orfebre','Submarinista','Locutor','Catador','Funambulista',
+            'Arqueólogo','Piloto de carreras','Perfumista','Domador','Herrero','Armador de buques','Forense','Vaquero','Sufí','Escenógrafo',
+            'Cartógrafo','Titiritero','Sombrerero','Chocolatero','Guardabosques','Apicultor','Volcanólogo','Espeleólogo','Geisha','Trapecista']
+  },
+  'Tecnología': {
+    icon: '💻',
+    words: ['Robot','Dron','Satélite','Holograma','Criptodivisa','Realidad aumentada','Impresora 3D','IA','Videollamada','Smartwatch',
+            'Cohete','Submarino nuclear','Antena parabólica','Supercomputadora','Panel solar','Batería cuántica','Radar','Escáner','Telescopio','Nanotecnología',
+            'Servidor','Fibra óptica','GPS','Laser','Exoesqueleto','Chip','Algoritmo','Big data','Nube','Ciberseguridad']
+  },
+  'Naturaleza': {
+    icon: '🌿',
+    words: ['Aurora boreal','Tsunami','Tornado','Géiser','Arrecife de coral','Glaciar','Terremoto','Monsón','Eclipse solar','Bioluminiscencia',
+            'Estalactita','Delta','Manglares','Tundra','Pradera','Cañón','Huracán','Laguna','Maremoto','Erupción',
+            'Niebla','Rayo','Granizo','Alud','Sequía','Inundación','Mirage','Tormenta de arena','Neblina','Vapor']
+  },
+  'Historia': {
+    icon: '⚔️',
+    words: ['Gladiador','Vikingo','Faraón','Samurái','Espartano','Conquistador','Cruzado','Legionario','Pirata','Guerrero azteca',
+            'Caballero medieval','Cosaco','Mongol','Ninja','Druida','Esclavo espartano','Centurión','Sultán','Zar','Guerrillero',
+            'Mercenario','Ballestero','Arquero','Almirante','Corsario','Berserker','Hatamoto','Janízaro','Griot','Alquimista']
+  },
+  'Objetos': {
+    icon: '🔮',
+    words: ['Brújula','Abaco','Catalejo','Boomerang','Escudo','Astrolabio','Pergamino','Baúl','Linterna','Ancla',
+            'Lupa','Candelabro','Mapa del tesoro','Botella de náufrago','Reloj de sol','Escafandra','Máscara veneciana','Barómetro','Sextante','Cuerno',
+            'Látigo','Hacha','Pergamino','Antorcha','Campana','Armadura','Jarrón','Amuleto','Espejo','Cronómetro']
+  },
+  'Emociones': {
+    icon: '😈',
+    words: ['Nostalgia','Euforia','Melancolía','Envidia','Empatía','Vergüenza','Sorpresa','Disgusto','Asombro','Frustración',
+            'Orgullo','Soledad','Ternura','Angustia','Esperanza','Celos','Gratitud','Ira','Culpa','Alivio',
+            'Compasión','Desdén','Fascinación','Pavor','Éxtasis','Resignación','Fervor','Desilusión','Ambición','Desconcierto']
+  },
+  'Misterio': {
+    icon: '🔍',
+    words: ['Fantasma','Illuminati','Triángulo de las Bermudas','Bigfoot','OVNI','Loch Ness','Area 51','Atlántida','El Dorado','Vampiro',
+            'Código da Vinci','Masones','Elixir de la vida','Espejo negro','Cámara secreta','Vudú','Levitación','Telepatía','Tiempo paralelo','Cifrado',
+            'Teletransportación','Dimensión 4D','Agujero de gusano','Posesión','Exorcismo','Amuleto maldito','Videncia','Runas','Alquimia','Conjuro']
+  }
+};
+
+// ===== STATE =====
+let players = [];
+let traitorCount = 1;
+let selectedCats = new Set(Object.keys(WORDS));
+let gameState = null;
+let revealIndex = 0;
+let cardRevealed = false;
+
+const AVATARS = ['🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🩷','🩵','🩶','🔶','🔷','🔸','🔹','🟥','🟧','🟨','🟩','🟦','🟪','⬛','⬜'];
+
+// ===== HELPERS =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ===== PLAYERS =====
+function renderPlayers() {
+  const list = document.getElementById('players-list');
+  list.innerHTML = '';
+  players.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'player-item';
+    div.innerHTML = `
+      <div class="player-avatar" style="background:${p.color}22; font-size:22px;">${AVATARS[i % AVATARS.length]}</div>
+      <input class="player-name-input" type="text" placeholder="Nombre del jugador ${i+1}"
+        value="${p.name}" maxlength="20"
+        oninput="players[${i}].name = this.value; updateCountInfo()">
+      <div class="player-remove" onclick="removePlayer(${i})">✕</div>
+    `;
+    list.appendChild(div);
+  });
+  updateCountInfo();
+}
+
+const COLORS = ['#e63946','#ffd60a','#06d6a0','#4cc9f0','#f72585','#7209b7','#3a86ff','#fb5607','#8ecae6','#219ebc',
+                '#023047','#ffb703','#d62828','#023e8a','#4361ee','#560bad','#f77f00','#2dc653','#e9c46a','#e76f51'];
+
+function addPlayer() {
+  if (players.length >= 24) return;
+  players.push({ name: '', color: COLORS[players.length % COLORS.length] });
+  renderPlayers();
+  // focus last input
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.player-name-input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }, 50);
+}
+
+function removePlayer(i) {
+  players.splice(i, 1);
+  if (traitorCount > Math.floor(players.length / 2)) traitorCount = Math.max(1, Math.floor(players.length / 2));
+  renderPlayers();
+}
+
+function updateCountInfo() {
+  document.getElementById('player-count').textContent = players.length;
+  document.getElementById('traitor-display').textContent = traitorCount;
+  updateTraitorDisplay();
+}
+
+function changeTraitors(d) {
+  const max = Math.max(1, Math.floor(players.length / 2));
+  traitorCount = Math.min(max, Math.max(1, traitorCount + d));
+  document.getElementById('traitor-count').textContent = traitorCount;
+  updateCountInfo();
+}
+
+function updateTraitorDisplay() {
+  document.getElementById('traitor-count').textContent = traitorCount;
+  document.getElementById('traitor-display').textContent = traitorCount;
+}
+
+function goToCategories() {
+  const err = document.getElementById('setup-error');
+  // validate names
+  const named = players.filter(p => p.name.trim());
+  if (players.length < 3) {
+    err.textContent = '¡Necesitas al menos 3 jugadores!';
+    err.style.display = 'block';
+    document.getElementById('players-list').classList.add('shake');
+    setTimeout(() => { document.getElementById('players-list').classList.remove('shake'); }, 400);
+    return;
+  }
+  if (named.length < players.length) {
+    // fill blanks
+    players.forEach((p, i) => { if (!p.name.trim()) p.name = `Jugador ${i+1}`; });
+  }
+  err.style.display = 'none';
+  renderCategories();
+  showScreen('screen-categories');
+}
+
+// ===== CATEGORIES =====
+function renderCategories() {
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = '';
+  Object.entries(WORDS).forEach(([cat, data]) => {
+    const div = document.createElement('div');
+    div.className = 'cat-card' + (selectedCats.has(cat) ? ' selected' : '');
+    div.innerHTML = `
+      <div class="cat-icon">${data.icon}</div>
+      <div class="cat-name">${cat}</div>
+      <div class="cat-count">${data.words.length} palabras</div>
+    `;
+    div.onclick = () => {
+      if (selectedCats.has(cat)) selectedCats.delete(cat);
+      else selectedCats.add(cat);
+      div.classList.toggle('selected');
+      updateAllToggle();
+    };
+    grid.appendChild(div);
+  });
+}
+
+function updateAllToggle() {
+  const t = document.getElementById('all-toggle');
+  const allOn = selectedCats.size === Object.keys(WORDS).length;
+  t.className = 'toggle' + (allOn ? ' on' : '');
+}
+
+function toggleAllCats() {
+  const allOn = selectedCats.size === Object.keys(WORDS).length;
+  selectedCats = allOn ? new Set() : new Set(Object.keys(WORDS));
+  renderCategories();
+  updateAllToggle();
+}
+
+// ===== GAME START =====
+function startReveal() {
+  if (selectedCats.size === 0) {
+    alert('¡Selecciona al menos una categoría!');
+    return;
+  }
+
+  // Pick random word from selected categories
+  const allWords = [];
+  selectedCats.forEach(cat => {
+    WORDS[cat].words.forEach(w => allWords.push({ word: w, cat }));
+  });
+  const chosen = rand(allWords);
+
+  // Assign traitors
+  const shuffledPlayers = shuffle([...players.map((p, i) => ({ ...p, idx: i }))]);
+  const traitors = new Set(shuffledPlayers.slice(0, traitorCount).map(p => p.idx));
+
+  gameState = {
+    players: players.map((p, i) => ({
+      name: p.name,
+      isTraitor: traitors.has(i)
+    })),
+    word: chosen.word,
+    category: chosen.cat
+  };
+
+  revealIndex = 0;
+  cardRevealed = false;
+  setupRevealScreen();
+  showScreen('screen-reveal');
+}
+
+function setupRevealScreen() {
+  const p = gameState.players[revealIndex];
+  document.getElementById('reveal-player-name').textContent = p.name.toUpperCase();
+  document.getElementById('reveal-turn').textContent = `Turno de ${p.name}`;
+  document.getElementById('reveal-instruction').textContent = 'Mira solo tú la pantalla.\nPulsa para ver tu rol.';
+
+  // Progress dots
+  const dots = document.getElementById('progress-dots');
+  dots.innerHTML = '';
+  gameState.players.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'progress-dot' + (i < revealIndex ? ' done' : i === revealIndex ? ' current' : '');
+    dots.appendChild(d);
+  });
+
+  // Reset card
+  const card = document.getElementById('tap-card');
+  card.className = 'tap-card hidden-state';
+  document.getElementById('tap-hint').style.display = 'flex';
+  document.getElementById('reveal-role').style.display = 'none';
+  document.getElementById('reveal-bottom').style.display = 'none';
+  cardRevealed = false;
+}
+
+function handleTap() {
+  if (cardRevealed) return;
+  cardRevealed = true;
+
+  const p = gameState.players[revealIndex];
+  const card = document.getElementById('tap-card');
+  const hint = document.getElementById('tap-hint');
+  const role = document.getElementById('reveal-role');
+
+  hint.style.display = 'none';
+
+  if (p.isTraitor) {
+    card.className = 'tap-card show-state-bad';
+    role.innerHTML = `
+      <div class="role-badge bad">🎭 IMPOSTOR</div>
+      <div class="reveal-word bad">TRAIDOR</div>
+      <div class="reveal-desc">¡Eres el impostor! <strong>No conoces la palabra</strong>. Intenta descubrirla por las pistas y pasar desapercibido.</div>
+    `;
+  } else {
+    card.className = 'tap-card show-state-good';
+    role.innerHTML = `
+      <div class="role-badge good">👤 CIVIL</div>
+      <div class="reveal-word good">${gameState.word}</div>
+      <div class="reveal-desc">Categoría: <strong>${gameState.category}</strong><br>¡Recuerda la palabra y da pistas sin desvelarla!</div>
+    `;
+  }
+
+  role.style.display = 'flex';
+  document.getElementById('reveal-bottom').style.display = 'flex';
+}
+
+function nextPlayer() {
+  revealIndex++;
+  if (revealIndex >= gameState.players.length) {
+    // All revealed, go to game screen
+    showGameScreen();
+    return;
+  }
+  setupRevealScreen();
+}
+
+function restartReveal() {
+  revealIndex = 0;
+  setupRevealScreen();
+  showScreen('screen-reveal');
+}
+
+function showGameScreen() {
+  document.getElementById('g-players').textContent = gameState.players.length;
+  document.getElementById('g-traitors').textContent = traitorCount;
+
+  const chips = document.getElementById('g-chips');
+  chips.innerHTML = '';
+  gameState.players.forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = `<span>👤</span>${p.name}`;
+    chips.appendChild(chip);
+  });
+
+  showScreen('screen-game');
+}
+
+// ===== INIT =====
+// Add 4 default players
+['Jugador 1','Jugador 2','Jugador 3','Jugador 4'].forEach((name, i) => {
+  players.push({ name, color: COLORS[i] });
+});
+renderPlayers();
+renderCategories();
+updateTraitorDisplay();
+</script>
+</body>
+</html>
