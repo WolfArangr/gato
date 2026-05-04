@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gato.red</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.18);
+    --text: #f0ece2;
+    --muted: #888;
+    --accent-red: #e84d4d;
+    --accent-amber: #f0a020;
+    --accent-teal: #2dbf8a;
+    --accent-blue: #4d9de8;
+    --accent-purple: #9b7dea;
+    --accent-pink: #e05ca3;
+    --accent-gray: #aaa;
+    --mono: 'Space Mono', monospace;
+    --display: 'Unbounded', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* SCANLINE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.04) 2px,
+      rgba(0,0,0,0.04) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* HEADER */
+  header {
+    padding: 3rem 2rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: flex-end;
+    justify-content: space-between;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .logo-block h1 {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+    position: relative;
+  }
+
+  .logo-block h1 span {
+    color: var(--accent-red);
+  }
+
+  .logo-block p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .stats {
+    display: flex;
+    gap: 2rem;
+    text-align: right;
+  }
+
+  .stat-n {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-l {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  /* FILTERS */
+  .controls {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .filter-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-right: 0.25rem;
+  }
+
+  .tag-btn {
+    padding: 4px 12px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .tag-btn:hover { border-color: var(--border-hover); color: var(--text); }
+  .tag-btn.active { color: var(--bg); }
+
+  .tag-btn.all.active { background: var(--text); border-color: var(--text); color: var(--bg); }
+  .tag-btn.juego.active { background: var(--accent-teal); border-color: var(--accent-teal); }
+  .tag-btn.herramienta.active { background: var(--accent-amber); border-color: var(--accent-amber); }
+  .tag-btn.articulo.active { background: var(--accent-blue); border-color: var(--accent-blue); }
+  .tag-btn.rol.active { background: var(--accent-purple); border-color: var(--accent-purple); }
+  .tag-btn.otro.active { background: var(--accent-gray); border-color: var(--accent-gray); }
+
+  .search-wrap {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  .search-wrap:focus-within { border-color: var(--border-hover); }
+
+  .search-wrap input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    width: 180px;
+  }
+
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  .search-icon { color: var(--muted); font-size: 11px; }
+
+  /* GRID */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1px;
+    background: var(--border);
+  }
+
+  /* CARD */
+  .card {
+    background: var(--bg);
+    padding: 1.25rem;
+    transition: background 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .card:hover { background: var(--surface); }
+  .card:hover::before { opacity: 1; }
+
+  .card.juego::before { background: var(--accent-teal); }
+  .card.herramienta::before { background: var(--accent-amber); }
+  .card.articulo::before { background: var(--accent-blue); }
+  .card.rol::before { background: var(--accent-purple); }
+  .card.otro::before { background: var(--accent-gray); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .card-name {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    line-height: 1.2;
+    text-transform: lowercase;
+  }
+
+  .cat-badge {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 2px 7px;
+    border-radius: 1px;
+    flex-shrink: 0;
+    font-family: var(--mono);
+  }
+
+  .juego .cat-badge { background: rgba(45,191,138,0.12); color: var(--accent-teal); border: 1px solid rgba(45,191,138,0.25); }
+  .herramienta .cat-badge { background: rgba(240,160,32,0.12); color: var(--accent-amber); border: 1px solid rgba(240,160,32,0.25); }
+  .articulo .cat-badge { background: rgba(77,157,232,0.12); color: var(--accent-blue); border: 1px solid rgba(77,157,232,0.25); }
+  .rol .cat-badge { background: rgba(155,125,234,0.12); color: var(--accent-purple); border: 1px solid rgba(155,125,234,0.25); }
+  .otro .cat-badge { background: rgba(170,170,170,0.1); color: var(--accent-gray); border: 1px solid rgba(170,170,170,0.2); }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.55;
+    flex: 1;
+  }
+
+  .card-url {
+    font-size: 10px;
+    color: #555;
+    letter-spacing: 0.03em;
+    margin-top: auto;
+    padding-top: 0.25rem;
+    transition: color 0.15s;
+  }
+
+  .card:hover .card-url { color: var(--muted); }
+
+  .card.hidden { display: none; }
+
+  /* DEVICE TAGS */
+  .card-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-tag {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #444;
+    padding: 1px 5px;
+    border: 1px solid #222;
+    border-radius: 1px;
+  }
+
+  /* FOOTER */
+  footer {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  footer p { font-size: 11px; color: #444; }
+
+  .count-display {
+    font-family: var(--display);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 2rem 1.25rem 1.5rem; }
+    .controls, main, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .stats { gap: 1.25rem; }
+    main { grid-template-columns: 1fr; }
+    .search-wrap { margin-left: 0; width: 100%; }
+    .search-wrap input { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-block">
+    <h1>gato<span>.</span>red</h1>
+    <p>colección de proyectos, herramientas y experimentos</p>
+  </div>
+  <div class="stats">
+    <div>
+      <div class="stat-n" id="total-count">38</div>
+      <div class="stat-l">proyectos</div>
+    </div>
+    <div>
+      <div class="stat-n">5</div>
+      <div class="stat-l">categorías</div>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <span class="filter-label">filtrar //</span>
+  <button class="tag-btn all active" data-cat="all">todo</button>
+  <button class="tag-btn juego" data-cat="juego">juegos</button>
+  <button class="tag-btn herramienta" data-cat="herramienta">herramientas</button>
+  <button class="tag-btn articulo" data-cat="articulo">artículos</button>
+  <button class="tag-btn rol" data-cat="rol">rol & universo</button>
+  <button class="tag-btn otro" data-cat="otro">otros</button>
+  <div class="search-wrap">
+    <span class="search-icon">_</span>
+    <input type="text" id="search" placeholder="buscar proyecto..." autocomplete="off">
+  </div>
+</div>
+
+<main id="grid">
+
+  <!-- JUEGOS -->
+  <a class="card juego" href="http://www.gato.red/agencia" target="_blank">
+    <div class="card-header">
+      <span class="card-name">agencia</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Gestiona una agencia de espías gatunos. Estrategia y sigilo felino.</p>
+    <div class="card-meta"><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/agencia</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/ajedrezenraya" target="_blank">
+    <div class="card-header">
+      <span class="card-name">ajedrez en raya</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Cuatro en raya con reglas de ajedrez. 1 o 2 jugadores en el mismo dispositivo.</p>
+    <div class="card-meta"><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/ajedrezenraya</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/gatorescatanube" target="_blank">
+    <div class="card-header">
+      <span class="card-name">gato rescata nube</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Resuelve laberintos para rescatar a la nube. Puzzles progresivos.</p>
+    <div class="card-meta"><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/gatorescatanube</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/jubilacion" target="_blank">
+    <div class="card-header">
+      <span class="card-name">jubilación</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Rompe bloques para liberar a Dolores y que pueda jubilarse. Acción arcade.</p>
+    <div class="card-meta"><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/jubilacion</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/restaurantefelino" target="_blank">
+    <div class="card-header">
+      <span class="card-name">restaurante felino</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Gestiona un restaurante felino. Cocina, clientes y caos gatuno.</p>
+    <div class="card-meta"><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/restaurantefelino</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/liberadordegatitos" target="_blank">
+    <div class="card-header">
+      <span class="card-name">liberador de gatitos</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">RPG de texto: libera a los gatitos cautivos. Decisiones y aventura.</p>
+    <div class="card-meta"><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/liberadordegatitos</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/rpg" target="_blank">
+    <div class="card-header">
+      <span class="card-name">rpg</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">RPG basado en texto para web y móvil.</p>
+    <div class="card-meta"><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/rpg</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/rpg2" target="_blank">
+    <div class="card-header">
+      <span class="card-name">rpg 2</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Segunda iteración del RPG de texto para web y móvil.</p>
+    <div class="card-meta"><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/rpg2</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/montyhall" target="_blank">
+    <div class="card-header">
+      <span class="card-name">monty hall</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Experimenta la paradoja de Monty Hall en primera persona. (English)</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span><span class="meta-tag">en</span></div>
+    <span class="card-url">gato.red/montyhall</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/paradojamontyhall" target="_blank">
+    <div class="card-header">
+      <span class="card-name">paradoja monty hall</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">La paradoja de Monty Hall explicada y jugable. Versión en español.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/paradojamontyhall</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/quiztorico" target="_blank">
+    <div class="card-header">
+      <span class="card-name">quiz torico</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Quiz diario: adivina armas, armaduras y artefactos históricos a partir de una foto.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/quiztorico</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/impostor" target="_blank">
+    <div class="card-header">
+      <span class="card-name">impostor</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Asigna roles y palabras secretas para el juego del impostor en grupo.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/impostor</span>
+  </a>
+
+  <a class="card juego" href="http://www.gato.red/juegoexploracion" target="_blank">
+    <div class="card-header">
+      <span class="card-name">juego exploración</span>
+      <span class="cat-badge">juego</span>
+    </div>
+    <p class="card-desc">Funda bases, mina recursos y explora el sistema solar. En desarrollo.</p>
+    <div class="card-meta"><span class="meta-tag">wip</span></div>
+    <span class="card-url">gato.red/juegoexploracion</span>
+  </a>
+
+  <!-- HERRAMIENTAS -->
+  <a class="card herramienta" href="http://www.gato.red/comparacero" target="_blank">
+    <div class="card-header">
+      <span class="card-name">comparacero</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Comparación técnica de aceros para recreación medieval. Guía de materiales.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/comparacero</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/steelcompare" target="_blank">
+    <div class="card-header">
+      <span class="card-name">steel compare</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Steel comparison tool for medieval recreation. English version of comparacero.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span><span class="meta-tag">en</span></div>
+    <span class="card-url">gato.red/steelcompare</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/massresize" target="_blank">
+    <div class="card-header">
+      <span class="card-name">mass resize</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Redimensiona imágenes en masa, reduce peso e inserta logo corporativo. Muy útil.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span></div>
+    <span class="card-url">gato.red/massresize</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/expolio" target="_blank">
+    <div class="card-header">
+      <span class="card-name">expolio</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Visualiza el expolio estatal vía impuestos. ¿Cuánto te queda realmente?</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/expolio</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/nubehorario" target="_blank">
+    <div class="card-header">
+      <span class="card-name">nube horario</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Ordena y asigna horarios de tienda con múltiples empleados de forma visual.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span></div>
+    <span class="card-url">gato.red/nubehorario</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/htmlapdf" target="_blank">
+    <div class="card-header">
+      <span class="card-name">html a pdf</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Convierte URLs de campañas de Mailchimp directamente a PDF descargable.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span></div>
+    <span class="card-url">gato.red/htmlapdf</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/fachometro" target="_blank">
+    <div class="card-header">
+      <span class="card-name">fachómetro</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Test online que evalúa cuán facha eres según tus respuestas.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/fachometro</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/personajes" target="_blank">
+    <div class="card-header">
+      <span class="card-name">personajes</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Crea personajes de rol de mesa basados en el sistema GATO online.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/personajes</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/miyutarot" target="_blank">
+    <div class="card-header">
+      <span class="card-name">miyu tarot</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Tarot web con cartas diarias únicas. 3 cartas diarias + carta semanal con interpretación.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/miyutarot</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/gatodev" target="_blank">
+    <div class="card-header">
+      <span class="card-name">gato dev</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Simulador de código en Vite para parecer que estás trabajando duro.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span></div>
+    <span class="card-url">gato.red/gatodev</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/exploracion" target="_blank">
+    <div class="card-header">
+      <span class="card-name">exploración</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Simulador del sistema solar interactivo con curiosidades y datos astronómicos.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/exploracion</span>
+  </a>
+
+  <a class="card herramienta" href="http://www.gato.red/directoriocdm" target="_blank">
+    <div class="card-header">
+      <span class="card-name">directorio cdm</span>
+      <span class="cat-badge">herramienta</span>
+    </div>
+    <p class="card-desc">Directorio web del Club de Mar: locales en orden aleatorio para móvil y PC.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/directoriocdm</span>
+  </a>
+
+  <!-- ARTÍCULOS / CURIOSIDADES -->
+  <a class="card articulo" href="http://www.gato.red/hocvspocvs" target="_blank">
+    <div class="card-header">
+      <span class="card-name">hocvs pocvs</span>
+      <span class="cat-badge">artículo</span>
+    </div>
+    <p class="card-desc">Virtualización del libro "HOCVS POCVS IVNIOR: La Anatomía del Legerdemain".</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/hocvspocvs</span>
+  </a>
+
+  <a class="card articulo" href="https://github.com/WolfArangr/gato/blob/main/hydrogen/hydrogen.md" target="_blank">
+    <div class="card-header">
+      <span class="card-name">hydrogen</span>
+      <span class="cat-badge">artículo</span>
+    </div>
+    <p class="card-desc">Artículo académico: Solid-State Hydrogen Storage for Light-Duty Vehicles.</p>
+    <div class="card-meta"><span class="meta-tag">en</span><span class="meta-tag">github</span></div>
+    <span class="card-url">github / hydrogen.md</span>
+  </a>
+
+  <a class="card articulo" href="https://github.com/IHTConsulting/system-x-standard/blob/main/System%20X%20Technical%20Specification.md" target="_blank">
+    <div class="card-header">
+      <span class="card-name">system x</span>
+      <span class="cat-badge">artículo</span>
+    </div>
+    <p class="card-desc">Artículo académico: Modular Dimensional Standard for Paper, Fabrication & Digital Media.</p>
+    <div class="card-meta"><span class="meta-tag">en</span><span class="meta-tag">github</span></div>
+    <span class="card-url">github / system-x</span>
+  </a>
+
+  <a class="card articulo" href="http://www.gato.red/riemann" target="_blank">
+    <div class="card-header">
+      <span class="card-name">riemann</span>
+      <span class="cat-badge">artículo</span>
+    </div>
+    <p class="card-desc">Showcase interactivo de la hipótesis de Riemann. Matemáticas visualizadas.</p>
+    <div class="card-meta"><span class="meta-tag">en</span><span class="meta-tag">pc</span></div>
+    <span class="card-url">gato.red/riemann</span>
+  </a>
+
+  <!-- ROL & UNIVERSO ERRANTES -->
+  <a class="card rol" href="http://www.gato.red/errantes" target="_blank">
+    <div class="card-header">
+      <span class="card-name">errantes</span>
+      <span class="cat-badge">rol</span>
+    </div>
+    <p class="card-desc">Novelización de las partidas de rol de "Los Errantes de Kurghaimat".</p>
+    <div class="card-meta"><span class="meta-tag">lectura</span></div>
+    <span class="card-url">gato.red/errantes</span>
+  </a>
+
+  <a class="card rol" href="http://www.gato.red/mapa" target="_blank">
+    <div class="card-header">
+      <span class="card-name">mapa</span>
+      <span class="cat-badge">rol</span>
+    </div>
+    <p class="card-desc">Mapa interactivo del mundo de Los Errantes de Kurghaimat para jugadores.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/mapa</span>
+  </a>
+
+  <a class="card rol" href="http://www.gato.red/wikierrantes" target="_blank">
+    <div class="card-header">
+      <span class="card-name">wiki errantes</span>
+      <span class="cat-badge">rol</span>
+    </div>
+    <p class="card-desc">Wiki del universo de Los Errantes de Kurghaimat. Lore, personajes, historia.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/wikierrantes</span>
+  </a>
+
+  <a class="card rol" href="http://www.gato.red/sistemagato" target="_blank">
+    <div class="card-header">
+      <span class="card-name">sistema gato</span>
+      <span class="cat-badge">rol</span>
+    </div>
+    <p class="card-desc">Manual del sistema de rol GATO: Guía de Aventuras Tácticas Orientadas.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span><span class="meta-tag">móvil</span></div>
+    <span class="card-url">gato.red/sistemagato</span>
+  </a>
+
+  <!-- OTROS -->
+  <a class="card otro" href="http://www.gato.red/cv" target="_blank">
+    <div class="card-header">
+      <span class="card-name">cv</span>
+      <span class="cat-badge">otro</span>
+    </div>
+    <p class="card-desc">Currículum vitae. Lo que hago cuando no estoy haciendo todo lo demás.</p>
+    <div class="card-meta"><span class="meta-tag">pc</span></div>
+    <span class="card-url">gato.red/cv</span>
+  </a>
+
+  <a class="card otro" href="http://www.gato.red/propuestalogo" target="_blank">
+    <div class="card-header">
+      <span class="card-name">propuesta logo</span>
+      <span class="cat-badge">otro</span>
+    </div>
+    <p class="card-desc">Propuesta para el nuevo logo de la asociación de combate y esgrima histórica de La Palma.</p>
+    <div class="card-meta"><span class="meta-tag">diseño</span></div>
+    <span class="card-url">gato.red/propuestalogo</span>
+  </a>
+
+  <a class="card otro" href="http://www.gato.red/editorlocalescdm" target="_blank">
+    <div class="card-header">
+      <span class="card-name">editor locales cdm</span>
+      <span class="cat-badge">otro</span>
+    </div>
+    <p class="card-desc">Editor interno para el directorio web del Club de Mar.</p>
+    <div class="card-meta"><span class="meta-tag">interno</span></div>
+    <span class="card-url">gato.red/editorlocalescdm</span>
+  </a>
+
+  <a class="card otro" href="http://www.gato.red/gatiarticulos" target="_blank">
+    <div class="card-header">
+      <span class="card-name">gati artículos</span>
+      <span class="cat-badge">otro</span>
+    </div>
+    <p class="card-desc">Editor de artículos interno para gato.red.</p>
+    <div class="card-meta"><span class="meta-tag">interno</span></div>
+    <span class="card-url">gato.red/gatiarticulos</span>
+  </a>
+
+</main>
+
+<footer>
+  <p>gato.red — todos los proyectos son de elaboración propia</p>
+  <span class="count-display" id="visible-count">mostrando 38 de 38</span>
+</footer>
+
+<script>
+  const cards = document.querySelectorAll('.card');
+  const filterBtns = document.querySelectorAll('.tag-btn');
+  const searchInput = document.getElementById('search');
+  const visibleCountEl = document.getElementById('visible-count');
+  const totalCount = cards.length;
+
+  document.getElementById('total-count').textContent = totalCount;
+
+  let currentCat = 'all';
+  let currentSearch = '';
+
+  function update() {
+    let visible = 0;
+    cards.forEach(card => {
+      const cat = card.classList[1];
+      const text = card.innerText.toLowerCase();
+      const catOk = currentCat === 'all' || cat === currentCat;
+      const searchOk = !currentSearch || text.includes(currentSearch);
+      if (catOk && searchOk) {
+        card.classList.remove('hidden');
+        visible++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+    visibleCountEl.textContent = 'mostrando ' + visible + ' de ' + totalCount;
+  }
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCat = btn.dataset.cat;
+      update();
+    });
+  });
+
+  searchInput.addEventListener('input', e => {
+    currentSearch = e.target.value.toLowerCase().trim();
+    update();
+  });
+</script>
+
+</body>
+</html>
