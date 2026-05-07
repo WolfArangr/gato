@@ -1719,6 +1719,7 @@ async function buildPdfFromBlobs(blobs, filename) {
 // ═══════════════════════════════════════
 let tourStep = 0;
 let tourSteps = [];
+let isTourActive = false;
 
 function getTourSteps(lang) {
   const es = [
@@ -1909,12 +1910,14 @@ function tourUnlockPage() {
 function startTour() {
   tourSteps = getTourSteps(currentLang);
   tourStep = 0;
+  isTourActive = true;
   document.getElementById('tourOverlay').classList.remove('hidden');
   tourLockPage();
   renderTourStep();
 }
 
 function endTour() {
+  isTourActive = false;
   document.getElementById('tourOverlay').classList.add('hidden');
   tourUnlockPage();
   // Restore any elements that were temporarily shown
@@ -1981,7 +1984,7 @@ function renderTourStep() {
     tourUnlockPage();
     primaryEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => {
-      tourLockPage();
+      if (isTourActive) tourLockPage();
       // After scroll settles, compute union rect and place spotlight + bubble
       setTimeout(() => {
         const rect = getTourRect(targets);
