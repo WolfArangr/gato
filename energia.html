@@ -1,0 +1,2364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informe de Inversión en Energías Renovables — gato.red / IHTConsulting</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f3ee;
+    --cream: #ede9e0;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --green: #1d5c3a;
+    --green-light: #2d7a50;
+    --green-pale: #e8f2ec;
+    --blue-deep: #1a2e4a;
+    --blue-mid: #2d4f7c;
+    --accent-red: #c0392b;
+    --accent-orange: #d4613c;
+    --slate: #4a5568;
+    --muted: #8a8a8a;
+    --border: rgba(10,10,15,0.12);
+    --shadow: 0 4px 32px rgba(10,10,15,0.08);
+    --shadow-heavy: 0 16px 64px rgba(10,10,15,0.18);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── COVER ── */
+  .cover {
+    min-height: 100vh;
+    background: var(--blue-deep);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 30% 50%, rgba(29,92,58,0.35) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 80% at 80% 20%, rgba(201,168,76,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .cover-texture {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .cover-left {
+    padding: 80px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+  }
+  .cover-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-mark {
+    width: 44px;
+    height: 44px;
+    background: var(--gold);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--blue-deep);
+  }
+  .logo-text {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.3;
+    opacity: 0.9;
+  }
+  .logo-text span { color: var(--gold-light); font-weight: 600; display: block; }
+  .cover-main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 60px 0; }
+  .cover-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+  .cover-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(38px, 5vw, 72px);
+    font-weight: 900;
+    color: white;
+    line-height: 1.08;
+    margin-bottom: 16px;
+  }
+  .cover-title em { color: var(--gold-light); font-style: italic; }
+  .cover-subtitle {
+    font-size: 18px;
+    color: rgba(255,255,255,0.65);
+    max-width: 460px;
+    margin-bottom: 48px;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .cover-meta-item label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .cover-meta-item span {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .cover-right {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 80px 60px;
+    border-left: 1px solid rgba(255,255,255,0.08);
+  }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+  .kpi-item {
+    padding: 28px 24px;
+    background: rgba(255,255,255,0.04);
+    transition: background 0.2s;
+  }
+  .kpi-item:hover { background: rgba(255,255,255,0.08); }
+  .kpi-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gold-light);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .kpi-unit { font-size: 16px; font-weight: 400; }
+  .kpi-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    font-weight: 400;
+    line-height: 1.3;
+  }
+  .cover-projects {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cover-project-tag {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+  }
+  .project-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .dot-wind { background: #4ade80; }
+  .dot-hydro { background: #60a5fa; }
+  .cover-project-tag .name { color: white; font-size: 13px; font-weight: 600; flex: 1; }
+  .cover-project-tag .type { font-size: 11px; color: rgba(255,255,255,0.4); font-family: 'DM Mono', monospace; }
+
+  /* ── NAV ── */
+  .nav-sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 280px;
+    height: 100vh;
+    background: white;
+    border-right: 1px solid var(--border);
+    z-index: 100;
+    padding: 32px 0;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-heavy);
+  }
+  .nav-sidebar.open { transform: translateX(0); }
+  .nav-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: none; border: none;
+    cursor: pointer; font-size: 20px; color: var(--slate);
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px;
+  }
+  .nav-close:hover { background: var(--cream); }
+  .nav-logo { padding: 0 24px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .nav-logo span { font-size: 13px; font-weight: 600; color: var(--blue-deep); }
+  .nav-logo small { display: block; font-size: 11px; color: var(--muted); }
+  .nav-section { padding: 8px 16px 4px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 8px; }
+  .nav-link {
+    display: block;
+    padding: 9px 24px;
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+    font-weight: 400;
+  }
+  .nav-link:hover { color: var(--blue-deep); background: var(--cream); border-left-color: var(--gold); }
+  .nav-link.active { color: var(--blue-deep); font-weight: 600; border-left-color: var(--green); background: var(--green-pale); }
+  .nav-trigger {
+    position: fixed;
+    top: 20px; left: 20px;
+    z-index: 99;
+    background: var(--blue-deep);
+    border: none;
+    cursor: pointer;
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 5px;
+    box-shadow: 0 4px 16px rgba(26,46,74,0.35);
+    transition: background 0.2s;
+  }
+  .nav-trigger:hover { background: var(--green); }
+  .nav-trigger span { display: block; width: 20px; height: 2px; background: white; border-radius: 2px; }
+
+  /* ── MAIN CONTENT ── */
+  .main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 48px;
+  }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    margin-bottom: 64px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-eyebrow::after {
+    content: '';
+    flex: 1;
+    max-width: 60px;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.4;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 900;
+    color: var(--blue-deep);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .section-title em { color: var(--green); font-style: italic; }
+  .section-lead {
+    font-size: 18px;
+    color: var(--slate);
+    max-width: 760px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* ── PAGE BREAK DIVIDER ── */
+  .chapter-break {
+    background: var(--blue-deep);
+    color: white;
+    padding: 64px 48px;
+    margin: 0 -48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .chapter-break::before {
+    content: attr(data-num);
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 160px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.04);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .chapter-break .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .chapter-break h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 3.5vw, 48px);
+    font-weight: 700;
+    line-height: 1.15;
+    max-width: 700px;
+  }
+  .chapter-break .sub {
+    margin-top: 12px;
+    color: rgba(255,255,255,0.55);
+    font-size: 16px;
+    font-weight: 300;
+    max-width: 600px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .card:hover { box-shadow: var(--shadow-heavy); transform: translateY(-2px); }
+  .card-accent-green { border-top: 4px solid var(--green); }
+  .card-accent-blue { border-top: 4px solid var(--blue-mid); }
+  .card-accent-gold { border-top: 4px solid var(--gold); }
+  .card-accent-red { border-top: 4px solid var(--accent-red); }
+
+  /* ── STAT BOXES ── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 32px 0;
+  }
+  .stat-box {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--gold);
+  }
+  .stat-box.green::before { background: var(--green); }
+  .stat-box.blue::before { background: var(--blue-mid); }
+  .stat-box.red::before { background: var(--accent-red); }
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--blue-deep);
+    line-height: 1.1;
+  }
+  .stat-unit { font-size: 14px; font-weight: 400; color: var(--slate); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.3; }
+  .stat-note { font-size: 11px; color: var(--gold); margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+  /* ── COMPARISON TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 24px 0;
+  }
+  .compare-table th {
+    background: var(--blue-deep);
+    color: white;
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+  }
+  .compare-table th:first-child { border-radius: 8px 0 0 0; }
+  .compare-table th:last-child { border-radius: 0 8px 0 0; }
+  .compare-table td {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: rgba(237,233,224,0.4); }
+  .compare-table tr:hover td { background: var(--green-pale); }
+  .compare-table td:first-child { font-weight: 600; color: var(--blue-deep); font-size: 13px; }
+  .compare-table .wind { color: var(--green); font-weight: 600; }
+  .compare-table .hydro { color: var(--blue-mid); font-weight: 600; }
+  .compare-table .neutral { color: var(--slate); }
+  .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+
+  /* ── TWO COLUMN LAYOUT ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin: 32px 0; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin: 32px 0; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight-box {
+    background: var(--green-pale);
+    border: 1px solid rgba(29,92,58,0.2);
+    border-left: 4px solid var(--green);
+    border-radius: 0 12px 12px 0;
+    padding: 24px 28px;
+    margin: 28px 0;
+  }
+  .highlight-box.gold {
+    background: rgba(201,168,76,0.08);
+    border-color: rgba(201,168,76,0.25);
+    border-left-color: var(--gold);
+  }
+  .highlight-box.blue {
+    background: rgba(26,46,74,0.05);
+    border-color: rgba(26,46,74,0.15);
+    border-left-color: var(--blue-mid);
+  }
+  .highlight-box.red {
+    background: rgba(192,57,43,0.06);
+    border-color: rgba(192,57,43,0.2);
+    border-left-color: var(--accent-red);
+  }
+  .highlight-box strong { color: var(--blue-deep); }
+  .highlight-box .hb-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--green);
+  }
+  .highlight-box.gold .hb-title { color: #8a6820; }
+  .highlight-box.blue .hb-title { color: var(--blue-mid); }
+  .highlight-box.red .hb-title { color: var(--accent-red); }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 32px; margin: 32px 0; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--green), var(--blue-mid), var(--gold));
+  }
+  .timeline-item { position: relative; margin-bottom: 32px; }
+  .timeline-dot {
+    position: absolute;
+    left: -39px; top: 4px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--green);
+    z-index: 1;
+  }
+  .timeline-dot.done { background: var(--green); border-color: var(--green); }
+  .timeline-dot.pending { background: var(--gold); border-color: var(--gold); }
+  .timeline-dot.future { background: white; border-color: var(--muted); }
+  .timeline-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+  .timeline-title { font-weight: 600; font-size: 15px; color: var(--blue-deep); margin-bottom: 4px; }
+  .timeline-body { font-size: 14px; color: var(--slate); line-height: 1.55; }
+
+  /* ── RISK MATRIX ── */
+  .risk-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 24px 0;
+  }
+  .risk-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid var(--border);
+    font-family: 'DM Mono', monospace;
+  }
+  .risk-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .risk-table tr:hover td { background: rgba(237,233,224,0.5); }
+  .risk-level {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .risk-low { background: rgba(29,92,58,0.12); color: var(--green); }
+  .risk-med { background: rgba(201,168,76,0.15); color: #8a6820; }
+  .risk-high { background: rgba(192,57,43,0.12); color: var(--accent-red); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-item { margin-bottom: 20px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .progress-label { font-size: 14px; font-weight: 500; color: var(--blue-deep); }
+  .progress-value { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); }
+  .progress-bar-bg { height: 8px; background: var(--cream); border-radius: 100px; overflow: hidden; }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--green), var(--green-light));
+    transition: width 1s ease;
+  }
+  .progress-bar-fill.gold-bar { background: linear-gradient(90deg, #c9a84c, var(--gold-light)); }
+  .progress-bar-fill.blue-bar { background: linear-gradient(90deg, var(--blue-deep), var(--blue-mid)); }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; margin: 16px 0; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--slate);
+    border-bottom: 1px solid var(--border);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 11px;
+    margin-top: 1px;
+  }
+  .check-ok { background: var(--green); color: white; }
+  .check-pending { background: var(--gold); color: white; }
+  .check-no { background: var(--accent-red); color: white; }
+
+  /* ── TAGS ── */
+  .tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid;
+    margin: 2px;
+  }
+  .tag-green { background: var(--green-pale); color: var(--green); border-color: rgba(29,92,58,0.2); }
+  .tag-gold { background: rgba(201,168,76,0.1); color: #8a6820; border-color: rgba(201,168,76,0.3); }
+  .tag-blue { background: rgba(26,46,74,0.06); color: var(--blue-mid); border-color: rgba(45,79,124,0.25); }
+  .tag-red { background: rgba(192,57,43,0.06); color: var(--accent-red); border-color: rgba(192,57,43,0.2); }
+
+  /* ── PARAGRAPH STYLES ── */
+  .prose h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--blue-deep);
+    margin: 40px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--green);
+    display: inline-block;
+  }
+  .prose h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--blue-deep);
+    margin: 28px 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+  }
+  .prose p { margin-bottom: 16px; color: var(--slate); line-height: 1.75; }
+  .prose ul { list-style: none; margin: 0 0 16px; }
+  .prose ul li {
+    padding: 5px 0 5px 22px;
+    color: var(--slate);
+    font-size: 14px;
+    line-height: 1.6;
+    position: relative;
+  }
+  .prose ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-size: 13px;
+  }
+
+  /* ── INFO GRID ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin: 24px 0;
+  }
+  .info-cell {
+    background: white;
+    padding: 16px 20px;
+  }
+  .info-cell label {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .info-cell value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--blue-deep);
+    display: block;
+  }
+
+  /* ── SUPPLIER CARDS ── */
+  .supplier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 24px 0; }
+  .supplier-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .supplier-card:hover { border-color: var(--green); box-shadow: var(--shadow); }
+  .supplier-icon {
+    width: 48px; height: 48px;
+    background: var(--green-pale);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 20px;
+  }
+  .supplier-name { font-size: 14px; font-weight: 700; color: var(--blue-deep); margin-bottom: 4px; }
+  .supplier-role { font-size: 12px; color: var(--muted); }
+
+  /* ── FOOTER ── */
+  .report-footer {
+    background: var(--blue-deep);
+    color: white;
+    padding: 48px;
+    margin-top: 80px;
+  }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; max-width: 1200px; margin: 0 auto 40px; }
+  .footer-brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--gold-light); margin-bottom: 10px; }
+  .footer-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+  .footer-col h5 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; font-family: 'DM Mono', monospace; }
+  .footer-col p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.7; }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .footer-bottom p { font-size: 12px; color: rgba(255,255,255,0.35); }
+  .footer-disclaimer { font-size: 11px; color: rgba(255,255,255,0.25); max-width: 600px; line-height: 1.6; }
+
+  /* ── BIG QUOTE ── */
+  .big-quote {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 40px 48px;
+    margin: 40px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .big-quote::before {
+    content: '"';
+    position: absolute;
+    top: -20px; left: 24px;
+    font-family: 'Playfair Display', serif;
+    font-size: 160px;
+    color: var(--green);
+    opacity: 0.08;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .big-quote p {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--blue-deep);
+    line-height: 1.5;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 12px;
+  }
+  .big-quote cite { font-size: 13px; color: var(--muted); font-style: normal; font-family: 'DM Mono', monospace; }
+
+  /* ── SPACERS ── */
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mt-32 { margin-top: 32px; }
+  .mt-48 { margin-top: 48px; }
+  .mt-64 { margin-top: 64px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-24 { margin-bottom: 24px; }
+  .mb-32 { margin-bottom: 32px; }
+
+  /* ── BACK TO TOP ── */
+  .back-top {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    width: 44px; height: 44px;
+    background: var(--green);
+    border: none; border-radius: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px;
+    box-shadow: 0 4px 16px rgba(29,92,58,0.35);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .back-top.visible { opacity: 1; pointer-events: all; }
+  .back-top:hover { transform: translateY(-3px); }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    .nav-trigger, .nav-sidebar, .back-top { display: none; }
+    .cover { page-break-after: always; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .cover { grid-template-columns: 1fr; }
+    .cover-right { border-left: none; border-top: 1px solid rgba(255,255,255,0.08); }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+    .main-content { padding: 48px 24px; }
+    .chapter-break { padding: 48px 24px; margin: 0 -24px; }
+    .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeInUp 0.6s ease both; }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+
+  /* BAND SEPARATOR */
+  .band {
+    background: var(--cream);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 48px;
+    margin: 48px -48px;
+  }
+
+  /* INLINE TAG LABEL */
+  .inline-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--green-pale);
+    color: var(--green);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    vertical-align: middle;
+  }
+
+  .number-accent {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 4px;
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV TRIGGER -->
+<button class="nav-trigger" onclick="toggleNav()" aria-label="Menú de navegación">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- SIDEBAR NAV -->
+<nav class="nav-sidebar" id="nav">
+  <button class="nav-close" onclick="toggleNav()">✕</button>
+  <div class="nav-logo">
+    <span>gato.red / IHTConsulting</span>
+    <small>Informe de Inversión en Renovables Colombia</small>
+  </div>
+  <div class="nav-section">Resumen</div>
+  <a href="#ejecutivo" class="nav-link">Resumen Ejecutivo</a>
+  <a href="#contexto" class="nav-link">Contexto de Mercado</a>
+  <div class="nav-section">Proyecto Levante (Eólico)</div>
+  <a href="#levante-overview" class="nav-link">Visión General</a>
+  <a href="#levante-activos" class="nav-link">Activos Alpha y Beta</a>
+  <a href="#levante-contrato" class="nav-link">PPAs y Cargo por Confiabilidad</a>
+  <a href="#levante-ejecucion" class="nav-link">Estado de Ejecución</a>
+  <a href="#levante-financiero" class="nav-link">Análisis Financiero</a>
+  <a href="#levante-riesgos" class="nav-link">Riesgos</a>
+  <div class="nav-section">PCH Hidronare (Hidroeléctrico)</div>
+  <a href="#hidronare-overview" class="nav-link">Visión General</a>
+  <a href="#hidronare-tecnico" class="nav-link">Análisis Técnico</a>
+  <a href="#hidronare-activos" class="nav-link">Activos y Licencias</a>
+  <a href="#hidronare-generacion" class="nav-link">Generación y Caudales</a>
+  <a href="#hidronare-financiero" class="nav-link">Análisis Financiero</a>
+  <a href="#hidronare-riesgos" class="nav-link">Riesgos</a>
+  <div class="nav-section">Análisis Comparativo</div>
+  <a href="#comparativa" class="nav-link">Comparativa de Proyectos</a>
+  <a href="#sector" class="nav-link">Sector Eléctrico Colombia</a>
+  <a href="#conclusion" class="nav-link">Conclusiones</a>
+</nav>
+<div id="nav-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99;" onclick="toggleNav()"></div>
+
+<!-- ████████████ PORTADA ████████████ -->
+<section class="cover" id="portada">
+  <div class="cover-texture"></div>
+  <div class="cover-left">
+    <div class="cover-logo">
+      <div class="logo-mark">G</div>
+      <div class="logo-text">
+        <span>gato.red · IHTConsulting</span>
+        División de Análisis Estratégico de Inversiones
+      </div>
+    </div>
+    <div class="cover-main">
+      <div class="cover-eyebrow animate-in">Informe de Inversión Estratégica · Colombia · 2024–2027</div>
+      <h1 class="cover-title animate-in delay-1">
+        Energías<br><em>Renovables</em><br>en Colombia
+      </h1>
+      <p class="cover-subtitle animate-in delay-2">
+        Análisis exhaustivo de dos oportunidades de inversión en generación de energía limpia: 
+        el Proyecto Levante (eólico, La Guajira, 504 MW) y la PCH Hidronare 
+        (hidroeléctrico, Antioquia, 19,9 MW).
+      </p>
+      <div class="cover-meta animate-in delay-3">
+        <div class="cover-meta-item"><label>Elaborado por</label><span>gato.red / IHTConsulting</span></div>
+        <div class="cover-meta-item"><label>Fecha de análisis</label><span>Junio 2024</span></div>
+        <div class="cover-meta-item"><label>Clasificación</label><span>Estrictamente Confidencial</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="cover-right">
+    <div class="kpi-grid animate-in delay-2">
+      <div class="kpi-item">
+        <div class="kpi-value">504 <span class="kpi-unit">MW</span></div>
+        <div class="kpi-label">Capacidad instalada eólica combinada (Alpha + Beta)</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value">19,9 <span class="kpi-unit">MW</span></div>
+        <div class="kpi-label">Capacidad instalada hidroeléctrica (PCH Hidronare)</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value">~977 <span class="kpi-unit">M$</span></div>
+        <div class="kpi-label">Coste total de construcción estimado (Levante, USD)</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value">23</div>
+        <div class="kpi-label">Clientes off-taker bajo contrato PPA (Proyecto Levante)</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value">56% <span class="kpi-unit">P50</span></div>
+        <div class="kpi-label">Factor de carga medio eólico (superior a la media regional)</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value">73,5%</div>
+        <div class="kpi-label">Factor de planta hidroeléctrico (Hidronare)</div>
+      </div>
+    </div>
+    <div class="cover-projects animate-in delay-3">
+      <div class="cover-project-tag">
+        <span class="project-dot dot-wind"></span>
+        <span class="name">Proyecto Levante (Alpha + Beta)</span>
+        <span class="type">EÓLICO · La Guajira · EDPR / BTG Pactual</span>
+      </div>
+      <div class="cover-project-tag">
+        <span class="project-dot dot-hydro"></span>
+        <span class="name">PCH Hidronare</span>
+        <span class="type">HIDROELÉCTRICO · San Carlos, Antioquia</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ████████████ RESUMEN EJECUTIVO ████████████ -->
+<section id="ejecutivo">
+  <div class="main-content">
+    <div class="section-header">
+      <div class="section-eyebrow">Sección 0</div>
+      <h2 class="section-title">Resumen <em>Ejecutivo</em></h2>
+      <p class="section-lead">Este documento presenta un análisis de alta profundidad de dos proyectos de generación de energía renovable en Colombia: el Proyecto Levante (eólico, La Guajira) promovido por EDP Renováveis con asesoría financiera de BTG Pactual, y la PCH Hidronare (mini-hidráulica, Antioquia) de Grupo Nare S.A.S. E.S.P. Ambos se encuentran en estado Ready-to-Build (RTB) o muy próximos a él, con perspectivas de operación comercial en el horizonte 2026–2027.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="card card-accent-green">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <span style="font-size:28px;">💨</span>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Proyecto 1</div>
+            <div style="font-weight:700;font-size:18px;color:var(--blue-deep);">Proyecto Levante</div>
+            <div style="font-size:12px;color:var(--muted);">Alpha + Beta · La Guajira · Eólico · 504 MW</div>
+          </div>
+        </div>
+        <p style="font-size:14px;color:var(--slate);line-height:1.7;margin-bottom:16px;">Transacción de venta estructurada por BTG Pactual en nombre de EDP Renováveis. Dos parques eólicos de clase mundial en La Guajira, la región de mayor potencial eólico del subcontinente americano. Activos casi listos para construcción con turbinas Vestas V162 ya adquiridas y almacenadas en Puerto Brisa. COD previsto en 1T 2027.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span class="tag tag-green">504 MW instalados</span>
+          <span class="tag tag-green">23 offtakers PPA</span>
+          <span class="tag tag-green">Cargo por confiabilidad</span>
+          <span class="tag tag-gold">RTB fin 2024</span>
+        </div>
+      </div>
+      <div class="card card-accent-blue">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <span style="font-size:28px;">💧</span>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Proyecto 2</div>
+            <div style="font-weight:700;font-size:18px;color:var(--blue-deep);">PCH Hidronare</div>
+            <div style="font-size:12px;color:var(--muted);">Grupo Nare · Antioquia · Mini-hidráulica · 19,9 MW</div>
+          </div>
+        </div>
+        <p style="font-size:14px;color:var(--slate);line-height:1.7;margin-bottom:16px;">Pequeña Central Hidroeléctrica a filo de agua sobre el Río Nare, en el municipio de San Carlos (Antioquia). Genera 132,4 GWh/año con un factor de planta del 73,5%. Cuenta con licencia ambiental, concesión de aguas y contrato de conexión con EPM. Dispone de más de COP 20.000 millones en activos invertidos.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span class="tag tag-blue">19,9 MW</span>
+          <span class="tag tag-blue">132 GWh/año</span>
+          <span class="tag tag-blue">Factor planta 73,5%</span>
+          <span class="tag tag-gold">RTB actual</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-box gold mt-32">
+      <div class="hb-title">⚡ Tesis de inversión principal</div>
+      <p style="font-size:15px;color:var(--slate);line-height:1.7;">Colombia enfrenta una brecha estructural entre oferta y demanda energética creciente, agravada por el retraso en la entrada en operación de múltiples proyectos FNCER. Los activos que estén listos para operar antes de 2027–2028 podrán capturar precios spot elevados además de sus compromisos contractuales. Ambos proyectos tienen ventajas diferenciales en términos de permisos, avance de ingeniería y contratos comerciales que los sitúan por delante de la competencia.</p>
+    </div>
+
+    <div class="stat-row mt-32">
+      <div class="stat-box green"><div class="stat-value">1T27</div><div class="stat-label">COD previsto Alpha y Beta</div></div>
+      <div class="stat-box"><div class="stat-value">~18 GW</div><div class="stat-label">Potencial eólico de La Guajira</div></div>
+      <div class="stat-box blue"><div class="stat-value">30 m</div><div class="stat-label">Tiempo de ejecución PCH Hidronare</div></div>
+      <div class="stat-box red"><div class="stat-value">50 años</div><div class="stat-label">Vigencia licencia ambiental Hidronare</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ████████████ CONTEXTO DE MERCADO ████████████ -->
+<div class="chapter-break" data-num="01" id="contexto">
+  <div class="eyebrow">Sección 1 · Marco de Referencia</div>
+  <h2>Contexto del Mercado Eléctrico <em>Colombiano</em></h2>
+  <p class="sub">Análisis del entorno regulatorio, dinámicas de oferta y demanda, e incentivos fiscales aplicables a los proyectos de generación FNCER en Colombia.</p>
+</div>
+<section>
+  <div class="main-content prose">
+
+    <h3>1.1 Estructura del Mercado Eléctrico Colombiano</h3>
+    <p>El sistema eléctrico colombiano (SIN – Sistema Interconectado Nacional) es uno de los más desarrollados de Latinoamérica, con una capacidad instalada de aproximadamente 18,7 GW a 2024. Históricamente dominado por la energía hidráulica (que representa cerca del 66% de la capacidad instalada), el sistema muestra una elevada vulnerabilidad frente a eventos climáticos como El Niño, lo que ha motivado una política decidida de diversificación hacia fuentes no convencionales de energía renovable (FNCER).</p>
+
+    <div class="info-grid">
+      <div class="info-cell"><label>Capacidad instalada SIN (aprox.)</label><value>~18,7 GW</value></div>
+      <div class="info-cell"><label>Participación hidráulica</label><value>~66% del total</value></div>
+      <div class="info-cell"><label>Ente regulador</label><value>CREG (Comisión de Regulación de Energía y Gas)</value></div>
+      <div class="info-cell"><label>Planificación expansión</label><value>UPME (Unidad de Planeación Minero-Energética)</value></div>
+      <div class="info-cell"><label>Ley Marco FNCER</label><value>Ley 1715 de 2014</value></div>
+      <div class="info-cell"><label>Subastas FNCER realizadas</label><value>4 (desde 2019)</value></div>
+    </div>
+
+    <h3>1.2 Desequilibrio Oferta-Demanda: La Gran Oportunidad</h3>
+    <p>Las proyecciones de UPME para el período 2025–2028 muestran un escenario preocupante: la demanda de energía firme crece sostenidamente mientras que los compromisos de energía firme (OEF) de proyectos FNCER adjudicados en subastas previas no se materializan en capacidad operativa a tiempo, por retrasos en licencias ambientales y en la expansión de infraestructura de transmisión.</p>
+
+    <div class="highlight-box red">
+      <div class="hb-title">⚠ Alerta de déficit estructural 2026–2028</div>
+      <p style="font-size:14px;color:var(--slate);">Las proyecciones de UPME anticipan que la suma de compromisos OEF quedará por debajo de la demanda real durante el período 2026–2027, lo que generará tensiones sobre el precio spot de energía. Los proyectos que alcancen su COD en este período estarán en posición privilegiada para capturar ingresos adicionales en el mercado spot a precios potencialmente muy superiores a sus contratos PPA base.</p>
+    </div>
+
+    <p>Este desequilibrio tiene múltiples causas estructurales:</p>
+    <ul>
+      <li>Retrasos sistemáticos en la expedición de licencias ambientales por parte de la ANLA, con plazos que en muchos casos superan los 24 meses respecto a los cronogramas originales.</li>
+      <li>Déficit de infraestructura de transmisión en La Guajira, donde numerosos proyectos eólicos esperan la finalización de líneas de alta tensión como La Colectora.</li>
+      <li>Complejidades en los procesos de consulta previa con comunidades indígenas Wayuu, que han paralizado temporalmente múltiples proyectos.</li>
+      <li>Renegociación masiva de PPAs como consecuencia de los retrasos, con suspensiones temporales de compromisos de entrega.</li>
+    </ul>
+
+    <h3>1.3 Marco Regulatorio e Incentivos Fiscales (Ley 1715/2014)</h3>
+    <p>La Ley 1715 de 2014 y sus decretos reglamentarios establecen un paquete robusto de incentivos fiscales para proyectos FNCER que entraron en operación comercial antes de mayo de 2014 y los que se desarrollen bajo su amparo:</p>
+
+    <div class="three-col">
+      <div class="card card-accent-gold">
+        <div style="text-align:center;margin-bottom:12px;font-size:32px;">📊</div>
+        <h4 style="text-align:center;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--blue-deep);text-transform:none;letter-spacing:0;margin:0 0 8px;">Deducción Renta</h4>
+        <p style="font-size:13px;text-align:center;color:var(--slate);">Deducción del <strong>50% del valor del CapEx</strong> en la declaración de renta, con un límite de 15 años desde el inicio de la operación.</p>
+      </div>
+      <div class="card card-accent-gold">
+        <div style="text-align:center;margin-bottom:12px;font-size:32px;">🏷️</div>
+        <h4 style="text-align:center;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--blue-deep);text-transform:none;letter-spacing:0;margin:0 0 8px;">Exención IVA</h4>
+        <p style="font-size:13px;text-align:center;color:var(--slate);">Exención del IVA en la <strong>adquisición de equipos, elementos y maquinaria</strong> necesarios para el desarrollo del proyecto FNCER.</p>
+      </div>
+      <div class="card card-accent-gold">
+        <div style="text-align:center;margin-bottom:12px;font-size:32px;">🚢</div>
+        <h4 style="text-align:center;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--blue-deep);text-transform:none;letter-spacing:0;margin:0 0 8px;">Exención Aranceles</h4>
+        <p style="font-size:13px;text-align:center;color:var(--slate);">Exención del arancel de importación para <strong>maquinaria, equipos e insumos</strong> destinados al proyecto FNCER.</p>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card card-accent-gold">
+        <div style="text-align:center;margin-bottom:12px;font-size:32px;">⏩</div>
+        <h4 style="text-align:center;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--blue-deep);text-transform:none;letter-spacing:0;margin:0 0 8px;">Depreciación Acelerada</h4>
+        <p style="font-size:13px;text-align:center;color:var(--slate);">Depreciación acelerada de hasta el <strong>33% del valor bruto de los activos por año</strong>, mejorando significativamente los flujos de caja en los primeros años.</p>
+      </div>
+      <div class="card card-accent-green">
+        <div style="text-align:center;margin-bottom:12px;font-size:32px;">💡</div>
+        <h4 style="text-align:center;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--blue-deep);text-transform:none;letter-spacing:0;margin:0 0 8px;">Tax Equity</h4>
+        <p style="font-size:13px;text-align:center;color:var(--slate);">Los proyectos FNCER pueden ser considerados como <strong>inversiones de capital fiscal (tax equity)</strong>, abriendo vías de estructuración financiera alternativas muy atractivas.</p>
+      </div>
+    </div>
+
+    <h3>1.4 Mecanismos de Remuneración en el Mercado Colombiano</h3>
+    <p>Los generadores en Colombia disponen de tres fuentes de ingresos principales, que se complementan entre sí:</p>
+    <ul>
+      <li><strong>Cargo por Confiabilidad (CC/OEF):</strong> Ingreso regulado garantizado por comprometerse a entregar una cantidad mínima de energía firme (Obligación de Energía Firme, OEF) en períodos de escasez. Se otorga mediante subasta de largo plazo y tiene tenor de hasta 20 años.</li>
+      <li><strong>Power Purchase Agreements (PPAs):</strong> Contratos bilaterales de largo plazo con compradores (comercializadores, grandes consumidores) que garantizan un precio fijo o indexado para la energía generada. Aportan predictibilidad y reducen el riesgo de precio.</li>
+      <li><strong>Mercado Spot (Bolsa de Energía):</strong> Energía excedente vendida al precio de bolsa hora a hora. En escenarios de escasez o déficit, los precios spot pueden ser significativamente superiores a los precios contractuales, generando un "upside" considerable.</li>
+    </ul>
+
+    <div class="highlight-box blue">
+      <div class="hb-title">📋 Obligación de minoristas de comprar al menos el 10% de energía FNCER</div>
+      <p style="font-size:14px;color:var(--slate);">UPME ha establecido que los comercializadores y distribuidores de energía eléctrica en Colombia tienen la obligación de comprar al menos el <strong>10% de su portafolio energético a generadores FNCER</strong>. Esta regulación garantiza una demanda estructural sostenida para proyectos de energía renovable no convencional, independientemente de las condiciones de mercado.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ████████████ PROYECTO LEVANTE ████████████ -->
+<div class="chapter-break" data-num="02" id="levante-overview">
+  <div class="eyebrow">Sección 2 · Proyecto Levante</div>
+  <h2>Alpha y Beta: El Mayor <em>Parque Eólico</em> de La Guajira</h2>
+  <p class="sub">EDP Renováveis desinvierte dos parques eólicos de 504 MW combinados en La Guajira (Colombia), en proceso de venta asesorado por BTG Pactual. Análisis exhaustivo del activo, estructura de la transacción y perspectivas de retorno.</p>
+</div>
+<section>
+  <div class="main-content prose">
+
+    <h3>2.1 Descripción de la Transacción</h3>
+    <p>EDP Renováveis S.A. (EDPR), la mayor empresa de energía renovable cotizada de la Península Ibérica, ha contratado a BTG Pactual como asesor financiero exclusivo para la potencial venta del Proyecto Levante, que agrupa dos proyectos de generación eólica en el departamento de La Guajira, Colombia: Vientos del Norte S.A. E.S.P. ("Alpha") y Eolos Energía S.A. E.S.P. ("Beta").</p>
+
+    <div class="card card-accent-green">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">Vendedor</div>
+          <div style="font-weight:700;color:var(--blue-deep);">EDP Renováveis S.A. (EDPR)</div>
+          <div style="font-size:13px;color:var(--slate);">Mayor renovable cotizada ibérica</div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">Asesor Financiero</div>
+          <div style="font-weight:700;color:var(--blue-deep);">BTG Pactual</div>
+          <div style="font-size:13px;color:var(--slate);">Advisor exclusivo M&A</div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">Estructura posible</div>
+          <div style="font-weight:700;color:var(--blue-deep);">Venta activos operativos O HoldCo</div>
+          <div style="font-size:13px;color:var(--slate);">Flexible según interés inversor</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="mt-24">El proceso de venta se articula en dos fases: (1) Ofertas No Vinculantes (ONV) tras la firma de un NDA y acceso al CIM y modelo financiero; (2) Due Diligence detallada para los seleccionados, que conduce a una Oferta Vinculante. En fases avanzadas, EDPR habilitará la opción de negociar sobre sus activos FNCER adicionales en Colombia (pipeline de +1,5 GW).</p>
+
+    <h3>2.2 Activos Alpha y Beta: Ficha Técnica Comparada</h3>
+    <div class="table-wrapper mt-16">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Parámetro</th>
+            <th class="wind">Alpha (Vientos del Norte)</th>
+            <th class="wind">Beta (Eolos Energía)</th>
+            <th class="neutral">Combinado A+B</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Capacidad instalada</td><td>218,4 MW</td><td>285,6 MW</td><td><strong>504,0 MW</strong></td></tr>
+          <tr><td>Factor de carga P50</td><td>56,8%</td><td>55,5%</td><td>~56% medio</td></tr>
+          <tr><td>Factor de carga P75</td><td>53,6%</td><td>52,2%</td><td>—</td></tr>
+          <tr><td>Factor de carga P84</td><td>52,0%</td><td>50,7%</td><td>—</td></tr>
+          <tr><td>Factor de carga P90</td><td>50,6%</td><td>49,3%</td><td>—</td></tr>
+          <tr><td>Fecha COD estimada</td><td>1T 2027</td><td>1T 2027</td><td>1T 2027</td></tr>
+          <tr><td>Coste de construcción (USD mm)</td><td>453,3</td><td>523,7</td><td><strong>~977 USD mm</strong></td></tr>
+          <tr><td>Coste por MW (USD mm/MW)</td><td>2,1</td><td>1,8</td><td>~1,9 promedio</td></tr>
+          <tr><td>Nivel de ejecución (% CapEx comprometido)</td><td>61%</td><td>59%</td><td>~60%</td></tr>
+          <tr><td>Nº aerogeneradores (WTGs)</td><td>~39 Vestas V162</td><td>~51 Vestas V162</td><td>90 WTGs totales</td></tr>
+          <tr><td>Potencia por WTG</td><td>5,6 MW</td><td>5,6 MW</td><td>5,6 MW</td></tr>
+          <tr><td>Altura de buje</td><td>125 m</td><td>125 m</td><td>125 m</td></tr>
+          <tr><td>Licencia ambiental</td><td>✓ Obtenida (nov 2018)</td><td>✓ Obtenida (ago 2019)</td><td>Ambas secured</td></tr>
+          <tr><td>OEF (MWh/día)</td><td>201,6</td><td>152,6</td><td>354,2 total</td></tr>
+          <tr><td>Subasta adjudicación OEF</td><td>Feb 2019</td><td>Feb 2019</td><td>—</td></tr>
+          <tr><td>Tenor cargo por confiabilidad</td><td>20 años (desde 2027)</td><td>20 años (desde 2027)</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="big-quote">
+      <p>"Alpha y Beta son los proyectos eólicos más avanzados de La Guajira. Con licencias ambientales obtenidas, turbinas Vestas almacenadas en puerto cercano y 23 contratos PPA tipo take-or-pay firmados, representan una oportunidad singular en el mercado latinoamericano de energías renovables."</p>
+      <cite>— Análisis gato.red / IHTConsulting, basado en documentación EDPR/BTG Pactual, junio 2024</cite>
+    </div>
+
+  </div>
+</section>
+
+<!-- WIND RESOURCE -->
+<section id="levante-activos">
+  <div class="main-content prose">
+
+    <h3>2.3 Recurso Eólico de La Guajira: Por Qué Es Excepcional</h3>
+    <p>La Guajira es reconocida internacionalmente como uno de los mejores emplazamientos eólicos del mundo. Su posición geográfica, en la punta nororiental de América del Sur, la expone de forma directa y persistente a los Alisios (vientos alisios del noreste), que soplan con velocidades medias superiores a 9 m/s a 100 metros de altura durante prácticamente todo el año, con muy escasa estacionalidad comparada con otros recurso eólicos globales.</p>
+
+    <div class="two-col">
+      <div class="card card-accent-green">
+        <div class="hb-title" style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--green);margin-bottom:12px;">Características del viento</div>
+        <ul class="checklist">
+          <li><span class="check-icon check-ok">✓</span><div><strong>Velocidad media &gt;9 m/s</strong> a 100 m de altura en la subzona de Alpha y Beta.</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Alisios del NE: <strong>viento persistente y estable</strong>, con muy baja variabilidad estacional.</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Potencial eólico bruto del departamento de La Guajira: <strong>+18 GW</strong> según UPME.</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Factor de carga P50 superior al <strong>56%</strong>, muy por encima de la media global (~35%).</div></li>
+        </ul>
+      </div>
+      <div class="card card-accent-gold">
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#8a6820;margin-bottom:12px;">Comparativa factores de carga</div>
+        <div class="progress-item">
+          <div class="progress-header"><span class="progress-label">Alpha (P50)</span><span class="progress-value">56,8%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:56.8%"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header"><span class="progress-label">Beta (P50)</span><span class="progress-value">55,5%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:55.5%"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header"><span class="progress-label">Media eólica global</span><span class="progress-value">~33%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill gold-bar" style="width:33%"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header"><span class="progress-label">Media eólica offshore EU</span><span class="progress-value">~42%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill blue-bar" style="width:42%"></div></div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">Alpha y Beta superan en ~20 pp la media eólica global.</p>
+      </div>
+    </div>
+
+    <h3>2.4 Aerogeneradores Vestas V162: Estado y Especificaciones</h3>
+    <p>EDPR adquirió en diciembre de 2020 los 90 aerogeneradores necesarios para los parques Alpha y Beta a Vestas, el fabricante danés líder mundial en tecnología eólica. Los WTGs fueron transportados durante 2021 hacia Colombia y actualmente se encuentran almacenados en Puerto Brisa (La Guajira), un puerto estratégicamente ubicado en las proximidades de ambos emplazamientos.</p>
+
+    <div class="info-grid">
+      <div class="info-cell"><label>Modelo</label><value>Vestas V162</value></div>
+      <div class="info-cell"><label>Potencia por unidad</label><value>5,6 MW</value></div>
+      <div class="info-cell"><label>Altura de buje</label><value>125 metros</value></div>
+      <div class="info-cell"><label>Diámetro de rotor</label><value>162 metros</value></div>
+      <div class="info-cell"><label>Número de unidades</label><value>90 WTGs en total</value></div>
+      <div class="info-cell"><label>Ubicación actual</label><value>Puerto Brisa, La Guajira</value></div>
+      <div class="info-cell"><label>Estado</label><value>Almacenados (permisos de transporte en proceso de activación)</value></div>
+      <div class="info-cell"><label>Contrato O&M</label><value>Vestas (15 años desde COD)</value></div>
+    </div>
+
+    <div class="highlight-box gold">
+      <div class="hb-title">⚠ Nota sobre permisos de transporte</div>
+      <p style="font-size:14px;color:var(--slate);">Los permisos de transporte terrestre desde Puerto Brisa hasta los emplazamientos de Alpha y Beta fueron obtenidos previamente pero han expirado. EDPR está en proceso de renovación/activación. Esta circunstancia no supone un riesgo crítico dado que la obtención de estos permisos es un trámite ordinario, pero debe incluirse en el cronograma detallado de construcción. Se prevé disponibilidad de WTGs lista para cuando se inicie la fase de cimentación.</p>
+    </div>
+
+    <h3>2.5 Infraestructura de Conexión: Línea Beta-Alpha-Cuestecitas (BAC)</h3>
+    <p>El acceso al Sistema de Transmisión Nacional (STN) es uno de los elementos críticos de cualquier proyecto de generación. Alpha y Beta tienen asegurado un punto de conexión en la subestación de Cuestecitas (500 kV) mediante un acuerdo firmado con ISA-Intercolombia, el mayor operador de transmisión de Colombia.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot done"></div>
+        <div class="timeline-date">2022</div>
+        <div class="timeline-title">UPME aprueba el proyecto de conexión BAC</div>
+        <div class="timeline-body">La UPME aprueba la conexión de Alpha y Beta a Cuestecitas, condicionada a la finalización del tramo Cuestecitas-Copey (Proyecto 2). El acuerdo de conexión se firmó con ISA-Intercolombia.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot done"></div>
+        <div class="timeline-date">Nov 2022</div>
+        <div class="timeline-title">ANLA deniega licencia ambiental de BAC (pendiente de análisis)</div>
+        <div class="timeline-body">La ANLA identificó análisis pendientes y no emitió la licencia ambiental para la línea de conexión Beta-Alpha-Cuestecitas, retrasando el inicio de obras.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot pending"></div>
+        <div class="timeline-date">2T 2024</div>
+        <div class="timeline-title">EDPR solicita de nuevo la licencia ambiental de BAC</div>
+        <div class="timeline-body">Con las observaciones de la ANLA subsanadas, EDPR relanza la solicitud de licencia ambiental de BAC. Se espera obtención en diciembre de 2024.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot future"></div>
+        <div class="timeline-date">4T 2024 – 1T 2025</div>
+        <div class="timeline-title">Obtención licencia ambiental BAC + inicio de construcción</div>
+        <div class="timeline-body">Una vez obtenida la licencia, ISA-Intercolombia inicia la construcción del tramo Alpha-Cuestecitas e EDEMCO del tramo Beta-Alpha. El plazo de construcción del BAC es de aproximadamente 18-24 meses.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot future"></div>
+        <div class="timeline-date">1T 2027</div>
+        <div class="timeline-title">COD Alpha y Beta (Operación Comercial)</div>
+        <div class="timeline-body">Entrada en operación comercial de ambos parques con acceso al STN a través de Cuestecitas. Inicio del devengo del cargo por confiabilidad (20 años).</div>
+      </div>
+    </div>
+
+    <div class="highlight-box blue">
+      <div class="hb-title">🔌 Conexión sin dependencia de La Colectora</div>
+      <p style="font-size:14px;color:var(--slate);">Un factor diferencial crítico: EDPR ha identificado que Alpha y Beta pueden conectarse al STN sin necesidad de la línea La Colectora (que presenta retrasos prolongados). La solución pasa por usar la infraestructura existente más la expansión de la línea Cuestecitas-Copey, ya en construcción. Esta independencia elimina uno de los mayores riesgos del sector eólico en La Guajira y acelera el cronograma de COD.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- PPAs AND REVENUE -->
+<section id="levante-contrato">
+  <div class="main-content prose">
+
+    <h3>2.6 Estructura de Ingresos: PPAs, Cargo por Confiabilidad y Mercado Spot</h3>
+
+    <div class="stat-row">
+      <div class="stat-box green">
+        <div class="stat-value">69% <span class="stat-unit">~</span></div>
+        <div class="stat-label">% generación P50 vendida bajo PPA (Alpha y Beta)</div>
+        <div class="stat-note">FUENTE PRINCIPAL</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">~5%</div>
+        <div class="stat-label">% generación bajo cargo por confiabilidad (OEF)</div>
+        <div class="stat-note">GARANTIZADO</div>
+      </div>
+      <div class="stat-box blue">
+        <div class="stat-value">~26%</div>
+        <div class="stat-label">% generación disponible para mercado spot (upside)</div>
+        <div class="stat-note">POTENCIAL ALTO</div>
+      </div>
+    </div>
+
+    <h4>Cargo por Confiabilidad (OEF)</h4>
+    <p>En la subasta de cargo por confiabilidad de febrero de 2019, Alpha fue adjudicada con una OEF de <strong>201,6 MWh/día</strong> y Beta con <strong>152,6 MWh/día</strong>, representando en conjunto <strong>354,2 MWh/día</strong> de energía firme comprometida. El tenor del cargo por confiabilidad es de <strong>20 años desde 2027</strong>. Ambos proyectos tienen capacidad adicional (ENFICC &gt; OEF) para participar en subastas futuras e incrementar sus compromisos de energía firme, lo que supone un upside regulado no trivial.</p>
+
+    <h4>Power Purchase Agreements (PPAs)</h4>
+    <p>Tanto Alpha como Beta tienen adjudicados PPAs mediante subasta celebrada en octubre de 2019. Los contratos son de tipo <strong>take-or-pay</strong>, lo que implica que el offtaker está obligado a pagar por la energía comprometida aunque no la consuma. Los compromisos de entrega de energía son de <strong>2.040 MWh/día para Alpha</strong> y <strong>2.628 MWh/día para Beta</strong> (aproximadamente el 3% de la capacidad instalada, lo que resulta muy conservador y fácilmente alcanzable).</p>
+
+    <div class="highlight-box">
+      <div class="hb-title">📋 Renegociación de PPAs (marzo 2024)</div>
+      <p style="font-size:14px;color:var(--slate);">Tras la Resolución del Ministerio de Minas y Energía de febrero de 2024 que permite modificaciones en contratos PPA, EDPR ha renegociado aproximadamente el <strong>70% de sus PPAs</strong> (suspensión temporal de compromisos hasta junio de 2027). Esto reduce significativamente las penalizaciones por incumplimiento durante el período pre-COD y alinea los compromisos de entrega con el arranque real de los parques. El 30% restante está en proceso de negociación.</p>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Parámetro PPA</th>
+            <th class="wind">Alpha</th>
+            <th class="wind">Beta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Tipo de contrato</td><td>Take-or-Pay</td><td>Take-or-Pay</td></tr>
+          <tr><td>Compromiso energético (MWh/día)</td><td>2.040</td><td>2.628</td></tr>
+          <tr><td>% de capacidad P50 comprometida bajo PPA</td><td>~68,5%</td><td>~69,1%</td></tr>
+          <tr><td>Nº de offtakers</td><td>Parte de los 23 combinados</td><td>Parte de los 23 combinados</td></tr>
+          <tr><td>Plazo medio remanente (desde jun 2027)</td><td>~11,6 años</td><td>~11,6 años</td></tr>
+          <tr><td>Inicio obligaciones de entrega</td><td>Jun 2027 (renegociado)</td><td>Jun 2027 (renegociado)</td></tr>
+          <tr><td>Perfil offtakers</td><td colspan="2">Grandes consumidores y distribuidoras: Enel, Ecopetrol, Gecelca, EPM, Celsia, ESSA, EMCALI, Vatia, etc.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2.7 Proveedores y Estructura de Suministro</h3>
+    <div class="supplier-grid">
+      <div class="supplier-card">
+        <div class="supplier-icon">🌬️</div>
+        <div class="supplier-name">Vestas</div>
+        <div class="supplier-role">WTGs y O&M (15 años)</div>
+      </div>
+      <div class="supplier-card">
+        <div class="supplier-icon">🔌</div>
+        <div class="supplier-name">ISA-ITCO</div>
+        <div class="supplier-role">Construcción línea Alpha-Cuestecitas</div>
+      </div>
+      <div class="supplier-card">
+        <div class="supplier-icon">🏗️</div>
+        <div class="supplier-name">EDEMCO</div>
+        <div class="supplier-role">Construcción línea Beta-Alpha</div>
+      </div>
+      <div class="supplier-card">
+        <div class="supplier-icon">⚡</div>
+        <div class="supplier-name">Siemens</div>
+        <div class="supplier-role">Subestación eléctrica Beta</div>
+      </div>
+      <div class="supplier-card">
+        <div class="supplier-icon">🏭</div>
+        <div class="supplier-name">Conciviles</div>
+        <div class="supplier-role">EPC constructor Beta</div>
+      </div>
+      <div class="supplier-card">
+        <div class="supplier-icon">🚢</div>
+        <div class="supplier-name">Puerto Brisa</div>
+        <div class="supplier-role">Almacenamiento WTGs</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXECUTION STATE -->
+<section id="levante-ejecucion">
+  <div class="main-content prose">
+
+    <h3>2.8 Estado de Ejecución y Próximos Hitos</h3>
+
+    <div class="two-col">
+      <div>
+        <h4>Completado (Alpha)</h4>
+        <ul class="checklist">
+          <li><span class="check-icon check-ok">✓</span><div>Licencia ambiental obtenida (nov 2018)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Cargo por confiabilidad adjudicado (feb 2019)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>PPAs firmados (dic 2019)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>WTGs adquiridos a Vestas (dic 2020)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>WTGs transportados a Puerto Brisa (sep 2021)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Consultas previas comunidades ejecutadas</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Estudios de factibilidad y prediseño</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Contrato de conexión con ISA-Intercolombia</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>PPAs renegociados al 70% (marzo 2024)</div></li>
+          <li><span class="check-icon check-pending">⏳</span><div>Proceso de selección de constructor Alpha en curso (fin 3T 2024)</div></li>
+          <li><span class="check-icon check-pending">⏳</span><div>Licencia ambiental línea BAC (prevista dic 2024)</div></li>
+          <li><span class="check-icon check-pending">⏳</span><div>Servidumbres y permisos de uso de suelo línea BAC</div></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Completado (Beta)</h4>
+        <ul class="checklist">
+          <li><span class="check-icon check-ok">✓</span><div>Licencia ambiental obtenida (ago 2019)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Cargo por confiabilidad adjudicado (feb 2019)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>PPAs firmados (dic 2019)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>WTGs adquiridos y transportados</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Consultas previas comunidades ejecutadas</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Subestación eléctrica construida (Siemens)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Constructor seleccionado (Conciviles, EPC llave en mano)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Vía de acceso construida</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Equipamiento subestación adquirido y almacenado</div></li>
+          <li><span class="check-icon check-pending">⏳</span><div>Licencia ambiental línea BAC (pendiente)</div></li>
+          <li><span class="check-icon check-pending">⏳</span><div>Renegociación PPA restante 30%</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <div class="hb-title">🏗️ Beta está significativamente más avanzada que Alpha en preparación constructiva</div>
+      <p style="font-size:14px;color:var(--slate);">Beta dispone de subestación construida, constructor EPC seleccionado (Conciviles bajo contrato llave en mano), vías de acceso habilitadas y diseños de equipo de Alpha adquiridos. Alpha requiere todavía la selección del constructor (esperada para fin del 3T2024). Esta asimetría en el avance no debería retrasar el COD conjunto, pues el cuello de botella real es la licencia ambiental de la línea BAC.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- FINANCIAL ANALYSIS LEVANTE -->
+<section id="levante-financiero">
+  <div class="main-content prose">
+
+    <h3>2.9 Análisis Financiero Proyecto Levante</h3>
+
+    <div class="stat-row">
+      <div class="stat-box green">
+        <div class="stat-value">~977<span class="stat-unit"> M USD</span></div>
+        <div class="stat-label">CapEx total de construcción estimado (Alpha + Beta)</div>
+        <div class="stat-note">~60% ya comprometido</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">~1,9<span class="stat-unit"> M$/MW</span></div>
+        <div class="stat-label">Coste de construcción por MW instalado</div>
+        <div class="stat-note">Competitivo a nivel global</div>
+      </div>
+      <div class="stat-box blue">
+        <div class="stat-value">504<span class="stat-unit"> MW</span></div>
+        <div class="stat-label">Capacidad instalada total (Alpha + Beta combinados)</div>
+        <div class="stat-note">Proyecto FNCER de referencia</div>
+      </div>
+    </div>
+
+    <h4>Estructura de costes de construcción desglosada</h4>
+    <div class="table-wrapper">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Componente de CapEx</th>
+            <th class="wind">Alpha (USD mm)</th>
+            <th class="wind">Beta (USD mm)</th>
+            <th>Total estimado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Aerogeneradores Vestas V162 (90 unidades) + flete</td><td>~230</td><td>~280</td><td>~510</td></tr>
+          <tr><td>Obra civil (cimentaciones, plataformas, viales)</td><td>~90</td><td>~110</td><td>~200</td></tr>
+          <tr><td>Subestación eléctrica</td><td>~35 (diseños + equipos comprados)</td><td>~20 (ya construida)</td><td>~55</td></tr>
+          <tr><td>Línea de conexión BAC (parte proporcional)</td><td>~50</td><td>~60</td><td>~110</td></tr>
+          <tr><td>Electromecánica (cableado, transformadores BT/MT)</td><td>~30</td><td>~30</td><td>~60</td></tr>
+          <tr><td>Otros (ingeniería, contingencias, soft costs)</td><td>~18</td><td>~24</td><td>~42</td></tr>
+          <tr><td><strong>TOTAL</strong></td><td><strong>453,3</strong></td><td><strong>523,7</strong></td><td><strong>~977</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Modelización de ingresos (estimación de referencia)</h4>
+    <p>A efectos indicativos, con los datos disponibles del teaser de BTG Pactual, se puede realizar la siguiente estimación de ingresos anuales en régimen de explotación estable (post-COD 2027):</p>
+
+    <div class="card card-accent-green mt-16">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+        <div>
+          <div style="font-size:12px;font-family:'DM Mono',monospace;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Generación estimada a P50</div>
+          <ul class="checklist">
+            <li><span class="check-icon check-ok">α</span><div>Alpha: 218,4 MW × 56,8% × 8.760 h = <strong>~1.085 GWh/año</strong></div></li>
+            <li><span class="check-icon check-ok">β</span><div>Beta: 285,6 MW × 55,5% × 8.760 h = <strong>~1.387 GWh/año</strong></div></li>
+            <li><span class="check-icon check-ok">∑</span><div>Total combinado A+B: <strong>~2.472 GWh/año</strong></div></li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-family:'DM Mono',monospace;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Ingresos brutos estimados (precio PPA referencia ~60 USD/MWh)</div>
+          <ul class="checklist">
+            <li><span class="check-icon check-ok">PPA</span><div>~69% generación × 2.472 GWh × ~60 USD/MWh = <strong>~102 M USD/año</strong></div></li>
+            <li><span class="check-icon check-ok">CC</span><div>OEF: 354 MWh/día × 365 × precio CC = <strong>estimación adicional relevante</strong></div></li>
+            <li><span class="check-icon check-ok">SPOT</span><div>~26% generación a precio spot (upside escenario escasez) = <strong>potencial adicional significativo</strong></div></li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box blue" style="margin:16px 0 0;">
+        <p style="font-size:13px;color:var(--slate);"><strong>Nota metodológica:</strong> Las estimaciones anteriores son de carácter orientativo, basadas en los datos técnicos del teaser público de BTG Pactual. El modelo financiero detallado con proyecciones completas de ingresos, costes, deuda y retorno estará disponible para los interesados que firmen el NDA. IHTConsulting recomienda solicitar el CIM y el modelo financiero antes de formular una Oferta No Vinculante.</p>
+      </div>
+    </div>
+
+    <h4>Aspectos fiscales aplicables</h4>
+    <p>El Proyecto Levante se beneficia plenamente del régimen de la Ley 1715/2014, incluyendo: (1) Deducción del 50% del CapEx en renta durante 15 años; (2) Exención IVA equipos y materiales; (3) Exención aranceles importación (relevante para los WTGs Vestas, componentes importados); (4) Depreciación acelerada hasta 33% bruto anual; (5) Potencial estructura de tax equity que puede reducir significativamente la TIR mínima requerida por el inversor final.</p>
+
+  </div>
+</section>
+
+<!-- RISKS LEVANTE -->
+<section id="levante-riesgos">
+  <div class="main-content prose">
+
+    <h3>2.10 Matriz de Riesgos — Proyecto Levante</h3>
+
+    <div class="table-wrapper">
+      <table class="risk-table">
+        <thead>
+          <tr>
+            <th>Riesgo</th>
+            <th>Descripción</th>
+            <th>Nivel</th>
+            <th>Mitigantes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Licencia ambiental BAC</strong></td>
+            <td>Posible nuevo retraso de la ANLA en emitir la licencia para la línea de conexión Beta-Alpha-Cuestecitas</td>
+            <td><span class="risk-level risk-high">ALTO</span></td>
+            <td>Segunda solicitud reforzada; EDPR contrató expertos independientes para validar el trazado alternativo sin depender de Rio Cordoba-Bonda</td>
+          </tr>
+          <tr>
+            <td><strong>Comunidades indígenas Wayuu</strong></td>
+            <td>Riesgo de bloqueos o huelgas durante la fase de construcción y transporte de WTGs por comunidades</td>
+            <td><span class="risk-level risk-high">ALTO</span></td>
+            <td>Consultas previas finalizadas (87/97 comunidades para línea de transmisión); acuerdo EDPR con Fuerzas Militares para custodia de desplazamientos; estrategia de reducción de interacciones con comunidades externas al área de influencia</td>
+          </tr>
+          <tr>
+            <td><strong>Sobrecostes de construcción</strong></td>
+            <td>Inflación de costes de materiales y mano de obra que supere el presupuesto aprobado</td>
+            <td><span class="risk-level risk-med">MEDIO</span></td>
+            <td>Beta tiene contrato EPC a precio alzado (llave en mano). Alpha en proceso de licitación similar. ~60% del CapEx ya comprometido a precios fijos</td>
+          </tr>
+          <tr>
+            <td><strong>Permisos de transporte WTGs</strong></td>
+            <td>Los permisos de transporte terrestre de WTGs desde Puerto Brisa han expirado</td>
+            <td><span class="risk-level risk-med">MEDIO</span></td>
+            <td>Trámite ordinario en proceso de renovación. Sin impacto en COD si se gestiona antes de inicio de montaje (1T 2025 aprox.)</td>
+          </tr>
+          <tr>
+            <td><strong>Precio de energía spot</strong></td>
+            <td>Escenario de precios spot bajos que elimine el upside proyectado sobre el ~26% de energía libre</td>
+            <td><span class="risk-level risk-low">BAJO</span></td>
+            <td>Proyecciones UPME apuntan a déficit de oferta 2026-2028; el ~69% de la generación está cubierta por PPAs take-or-pay; cargo por confiabilidad garantizado</td>
+          </tr>
+          <tr>
+            <td><strong>Renegociación PPAs restantes</strong></td>
+            <td>El 30% de PPAs aún no renegociados podría generar penalizaciones pre-COD</td>
+            <td><span class="risk-level risk-med">MEDIO</span></td>
+            <td>Resolución MME feb 2024 facilita renegociaciones; proceso activo con offtakers pendientes</td>
+          </tr>
+          <tr>
+            <td><strong>Recurso eólico</strong></td>
+            <td>Generación real inferior al P50 por variabilidad interanual de viento</td>
+            <td><span class="risk-level risk-low">BAJO</span></td>
+            <td>Vientos alisios muy estables en La Guajira; La Guajira tiene el mejor perfil eólico de Colombia; P75 de Alpha sigue siendo muy elevado (53,6%)</td>
+          </tr>
+          <tr>
+            <td><strong>Regulación y marco normativo</strong></td>
+            <td>Cambios en la regulación de cargos por confiabilidad o PPAs que afecten ingresos</td>
+            <td><span class="risk-level risk-low">BAJO</span></td>
+            <td>Compromisos ya adjudicados son derechos contractuales firmes; CREG es ente técnico e independiente; contratos bilaterales son ley para las partes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box red">
+      <div class="hb-title">⚠ Riesgo principal: el cuello de botella comunitario en La Guajira</div>
+      <p style="font-size:14px;color:var(--slate);">La gestión de la relación con las comunidades indígenas Wayuu es el riesgo más difícil de cuantificar y el que ha paralizado a más proyectos en La Guajira. EDPR ha invertido significativamente en la gestión de esta relación y dispone de acuerdos con autoridades gubernamentales y militares. Sin embargo, cualquier inversión en este activo debe incluir un análisis propio y actualizado de la situación con cada comunidad del área de influencia.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ████████████ PCH HIDRONARE ████████████ -->
+<div class="chapter-break" data-num="03" id="hidronare-overview">
+  <div class="eyebrow">Sección 3 · PCH Hidronare</div>
+  <h2>Pequeña Central Hidroeléctrica <em>Hidronare</em></h2>
+  <p class="sub">Proyecto de generación hidroeléctrica a filo de agua sobre el Río Nare (Antioquia), promovido por Grupo Nare S.A.S. E.S.P. Análisis técnico, financiero y de riesgos de una oportunidad de inversión en mini-hidráulica con todos los permisos en vigor.</p>
+</div>
+<section>
+  <div class="main-content prose">
+
+    <h3>3.1 Descripción General del Proyecto</h3>
+    <p>La PCH Hidronare es un proyecto de generación hidroeléctrica a filo de agua (run-of-river) ubicado sobre el <strong>Río Nare</strong>, en el municipio de San Carlos, corregimiento El Jordán, vereda Portugal, al nordeste del departamento de Antioquia, a aproximadamente 150 km de Medellín. El proyecto es promovido por <strong>Grupo Nare S.A.S. E.S.P.</strong>, una sociedad de inversores colombianos y españoles constituida en 2015 con Pablo Upegui Jiménez como representante legal.</p>
+
+    <div class="info-grid">
+      <div class="info-cell"><label>Tipo de proyecto</label><value>Generación Hidroeléctrica a filo de agua (run-of-river)</value></div>
+      <div class="info-cell"><label>Fuente hídrica</label><value>Río Nare (cuenca modificada por Central de Jaguas)</value></div>
+      <div class="info-cell"><label>Ubicación</label><value>San Carlos, Antioquia (150 km de Medellín)</value></div>
+      <div class="info-cell"><label>Potencia instalada de la central</label><value>19,9 MW (efectiva: 20,57 MW bruto)</value></div>
+      <div class="info-cell"><label>Caudal de diseño</label><value>18 m³/s</value></div>
+      <div class="info-cell"><label>Salto neto</label><value>129,31 metros</value></div>
+      <div class="info-cell"><label>Longitud de conducción</label><value>2.400 metros</value></div>
+      <div class="info-cell"><label>Tipo de turbinas</label><value>2 × Francis (eje horizontal), 10,52 MW c/u</value></div>
+      <div class="info-cell"><label>Generación media anual</label><value>132,43 GWh/año</value></div>
+      <div class="info-cell"><label>Factor de planta</label><value>73,5%</value></div>
+      <div class="info-cell"><label>Conexión al sistema</label><value>16 km a subestación Playas (EPM)</value></div>
+      <div class="info-cell"><label>Tiempo de ejecución</label><value>30 meses desde inicio de obras</value></div>
+    </div>
+
+    <div class="big-quote">
+      <p>"Con un factor de planta del 73,5% y una generación anual estimada de 132,4 GWh, la PCH Hidronare presenta uno de los mejores perfiles de productividad por MW instalado entre las pequeñas centrales hidroeléctricas colombianas, superior incluso a muchas grandes hidráulicas de embalse."</p>
+      <cite>— Análisis técnico gato.red / IHTConsulting</cite>
+    </div>
+
+    <h3>3.2 ¿Por qué a Filo de Agua? Ventajas del Diseño</h3>
+    <p>El concepto de "filo de agua" (run-of-river) es fundamental para entender el perfil de riesgo de este proyecto. La central <strong>NO requiere embalse ni represa</strong>: únicamente se construye un azud de pequeña altura (6 metros de paramento) para garantizar el nivel de agua necesario para la captación lateral. El caudal turbinado se devuelve íntegramente al río Nare aguas abajo de la casa de máquinas.</p>
+
+    <div class="two-col">
+      <div class="card card-accent-green">
+        <div style="font-weight:700;font-size:15px;color:var(--green);margin-bottom:12px;">✅ Ventajas del diseño filo de agua</div>
+        <ul class="checklist">
+          <li><span class="check-icon check-ok">✓</span><div>No requiere reasentamiento de poblaciones</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Impacto ambiental mínimo (bajo afectación ecosistemas)</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Licencia ambiental más sencilla de obtener y mantener</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>No hay riesgo de rotura de presa</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Operación más simple y menor coste de O&M</div></li>
+          <li><span class="check-icon check-ok">✓</span><div>Caudal ecológico integrado en el diseño (2,21 m³/s)</div></li>
+        </ul>
+      </div>
+      <div class="card card-accent-red">
+        <div style="font-weight:700;font-size:15px;color:var(--accent-red);margin-bottom:12px;">⚠ Limitaciones inherentes</div>
+        <ul class="checklist">
+          <li><span class="check-icon check-no">✗</span><div>Generación dependiente del caudal natural del río (variabilidad estacional)</div></li>
+          <li><span class="check-icon check-no">✗</span><div>Sin capacidad de regulación: no puede almacenar agua para despacho flexible</div></li>
+          <li><span class="check-icon check-no">✗</span><div>Mayor sensibilidad a fenómenos climáticos extremos (sequías severas)</div></li>
+          <li><span class="check-icon check-no">✗</span><div>Cuenca modificada por Central de Jaguas complica cálculo hidrológico</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>3.3 Análisis Hidrológico: La Cuenca Modificada del Río Nare</h3>
+    <p>La cuenca del Río Nare en el punto de captación de Hidronare no se encuentra en estado natural: la construcción de la Central Hidroeléctrica de <strong>Jaguas</strong> (con embalse) divide la cuenca en dos partes. Los caudales turbinados por Jaguas no se reintegran al Nare sino que se trasvasan a la Central de Playas (EPM), lo que reduce el caudal disponible aguas abajo.</p>
+    <p>Para el diseño hidrológico de Hidronare se utilizó por tanto una <strong>cuenca modificada</strong>, que comprende únicamente el área entre el sitio de captación del proyecto y el vertedero de Jaguas (donde la cuenca se cierra artificialmente). Los cálculos de caudales medios y mínimos se realizaron sobre esta cuenca reducida, mediante la metodología de Balance Hídrico de Largo Plazo y Transposición de Caudales por Área y Precipitación Efectiva (metodología Chow, Maidment & Mays, 1994).</p>
+
+    <div class="card mt-16">
+      <div style="font-weight:700;color:var(--blue-deep);margin-bottom:16px;">Caudales medios mensuales multianuales — Río Nare (m³/s)</div>
+      <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;height:140px;">
+        <!-- Mini bar chart inline -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--blue-mid);border-radius:3px 3px 0 0;height:46%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">12,1</div>
+          <div style="font-size:9px;color:var(--slate);">Ene</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--blue-mid);border-radius:3px 3px 0 0;height:43%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">11,2</div>
+          <div style="font-size:9px;color:var(--slate);">Feb</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--blue-mid);border-radius:3px 3px 0 0;height:56%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">14,6</div>
+          <div style="font-size:9px;color:var(--slate);">Mar</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--blue-mid);border-radius:3px 3px 0 0;height:68%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">17,8</div>
+          <div style="font-size:9px;color:var(--slate);">Abr</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--green);border-radius:3px 3px 0 0;height:93%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">24,3</div>
+          <div style="font-size:9px;color:var(--slate);">May</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--green);border-radius:3px 3px 0 0;height:91%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">23,8</div>
+          <div style="font-size:9px;color:var(--slate);">Jun</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--blue-mid);border-radius:3px 3px 0 0;height:78%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">20,3</div>
+          <div style="font-size:9px;color:var(--slate);">Jul</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--blue-mid);border-radius:3px 3px 0 0;height:78%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">20,4</div>
+          <div style="font-size:9px;color:var(--slate);">Ago</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--green);border-radius:3px 3px 0 0;height:93%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">24,2</div>
+          <div style="font-size:9px;color:var(--slate);">Sep</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--green);border-radius:3px 3px 0 0;height:94%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">24,5</div>
+          <div style="font-size:9px;color:var(--slate);">Oct</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--green);border-radius:3px 3px 0 0;height:100%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">26,0</div>
+          <div style="font-size:9px;color:var(--slate);">Nov</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+            <div style="width:100%;background:var(--blue-mid);border-radius:3px 3px 0 0;height:73%"></div>
+          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">19,0</div>
+          <div style="font-size:9px;color:var(--slate);">Dic</div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:12px;">El caudal de diseño es 18 m³/s. Los meses de sequía (ene-feb) tienen caudales ligeramente por encima del caudal de diseño, garantizando operación casi al 100% de capacidad incluso en estiaje. La cuenca modificada Hidronare no incluye los aportes trasvasados a Playas.</p>
+    </div>
+
+    <h3>3.4 Generación Mensual y Producción Anual</h3>
+    <p>La producción estimada de Hidronare es de <strong>132,43 GWh/año</strong>, con una distribución mensual que muestra los efectos de la estacionalidad de las lluvias en Antioquia: alta producción en los meses lluviosos (mayo-junio, septiembre-noviembre) y algo inferior en los meses secos (julio-agosto), aunque siempre dentro de rangos operativos al estar el caudal de diseño (18 m³/s) bien dimensionado respecto al caudal medio mínimo.</p>
+
+    <div class="table-wrapper">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Mes</th>
+            <th>Caudal medio (m³/s)</th>
+            <th>Generación estimada (GWh)</th>
+            <th>% del total anual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Enero</td><td>12,1</td><td>11,9</td><td>9,0%</td></tr>
+          <tr><td>Febrero</td><td>11,2</td><td>10,5</td><td>7,9%</td></tr>
+          <tr><td>Marzo</td><td>14,6</td><td>13,2</td><td>10,0%</td></tr>
+          <tr><td>Abril</td><td>17,8</td><td>13,2</td><td>10,0%</td></tr>
+          <tr><td>Mayo</td><td>24,3</td><td>14,5</td><td>11,0%</td></tr>
+          <tr><td>Junio</td><td>23,8</td><td>11,2</td><td>8,5%</td></tr>
+          <tr><td>Julio</td><td>20,3</td><td>6,4</td><td>4,8%</td></tr>
+          <tr><td>Agosto</td><td>20,4</td><td>7,5</td><td>5,7%</td></tr>
+          <tr><td>Septiembre</td><td>24,2</td><td>8,0</td><td>6,0%</td></tr>
+          <tr><td>Octubre</td><td>24,5</td><td>10,3</td><td>7,8%</td></tr>
+          <tr><td>Noviembre</td><td>26,0</td><td>12,4</td><td>9,4%</td></tr>
+          <tr><td>Diciembre</td><td>19,0</td><td>13,3</td><td>10,1%</td></tr>
+          <tr><td><strong>TOTAL ANUAL</strong></td><td><strong>~18,2 media</strong></td><td><strong>132,4 GWh</strong></td><td><strong>100%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box blue">
+      <div class="hb-title">📊 Cálculo de ingresos operacionales</div>
+      <p style="font-size:14px;color:var(--slate);">Los ingresos se calculan multiplicando la generación mensual por el precio pactado en el contrato PPA durante los primeros 10 años. A partir del décimo año, el precio se indexa con el <strong>Índice de Precios al Productor (IPP)</strong>, garantizando una preservación del poder adquisitivo de los ingresos a largo plazo. El PPA es de tipo "Pague lo Generado" (sin compromiso de entrega de energía mínima), eliminando el riesgo de penalización en meses de baja hidrología.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- TECHNICAL HYDRO -->
+<section id="hidronare-tecnico">
+  <div class="main-content prose">
+
+    <h3>3.5 Descripción Técnica Detallada de Obras</h3>
+
+    <div class="two-col">
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:8px;">🏗️</div>
+        <div style="font-weight:700;color:var(--blue-deep);margin-bottom:8px;">Azud (Presa de Derivación)</div>
+        <p style="font-size:13px;color:var(--slate);">Estructura maciza de hormigón de 25 m de ancho y 6 m de altura sobre el cauce, con geometría de vertedero de pared gruesa (cresta Ogee) y disipador tipo "roller bucket". Captación lateral mediante 5 vanos de 2,5×3,5 m con rejas de 2,6×3,8 m. El cierre topográfico se realiza mediante muros de contención en ménsula de hormigón armado.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:8px;">🔧</div>
+        <div style="font-weight:700;color:var(--blue-deep);margin-bottom:8px;">Desripiador y Canal de Aducción</div>
+        <p style="font-size:13px;color:var(--slate);">El desripiador recibe el caudal captado y lo conduce al canal de aducción (39,2 m de longitud, sección 3,2×3,1 m), incorporando el orificio de caudal ecológico (2,21 m³/s) y un vertedero lateral de excesos. El canal entrega el flujo al desarenador.</p>
+      </div>
+    </div>
+
+    <div class="two-col mt-16">
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:8px;">🌊</div>
+        <div style="font-weight:700;color:var(--blue-deep);margin-bottom:8px;">Desarenador (4 celdas en paralelo)</div>
+        <p style="font-size:13px;color:var(--slate);">Sistema de 4 celdas en paralelo, cada una capaz de operar con 1/3 del caudal de diseño (permite mantenimiento de una celda sin interrumpir producción). Remueve partículas ≥0,3 mm. Zona de sedimentación de 7×4,8×30 m por celda. Sedimentos devueltos al río mediante tubería GRP.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:8px;">🔩</div>
+        <div style="font-weight:700;color:var(--blue-deep);margin-bottom:8px;">Conducción a Presión (GRP)</div>
+        <p style="font-size:13px;color:var(--slate);">Tubería de plástico reforzado con fibra de vidrio (GRP) de 2.439 m de longitud y 2.500 mm de diámetro. Presión de diseño 6-16 bares. Instalación aérea sobre silletas ancladas en banca paralela a la vía de captación, siguiendo la margen derecha del Nare.</p>
+      </div>
+    </div>
+
+    <div class="two-col mt-16">
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:8px;">⚙️</div>
+        <div style="font-weight:700;color:var(--blue-deep);margin-bottom:8px;">Casa de Máquinas (3 niveles)</div>
+        <p style="font-size:13px;color:var(--slate);">Estructura de 3 plantas: nivel de equipos principales (válvulas, turbinas, generadores), sala de recibo de equipos y tableros eléctricos, y planta de control, oficinas y servicios. Adyacente al patio de transformadores y salida de la línea de transmisión.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:8px;">🌀</div>
+        <div style="font-weight:700;color:var(--blue-deep);margin-bottom:8px;">Turbinas Francis + Generadores</div>
+        <p style="font-size:13px;color:var(--slate);">2 × turbinas Francis de eje horizontal, 10,52 MW c/u, caudal máximo 9 m³/s, cabeza neta 129,01 m. Rodete en acero inoxidable X3CrNi13,4. Generadores síncronos trifásicos, 13,8 kV, factor de potencia 0,9. Acoplamiento directo eje horizontal.</p>
+      </div>
+    </div>
+
+    <div class="two-col mt-16">
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:8px;">🛣️</div>
+        <div style="font-weight:700;color:var(--blue-deep);margin-bottom:8px;">Vías de Acceso</div>
+        <p style="font-size:13px;color:var(--slate);">Dos vías específicas diseñadas: (1) Vía a Captación: 2.660 m, margen derecha del Nare, paralela a tubería de conducción; (2) Vía a Casa de Máquinas: 1.974 m, empalme en km 13 de la vía El Jordán-Portugal. Rehabilitación industrial de 13 km de vía terciaria existente.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:20px;margin-bottom:8px;">⚡</div>
+        <div style="font-weight:700;color:var(--blue-deep);margin-bottom:8px;">Conexión Eléctrica</div>
+        <p style="font-size:13px;color:var(--slate);">Línea de transmisión a 44 kV de ~18 km hasta subestación Playas de EPM. Línea interna de 13,2 kV en cable cubierto (~2.600 m entre captación y casa de máquinas). 2 transformadores de 112,5 kVA en los extremos. Fibra óptica integrada en la línea de media tensión.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ASSETS AND LICENSES HYDRO -->
+<section id="hidronare-activos">
+  <div class="main-content prose">
+
+    <h3>3.6 Activos y Licencias: Estado RTB</h3>
+    <p>El proyecto cuenta con todos los activos tangibles e intangibles necesarios para iniciar la construcción. Las inversiones realizadas ascienden a más de <strong>COP 20.000 millones</strong> (~5 millones USD), con la licencia ambiental y los predios como activos de mayor valor.</p>
+
+    <div class="table-wrapper">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Trámite / Activo</th>
+            <th>Acto administrativo</th>
+            <th>Contenido</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Licencia Ambiental inicial</td><td>Res. 112 5883-Dic 2014</td><td>50 años de vigencia. Ocupación de cauce, concesión de aguas, vertimientos</td><td><span class="tag tag-green">VIGENTE</span></td></tr>
+          <tr><td>Licencia Ambiental (recurso reposición)</td><td>Res. 112 0909-Mar 2015</td><td>Recurso de reposición sobre licencia inicial</td><td><span class="tag tag-green">RESUELTO</span></td></tr>
+          <tr><td>Cesión de licencia ambiental</td><td>Res. 112 6723-Dic 2015</td><td>Cesión a Grupo Nare S.A.S. E.S.P.</td><td><span class="tag tag-green">EJECUTADO</span></td></tr>
+          <tr><td>Aumento de caudal</td><td>Res. 112 0986-Mar 2017</td><td>Aumento del caudal concedido hasta 18 m³/s</td><td><span class="tag tag-green">VIGENTE</span></td></tr>
+          <tr><td>Ampliación vía acceso + campamento</td><td>Res. 112-5883-Oct 2018</td><td>2ª Vía acceso captación + ZODMES + campamento</td><td><span class="tag tag-green">VIGENTE</span></td></tr>
+          <tr><td>No presencia grupos étnicos</td><td>Cert. 1390-Jun 2012</td><td>Sin resguardos ni comunidades étnicas en área de influencia</td><td><span class="tag tag-green">CERTIFICADO</span></td></tr>
+          <tr><td>Levantamiento de veda fauna</td><td>Res. Sep 2017</td><td>81 individuos con sus obligaciones de compensación</td><td><span class="tag tag-green">VIGENTE</span></td></tr>
+          <tr><td>Autorización arqueológica</td><td>Evaluación N 3805</td><td>Reconocimiento y prospección arqueológica en San Carlos</td><td><span class="tag tag-green">AUTORIZADO</span></td></tr>
+          <tr><td>Punto de Conexión UPME</td><td>Garantía CREG 075 depositada</td><td>Punto de conexión otorgado por UPME</td><td><span class="tag tag-green">ASEGURADO</span></td></tr>
+          <tr><td>Contrato de Conexión</td><td>Contrato firmado</td><td>Firmado con EPM (subestación Playas)</td><td><span class="tag tag-green">FIRMADO</span></td></tr>
+          <tr><td>Predios generación</td><td>Propiedad o servidumbre</td><td>Totalidad de predios del proyecto de generación</td><td><span class="tag tag-green">ADQUIRIDOS</span></td></tr>
+          <tr><td>Diseños de detalle</td><td>I-Consult + Debidas Diligencias</td><td>Diseños de construcción completados (Ingetec, Airtificial)</td><td><span class="tag tag-green">DISPONIBLES</span></td></tr>
+          <tr><td>Servidumbres línea transmisión</td><td>En proceso</td><td>Negociación servidumbres aéreas línea 44 kV</td><td><span class="tag tag-gold">EN PROCESO</span></td></tr>
+          <tr><td>Diseños línea transmisión</td><td>En proceso</td><td>Diseños para construcción de la línea de 44 kV</td><td><span class="tag tag-gold">EN PROCESO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box">
+      <div class="hb-title">🏆 Situación RTB muy sólida con solo dos pendientes menores</div>
+      <p style="font-size:14px;color:var(--slate);">De los 14 hitos clave para la construcción, <strong>12 están completados</strong> y únicamente 2 están en proceso (diseños y servidumbres de la línea de transmisión). Este es uno de los perfiles RTB más sólidos que se pueden encontrar en una PCH colombiana de este tamaño. La certificación de no presencia de comunidades étnicas en el área de influencia es especialmente valiosa, eliminando uno de los riesgos habituales del sector.</p>
+    </div>
+
+    <h4>Inversiones ya realizadas (CapEx comprometido)</h4>
+    <div class="two-col">
+      <div class="stat-box green">
+        <div class="stat-value">COP 10.900 <span class="stat-unit">MM</span></div>
+        <div class="stat-label">Inversión en obtención de la Licencia Ambiental (50 años de vigencia)</div>
+        <div class="stat-note">Mayor activo intangible</div>
+      </div>
+      <div class="stat-box blue">
+        <div class="stat-value">COP 2.300 <span class="stat-unit">MM</span></div>
+        <div class="stat-label">Adquisición de predios para el proyecto de generación</div>
+        <div class="stat-note">Activo tangible</div>
+      </div>
+    </div>
+    <p class="mt-16">Además de estos dos activos principales, los socios han aportado los siguientes activos adicionales: diseños de detalle para construcción, Contrato PPA, Estudio y Punto de Conexión, Contrato de Conexión con EPM, Due Diligence de expertos independientes (Ingetec, Airtificial), actas de vecindad firmadas, socialización con comunidades, Declaratoria de Utilidad Pública, licitación de fabricante de equipos y contratista.</p>
+
+  </div>
+</section>
+
+<!-- FINANCIAL HYDRO -->
+<section id="hidronare-financiero">
+  <div class="main-content prose">
+
+    <h3>3.7 Análisis Financiero PCH Hidronare</h3>
+
+    <div class="stat-row">
+      <div class="stat-box green">
+        <div class="stat-value">132,4<span class="stat-unit"> GWh</span></div>
+        <div class="stat-label">Generación media anual estimada (P50)</div>
+        <div class="stat-note">Factor planta 73,5%</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">19,9<span class="stat-unit"> MW</span></div>
+        <div class="stat-label">Potencia instalada de la central</div>
+        <div class="stat-note">2 × turbinas Francis</div>
+      </div>
+      <div class="stat-box blue">
+        <div class="stat-value">30<span class="stat-unit"> meses</span></div>
+        <div class="stat-label">Tiempo de construcción estimado</div>
+        <div class="stat-note">Desde inicio de obras</div>
+      </div>
+      <div class="stat-box red">
+        <div class="stat-value">+COP 20k<span class="stat-unit"> MM</span></div>
+        <div class="stat-label">CapEx ya invertido / activos aportados</div>
+        <div class="stat-note">~USD 5 M equivalente</div>
+      </div>
+    </div>
+
+    <h4>Estimación de ingresos operativos anuales</h4>
+    <div class="card card-accent-blue mt-16">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;">Primeros 10 años (precio PPA)</div>
+          <ul class="checklist">
+            <li><span class="check-icon" style="background:var(--blue-mid);color:white;">💧</span><div>Generación: <strong>132,4 GWh/año</strong></div></li>
+            <li><span class="check-icon" style="background:var(--blue-mid);color:white;">💰</span><div>Precio PPA referencia: <strong>~COP 200–250/kWh</strong> (estimado)</div></li>
+            <li><span class="check-icon" style="background:var(--blue-mid);color:white;">📊</span><div>Ingreso bruto anual estimado: <strong>~COP 26.000–33.000 MM</strong></div></li>
+            <li><span class="check-icon" style="background:var(--blue-mid);color:white;">🔄</span><div>PPA tipo "Pague lo Generado" (sin compromiso mínimo)</div></li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;">A partir del año 11 (precio IPP)</div>
+          <ul class="checklist">
+            <li><span class="check-icon" style="background:var(--green);color:white;">📈</span><div>Precio indexado al <strong>Índice de Precios al Productor (IPP)</strong></div></li>
+            <li><span class="check-icon" style="background:var(--green);color:white;">🛡️</span><div>Protección ante inflación de largo plazo</div></li>
+            <li><span class="check-icon" style="background:var(--green);color:white;">⚡</span><div>Potencial participación en <strong>mercado spot en escenarios de escasez</strong></div></li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box red" style="margin:16px 0 0;">
+        <p style="font-size:13px;color:var(--slate);"><strong>Nota:</strong> El precio exacto del PPA no está disponible en el teaser público. Las estimaciones anteriores son de carácter orientativo basadas en precios medios de PPAs FNCER en Colombia en el período 2020-2024. El modelo financiero detallado deberá solicitarse directamente a Grupo Nare S.A.S. E.S.P.</p>
+      </div>
+    </div>
+
+    <h4>Estructura de financiación habitual en PCH colombianas</h4>
+    <p>Las PCH de este tamaño en Colombia se financian habitualmente con una estructura proyecto-finance con los siguientes parámetros orientativos:</p>
+    <div class="table-wrapper">
+      <table class="compare-table">
+        <thead>
+          <tr><th>Parámetro</th><th>Rango típico PCH Colombia</th><th>Indicador para Hidronare</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>CapEx total estimado de construcción</td><td>USD 1,5–2,5 M/MW</td><td>~USD 30–50 M total (19,9 MW)</td></tr>
+          <tr><td>Ratio Deuda / CapEx</td><td>60%–75%</td><td>~USD 18–37 M deuda senior</td></tr>
+          <tr><td>Plazo de la deuda</td><td>12–18 años</td><td>Estándar mercado bancario CO</td></tr>
+          <tr><td>DSCR mínimo requerido</td><td>1,20x</td><td>Hidronare requiere FCL/SD ≥ 1,20x</td></tr>
+          <tr><td>Aporte equity</td><td>25%–40%</td><td>Parte en Pari Passu con deuda</td></tr>
+          <tr><td>TIR equity objetivo</td><td>12%–18% en COP</td><td>Depende de precio PPA y CapEx final</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box gold">
+      <div class="hb-title">💡 Factor diferencial: inversiones ya realizadas por los socios</div>
+      <p style="font-size:14px;color:var(--slate);">Los socios de Grupo Nare han aportado más de <strong>COP 20.000 millones</strong> en activos (licencias, predios, estudios, diseños, contratos), que forman parte de la base de activos del proyecto. Un inversor que entre ahora se beneficia de este CapEx ya ejecutado sin haberlo financiado, lo que reduce el riesgo de fase temprana y mejora el perfil de retorno ajustado al riesgo desde el primer día.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- RISKS HYDRO -->
+<section id="hidronare-riesgos">
+  <div class="main-content prose">
+
+    <h3>3.8 Matriz de Riesgos — PCH Hidronare</h3>
+
+    <div class="table-wrapper">
+      <table class="risk-table">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Riesgo</th>
+            <th>Nivel</th>
+            <th>Mitigantes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Construcción</strong></td>
+            <td>Sobrecostes o retraso en construcción</td>
+            <td><span class="risk-level risk-med">MEDIO</span></td>
+            <td>Ingeniería a detalle completada; contrato EPC a suma global fija (pendiente); tiempo de holgura en cronograma; multas por retraso al contratista</td>
+          </tr>
+          <tr>
+            <td><strong>Hidrológico</strong></td>
+            <td>Caudal real inferior al estimado</td>
+            <td><span class="risk-level risk-med">MEDIO</span></td>
+            <td>Estudios hidrológicos independientes realizados; instalación de estación de medición de caudal en captación; caudal de diseño (18 m³/s) conservador respecto a medias multianuales</td>
+          </tr>
+          <tr>
+            <td><strong>Cuenca modificada</strong></td>
+            <td>Variaciones no previstas en los trasvases de Jaguas</td>
+            <td><span class="risk-level risk-med">MEDIO</span></td>
+            <td>Metodología hidrológica específica para cuenca modificada; monitoreo continuo recomendado</td>
+          </tr>
+          <tr>
+            <td><strong>Mercado</strong></td>
+            <td>Precio de energía inferior al estimado en el PPA o en spot</td>
+            <td><span class="risk-level risk-low">BAJO</span></td>
+            <td>PPA tipo "Pague lo Generado" sin compromiso de entrega mínima; el riesgo de precio lo asume el offtaker; precio indexado al IPP a partir del año 11</td>
+          </tr>
+          <tr>
+            <td><strong>Transmisión</strong></td>
+            <td>Dificultades en servidumbres de la línea de 44 kV</td>
+            <td><span class="risk-level risk-med">MEDIO</span></td>
+            <td>Declaratoria de Utilidad Pública vigente; contrato de conexión firmado con EPM; proceso de negociación de servidumbres en curso</td>
+          </tr>
+          <tr>
+            <td><strong>Operación</strong></td>
+            <td>Fallos en operación de la central</td>
+            <td><span class="risk-level risk-low">BAJO</span></td>
+            <td>Empresa O&M con experiencia en proyectos hidroeléctricos; diseño de equipos robusto; repuestos incluidos</td>
+          </tr>
+          <tr>
+            <td><strong>Financiero</strong></td>
+            <td>Riesgo de tasa de interés (deuda COP)</td>
+            <td><span class="risk-level risk-low">BAJO</span></td>
+            <td>Altas coberturas FCL/SD proyectadas (≥1,20x); perspectivas macroeconómicas estables en Colombia</td>
+          </tr>
+          <tr>
+            <td><strong>Financiero</strong></td>
+            <td>Riesgo de tasa de cambio (componente importado equipos)</td>
+            <td><span class="risk-level risk-med">MEDIO</span></td>
+            <td>Componente electromecánico importado a cargo íntegro de los sponsors; ingresos en COP</td>
+          </tr>
+          <tr>
+            <td><strong>Regulatorio</strong></td>
+            <td>Cambios regulatorios adversos</td>
+            <td><span class="risk-level risk-low">BAJO</span></td>
+            <td>CREG: ente técnico independiente con mandato de desarrollo sectorial; PPA bilateral es contrato irrevocable entre partes</td>
+          </tr>
+          <tr>
+            <td><strong>Social</strong></td>
+            <td>Conflicto con comunidades locales</td>
+            <td><span class="risk-level risk-low">BAJO</span></td>
+            <td>Certificación de no presencia de grupos étnicos en área de influencia; personal local contratado; regalías voluntarias al municipio; consultas previas y actas de vecindad realizadas</td>
+          </tr>
+          <tr>
+            <td><strong>Ambiental</strong></td>
+            <td>Incumplimiento normativa ambiental</td>
+            <td><span class="risk-level risk-low">BAJO</span></td>
+            <td>Licencias vigentes y en cumplimiento; interventoría ambiental de amplia experiencia; caudal ecológico integrado en el diseño</td>
+          </tr>
+          <tr>
+            <td><strong>Fuerza mayor</strong></td>
+            <td>Catástrofes naturales</td>
+            <td><span class="risk-level risk-med">MEDIO</span></td>
+            <td>Póliza todo riesgo de construcción; San Carlos tiene historial sísmico moderado (zona Andina)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box gold">
+      <div class="hb-title">✅ Perfil de riesgo global de Hidronare: CONSERVADOR / FAVORABLE</div>
+      <p style="font-size:14px;color:var(--slate);">El perfil de riesgo global de la PCH Hidronare es marcadamente conservador: no hay riesgo comunitario étnico (certificado), los permisos más críticos están obtenidos, el PPA elimina el riesgo de compromiso de entrega y el punto de conexión está asegurado con EPM. Los únicos riesgos medios remanentes (servidumbres línea, hidrología de cuenca modificada, tasa de cambio en equipos importados) son gestionables con las medidas identificadas.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ████████████ ANÁLISIS COMPARATIVO ████████████ -->
+<div class="chapter-break" data-num="04" id="comparativa">
+  <div class="eyebrow">Sección 4 · Análisis Comparativo</div>
+  <h2>Proyecto Levante vs. PCH Hidronare: <em>¿Cuál Elegir?</em></h2>
+  <p class="sub">Comparativa estructurada de ambos proyectos en los ejes clave de decisión de inversión: tecnología, tamaño, riesgo, rendimiento, liquidez y perfil de retorno esperado.</p>
+</div>
+<section>
+  <div class="main-content prose">
+
+    <h3>4.1 Comparativa Técnico-Financiera Detallada</h3>
+    <div class="table-wrapper">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Dimensión</th>
+            <th class="wind">Proyecto Levante (Alpha+Beta)</th>
+            <th class="hydro">PCH Hidronare</th>
+            <th>Observación clave</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Tecnología</td><td>Eólico onshore</td><td>Mini-hidráulica filo de agua</td><td>Perfiles de riesgo distintos</td></tr>
+          <tr><td>Capacidad instalada</td><td>504 MW</td><td>19,9 MW</td><td>Levante: 25× mayor en MW</td></tr>
+          <tr><td>Generación anual estimada</td><td>~2.472 GWh/año (P50)</td><td>132,4 GWh/año</td><td>~19× más generación en Levante</td></tr>
+          <tr><td>Factor de carga</td><td>~56% (P50)</td><td>73,5%</td><td>Hidronare: factor planta superior</td></tr>
+          <tr><td>CapEx total estimado</td><td>~USD 977 M</td><td>~USD 30–50 M (estimado)</td><td>Ticket de inversión muy diferente</td></tr>
+          <tr><td>CapEx ya comprometido</td><td>~60%</td><td>&gt;95% (activos aportados + diseños)</td><td>Hidronare más avanzada en % relativo</td></tr>
+          <tr><td>Tiempo de construcción</td><td>~24–30 meses (post-RTB)</td><td>30 meses</td><td>Similares plazos de construcción</td></tr>
+          <tr><td>COD esperado</td><td>1T 2027</td><td>~2026–2027 (desde RTB actual)</td><td>Ambos en el mismo horizonte temporal</td></tr>
+          <tr><td>Contrato de venta de energía</td><td>PPAs take-or-pay, 23 offtakers, ~11,6 años medios</td><td>PPA "Pague lo Generado", 10 años + IPP</td><td>Levante: más obligatorio para offtaker</td></tr>
+          <tr><td>Ingresos regulados garantizados</td><td>Cargo por confiabilidad (20 años) + PPAs</td><td>PPA (10 años) + precio spot</td><td>Levante: más ingresos garantizados</td></tr>
+          <tr><td>Riesgo comunitario</td><td>ALTO (Wayuu, La Guajira)</td><td>BAJO (certificado sin étnicos)</td><td>Hidronare: ventaja significativa</td></tr>
+          <tr><td>Riesgo regulatorio/permisos</td><td>MEDIO (licencia BAC pendiente)</td><td>BAJO (todos los permisos obtenidos)</td><td>Hidronare: status RTB más sólido</td></tr>
+          <tr><td>Riesgo de recurso</td><td>BAJO (alisios muy estables)</td><td>MEDIO (cuenca modificada, estacional)</td><td>Levante: recurso más predecible</td></tr>
+          <tr><td>Incentivos fiscales Ley 1715</td><td>✓ Plenamente aplicables</td><td>✓ Plenamente aplicables</td><td>Mismos beneficios fiscales</td></tr>
+          <tr><td>Conexión al sistema garantizada</td><td>Contrato ISA-Intercolombia</td><td>Contrato EPM firmado</td><td>Ambos con conexión asegurada</td></tr>
+          <tr><td>Perfil de inversión</td><td>Large cap / infraestructura grande</td><td>Mid-market / infraestructura mediana</td><td>Diferente universo de inversores</td></tr>
+          <tr><td>Madurez del promotor</td><td>EDPR (grupo multinacional cotizado)</td><td>Grupo Nare (empresa privada local)</td><td>Diferente perfil contrapartida</td></tr>
+          <tr><td>Proceso de venta</td><td>Subasta competitiva (NDA → ONV → Vinculante)</td><td>Búsqueda de socio/inversor directo</td><td>Procesos distintos</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4.2 Perfil del Inversor Ideal para Cada Proyecto</h3>
+
+    <div class="two-col">
+      <div class="card card-accent-green">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--green);margin-bottom:16px;">💨 Inversor ideal — Proyecto Levante</div>
+        <ul class="checklist">
+          <li><span class="check-icon check-ok">→</span><div>Fondos de infraestructura de gran tamaño (ticket &gt;USD 500M)</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Utilities multinacionales con presencia en LATAM</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Inversores institucionales (soberanos, pensiones) con apetito por renovables emergentes</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Experiencia previa en gestión de comunidades en Colombia o región</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Capacidad de absorber riesgo regulatorio (licencia BAC pendiente)</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Horizonte de inversión a largo plazo (15–20 años mínimo)</div></li>
+        </ul>
+      </div>
+      <div class="card card-accent-blue">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--blue-mid);margin-bottom:16px;">💧 Inversor ideal — PCH Hidronare</div>
+        <ul class="checklist">
+          <li><span class="check-icon check-ok">→</span><div>Family offices e inversores privados colombianos o ibéricos (ticket USD 10–50M)</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Fondos de infraestructura mid-market con foco en Colombia/LATAM</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Desarrolladores de energía renovable que buscan activos RTB sin riesgo comunitario</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Inversor que aprecia el CapEx ya invertido como reducción de riesgo de entrada</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Bancos de desarrollo o vehículos de inversión de impacto (energía limpia sin conflicto social)</div></li>
+          <li><span class="check-icon check-ok">→</span><div>Horizonte 10–15 años con caja positiva desde el primer año de operación</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>4.3 Apalancamiento del Déficit Energético: Posicionamiento Temporal</h3>
+    <p>Ambos proyectos están posicionados para capitalizar el mismo fenómeno macroeconómico: el <strong>déficit de oferta eléctrica firme en Colombia entre 2026 y 2028</strong>. Los proyectos que alcancen el COD en este período tendrán acceso privilegiado a precios spot elevados, que pueden superar significativamente los precios PPA base y el precio del cargo por confiabilidad.</p>
+
+    <div class="highlight-box gold">
+      <div class="hb-title">🎯 Ventana de oportunidad 2026–2028: el diferencial crítico</div>
+      <p style="font-size:14px;color:var(--slate);">Las proyecciones de UPME indican que la demanda de energía firme superará la oferta comprometida a partir de 2026–2027. Los proyectos que operen durante este período pueden vender energía excedente en el mercado spot a precios que, en escenarios de escasez severa, pueden multiplicar por 3–5× el precio PPA base. Esta ventana temporal da una prima significativa a los proyectos RTB o en construcción ahora: <strong>tanto Levante como Hidronare están bien posicionados</strong> para capturarla si se mantienen los cronogramas actuales.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- SECTOR ANALYSIS -->
+<div class="chapter-break" data-num="05" id="sector">
+  <div class="eyebrow">Sección 5 · Análisis Sectorial</div>
+  <h2>El Sector Eléctrico Colombiano: <em>Contexto y Tendencias</em></h2>
+  <p class="sub">Colombia tiene uno de los sistemas eléctricos más interesantes de América Latina: altamente hidroeléctrico, vulnerable al Niño, con gran potencial FNCER y un déficit de transmisión que crea asimetrías de precios estructurales.</p>
+</div>
+<section>
+  <div class="main-content prose">
+
+    <h3>5.1 Transición Energética en Colombia: Contexto Político y Regulatorio</h3>
+    <p>El Gobierno de Colombia, en línea con los compromisos del Acuerdo de París y la estrategia de diversificación energética, ha establecido como objetivo alcanzar una participación de FNCER (excluyendo grandes hidráulicas) del 12% de la generación total para 2030. Para ello, UPME ha convocado cuatro subastas de energía renovable desde 2019, adjudicando contratos por más de 2.200 MW de capacidad nueva.</p>
+
+    <div class="three-col">
+      <div class="card card-accent-green">
+        <div style="text-align:center;font-size:24px;margin-bottom:8px;">🌿</div>
+        <div style="font-weight:700;color:var(--blue-deep);text-align:center;margin-bottom:8px;">Objetivo FNCER 2030</div>
+        <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--green);text-align:center;">12%</div>
+        <p style="font-size:12px;color:var(--muted);text-align:center;">% de generación total del SIN de fuentes FNCER (exc. grandes hidráulicas)</p>
+      </div>
+      <div class="card card-accent-blue">
+        <div style="text-align:center;font-size:24px;margin-bottom:8px;">⚡</div>
+        <div style="font-weight:700;color:var(--blue-deep);text-align:center;margin-bottom:8px;">Capacidad FNCER adjudicada</div>
+        <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--blue-mid);text-align:center;">&gt;2.200</div>
+        <div style="text-align:center;font-size:13px;color:var(--muted);">MW en subastas desde 2019</div>
+      </div>
+      <div class="card card-accent-gold">
+        <div style="text-align:center;font-size:24px;margin-bottom:8px;">🔋</div>
+        <div style="font-weight:700;color:var(--blue-deep);text-align:center;margin-bottom:8px;">Obligación minoristas</div>
+        <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#8a6820;text-align:center;">10%</div>
+        <div style="text-align:center;font-size:13px;color:var(--muted);">Mínimo de compra a FNCER</div>
+      </div>
+    </div>
+
+    <h3>5.2 Retos Estructurales del Sector que Crean Oportunidades</h3>
+    <ul>
+      <li><strong>Dependencia hídrica y vulnerabilidad al Niño:</strong> Con el 66% de la capacidad en grandes hidráulicas, Colombia sufre impactos severos durante años Niño (precios spot disparados, racionamiento en casos extremos). Los activos FNCER de base (eólico, solar, pequeñas hidráulicas con régimen diferente) son complementarios y valorados por el sistema.</li>
+      <li><strong>Déficit de transmisión en La Guajira:</strong> La región con mejor recurso eólico de Colombia carece de infraestructura de transmisión suficiente para evacuar la potencia que se podría instalar. La Colectora (500 kV) lleva años de retraso. Los proyectos con conexión alternativa asegurada (como Alpha y Beta) tienen una ventaja competitiva estructural.</li>
+      <li><strong>Retraso sistemático en licencias ANLA:</strong> La agencia ambiental colombiana ha mostrado plazos de resolución de licencias que frecuentemente superan los 24 meses. Esto ha generado un embudo de proyectos en estado pre-RTB que bloquea la entrada de nueva capacidad, beneficiando a quienes ya tienen permisos.</li>
+      <li><strong>Alza de precios spot esperada 2026–2028:</strong> La combinación de proyectos retrasados y demanda creciente apunta a un período de precios spot elevados, que beneficiará a los generadores operativos en ese período.</li>
+    </ul>
+
+    <h3>5.3 Municipio de San Carlos (Antioquia): Contexto Hidronare</h3>
+    <p>San Carlos (Antioquia) es un municipio con una larga tradición en generación hidroeléctrica: alberga varios embalses de EPM (el mayor grupo eléctrico colombiano) y cuenta con infraestructura eléctrica consolidada. La región del Nare es especialmente relevante por sus condiciones hidrológicas superiores. La cercanía a la subestación Playas de EPM (16 km) es una ventaja significativa en términos de coste y tiempo de conexión.</p>
+
+  </div>
+</section>
+
+<!-- CONCLUSIONS -->
+<div class="chapter-break" data-num="06" id="conclusion">
+  <div class="eyebrow">Sección 6 · Conclusiones y Recomendaciones</div>
+  <h2>Conclusiones del Análisis y <em>Recomendaciones</em></h2>
+  <p class="sub">Síntesis final del análisis, valoración comparativa de las oportunidades y recomendaciones de gato.red / IHTConsulting para potenciales inversores en cada activo.</p>
+</div>
+<section>
+  <div class="main-content prose">
+
+    <h3>6.1 Proyecto Levante: Síntesis y Valoración</h3>
+
+    <div class="card card-accent-green">
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start;">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green);margin-bottom:12px;">Valoración global: OPORTUNIDAD SINGULAR DE GRAN ESCALA</div>
+          <p style="font-size:14px;color:var(--slate);line-height:1.7;">El Proyecto Levante representa una oportunidad única en el mercado latinoamericano de renovables: más de 500 MW eólicos en una de las mejores zonas de viento del mundo, con turbinas ya pagadas y almacenadas, licencias ambientales propias obtenidas, cargo por confiabilidad adjudicado durante 20 años y 23 contratos PPA take-or-pay firmados. El nivel de avance (60% del CapEx comprometido) es extraordinario para un proyecto en fase pre-construcción.</p>
+          <p style="font-size:14px;color:var(--slate);line-height:1.7;margin-top:8px;">Los riesgos principales (licencia BAC, relación comunidades Wayuu) son reales pero gestionables y están parcialmente mitigados. El precio esperado de venta por parte de EDPR debería estar en línea con las valoraciones comparables de proyectos eólicos RTB en mercados emergentes (USD 0,5–1,0 M/MW instalado en valoración del proyecto como empresa).</p>
+        </div>
+        <div>
+          <div style="font-size:12px;font-family:'DM Mono',monospace;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Fortalezas clave</div>
+          <ul class="checklist">
+            <li><span class="check-icon check-ok">✓</span><div>Recurso eólico de clase mundial</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>WTGs comprados y almacenados</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>Licencias propias obtenidas</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>OEF 20 años garantizado</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>23 PPAs take-or-pay firmados</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>Connexión sin La Colectora</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>O&M Vestas 15 años</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="mt-48">6.2 PCH Hidronare: Síntesis y Valoración</h3>
+
+    <div class="card card-accent-blue">
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start;">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--blue-mid);margin-bottom:12px;">Valoración global: OPORTUNIDAD ATRACTIVA DE RIESGO CONSERVADOR</div>
+          <p style="font-size:14px;color:var(--slate);line-height:1.7;">La PCH Hidronare es un activo listo para construir con un perfil de riesgo excepcionalmente limpio: sin conflicto social étnico (certificado), con todos los permisos más críticos obtenidos, contrato de conexión firmado con EPM y un factor de planta del 73,5% que la sitúa entre las PCH más productivas de Colombia. La inversión de COP 20.000 millones ya realizada por los promotores reduce el riesgo de entrada para el inversor nuevo.</p>
+          <p style="font-size:14px;color:var(--slate);line-height:1.7;margin-top:8px;">El tamaño (19,9 MW) la sitúa en el segmento mid-market, accesible para family offices, fondos de infraestructura pequeños y desarrolladores regionales. El plazo de construcción de 30 meses y un COD estimado en 2026–2027 la posicionan perfectamente en la ventana de precios spot elevados esperada en Colombia.</p>
+        </div>
+        <div>
+          <div style="font-size:12px;font-family:'DM Mono',monospace;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Fortalezas clave</div>
+          <ul class="checklist">
+            <li><span class="check-icon check-ok">✓</span><div>Sin riesgo comunitario étnico</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>Licencia ambiental 50 años</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>Conexión EPM asegurada</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>Factor planta 73,5%</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>PPA sin obligación mínima</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>+COP 20.000 MM ya invertidos</div></li>
+            <li><span class="check-icon check-ok">✓</span><div>Status RTB prácticamente pleno</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="mt-48">6.3 Recomendaciones de IHTConsulting / gato.red</h3>
+
+    <div class="three-col mt-16">
+      <div class="card card-accent-gold">
+        <div style="font-size:24px;margin-bottom:12px;text-align:center;">📋</div>
+        <div style="font-weight:700;color:var(--blue-deep);text-align:center;margin-bottom:8px;">Paso 1: Due Diligence de Primer Nivel</div>
+        <p style="font-size:13px;color:var(--slate);line-height:1.65;">Para Levante: firmar NDA y solicitar CIM + modelo financiero a BTG Pactual. Para Hidronare: solicitar modelo financiero completo, auditoría de contratos y visita al emplazamiento en San Carlos. En ambos casos, encargar un análisis hidrológico o de recurso eólico independiente.</p>
+      </div>
+      <div class="card card-accent-gold">
+        <div style="font-size:24px;margin-bottom:12px;text-align:center;">⚖️</div>
+        <div style="font-weight:700;color:var(--blue-deep);text-align:center;margin-bottom:8px;">Paso 2: Evaluación Legal y Regulatoria</div>
+        <p style="font-size:13px;color:var(--slate);line-height:1.65;">Contratar firma colombiana especializada en derecho energético para revisar: contratos PPA, licencias, servidumbres, estado de la consulta previa (Levante) y validez de la licencia ambiental (Hidronare). Verificar el estado actualizado de la negociación del BAC con ANLA.</p>
+      </div>
+      <div class="card card-accent-gold">
+        <div style="font-size:24px;margin-bottom:12px;text-align:center;">💼</div>
+        <div style="font-weight:700;color:var(--blue-deep);text-align:center;margin-bottom:8px;">Paso 3: Estructuración Financiera</div>
+        <p style="font-size:13px;color:var(--slate);line-height:1.65;">Explorar las opciones de estructuración de deuda con banca colombiana (Bancolombia, Davivienda, Banco de Bogotá) y multilaterales (CAF, IFC, IADB). Valorar el uso de los incentivos fiscales Ley 1715 incluyendo la posibilidad de estructuras de tax equity. Modelizar escenarios conservadores, base y optimista.</p>
+      </div>
+    </div>
+
+    <div class="big-quote mt-48">
+      <p>"Colombia tiene todo lo necesario para convertirse en un exportador neto de energía renovable en la próxima década: recurso eólico de clase mundial en La Guajira, ríos de enorme potencial hidroeléctrico no desarrollado y un marco regulatorio que, con sus imperfecciones, ofrece incentivos reales a los inversores. Los proyectos que se construyan hoy capturarán las rentas del período de transición."</p>
+      <cite>— gato.red / IHTConsulting, Análisis de Inversión en Renovables Colombia, junio 2024</cite>
+    </div>
+
+    <h3 class="mt-48">6.4 Advertencias y Limitaciones del Análisis</h3>
+    <div class="highlight-box red">
+      <div class="hb-title">⚠ Advertencia legal importante</div>
+      <p style="font-size:14px;color:var(--slate);">Este informe ha sido elaborado por gato.red / IHTConsulting con base exclusivamente en la documentación pública disponible de los proyectos (teaser de BTG Pactual/EDPR y teaser de PCH Hidronare/Grupo Nare). Las estimaciones financieras son orientativas y no sustituyen en ningún caso al modelo financiero auditado de los propios proyectos. gato.red / IHTConsulting no hace representación alguna sobre la exactitud de los datos de terceros recogidos en este informe. Ninguna decisión de inversión debería basarse exclusivamente en este documento. Se recomienda encarecidamente la consulta con asesores legales, financieros y técnicos independientes especializados en Colombia antes de formular cualquier oferta.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="report-footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">gato.red · IHTConsulting</div>
+      <p class="footer-desc">División de Análisis Estratégico de Inversiones en Infraestructuras y Energías Renovables. Análisis especializados de activos de infraestructura en mercados emergentes con especial foco en América Latina y la Península Ibérica.</p>
+    </div>
+    <div class="footer-col">
+      <h5>Proyectos analizados</h5>
+      <p>Proyecto Levante (Alpha + Beta)<br>EDP Renováveis / BTG Pactual<br>La Guajira, Colombia<br>Junio 2024</p>
+    </div>
+    <div class="footer-col">
+      <h5>Clasificación</h5>
+      <p>Estrictamente Confidencial<br>Solo para uso interno<br>No distribuir sin autorización<br>© 2024 gato.red / IHTConsulting</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2024 gato.red / IHTConsulting — Todos los derechos reservados</p>
+    <p class="footer-disclaimer">Este informe ha sido elaborado exclusivamente con fines informativos y analíticos. No constituye asesoramiento de inversión. gato.red / IHTConsulting no asume responsabilidad por las decisiones de inversión tomadas con base en este documento.</p>
+  </div>
+</footer>
+
+<!-- BACK TO TOP -->
+<button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Volver arriba">↑</button>
+
+<script>
+  // NAV TOGGLE
+  function toggleNav() {
+    const nav = document.getElementById('nav');
+    const overlay = document.getElementById('nav-overlay');
+    const isOpen = nav.classList.toggle('open');
+    overlay.style.display = isOpen ? 'block' : 'none';
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+
+  // BACK TO TOP
+  const backTop = document.getElementById('backTop');
+  window.addEventListener('scroll', () => {
+    backTop.classList.toggle('visible', window.scrollY > 600);
+  });
+
+  // ACTIVE NAV LINKS
+  const sections = document.querySelectorAll('section[id], div[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + entry.target.id) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => observer.observe(s));
+
+  // ANIMATE PROGRESS BARS ON SCROLL
+  const progressBars = document.querySelectorAll('.progress-bar-fill');
+  const progressObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const targetWidth = entry.target.style.width;
+        entry.target.style.width = '0%';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            entry.target.style.width = targetWidth;
+          });
+        });
+        progressObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  progressBars.forEach(bar => {
+    const w = bar.style.width;
+    bar.style.width = '0%';
+    bar.style.transitionDelay = '0.2s';
+    progressObserver.observe(bar);
+    bar.style.width = w;
+  });
+</script>
+</body>
+</html>
