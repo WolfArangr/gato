@@ -1,0 +1,2562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cat's Life 🐾</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0eb;
+    --bg2: #ede8e3;
+    --bg3: #e0dbd4;
+    --card: #ffffff;
+    --card2: #faf8f5;
+    --border: #d4cec8;
+    --text: #2d2926;
+    --text2: #6b6560;
+    --text3: #9b9490;
+    --accent: #ff7043;
+    --accent2: #ff8a65;
+    --accent3: #ffd54f;
+    --green: #66bb6a;
+    --red: #ef5350;
+    --blue: #42a5f5;
+    --purple: #ab47bc;
+    --pink: #ec407a;
+    --orange: #ff7043;
+    --teal: #26a69a;
+    --shadow: rgba(45,41,38,0.08);
+    --shadow2: rgba(45,41,38,0.15);
+    --radius: 18px;
+    --radius2: 12px;
+    --radius3: 8px;
+    --transition: 0.2s ease;
+    --font: 'Nunito', sans-serif;
+    --font-display: 'Fredoka One', cursive;
+  }
+  [data-theme="dark"] {
+    --bg: #1a1714;
+    --bg2: #221f1c;
+    --bg3: #2d2926;
+    --card: #2d2926;
+    --card2: #363330;
+    --border: #454039;
+    --text: #f0ebe6;
+    --text2: #b0a89f;
+    --text3: #706860;
+    --shadow: rgba(0,0,0,0.3);
+    --shadow2: rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 16px; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+    -webkit-user-select: none;
+    user-select: none;
+    overflow-x: hidden;
+  }
+
+  /* LAYOUT */
+  #app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+  @media(min-width:900px){
+    body { background: var(--bg2); }
+    #app { max-width: 420px; box-shadow: 0 0 60px var(--shadow2); min-height: 100vh; }
+  }
+
+  /* SCREENS */
+  .screen { display: none; flex-direction: column; flex: 1; animation: fadeIn 0.3s ease; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  /* HEADER */
+  .header {
+    background: var(--card);
+    border-bottom: 2px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-title { font-family: var(--font-display); font-size: 1.3rem; color: var(--accent); flex: 1; }
+  .header-icon { font-size: 1.5rem; }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: var(--bg2); color: var(--text); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; transition: background var(--transition);
+  }
+  .icon-btn:hover { background: var(--bg3); }
+
+  /* STAT BARS */
+  .stat-bar-wrap { display: flex; flex-direction: column; gap: 2px; }
+  .stat-label { font-size: 0.7rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; }
+  .stat-bar { height: 8px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+  .stat-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+  .stat-health .stat-bar-fill { background: linear-gradient(90deg, #ef5350, #ff7043); }
+  .stat-happy .stat-bar-fill { background: linear-gradient(90deg, #ffd54f, #ffb300); }
+  .stat-hunger .stat-bar-fill { background: linear-gradient(90deg, #66bb6a, #43a047); }
+  .stat-energy .stat-bar-fill { background: linear-gradient(90deg, #42a5f5, #1e88e5); }
+  .stat-social .stat-bar-fill { background: linear-gradient(90deg, #ab47bc, #8e24aa); }
+  .stat-hygiene .stat-bar-fill { background: linear-gradient(90deg, #26a69a, #00897b); }
+
+  /* CAT CARD */
+  .cat-card {
+    background: var(--card);
+    margin: 12px;
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 2px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+  }
+  .cat-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem; border: 3px solid var(--border); flex-shrink: 0;
+    position: relative;
+  }
+  .cat-avatar .mood-indicator {
+    position: absolute; bottom: -2px; right: -2px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--card); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+  }
+  .cat-info { flex: 1; }
+  .cat-name { font-family: var(--font-display); font-size: 1.4rem; color: var(--text); }
+  .cat-meta { font-size: 0.8rem; color: var(--text2); font-weight: 600; margin: 2px 0 10px; }
+  .cat-header { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+  .cat-stats { display: flex; flex-direction: column; gap: 8px; }
+  .life-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--bg2); border-radius: 99px;
+    padding: 3px 10px; font-size: 0.75rem; font-weight: 700; color: var(--text2);
+    border: 1.5px solid var(--border);
+  }
+
+  /* MONEY & DAY */
+  .top-info {
+    display: flex; gap: 8px; margin: 0 12px 4px;
+    flex-wrap: wrap;
+  }
+  .info-pill {
+    background: var(--card); border-radius: 99px;
+    padding: 5px 12px; font-size: 0.8rem; font-weight: 700;
+    border: 1.5px solid var(--border); display: flex; align-items: center; gap: 5px;
+    color: var(--text);
+  }
+  .info-pill.money { color: var(--green); }
+  .info-pill.day { color: var(--blue); }
+  .info-pill.season { color: var(--orange); }
+
+  /* SCROLL AREA */
+  .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+  .scroll-area::-webkit-scrollbar { width: 0; }
+
+  /* SECTION */
+  .section { margin: 0 12px 12px; }
+  .section-title {
+    font-size: 0.7rem; font-weight: 900; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 8px; padding-left: 4px;
+  }
+
+  /* ACTION GRID */
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .action-btn {
+    background: var(--card); border: 2px solid var(--border);
+    border-radius: var(--radius2); padding: 14px 12px;
+    cursor: pointer; transition: all var(--transition);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    text-align: center; color: var(--text); font-family: var(--font);
+  }
+  .action-btn:active { transform: scale(0.96); }
+  .action-btn .btn-icon { font-size: 1.8rem; }
+  .action-btn .btn-label { font-size: 0.78rem; font-weight: 700; }
+  .action-btn .btn-cost { font-size: 0.68rem; color: var(--text3); font-weight: 600; }
+  .action-btn:hover { border-color: var(--accent); background: var(--card2); }
+  .action-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+  .action-btn.highlight { border-color: var(--accent); background: linear-gradient(135deg, rgba(255,112,67,0.05), rgba(255,112,67,0.1)); }
+
+  /* EVENT LOG */
+  .event-log { display: flex; flex-direction: column; gap: 6px; }
+  .event-item {
+    background: var(--card); border-radius: var(--radius2);
+    padding: 10px 14px; border-left: 4px solid var(--accent);
+    font-size: 0.82rem; line-height: 1.4; color: var(--text);
+    animation: slideIn 0.3s ease;
+    border: 1.5px solid var(--border);
+    border-left: 4px solid var(--accent);
+  }
+  .event-item.good { border-left-color: var(--green); }
+  .event-item.bad { border-left-color: var(--red); }
+  .event-item.neutral { border-left-color: var(--blue); }
+  .event-item.special { border-left-color: var(--purple); }
+  .event-item .event-day { font-size: 0.68rem; color: var(--text3); font-weight: 700; }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:none} }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background: var(--card); border-top: 2px solid var(--border);
+    display: flex; padding: 8px 4px; padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    z-index: 200; gap: 2px;
+  }
+  @media(min-width:900px){ .bottom-nav { max-width: 420px; } }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 4px; border-radius: var(--radius3); border: none;
+    background: none; cursor: pointer; color: var(--text3);
+    font-family: var(--font); transition: all var(--transition);
+  }
+  .nav-btn .nav-icon { font-size: 1.3rem; }
+  .nav-btn .nav-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .nav-btn.active { color: var(--accent); background: rgba(255,112,67,0.08); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 300; display: flex; align-items: flex-end; justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.center { align-items: center; }
+  .modal {
+    background: var(--card); border-radius: var(--radius) var(--radius) 0 0;
+    width: 100%; max-width: 480px; max-height: 85vh;
+    overflow-y: auto; padding: 20px;
+    animation: slideUp 0.3s ease;
+  }
+  .modal.center-modal { border-radius: var(--radius); max-width: 340px; width: 90%; }
+  @media(min-width:900px){ .modal { max-width: 420px; } }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:none} }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 16px; }
+  .modal-title { font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 4px; }
+  .modal-sub { font-size: 0.82rem; color: var(--text2); margin-bottom: 16px; }
+  .modal-options { display: flex; flex-direction: column; gap: 8px; }
+  .modal-option {
+    background: var(--card2); border: 1.5px solid var(--border);
+    border-radius: var(--radius2); padding: 12px 14px; cursor: pointer;
+    transition: all var(--transition); display: flex; gap: 12px; align-items: center;
+  }
+  .modal-option:hover { border-color: var(--accent); }
+  .modal-option:active { transform: scale(0.98); }
+  .modal-option .opt-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .modal-option .opt-info { flex: 1; }
+  .modal-option .opt-name { font-weight: 700; font-size: 0.9rem; }
+  .modal-option .opt-desc { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+  .modal-option .opt-cost { font-size: 0.75rem; font-weight: 700; color: var(--green); }
+  .modal-option.danger .opt-name { color: var(--red); }
+
+  /* CHOICE MODAL */
+  .choice-modal { text-align: center; }
+  .choice-emoji { font-size: 3rem; margin-bottom: 8px; }
+  .choice-title { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 8px; }
+  .choice-desc { font-size: 0.84rem; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
+  .choice-btns { display: flex; gap: 8px; flex-direction: column; }
+  .choice-btn {
+    padding: 12px; border-radius: var(--radius2); border: 2px solid var(--border);
+    background: var(--card2); cursor: pointer; font-family: var(--font);
+    font-weight: 700; font-size: 0.88rem; color: var(--text);
+    transition: all var(--transition);
+  }
+  .choice-btn:active { transform: scale(0.97); }
+  .choice-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .choice-btn.secondary { background: var(--bg2); }
+  .choice-btn.danger { background: var(--red); color: white; border-color: var(--red); }
+
+  /* TOAST */
+  .toast-container { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  .toast {
+    background: var(--text); color: var(--bg); padding: 10px 16px;
+    border-radius: 99px; font-size: 0.82rem; font-weight: 700;
+    animation: toastIn 0.3s ease; white-space: nowrap;
+    box-shadow: 0 4px 20px var(--shadow2); display: flex; align-items: center; gap: 6px;
+  }
+  .toast.good { background: var(--green); }
+  .toast.bad { background: var(--red); }
+  .toast.special { background: var(--purple); }
+  @keyframes toastIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+
+  /* BIRTH SCREEN */
+  #birth-screen {
+    background: linear-gradient(135deg, #ff7043, #ff8a65);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 32px 24px; text-align: center; min-height: 100vh;
+  }
+  .birth-title { font-family: var(--font-display); font-size: 2.4rem; color: white; margin-bottom: 8px; }
+  .birth-sub { color: rgba(255,255,255,0.85); font-size: 0.95rem; margin-bottom: 32px; }
+  .birth-cat { font-size: 5rem; margin-bottom: 24px; animation: float 2s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .birth-form { background: rgba(255,255,255,0.2); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 360px; backdrop-filter: blur(10px); }
+  .form-group { margin-bottom: 16px; text-align: left; }
+  .form-label { color: white; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-input {
+    width: 100%; padding: 12px; border-radius: var(--radius3);
+    border: 2px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.9);
+    font-family: var(--font); font-size: 0.95rem; color: var(--text);
+    outline: none; transition: border var(--transition);
+    -webkit-user-select: text; user-select: text;
+  }
+  .form-input:focus { border-color: white; }
+  .form-select {
+    width: 100%; padding: 12px; border-radius: var(--radius3);
+    border: 2px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.9);
+    font-family: var(--font); font-size: 0.95rem; color: var(--text); outline: none;
+  }
+  .emoji-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; }
+  .emoji-opt {
+    background: rgba(255,255,255,0.3); border: 2px solid transparent;
+    border-radius: var(--radius3); padding: 8px; font-size: 1.5rem;
+    cursor: pointer; text-align: center; transition: all var(--transition);
+  }
+  .emoji-opt.selected { background: rgba(255,255,255,0.8); border-color: white; transform: scale(1.1); }
+  .start-btn {
+    width: 100%; padding: 14px; border-radius: var(--radius2);
+    background: white; color: var(--accent); font-family: var(--font-display);
+    font-size: 1.1rem; border: none; cursor: pointer; margin-top: 8px;
+    transition: transform var(--transition); font-weight: 400;
+  }
+  .start-btn:active { transform: scale(0.97); }
+
+  /* RELATIONSHIPS */
+  .rel-item {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius2); padding: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .rel-avatar { font-size: 1.8rem; width: 44px; height: 44px; border-radius: 50%; background: var(--bg2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .rel-info { flex: 1; }
+  .rel-name { font-weight: 700; font-size: 0.9rem; }
+  .rel-meta { font-size: 0.72rem; color: var(--text2); }
+  .rel-hearts { color: var(--pink); font-size: 0.8rem; }
+
+  /* CAREER */
+  .career-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius2); padding: 14px;
+  }
+  .career-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 4px; }
+  .career-level { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+  .level-bar { flex: 1; height: 6px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+  .level-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent3)); border-radius: 99px; transition: width 0.5s ease; }
+
+  /* FAMILY TREE */
+  .family-tree { display: flex; flex-direction: column; gap: 6px; }
+  .family-member {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius2); padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .family-role { font-size: 0.7rem; font-weight: 700; color: var(--text3); text-transform: uppercase; padding: 2px 8px; background: var(--bg2); border-radius: 99px; }
+
+  /* WORLD MAP */
+  .location-card {
+    background: linear-gradient(135deg, var(--card), var(--card2));
+    border: 2px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 10px;
+    display: flex; gap: 14px; align-items: center;
+  }
+  .location-icon { font-size: 2.5rem; }
+  .location-info { flex: 1; }
+  .location-name { font-family: var(--font-display); font-size: 1.1rem; }
+  .location-type { font-size: 0.75rem; color: var(--text2); font-weight: 600; margin-top: 2px; }
+
+  /* ACHIEVEMENTS */
+  .achievement-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .achievement {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius2); padding: 12px; text-align: center;
+    transition: all var(--transition);
+  }
+  .achievement.unlocked { border-color: var(--accent3); background: linear-gradient(135deg, rgba(255,213,79,0.1), rgba(255,183,77,0.1)); }
+  .achievement-icon { font-size: 1.8rem; margin-bottom: 6px; filter: grayscale(1) opacity(0.3); }
+  .achievement.unlocked .achievement-icon { filter: none; }
+  .achievement-name { font-size: 0.72rem; font-weight: 700; }
+  .achievement-desc { font-size: 0.65rem; color: var(--text3); margin-top: 2px; }
+
+  /* SHOP */
+  .shop-item {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius2); padding: 12px;
+    display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+  }
+  .shop-icon { font-size: 2rem; }
+  .shop-info { flex: 1; }
+  .shop-name { font-weight: 700; font-size: 0.88rem; }
+  .shop-desc { font-size: 0.72rem; color: var(--text2); }
+  .shop-price { font-weight: 800; color: var(--green); font-size: 0.88rem; }
+  .buy-btn {
+    padding: 8px 14px; border-radius: var(--radius3); border: none;
+    background: var(--green); color: white; font-family: var(--font);
+    font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all var(--transition);
+  }
+  .buy-btn:active { transform: scale(0.95); }
+  .buy-btn.owned { background: var(--bg3); color: var(--text3); cursor: default; }
+
+  /* PROGRESS BAR ANIMATED */
+  .xp-bar-wrap { background: var(--bg3); border-radius: 99px; height: 6px; overflow: hidden; }
+  .xp-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent3)); border-radius: 99px; transition: width 0.5s ease; }
+
+  /* CHAPTER HEADER */
+  .chapter-header {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    padding: 16px; margin: 12px; border-radius: var(--radius);
+    color: white; display: flex; align-items: center; gap: 12px;
+  }
+  .chapter-icon { font-size: 2rem; }
+  .chapter-text .chapter-label { font-size: 0.72rem; font-weight: 700; opacity: 0.8; text-transform: uppercase; }
+  .chapter-text .chapter-name { font-family: var(--font-display); font-size: 1.1rem; }
+
+  /* LIFE STAGE BADGE */
+  .stage-icon { font-size: 2rem; }
+
+  /* ADVENTURE LOG HEADER */
+  .log-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .log-filter { display: flex; gap: 4px; }
+  .filter-btn {
+    padding: 4px 10px; border-radius: 99px; border: 1.5px solid var(--border);
+    background: var(--card); font-size: 0.7rem; font-weight: 700; cursor: pointer;
+    color: var(--text2); transition: all var(--transition);
+  }
+  .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* GAME OVER */
+  #death-screen {
+    background: linear-gradient(135deg, #2d2926, #1a1714);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 32px 24px; text-align: center; min-height: 100vh;
+  }
+  .death-title { font-family: var(--font-display); font-size: 2rem; color: white; margin-bottom: 8px; }
+  .death-sub { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 24px; }
+  .death-cat { font-size: 4rem; margin-bottom: 16px; }
+  .death-stats { background: rgba(255,255,255,0.08); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 300px; margin-bottom: 24px; }
+  .death-stat-item { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+  .death-stat-item:last-child { border-bottom: none; }
+  .death-btn { padding: 14px 32px; border-radius: var(--radius2); background: var(--accent); color: white; border: none; font-family: var(--font-display); font-size: 1.1rem; cursor: pointer; margin: 6px; transition: transform var(--transition); }
+  .death-btn:active { transform: scale(0.97); }
+  .death-btn.secondary { background: rgba(255,255,255,0.15); }
+
+  /* INVENTORY GRID */
+  .inventory-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+  .inv-item {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius3); padding: 10px; text-align: center; cursor: pointer;
+    transition: all var(--transition);
+  }
+  .inv-item:hover { border-color: var(--accent); }
+  .inv-item .inv-icon { font-size: 1.5rem; margin-bottom: 4px; }
+  .inv-item .inv-name { font-size: 0.62rem; font-weight: 700; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 12px; background: var(--bg2); border-radius: var(--radius3); padding: 4px; }
+  .tab {
+    flex: 1; padding: 8px; border-radius: calc(var(--radius3) - 2px);
+    border: none; background: none; font-family: var(--font); font-size: 0.75rem;
+    font-weight: 700; cursor: pointer; color: var(--text2); transition: all var(--transition);
+  }
+  .tab.active { background: var(--card); color: var(--accent); box-shadow: 0 2px 8px var(--shadow); }
+
+  /* DYNASTY */
+  .dynasty-item {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius2); padding: 12px;
+    display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+    cursor: pointer; transition: all var(--transition);
+  }
+  .dynasty-item:hover { border-color: var(--accent); }
+  .dynasty-num { font-size: 1.4rem; font-weight: 900; color: var(--accent); width: 30px; text-align: center; }
+  .dynasty-info { flex: 1; }
+  .dynasty-name { font-weight: 700; font-size: 0.9rem; }
+  .dynasty-meta { font-size: 0.72rem; color: var(--text2); }
+
+  /* NOTIFICATION DOT */
+  .notif-dot {
+    width: 8px; height: 8px; background: var(--red); border-radius: 50%;
+    position: absolute; top: 2px; right: 2px;
+  }
+  .nav-btn { position: relative; }
+
+  /* MINI CHART */
+  .mini-chart { display: flex; align-items: flex-end; gap: 3px; height: 32px; }
+  .chart-bar { flex: 1; background: var(--accent); border-radius: 3px 3px 0 0; min-width: 6px; opacity: 0.7; transition: height 0.5s ease; }
+
+  /* SPECIAL EVENTS */
+  .special-event-banner {
+    margin: 0 12px 12px; background: linear-gradient(135deg, #9c27b0, #e91e63);
+    border-radius: var(--radius); padding: 14px; color: white;
+    display: flex; align-items: center; gap: 12px; animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(156,39,176,0.3)} 50%{box-shadow:0 0 0 8px rgba(156,39,176,0)} }
+  .special-event-banner .se-icon { font-size: 2rem; }
+  .special-event-banner .se-text { flex: 1; }
+  .special-event-banner .se-title { font-family: var(--font-display); font-size: 1rem; }
+  .special-event-banner .se-desc { font-size: 0.75rem; opacity: 0.85; }
+
+  /* SCROLL SNAP FOR SCREENS */
+  .hidden { display: none !important; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+  /* CHIP */
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--bg2); border: 1.5px solid var(--border);
+    border-radius: 99px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; color: var(--text2);
+  }
+  .chip.green { color: var(--green); border-color: var(--green); background: rgba(102,187,106,0.1); }
+  .chip.red { color: var(--red); border-color: var(--red); background: rgba(239,83,80,0.1); }
+  .chip.blue { color: var(--blue); border-color: var(--blue); background: rgba(66,165,245,0.1); }
+  .chip.purple { color: var(--purple); border-color: var(--purple); background: rgba(171,71,188,0.1); }
+
+  /* LOADING */
+  .loading { text-align: center; color: var(--text3); font-size: 0.85rem; padding: 24px; }
+
+  /* RESPONSIVE */
+  @media(max-width:360px){ .action-grid { grid-template-columns: 1fr 1fr; } .birth-title { font-size: 1.9rem; } }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- BIRTH SCREEN -->
+<div id="birth-screen" class="screen active">
+  <div class="birth-cat" id="birth-preview">🐱</div>
+  <div class="birth-title">Cat's Life</div>
+  <div class="birth-sub">Tu historia felina comienza ahora 🐾</div>
+  <div class="birth-form">
+    <div class="form-group">
+      <label class="form-label">Nombre de tu gato</label>
+      <input type="text" id="cat-name-input" class="form-input" placeholder="Ej: Michi, Garfield..." maxlength="20">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Género</label>
+      <select id="cat-gender" class="form-select">
+        <option value="male">Macho ♂</option>
+        <option value="female">Hembra ♀</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pelaje</label>
+      <div class="emoji-grid">
+        <div class="emoji-opt selected" data-emoji="🐱">🐱</div>
+        <div class="emoji-opt" data-emoji="🐈">🐈</div>
+        <div class="emoji-opt" data-emoji="🐈‍⬛">🐈‍⬛</div>
+        <div class="emoji-opt" data-emoji="😺">😺</div>
+        <div class="emoji-opt" data-emoji="🦁">🦁</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Origen</label>
+      <select id="cat-origin" class="form-select">
+        <option value="stray">Gato Callejero 🌆</option>
+        <option value="home">Gato Doméstico 🏠</option>
+        <option value="shelter">Refugio 🏥</option>
+        <option value="farm">Gato de Granja 🌾</option>
+        <option value="wild">Semisalvaje 🌿</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Raza</label>
+      <select id="cat-breed" class="form-select">
+        <option value="mestizo">Mestizo</option>
+        <option value="persa">Persa</option>
+        <option value="siames">Siamés</option>
+        <option value="maine">Maine Coon</option>
+        <option value="bengal">Bengalí</option>
+        <option value="ruso">Azul Ruso</option>
+        <option value="ragdoll">Ragdoll</option>
+      </select>
+    </div>
+    <button class="start-btn" onclick="startGame()">✨ ¡Comenzar mi vida!</button>
+  </div>
+</div>
+
+<!-- DEATH SCREEN -->
+<div id="death-screen" class="screen" style="display:none;">
+  <div class="death-cat" id="death-emoji">🐱</div>
+  <div class="death-title">Una vida vivida</div>
+  <div class="death-sub" id="death-message">Tu gato ha llegado al final de sus nueve vidas</div>
+  <div class="death-stats" id="death-stats"></div>
+  <button class="death-btn" onclick="showDynasty()">🐾 Ver Dinastía</button>
+  <button class="death-btn secondary" onclick="newLife()">🔄 Nueva Vida</button>
+</div>
+
+<!-- MAIN GAME -->
+<div id="game-screen" class="screen" style="display:none; flex-direction:column;">
+
+  <!-- HEADER -->
+  <div class="header">
+    <span class="header-icon" id="header-emoji">🐱</span>
+    <span class="header-title" id="header-name">Cat's Life</span>
+    <button class="icon-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+    <button class="icon-btn" onclick="saveGame()" title="Guardar">💾</button>
+    <button class="icon-btn" onclick="openSettings()" title="Ajustes">⚙️</button>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- NAVIGATION TABS -->
+  <div id="main-content" class="scroll-area">
+
+    <!-- HOME TAB -->
+    <div id="tab-home" class="tab-content">
+      <div style="height:8px;"></div>
+
+      <!-- Top Info -->
+      <div class="top-info">
+        <div class="info-pill money">💰 <span id="money-display">0</span></div>
+        <div class="info-pill day">📅 Día <span id="day-display">1</span></div>
+        <div class="info-pill season">🌿 <span id="season-display">Primavera</span></div>
+        <div class="info-pill">🌡️ <span id="age-display">Cachorro</span></div>
+      </div>
+
+      <!-- Cat Card -->
+      <div class="cat-card">
+        <div class="cat-header">
+          <div class="cat-avatar" id="cat-avatar-main">🐱
+            <div class="mood-indicator" id="mood-indicator">😊</div>
+          </div>
+          <div class="cat-info">
+            <div class="cat-name" id="cat-name-display">Nombre</div>
+            <div class="cat-meta" id="cat-meta-display">Mestizo • Cachorro • Callejero</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="life-badge" id="location-badge">📍 Barrio Norte</span>
+              <span class="life-badge" id="career-badge">💼 Sin trabajo</span>
+            </div>
+          </div>
+        </div>
+        <div class="cat-stats">
+          <div class="stat-bar-wrap stat-health">
+            <div class="stat-label"><span>❤️ Salud</span><span id="stat-health-val">100</span></div>
+            <div class="stat-bar"><div class="stat-bar-fill" id="stat-health" style="width:100%"></div></div>
+          </div>
+          <div class="stat-bar-wrap stat-happy">
+            <div class="stat-label"><span>😸 Felicidad</span><span id="stat-happy-val">80</span></div>
+            <div class="stat-bar"><div class="stat-bar-fill" id="stat-happy" style="width:80%"></div></div>
+          </div>
+          <div class="stat-bar-wrap stat-hunger">
+            <div class="stat-label"><span>🍖 Hambre</span><span id="stat-hunger-val">80</span></div>
+            <div class="stat-bar"><div class="stat-bar-fill" id="stat-hunger" style="width:80%"></div></div>
+          </div>
+          <div class="stat-bar-wrap stat-energy">
+            <div class="stat-label"><span>⚡ Energía</span><span id="stat-energy-val">80</span></div>
+            <div class="stat-bar"><div class="stat-bar-fill" id="stat-energy" style="width:80%"></div></div>
+          </div>
+          <div class="stat-bar-wrap stat-social">
+            <div class="stat-label"><span>🐾 Social</span><span id="stat-social-val">60</span></div>
+            <div class="stat-bar"><div class="stat-bar-fill" id="stat-social" style="width:60%"></div></div>
+          </div>
+          <div class="stat-bar-wrap stat-hygiene">
+            <div class="stat-label"><span>✨ Higiene</span><span id="stat-hygiene-val">90</span></div>
+            <div class="stat-bar"><div class="stat-bar-fill" id="stat-hygiene" style="width:90%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Special Event Banner (hidden by default) -->
+      <div id="special-event-banner" class="special-event-banner hidden">
+        <div class="se-icon" id="se-icon">⭐</div>
+        <div class="se-text">
+          <div class="se-title" id="se-title">Evento Especial</div>
+          <div class="se-desc" id="se-desc">Algo está pasando...</div>
+        </div>
+        <button class="icon-btn" onclick="handleSpecialEvent()" style="background:rgba(255,255,255,0.2);color:white;">→</button>
+      </div>
+
+      <!-- Main Actions -->
+      <div class="section">
+        <div class="section-title">Acciones Diarias</div>
+        <div class="action-grid">
+          <button class="action-btn" onclick="doAction('eat')">
+            <span class="btn-icon">🍖</span>
+            <span class="btn-label">Comer</span>
+            <span class="btn-cost">+Hambre +Salud</span>
+          </button>
+          <button class="action-btn" onclick="doAction('sleep')">
+            <span class="btn-icon">😴</span>
+            <span class="btn-label">Dormir</span>
+            <span class="btn-cost">+Energía +Salud</span>
+          </button>
+          <button class="action-btn" onclick="doAction('play')">
+            <span class="btn-icon">🧶</span>
+            <span class="btn-label">Jugar</span>
+            <span class="btn-cost">+Felicidad +Social</span>
+          </button>
+          <button class="action-btn" onclick="doAction('groom')">
+            <span class="btn-icon">🪮</span>
+            <span class="btn-label">Acicalarse</span>
+            <span class="btn-cost">+Higiene +Felicidad</span>
+          </button>
+          <button class="action-btn" onclick="doAction('explore')">
+            <span class="btn-icon">🗺️</span>
+            <span class="btn-label">Explorar</span>
+            <span class="btn-cost">Aventura aleatoria</span>
+          </button>
+          <button class="action-btn" onclick="doAction('hunt')">
+            <span class="btn-icon">🐭</span>
+            <span class="btn-label">Cazar</span>
+            <span class="btn-cost">+Hambre +Instinto</span>
+          </button>
+          <button class="action-btn" onclick="doAction('socialize')">
+            <span class="btn-icon">🐱</span>
+            <span class="btn-label">Socializar</span>
+            <span class="btn-cost">+Social +Relaciones</span>
+          </button>
+          <button class="action-btn" onclick="doAction('train')">
+            <span class="btn-icon">🎯</span>
+            <span class="btn-label">Entrenar</span>
+            <span class="btn-cost">+Habilidades</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Advance Day Button -->
+      <div class="section">
+        <button class="action-btn highlight" style="width:100%;flex-direction:row;gap:12px;padding:16px 20px;" onclick="nextDay()">
+          <span style="font-size:1.6rem;">⏭️</span>
+          <div style="text-align:left;">
+            <div style="font-weight:800;font-size:0.95rem;">Pasar al siguiente día</div>
+            <div style="font-size:0.75rem;color:var(--text2);">Día <span id="next-day-num">2</span> • Los eventos ocurren automáticamente</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Life Events Log -->
+      <div class="section">
+        <div class="log-header">
+          <div class="section-title" style="margin:0;">📰 Diario de Vida</div>
+          <div class="log-filter">
+            <button class="filter-btn active" onclick="filterLog('all',this)">Todo</button>
+            <button class="filter-btn" onclick="filterLog('good',this)">😸</button>
+            <button class="filter-btn" onclick="filterLog('bad',this)">😿</button>
+            <button class="filter-btn" onclick="filterLog('special',this)">⭐</button>
+          </div>
+        </div>
+        <div style="height:8px;"></div>
+        <div class="event-log" id="event-log"></div>
+      </div>
+    </div>
+
+    <!-- WORLD TAB -->
+    <div id="tab-world" class="tab-content hidden">
+      <div style="height:8px;"></div>
+      <div class="section">
+        <div class="section-title">Tu Ubicación Actual</div>
+        <div class="location-card" id="current-location-card">
+          <div class="location-icon" id="loc-icon">🏙️</div>
+          <div class="location-info">
+            <div class="location-name" id="loc-name">Barrio Norte</div>
+            <div class="location-type" id="loc-type">Zona Callejera</div>
+            <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="chip blue" id="loc-danger">⚠️ Peligro: Medio</span>
+              <span class="chip green" id="loc-food">🍖 Comida: Buena</span>
+            </div>
+          </div>
+        </div>
+        <div class="section-title">Explorar Lugares</div>
+        <div id="locations-list"></div>
+      </div>
+    </div>
+
+    <!-- SOCIAL TAB -->
+    <div id="tab-social" class="tab-content hidden">
+      <div style="height:8px;"></div>
+      <div class="section">
+        <div class="tabs">
+          <button class="tab active" onclick="switchSocialTab('cats',this)">🐱 Gatos</button>
+          <button class="tab" onclick="switchSocialTab('humans',this)">👤 Humanos</button>
+          <button class="tab" onclick="switchSocialTab('family',this)">👨‍👩‍👧 Familia</button>
+          <button class="tab" onclick="switchSocialTab('dynasty',this)">🏆 Dinastía</button>
+        </div>
+        <div id="social-cats"></div>
+        <div id="social-humans" class="hidden"></div>
+        <div id="social-family" class="hidden"></div>
+        <div id="social-dynasty" class="hidden"></div>
+      </div>
+    </div>
+
+    <!-- CAREER TAB -->
+    <div id="tab-career" class="tab-content hidden">
+      <div style="height:8px;"></div>
+      <div class="section">
+        <div class="section-title">Mi Carrera</div>
+        <div id="career-section"></div>
+        <div class="section-title" style="margin-top:16px;">Trabajos Disponibles</div>
+        <div id="jobs-list"></div>
+      </div>
+    </div>
+
+    <!-- SHOP TAB -->
+    <div id="tab-shop" class="tab-content hidden">
+      <div style="height:8px;"></div>
+      <div class="section">
+        <div class="tabs">
+          <button class="tab active" onclick="switchShopTab('items',this)">🛒 Tienda</button>
+          <button class="tab" onclick="switchShopTab('inventory',this)">🎒 Mochila</button>
+          <button class="tab" onclick="switchShopTab('achievements',this)">🏆 Logros</button>
+        </div>
+        <div id="shop-items"></div>
+        <div id="shop-inventory" class="hidden"></div>
+        <div id="shop-achievements" class="hidden"></div>
+      </div>
+    </div>
+
+  </div><!-- end scroll-area -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('home',this)">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Inicio</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('world',this)">
+      <span class="nav-icon">🗺️</span>
+      <span class="nav-label">Mundo</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('social',this)">
+      <span class="nav-icon">🐾</span>
+      <span class="nav-label">Social</span>
+      <div class="notif-dot hidden" id="social-notif"></div>
+    </button>
+    <button class="nav-btn" onclick="switchTab('career',this)">
+      <span class="nav-icon">💼</span>
+      <span class="nav-label">Carrera</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('shop',this)">
+      <span class="nav-icon">🛒</span>
+      <span class="nav-label">Tienda</span>
+    </button>
+  </div>
+
+</div><!-- end game-screen -->
+
+<!-- MODALS -->
+<div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal(event)">
+  <div class="modal" id="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div id="modal-inner"></div>
+  </div>
+</div>
+
+<div id="choice-overlay" class="modal-overlay center hidden" onclick="">
+  <div class="modal center-modal" id="choice-content">
+    <div id="choice-inner" class="choice-modal"></div>
+  </div>
+</div>
+
+<script>
+// ============================================
+// GAME STATE
+// ============================================
+let G = {
+  cat: {
+    name: 'Michi', emoji: '🐱', gender: 'male', breed: 'Mestizo', origin: 'stray',
+    age: 0, stage: 'kitten',
+    stats: { health: 80, happy: 70, hunger: 80, energy: 80, social: 60, hygiene: 85 },
+    skills: { agility: 10, stealth: 10, charm: 10, intelligence: 10, strength: 10 },
+    traits: [],
+    location: 'street_north', home: null,
+    career: null, careerLevel: 0, careerXP: 0,
+    money: 0, lives: 9,
+    inventory: [],
+    relationships: [],
+    family: { parents: [], children: [], partner: null, siblings: [] },
+    achievements: [],
+    isAlive: true, deathReason: '',
+    famePoints: 0, reputation: 0,
+    pregnancyDays: 0, isPregnant: false,
+    hasCollar: false, isAdopted: false,
+    specialStatus: null
+  },
+  day: 1, season: 'spring', year: 1,
+  world: { weatherRisk: 0.1, eventQueue: [] },
+  dynasty: [],
+  log: [],
+  settings: { theme: 'light', notifications: true },
+  eventFilter: 'all',
+  activeTab: 'home',
+  activeSocialTab: 'cats',
+  activeShopTab: 'items',
+  pendingSpecialEvent: null,
+  cats: [], // world cats
+  humans: [], // world humans
+  unlockedLocations: ['street_north'],
+  dayActions: 0,
+  maxDayActions: 5
+};
+
+// ============================================
+// DATA
+// ============================================
+const LOCATIONS = {
+  street_north: { name: 'Barrio Norte', icon: '🏙️', type: 'Zona Callejera', danger: 0.3, food: 0.6, moneyChance: 0.2, events: 'street', accessible: true },
+  park: { name: 'Parque Central', icon: '🌳', type: 'Parque Público', danger: 0.15, food: 0.4, moneyChance: 0.15, events: 'park', accessible: false, unlockCost: 0 },
+  harbor: { name: 'Puerto Viejo', icon: '⚓', type: 'Zona Portuaria', danger: 0.5, food: 0.7, moneyChance: 0.4, events: 'harbor', accessible: false, unlockCost: 20 },
+  mansion: { name: 'Barrio Elegante', icon: '🏰', type: 'Zona Residencial', danger: 0.05, food: 0.8, moneyChance: 0.5, events: 'mansion', accessible: false, unlockCost: 50 },
+  market: { name: 'Mercado', icon: '🛒', type: 'Mercado Central', danger: 0.1, food: 0.9, moneyChance: 0.35, events: 'market', accessible: false, unlockCost: 10 },
+  factory: { name: 'Zona Industrial', icon: '🏭', type: 'Zona Industrial', danger: 0.6, food: 0.3, moneyChance: 0.3, events: 'factory', accessible: false, unlockCost: 30 },
+  studio: { name: 'Estudio de Cine', icon: '🎬', type: 'Entretenimiento', danger: 0.05, food: 0.6, moneyChance: 0.8, events: 'studio', accessible: false, unlockCost: 100 },
+  shelter: { name: 'Refugio Animal', icon: '🏥', type: 'Refugio', danger: 0.0, food: 1.0, moneyChance: 0.0, events: 'shelter', accessible: false, unlockCost: 0 },
+  farm: { name: 'Granja', icon: '🌾', type: 'Zona Rural', danger: 0.2, food: 0.8, moneyChance: 0.2, events: 'farm', accessible: false, unlockCost: 15 },
+  rooftops: { name: 'Tejados', icon: '🏠', type: 'Zona Alta', danger: 0.4, food: 0.2, moneyChance: 0.1, events: 'rooftop', accessible: false, unlockCost: 5 }
+};
+
+const CAREERS = {
+  none: { name: 'Sin trabajo', icon: '😴', salary: 0 },
+  mouser: { name: 'Cazaratones', icon: '🐭', salary: 5, req: { skills: { strength: 20 } }, description: 'Protege almacenes de roedores' },
+  companion: { name: 'Gato de Compañía', icon: '🤝', salary: 8, req: { skills: { charm: 20 } }, description: 'Acompañas a humanos solitarios' },
+  model: { name: 'Gato Modelo', icon: '📸', salary: 20, req: { stats: { hygiene: 70 }, skills: { charm: 30 } }, description: 'Apareces en anuncios y revistas' },
+  actor: { name: 'Gato Actor', icon: '🎬', salary: 35, req: { famePoints: 20, skills: { intelligence: 40 } }, description: 'Protagonizas películas y series' },
+  influencer: { name: 'Gato Influencer', icon: '📱', salary: 25, req: { famePoints: 10, skills: { charm: 35 } }, description: 'Tienes millones de seguidores' },
+  therapy: { name: 'Gato Terapéutico', icon: '💊', salary: 15, req: { skills: { charm: 25, intelligence: 20 } }, description: 'Ayudas en hospitales y residencias' },
+  guard: { name: 'Gato Guardián', icon: '🛡️', salary: 10, req: { skills: { strength: 30, agility: 25 } }, description: 'Proteges un establecimiento' },
+  stuntcat: { name: 'Doble de Acción', icon: '🎭', salary: 30, req: { skills: { agility: 50, strength: 30 } }, description: 'Haces acrobacias peligrosas en películas' },
+  chef_tester: { name: 'Catador de Pienso', icon: '🍽️', salary: 12, req: { skills: { intelligence: 20 } }, description: 'Testeas nuevas recetas de comida felina' },
+  scientist: { name: 'Gato de Laboratorio', icon: '🔬', salary: 18, req: { skills: { intelligence: 45 } }, description: 'Participas en estudios científicos' }
+};
+
+const CAT_NAMES_M = ['Michi', 'Garfield', 'Tom', 'Simón', 'Luna', 'Max', 'Leo', 'Whiskers', 'Mittens', 'Shadow', 'Tigre', 'Cleo', 'Zeus', 'Óscar', 'Félix', 'Salem', 'Loki', 'Ramses', 'Cosmo', 'Nemo'];
+const CAT_NAMES_F = ['Bella', 'Luna', 'Nala', 'Cleo', 'Mia', 'Lily', 'Sophie', 'Gata', 'Perla', 'Rosa', 'Coco', 'Isis', 'Venus', 'Stella', 'Nora', 'Elsa', 'Zara', 'Aria', 'Mila', 'Kira'];
+const HUMAN_NAMES = ['María', 'Carlos', 'Elena', 'José', 'Ana', 'Luis', 'Sara', 'Miguel', 'Laura', 'Pablo', 'Isabel', 'Andrés', 'Marta', 'Diego', 'Clara'];
+const CAT_EMOJIS = ['🐱', '🐈', '🐈‍⬛', '😺', '🦁'];
+const TRAITS_POOL = ['Juguetón','Independiente','Afectuoso','Curioso','Vago','Mañanero','Nocturno','Sociable','Solitario','Valiente','Miedoso','Glotón','Ágil','Inteligente','Feroz'];
+
+const SEASONS = {
+  spring: { name: 'Primavera', icon: '🌸', weatherRisk: 0.1 },
+  summer: { name: 'Verano', icon: '☀️', weatherRisk: 0.15 },
+  autumn: { name: 'Otoño', icon: '🍂', weatherRisk: 0.2 },
+  winter: { name: 'Invierno', icon: '❄️', weatherRisk: 0.35 }
+};
+
+const LIFE_STAGES = [
+  { stage: 'kitten', name: 'Cachorro', minAge: 0, maxAge: 90, icon: '🐣' },
+  { stage: 'juvenile', name: 'Joven', minAge: 91, maxAge: 365, icon: '🐱' },
+  { stage: 'adult', name: 'Adulto', minAge: 366, maxAge: 2555, icon: '🐈' },
+  { stage: 'senior', name: 'Maduro', minAge: 2556, maxAge: 3650, icon: '👴🐈' },
+  { stage: 'elder', name: 'Anciano', minAge: 3651, maxAge: 99999, icon: '🏺' }
+];
+
+const SHOP_ITEMS = [
+  { id: 'kibble', name: 'Pienso Premium', icon: '🍖', desc: '+25 Hambre, +5 Salud', price: 5, effect: { hunger: 25, health: 5 }, consumable: true },
+  { id: 'treat', name: 'Golosina de Atún', icon: '🐟', desc: '+15 Felicidad, +10 Hambre', price: 3, effect: { happy: 15, hunger: 10 }, consumable: true },
+  { id: 'toy_ball', name: 'Pelota de Juguete', icon: '⚽', desc: '+20 Felicidad al usar', price: 8, effect: { happy: 20 }, consumable: false },
+  { id: 'collar', name: 'Collar Elegante', icon: '🎀', desc: '+Reputación, identificación', price: 15, effect: { reputation: 10 }, consumable: false },
+  { id: 'bed', name: 'Cama de Lujo', icon: '🛏️', desc: '+30 Energía al dormir', price: 25, effect: { energyBonus: 30 }, consumable: false },
+  { id: 'catnip', name: 'Hierba Gatera', icon: '🌿', desc: '+40 Felicidad (efecto especial)', price: 6, effect: { happy: 40, energy: 10 }, consumable: true },
+  { id: 'medicine', name: 'Medicina Felina', icon: '💊', desc: '+40 Salud', price: 12, effect: { health: 40 }, consumable: true },
+  { id: 'scratching_post', name: 'Rascador Deluxe', icon: '🪵', desc: '+Agresividad +Habilidades', price: 20, effect: { skillBonus: 'agility', amount: 10 }, consumable: false },
+  { id: 'camera', name: 'Cámara de Fotos', icon: '📸', desc: 'Permite carrera de modelo', price: 40, effect: { unlock: 'model' }, consumable: false },
+  { id: 'fish', name: 'Pescado Fresco', icon: '🐠', desc: '+30 Hambre, +10 Felicidad', price: 8, effect: { hunger: 30, happy: 10 }, consumable: true },
+  { id: 'vitamins', name: 'Vitaminas', icon: '💉', desc: '+20 Salud, +10 a todos los stats', price: 18, effect: { health: 20, allStats: 10 }, consumable: true },
+  { id: 'gps_collar', name: 'Collar GPS', icon: '📡', desc: 'Desbloquea nuevas zonas', price: 35, effect: { unlockLocations: ['park', 'market', 'rooftops'] }, consumable: false },
+];
+
+const ACHIEVEMENTS = [
+  { id: 'first_hunt', name: 'Primer Cazador', desc: 'Caza por primera vez', icon: '🎯', unlocked: false },
+  { id: 'social_butterfly', name: 'Mariposa Social', desc: 'Conoce a 5 gatos', icon: '🦋', unlocked: false },
+  { id: 'rich_cat', name: 'Gato Rico', desc: 'Acumula 200 monedas', icon: '💰', unlocked: false },
+  { id: 'nine_lives', name: 'Nueve Vidas', desc: 'Sobrevive una situación mortal', icon: '9️⃣', unlocked: false },
+  { id: 'first_love', name: 'Primer Amor', desc: 'Encuentra pareja', icon: '💕', unlocked: false },
+  { id: 'parent', name: 'Papá/Mamá', desc: 'Ten tu primer hijo', icon: '👶', unlocked: false },
+  { id: 'celebrity', name: 'Celebridad Felina', desc: 'Alcanza 50 puntos de fama', icon: '⭐', unlocked: false },
+  { id: 'world_traveler', name: 'Explorador', desc: 'Visita 5 zonas distintas', icon: '🗺️', unlocked: false },
+  { id: 'long_life', name: 'Veterano', desc: 'Vive 500 días', icon: '🎂', unlocked: false },
+  { id: 'adopted', name: 'Hogar Dulce Hogar', desc: 'Sé adoptado por una familia', icon: '🏠', unlocked: false },
+  { id: 'actor_star', name: 'Estrella del Cine', desc: 'Llega al nivel 5 como actor', icon: '🎬', unlocked: false },
+  { id: 'dynasty_start', name: 'Inicio de Dinastía', desc: 'Comienza la primera generación', icon: '🏆', unlocked: false },
+  { id: 'night_prowler', name: 'Merodeador Nocturno', desc: 'Explora 10 noches seguidas', icon: '🌙', unlocked: false },
+  { id: 'full_health', name: 'Gato Sano', desc: 'Mantén la salud al 100% 7 días', icon: '💪', unlocked: false },
+  { id: 'escape_artist', name: 'Escapista', desc: 'Escápate de casa una vez', icon: '🚪', unlocked: false },
+];
+
+// ============================================
+// GAME INIT
+// ============================================
+function startGame() {
+  const nameInput = document.getElementById('cat-name-input').value.trim() || 'Michi';
+  const gender = document.getElementById('cat-gender').value;
+  const origin = document.getElementById('cat-origin').value;
+  const breed = document.getElementById('cat-breed').value;
+  const selectedEmoji = document.querySelector('.emoji-opt.selected')?.dataset.emoji || '🐱';
+
+  G.cat.name = nameInput;
+  G.cat.gender = gender;
+  G.cat.origin = origin;
+  G.cat.breed = breed;
+  G.cat.emoji = selectedEmoji;
+  G.cat.traits = getRandomTraits(2);
+
+  // Origin bonuses
+  if (origin === 'stray') { G.cat.stats.agility = 70; G.cat.money = 0; }
+  if (origin === 'home') { G.cat.stats.happy = 90; G.cat.stats.hygiene = 95; G.cat.money = 10; G.cat.isAdopted = true; G.cat.home = 'cozy_home'; }
+  if (origin === 'shelter') { G.cat.stats.social = 80; G.cat.money = 5; }
+  if (origin === 'farm') { G.cat.skills.strength = 20; G.cat.money = 8; }
+  if (origin === 'wild') { G.cat.skills.agility = 25; G.cat.skills.stealth = 25; }
+
+  // Init world
+  generateWorldCats();
+  generateWorldHumans();
+
+  // Unlock initial locations
+  if (origin === 'home') G.unlockedLocations.push('park');
+  if (origin === 'farm') { G.unlockedLocations.push('farm'); G.cat.location = 'farm'; }
+
+  // Set achievements base
+  G.cat.achievements = ACHIEVEMENTS.map(a => ({ ...a }));
+
+  // First log entry
+  addLog(`🐾 ¡Nace ${G.cat.name}! Un gatito ${G.cat.breed} con carácter ${G.cat.traits.join(' y ')}. Su aventura comienza en ${LOCATIONS[G.cat.location].name}.`, 'special');
+
+  unlockAchievement('dynasty_start');
+
+  // Save dynasty entry
+  G.dynasty.push({
+    name: G.cat.name, emoji: G.cat.emoji, breed: G.cat.breed,
+    gender: G.cat.gender, generation: G.dynasty.length + 1,
+    born: 1, died: null, deathReason: null,
+    maxMoney: 0, career: 'none', famePoints: 0, achievements: 0,
+    children: 0
+  });
+
+  showGameScreen();
+  saveGame();
+}
+
+function getRandomTraits(n) {
+  const shuffled = [...TRAITS_POOL].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, n);
+}
+
+function generateWorldCats() {
+  G.cats = [];
+  for (let i = 0; i < 12; i++) {
+    const isMale = Math.random() > 0.5;
+    G.cats.push({
+      id: 'cat_' + i,
+      name: isMale ? CAT_NAMES_M[i % CAT_NAMES_M.length] : CAT_NAMES_F[i % CAT_NAMES_F.length],
+      emoji: CAT_EMOJIS[Math.floor(Math.random() * CAT_EMOJIS.length)],
+      gender: isMale ? 'male' : 'female',
+      location: Object.keys(LOCATIONS)[Math.floor(Math.random() * 4)],
+      affection: 0, met: false,
+      personality: TRAITS_POOL[Math.floor(Math.random() * TRAITS_POOL.length)],
+      age: Math.floor(Math.random() * 5) + 1
+    });
+  }
+}
+
+function generateWorldHumans() {
+  G.humans = [];
+  for (let i = 0; i < 8; i++) {
+    G.humans.push({
+      id: 'human_' + i,
+      name: HUMAN_NAMES[i % HUMAN_NAMES.length],
+      emoji: ['👤', '👨', '👩', '🧓', '👴', '👵', '🧑', '👦'][i],
+      affection: 0, met: false,
+      type: ['owner', 'feeder', 'passerby', 'vet', 'groomer', 'neighbor', 'tourist', 'child'][i],
+      canAdopt: i < 3
+    });
+  }
+}
+
+// ============================================
+// SCREEN MANAGEMENT
+// ============================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.style.display = 'none';
+    s.classList.remove('active');
+  });
+  const s = document.getElementById(id);
+  if (s) { s.style.display = 'flex'; s.classList.add('active'); }
+}
+
+function showGameScreen() {
+  showScreen('game-screen');
+  updateUI();
+  renderEventLog();
+  renderWorld();
+  renderSocial();
+  renderCareer();
+  renderShop();
+}
+
+// ============================================
+// UI UPDATE
+// ============================================
+function updateUI() {
+  const c = G.cat;
+  const loc = LOCATIONS[c.location];
+  const stage = getLifeStage();
+
+  document.getElementById('header-emoji').textContent = c.emoji;
+  document.getElementById('header-name').textContent = c.name;
+  document.getElementById('cat-avatar-main').childNodes[0].textContent = c.emoji;
+  document.getElementById('cat-name-display').textContent = c.name;
+  document.getElementById('cat-meta-display').textContent = `${c.breed} • ${stage.name} • ${c.isAdopted ? 'Doméstico' : 'Callejero'}`;
+  document.getElementById('location-badge').textContent = `📍 ${loc.name}`;
+  document.getElementById('career-badge').textContent = c.career ? `💼 ${CAREERS[c.career]?.name}` : '💼 Sin trabajo';
+  document.getElementById('money-display').textContent = c.money;
+  document.getElementById('day-display').textContent = G.day;
+  document.getElementById('next-day-num').textContent = G.day + 1;
+  document.getElementById('age-display').textContent = `${stage.name} (${Math.floor(c.age / 30)}m)`;
+
+  const sInfo = SEASONS[G.season];
+  document.getElementById('season-display').textContent = sInfo.name;
+
+  // Mood
+  const mood = getMood();
+  document.getElementById('mood-indicator').textContent = mood;
+
+  // Stats
+  const stats = ['health', 'happy', 'hunger', 'energy', 'social', 'hygiene'];
+  stats.forEach(s => {
+    const val = Math.max(0, Math.min(100, Math.round(c.stats[s])));
+    document.getElementById('stat-' + s).style.width = val + '%';
+    document.getElementById('stat-' + s + '-val').textContent = val;
+  });
+}
+
+function getMood() {
+  const avg = (G.cat.stats.happy + G.cat.stats.health + G.cat.stats.hunger) / 3;
+  if (avg >= 80) return '😻';
+  if (avg >= 60) return '😺';
+  if (avg >= 40) return '😾';
+  if (avg >= 20) return '😿';
+  return '🙀';
+}
+
+function getLifeStage() {
+  const age = G.cat.age;
+  return LIFE_STAGES.find(s => age >= s.minAge && age <= s.maxAge) || LIFE_STAGES[2];
+}
+
+// ============================================
+// ACTIONS
+// ============================================
+function doAction(type) {
+  if (G.dayActions >= G.maxDayActions) {
+    showToast('⏰ Has agotado las acciones de hoy. ¡Pasa al siguiente día!', 'bad');
+    return;
+  }
+
+  const c = G.cat;
+  let msg = '', type2 = 'neutral';
+
+  switch (type) {
+    case 'eat': {
+      if (c.stats.hunger >= 100) { showToast('¡Ya estás lleno! 🍖', 'neutral'); return; }
+      const foodAmount = c.isAdopted ? 30 : 20;
+      c.stats.hunger = Math.min(100, c.stats.hunger + foodAmount);
+      c.stats.health = Math.min(100, c.stats.health + 5);
+      if (!c.isAdopted && c.money >= 3) {
+        c.money -= 3;
+        msg = `🍖 Compras comida y comes satisfecho. (-3💰)`;
+      } else if (!c.isAdopted) {
+        const found = Math.random() > 0.4;
+        if (found) msg = `🗑️ Encuentras comida en los contenedores. ¡No está mal!`;
+        else { c.stats.hunger = Math.max(0, c.stats.hunger - 5); msg = `😿 Buscas comida pero no encuentras nada.`; type2 = 'bad'; }
+      } else {
+        msg = `😻 Tu familia te pone comida deliciosa. ¡Delicioso!`;
+      }
+      type2 = 'good';
+      break;
+    }
+    case 'sleep': {
+      const gain = c.inventory.some(i => i.id === 'bed') ? 50 : 30;
+      c.stats.energy = Math.min(100, c.stats.energy + gain);
+      c.stats.health = Math.min(100, c.stats.health + 5);
+      c.stats.happy = Math.min(100, c.stats.happy + 5);
+      msg = `😴 Duermes plácidamente y recuperas energías. +${gain} energía.`;
+      type2 = 'good';
+      break;
+    }
+    case 'play': {
+      if (c.stats.energy < 15) { showToast('¡Estás muy cansado para jugar! 😴', 'bad'); return; }
+      c.stats.energy = Math.max(0, c.stats.energy - 15);
+      c.stats.happy = Math.min(100, c.stats.happy + 20);
+      c.stats.social = Math.min(100, c.stats.social + 10);
+      c.skills.agility = Math.min(100, c.skills.agility + 2);
+      const hasToy = c.inventory.some(i => i.id === 'toy_ball');
+      msg = hasToy ? `🧶 Juegas con tu pelota favorita. ¡El mejor día de tu vida!` : `🐾 Persigues tu sombra y cazas pelusa. ¡Divertidísimo!`;
+      type2 = 'good';
+      break;
+    }
+    case 'groom': {
+      c.stats.hygiene = Math.min(100, c.stats.hygiene + 25);
+      c.stats.happy = Math.min(100, c.stats.happy + 8);
+      c.skills.charm = Math.min(100, c.skills.charm + 2);
+      msg = `🪮 Te lavas cuidadosamente. ¡Estás impecable!`;
+      type2 = 'good';
+      break;
+    }
+    case 'explore': {
+      if (c.stats.energy < 20) { showToast('¡Necesitas más energía para explorar! ⚡', 'bad'); return; }
+      c.stats.energy = Math.max(0, c.stats.energy - 20);
+      c.age++;
+      const result = triggerExploreEvent();
+      msg = result.msg;
+      type2 = result.type;
+      break;
+    }
+    case 'hunt': {
+      if (c.stats.energy < 25) { showToast('¡Necesitas más energía para cazar! ⚡', 'bad'); return; }
+      c.stats.energy = Math.max(0, c.stats.energy - 25);
+      const success = Math.random() < 0.4 + (c.skills.agility / 200);
+      if (success) {
+        const prey = ['ratón', 'pájaro', 'lagartija', 'insecto'][Math.floor(Math.random() * 4)];
+        c.stats.hunger = Math.min(100, c.stats.hunger + 20);
+        c.stats.happy = Math.min(100, c.stats.happy + 15);
+        c.skills.agility = Math.min(100, c.skills.agility + 3);
+        c.skills.stealth = Math.min(100, c.skills.stealth + 2);
+        msg = `🎯 ¡Cazas un ${prey} con maestría! ¡Instinto felino al máximo!`;
+        type2 = 'good';
+        unlockAchievement('first_hunt');
+      } else {
+        c.stats.happy = Math.max(0, c.stats.happy - 5);
+        msg = `😿 La presa escapa por los pelos. Mejor suerte mañana.`;
+        type2 = 'bad';
+      }
+      break;
+    }
+    case 'socialize': {
+      if (c.stats.energy < 10) { showToast('Estás demasiado cansado. 😴', 'bad'); return; }
+      c.stats.energy = Math.max(0, c.stats.energy - 10);
+      const result = triggerSocialEvent();
+      msg = result.msg;
+      type2 = result.type;
+      break;
+    }
+    case 'train': {
+      if (c.stats.energy < 30) { showToast('¡Necesitas más energía para entrenar! ⚡', 'bad'); return; }
+      c.stats.energy = Math.max(0, c.stats.energy - 30);
+      const skill = Object.keys(c.skills)[Math.floor(Math.random() * Object.keys(c.skills).length)];
+      const gain = Math.floor(Math.random() * 5) + 3;
+      c.skills[skill] = Math.min(100, c.skills[skill] + gain);
+      c.stats.happy = Math.min(100, c.stats.happy - 5);
+      msg = `🎯 Entrenas con dedicación. +${gain} en ${skill}!`;
+      type2 = 'good';
+      break;
+    }
+  }
+
+  G.dayActions++;
+  addLog(msg, type2);
+  checkStats();
+  updateUI();
+  checkAchievements();
+}
+
+function triggerExploreEvent() {
+  const loc = LOCATIONS[G.cat.location];
+  const events = getLocationEvents(loc.events);
+  const ev = events[Math.floor(Math.random() * events.length)];
+  applyEventEffects(ev.effects);
+  return { msg: ev.msg, type: ev.type };
+}
+
+function getLocationEvents(zone) {
+  const c = G.cat;
+  const baseEvents = [
+    { msg: `🌆 Exploras tu barrio y descubres nuevos rincones.`, type: 'neutral', effects: { happy: 5 } },
+    { msg: `🐾 Cruzas el tejado de un vecino y te persiguen. ¡Escapas justo a tiempo!`, type: 'neutral', effects: { agility: 2 } },
+    { msg: `☀️ Te tumbes en un lugar soleado y disfrutas del día.`, type: 'good', effects: { happy: 10, energy: 5 } },
+    { msg: `🐶 Un perro te ladra agresivamente. ¡Saltas alto y escapas!`, type: 'bad', effects: { health: -5, happy: -5, agility: 3 } },
+    { msg: `👋 Un vecino amable te da una golosina. ¡Delicioso!`, type: 'good', effects: { hunger: 15, happy: 10 } },
+    { msg: `💰 Encuentras unas monedas abandonadas.`, type: 'good', effects: { money: rand(2, 8) } },
+    { msg: `🌧️ Te sorprende la lluvia. Llegas empapado a casa.`, type: 'bad', effects: { hygiene: -15, happy: -10, health: -5 } },
+    { msg: `🎵 Escuchas música y te quedas escuchando un rato. Muy relajante.`, type: 'neutral', effects: { happy: 8 } },
+  ];
+
+  const zoneEvents = {
+    street: [
+      { msg: `🗑️ Revisas los contenedores y encuentras sobras decentes.`, type: 'good', effects: { hunger: 20 } },
+      { msg: `⚔️ Un gato callejero te desafía. ¡Das la pelea!`, type: 'bad', effects: { health: -10, skills_strength: 3 } },
+      { msg: `🚗 Un coche pasa muy cerca y te asustas.`, type: 'bad', effects: { happy: -8, health: -3 } },
+      { msg: `👦 Un niño te da de comer chips. No es lo mejor pero no está mal.`, type: 'neutral', effects: { hunger: 10, happy: 5 } },
+      { msg: `🌃 Descubres un callejón secreto con otros gatos callejeros.`, type: 'special', effects: { social: 15, skills_stealth: 3 } },
+    ],
+    park: [
+      { msg: `🦢 Persigues palomas en el parque. ¡Volaron antes de que llegaras!`, type: 'good', effects: { happy: 15, skills_agility: 2 } },
+      { msg: `🌳 Te subes al árbol más alto y ves toda la ciudad.`, type: 'good', effects: { happy: 20, skills_agility: 3 } },
+      { msg: `👶 Un bebé te ve y se pone a reír. ¡Adorable!`, type: 'good', effects: { happy: 15, social: 5 } },
+      { msg: `🐕 El perro de un paseante te persigue. ¡Trepas rápido!`, type: 'bad', effects: { health: -5, skills_agility: 4 } },
+    ],
+    harbor: [
+      { msg: `🐟 Los pescadores te dan las sobras del día. ¡Festín!`, type: 'good', effects: { hunger: 35, happy: 10 } },
+      { msg: `⚡ Las gaviotas se pelean por tu comida.`, type: 'bad', effects: { hunger: -10, happy: -5 } },
+      { msg: `🚢 Te cuelas en un barco y viajas sin querer a otra zona.`, type: 'special', effects: { famePoints: 2, happy: 20 } },
+      { msg: `💨 El viento del mar te despeina pero te refresca.`, type: 'neutral', effects: { energy: 10, hygiene: -5 } },
+    ],
+    mansion: [
+      { msg: `👑 Te cuelas en la mansión y te encuentras con gatos persas de lujo.`, type: 'special', effects: { social: 20, skills_charm: 5 } },
+      { msg: `🍣 Un mayordomo te ofrece salmón. ¡La vida buena!`, type: 'good', effects: { hunger: 40, happy: 20 } },
+      { msg: `🔔 El sistema de seguridad te detecta. ¡Huyes!`, type: 'bad', effects: { energy: -15, happy: -5 } },
+    ],
+    market: [
+      { msg: `🛒 Te acuerdas de robar un trozo de merluza del mercado.`, type: 'good', effects: { hunger: 25, reputation: -2 } },
+      { msg: `👨‍🍳 Un chef te regala las sobras del día. ¡Variedad de sabores!`, type: 'good', effects: { hunger: 30, happy: 15 } },
+    ],
+    rooftop: [
+      { msg: `🌅 Ves el amanecer desde los tejados. Mágico.`, type: 'special', effects: { happy: 25, famePoints: 1 } },
+      { msg: `😰 Casi te caes del tejado. ¡Qué susto!`, type: 'bad', effects: { health: -10, energy: -10 } },
+    ],
+    studio: [
+      { msg: `🎬 Un director de casting te ve y te ofrece una prueba de pantalla.`, type: 'special', effects: { famePoints: 5, money: 20 } },
+      { msg: `📸 Apareces de fondo en un rodaje. ¡Primer paso a la fama!`, type: 'good', effects: { famePoints: 3, money: 10 } },
+    ],
+    shelter: [
+      { msg: `🏠 Una familia te ve en el refugio. ¡Parece que gustan de ti!`, type: 'special', effects: { social: 15, reputation: 5 } },
+    ],
+    farm: [
+      { msg: `🐀 Cazas tres ratones de la granja. El granjero queda impresionado.`, type: 'good', effects: { hunger: 30, skills_strength: 5, money: rand(3,8) } },
+      { msg: `🐄 Las vacas te miran extraño. Tú también a ellas.`, type: 'neutral', effects: { happy: 5 } },
+    ]
+  };
+
+  return [...baseEvents, ...(zoneEvents[zone] || [])];
+}
+
+function triggerSocialEvent() {
+  const metCats = G.cats.filter(c => c.met);
+  const unmetCats = G.cats.filter(c => !c.met && c.location === G.cat.location);
+
+  if (unmetCats.length > 0 && Math.random() > 0.3) {
+    const cat = unmetCats[Math.floor(Math.random() * unmetCats.length)];
+    cat.met = true;
+    cat.affection = 10;
+    G.cat.stats.social = Math.min(100, G.cat.stats.social + 15);
+    G.cat.stats.happy = Math.min(100, G.cat.stats.happy + 10);
+    unlockAchievement('social_butterfly');
+    renderSocial();
+    return { msg: `🐱 Conoces a ${cat.emoji} ${cat.name}, un gato ${cat.personality}. ¡Nuevo amigo!`, type: 'good' };
+  } else if (metCats.length > 0) {
+    const cat = metCats[Math.floor(Math.random() * metCats.length)];
+    cat.affection = Math.min(100, cat.affection + 10);
+    G.cat.stats.social = Math.min(100, G.cat.stats.social + 8);
+    G.cat.stats.happy = Math.min(100, G.cat.stats.happy + 8);
+
+    // Romance check
+    if (cat.affection >= 50 && cat.gender !== G.cat.gender && !G.cat.family.partner) {
+      if (Math.random() > 0.5) {
+        G.cat.family.partner = cat;
+        unlockAchievement('first_love');
+        renderSocial();
+        return { msg: `💕 Tu relación con ${cat.name} se hace más profunda. ¡Ahora son pareja!`, type: 'special' };
+      }
+    }
+
+    // Pregnancy check
+    if (G.cat.family.partner && !G.cat.isPregnant && G.cat.family.partner.id === cat.id) {
+      if (Math.random() > 0.7) {
+        if (G.cat.gender === 'female') {
+          G.cat.isPregnant = true;
+          G.cat.pregnancyDays = 0;
+          return { msg: `🤰 ¡Sorpresa! Estás esperando crías con ${cat.name}. Faltan ~30 días.`, type: 'special' };
+        }
+      }
+    }
+
+    return { msg: `🐾 Pasas tiempo de calidad con ${cat.emoji} ${cat.name}. ¡Buena amistad!`, type: 'good' };
+  } else {
+    G.cat.stats.social = Math.min(100, G.cat.stats.social + 5);
+    G.cat.stats.happy = Math.max(0, G.cat.stats.happy - 5);
+    return { msg: `😿 Buscas compañía pero no hay nadie conocido por aquí.`, type: 'neutral' };
+  }
+}
+
+function applyEventEffects(effects) {
+  if (!effects) return;
+  const c = G.cat;
+  if (effects.health) c.stats.health = Math.max(0, Math.min(100, c.stats.health + effects.health));
+  if (effects.happy) c.stats.happy = Math.max(0, Math.min(100, c.stats.happy + effects.happy));
+  if (effects.hunger) c.stats.hunger = Math.max(0, Math.min(100, c.stats.hunger + effects.hunger));
+  if (effects.energy) c.stats.energy = Math.max(0, Math.min(100, c.stats.energy + effects.energy));
+  if (effects.social) c.stats.social = Math.max(0, Math.min(100, c.stats.social + effects.social));
+  if (effects.hygiene) c.stats.hygiene = Math.max(0, Math.min(100, c.stats.hygiene + effects.hygiene));
+  if (effects.money) c.money = Math.max(0, c.money + effects.money);
+  if (effects.reputation) c.reputation = Math.max(0, c.reputation + effects.reputation);
+  if (effects.famePoints) c.famePoints = Math.max(0, c.famePoints + effects.famePoints);
+  if (effects.skills_agility) c.skills.agility = Math.min(100, c.skills.agility + effects.skills_agility);
+  if (effects.skills_stealth) c.skills.stealth = Math.min(100, c.skills.stealth + effects.skills_stealth);
+  if (effects.skills_charm) c.skills.charm = Math.min(100, c.skills.charm + effects.skills_charm);
+  if (effects.skills_strength) c.skills.strength = Math.min(100, c.skills.strength + effects.skills_strength);
+}
+
+// ============================================
+// NEXT DAY
+// ============================================
+function nextDay() {
+  G.day++;
+  G.dayActions = 0;
+  G.cat.age++;
+
+  // Season change
+  const seasonOrder = ['spring', 'summer', 'autumn', 'winter'];
+  const seasonIdx = Math.floor((G.day - 1) / 90) % 4;
+  G.season = seasonOrder[seasonIdx];
+
+  // Daily stat decay
+  const c = G.cat;
+  c.stats.hunger = Math.max(0, c.stats.hunger - rand(10, 20));
+  c.stats.energy = Math.max(0, c.stats.energy - rand(5, 15));
+  c.stats.hygiene = Math.max(0, c.stats.hygiene - rand(5, 10));
+  c.stats.social = Math.max(0, c.stats.social - rand(3, 8));
+  if (c.stats.hunger < 30) c.stats.health = Math.max(0, c.stats.health - 5);
+  if (c.stats.energy < 20) c.stats.happy = Math.max(0, c.stats.happy - 5);
+
+  // Career income
+  if (c.career && c.career !== 'none') {
+    const careerData = CAREERS[c.career];
+    const income = Math.floor(careerData.salary * (1 + c.careerLevel * 0.3));
+    c.money += income;
+    c.careerXP += rand(10, 25);
+    if (c.careerXP >= 100 * (c.careerLevel + 1)) {
+      c.careerXP = 0;
+      c.careerLevel++;
+      addLog(`🎉 ¡Subiste al nivel ${c.careerLevel} como ${careerData.name}! Tu salario aumenta.`, 'special');
+      if (c.career === 'actor' && c.careerLevel >= 5) unlockAchievement('actor_star');
+    }
+    addLog(`💼 Trabajas como ${careerData.name}. Ganas ${income}💰.`, 'good');
+  }
+
+  // Pregnancy progress
+  if (c.isPregnant) {
+    c.pregnancyDays++;
+    if (c.pregnancyDays >= 30) {
+      c.isPregnant = false;
+      c.pregnancyDays = 0;
+      const kittenCount = rand(1, 5);
+      for (let i = 0; i < kittenCount; i++) {
+        const isMale = Math.random() > 0.5;
+        const kitten = {
+          id: 'child_' + Date.now() + i,
+          name: isMale ? CAT_NAMES_M[Math.floor(Math.random() * CAT_NAMES_M.length)] : CAT_NAMES_F[Math.floor(Math.random() * CAT_NAMES_F.length)],
+          emoji: CAT_EMOJIS[Math.floor(Math.random() * CAT_EMOJIS.length)],
+          gender: isMale ? 'male' : 'female',
+          generation: G.dynasty.length
+        };
+        c.family.children.push(kitten);
+      }
+      c.stats.happy = Math.min(100, c.stats.happy + 20);
+      addLog(`🐣 ¡Han nacido ${kittenCount} gatito(s)! Tu familia crece. Bienvenidos al mundo.`, 'special');
+      unlockAchievement('parent');
+      G.dynasty[G.dynasty.length - 1].children += kittenCount;
+      renderSocial();
+    }
+  }
+
+  // Random daily events
+  triggerDailyRandomEvent();
+
+  // Weather event
+  if (Math.random() < SEASONS[G.season].weatherRisk) {
+    triggerWeatherEvent();
+  }
+
+  // Fame events
+  if (c.famePoints > 10 && Math.random() > 0.85) {
+    triggerFameEvent();
+  }
+
+  // Life stage change
+  const oldStage = c.stage;
+  c.stage = getLifeStage().stage;
+  if (oldStage !== c.stage) {
+    addLog(`🎂 ¡${c.name} ha crecido! Ahora es un gato ${getLifeStage().name}.`, 'special');
+  }
+
+  // Dynasty record update
+  if (G.dynasty.length > 0) {
+    const last = G.dynasty[G.dynasty.length - 1];
+    last.maxMoney = Math.max(last.maxMoney, c.money);
+    last.famePoints = c.famePoints;
+    last.achievements = c.achievements?.filter(a => a.unlocked).length || 0;
+    if (c.career) last.career = c.career;
+  }
+
+  // Check for adoption offer
+  if (!c.isAdopted && c.reputation > 20 && G.day % 30 === 0) {
+    triggerAdoptionOffer();
+  }
+
+  // Check death
+  checkStats();
+  updateUI();
+  renderEventLog();
+  renderCareer();
+  checkAchievements();
+  saveGame();
+
+  // Scroll to top
+  document.querySelector('.scroll-area')?.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function triggerDailyRandomEvent() {
+  const events = [
+    { chance: 0.15, fn: () => {
+        const gain = rand(3, 15);
+        G.cat.money += gain;
+        addLog(`💰 Alguien te da una propina por ser tan mono. +${gain}💰`, 'good');
+    }},
+    { chance: 0.1, fn: () => {
+        const loss = rand(5, 15);
+        G.cat.stats.health = Math.max(0, G.cat.stats.health - loss);
+        addLog(`🤧 Te resfrías por el frío de la noche. -${loss} Salud.`, 'bad');
+    }},
+    { chance: 0.08, fn: () => {
+        G.cat.stats.happy = Math.min(100, G.cat.stats.happy + 20);
+        addLog(`🌈 El día amanece perfecto. Algo en el ambiente te hace sentir bien.`, 'good');
+    }},
+    { chance: 0.07, fn: () => {
+        const skill = Object.keys(G.cat.skills)[Math.floor(Math.random() * 5)];
+        G.cat.skills[skill] = Math.min(100, G.cat.skills[skill] + rand(3, 7));
+        addLog(`✨ Tienes un momento de inspiración. Mejoras tu ${skill}.`, 'good');
+    }},
+    { chance: 0.06, fn: () => {
+        if (G.cat.stats.health < 70) {
+          G.cat.stats.health = Math.min(100, G.cat.stats.health - 10);
+          addLog(`🦠 Tu sistema inmune está débil. Enfermas ligeramente.`, 'bad');
+        }
+    }},
+    { chance: 0.05, fn: () => {
+        G.cat.famePoints += rand(1, 3);
+        addLog(`📱 Una foto tuya circula en redes sociales. ¡Tu fama crece!`, 'special');
+        unlockAchievement('celebrity');
+    }},
+    { chance: 0.04, fn: () => {
+        if (G.cat.lives > 1 && G.cat.stats.health < 20) {
+          G.cat.lives--;
+          G.cat.stats.health = 50;
+          addLog(`😱 ¡Una situación peligrosa! Pierdes una vida. Te quedan ${G.cat.lives}.`, 'bad');
+          unlockAchievement('nine_lives');
+        }
+    }},
+    { chance: 0.03, fn: () => {
+        addLog(`🎭 Un extraño te hace una propuesta de trabajo inusual...`, 'special');
+        G.pendingSpecialEvent = {
+          icon: '🎭',
+          title: '¡Oferta misteriosa!',
+          desc: 'Un hombre de traje te ofrece protagonizar un anuncio de comida de gatos. ¿Aceptas?',
+          options: [
+            { text: '✅ Acepto', fn: () => { G.cat.famePoints += 5; G.cat.money += 30; addLog('🌟 ¡Protagonizas el anuncio! +5 Fama, +30💰', 'special'); } },
+            { text: '❌ Rechazo', fn: () => { addLog('🐾 Prefieres tu libertad. La fama puede esperar.', 'neutral'); } }
+          ]
+        };
+        showSpecialEventBanner();
+    }},
+  ];
+
+  for (const ev of events) {
+    if (Math.random() < ev.chance) { ev.fn(); break; }
+  }
+}
+
+function triggerWeatherEvent() {
+  const season = G.season;
+  const weatherEvents = {
+    winter: [
+      { msg: `❄️ Una nevada cubre la ciudad. Buscas refugio bajo un coche.`, effects: { health: -8, hunger: -10, hygiene: -10 } },
+      { msg: `🌨️ Hace tanto frío que te cuesta salir. Día difícil.`, effects: { energy: -15, happy: -10 } }
+    ],
+    summer: [
+      { msg: `☀️ El calor es agobiante. Buscas sombra y agua.`, effects: { energy: -10, health: -5 } },
+      { msg: `🌡️ Temperatura récord. Te tumbas al fresco toda la tarde.`, effects: { energy: 20, happy: 5 } }
+    ],
+    autumn: [
+      { msg: `🍂 La lluvia otoñal te pilla a descubierto.`, effects: { hygiene: -15, health: -5 } },
+      { msg: `🌬️ Un viento fuerte te hace rodar por el suelo. ¡Qué día!`, effects: { happy: -5, energy: -5 } }
+    ],
+    spring: [
+      { msg: `🌸 La primavera trae nuevos aromas y mariposas que perseguir.`, effects: { happy: 15 } },
+      { msg: `🌧️ Una lluvia de primavera te refresca.`, effects: { hygiene: 10, happy: -5 } }
+    ]
+  };
+  const evs = weatherEvents[season] || weatherEvents.spring;
+  const ev = evs[Math.floor(Math.random() * evs.length)];
+  applyEventEffects(ev.effects);
+  addLog(ev.msg, ev.effects.health < 0 ? 'bad' : 'neutral');
+}
+
+function triggerFameEvent() {
+  const events = [
+    () => { G.cat.money += rand(20, 50); addLog(`💰 Recibes regalías de merchandising. +${rand(20,50)}💰`, 'good'); },
+    () => { G.cat.famePoints += rand(2, 5); addLog(`📺 Apareces en un programa de televisión local. ¡Tu fama crece!`, 'special'); },
+    () => { G.cat.stats.happy = Math.min(100, G.cat.stats.happy + 20); addLog(`😻 Fans te reconocen en la calle y te abrazan. ¡Adorable!`, 'good'); },
+    () => { addLog(`📰 Un periódico publica un artículo sobre ti. "El gato más famoso del barrio".`, 'special'); G.cat.famePoints++; },
+  ];
+  events[Math.floor(Math.random() * events.length)]();
+}
+
+function triggerAdoptionOffer() {
+  G.pendingSpecialEvent = {
+    icon: '🏠',
+    title: '¡Oferta de Adopción!',
+    desc: 'Una familia te ha estado observando. Te ofrecen un hogar cálido, comida asegurada y mucho amor. ¿Aceptas ser adoptado?',
+    options: [
+      { text: '🏠 ¡Acepto! Quiero un hogar', fn: () => {
+        G.cat.isAdopted = true;
+        G.cat.home = 'cozy_home';
+        G.cat.stats.happy = Math.min(100, G.cat.stats.happy + 30);
+        G.cat.stats.health = Math.min(100, G.cat.stats.health + 20);
+        unlockAchievement('adopted');
+        addLog(`🏠 ¡Tienes un hogar! La familia te recibe con los brazos abiertos. Tu vida cambia para siempre.`, 'special');
+      }},
+      { text: '🌆 Prefiero ser libre', fn: () => {
+        addLog(`🐾 Decides mantener tu libertad callejera. La calle es tu hogar.`, 'neutral');
+        G.cat.reputation += 5;
+      }}
+    ]
+  };
+  showSpecialEventBanner();
+}
+
+function showSpecialEventBanner() {
+  if (!G.pendingSpecialEvent) return;
+  const banner = document.getElementById('special-event-banner');
+  banner.classList.remove('hidden');
+  document.getElementById('se-icon').textContent = G.pendingSpecialEvent.icon;
+  document.getElementById('se-title').textContent = G.pendingSpecialEvent.title;
+  document.getElementById('se-desc').textContent = G.pendingSpecialEvent.desc;
+}
+
+function handleSpecialEvent() {
+  if (!G.pendingSpecialEvent) return;
+  const ev = G.pendingSpecialEvent;
+  document.getElementById('special-event-banner').classList.add('hidden');
+  showChoiceModal(ev.icon, ev.title, ev.desc, ev.options);
+  G.pendingSpecialEvent = null;
+}
+
+// ============================================
+// STATS & DEATH CHECK
+// ============================================
+function checkStats() {
+  const c = G.cat;
+  // Starvation
+  if (c.stats.hunger <= 0) {
+    c.stats.health = Math.max(0, c.stats.health - 10);
+    if (c.stats.health <= 0) { die('Murió de hambre'); return; }
+  }
+  // Disease
+  if (c.stats.health <= 0) { die('Murió de enfermedad'); return; }
+  // Old age
+  if (c.stage === 'elder' && Math.random() < 0.01) { die('Murió de vejez'); return; }
+  // Happiness
+  if (c.stats.happy <= 5 && c.stats.health < 30) {
+    addLog(`😢 ${c.name} está profundamente triste y debilitado...`, 'bad');
+  }
+}
+
+function die(reason) {
+  G.cat.isAlive = false;
+  G.cat.deathReason = reason;
+  if (G.dynasty.length > 0) {
+    const last = G.dynasty[G.dynasty.length - 1];
+    last.died = G.day;
+    last.deathReason = reason;
+  }
+  showDeathScreen(reason);
+}
+
+function showDeathScreen(reason) {
+  const c = G.cat;
+  document.getElementById('death-emoji').textContent = c.emoji;
+  document.getElementById('death-message').textContent = reason;
+  const statsDiv = document.getElementById('death-stats');
+  statsDiv.innerHTML = `
+    <div class="death-stat-item"><span>Nombre</span><span>${c.name}</span></div>
+    <div class="death-stat-item"><span>Raza</span><span>${c.breed}</span></div>
+    <div class="death-stat-item"><span>Días vividos</span><span>${G.day}</span></div>
+    <div class="death-stat-item"><span>Estación de muerte</span><span>${SEASONS[G.season].name}</span></div>
+    <div class="death-stat-item"><span>Dinero acumulado</span><span>${c.money}💰</span></div>
+    <div class="death-stat-item"><span>Hijos</span><span>${c.family.children.length}</span></div>
+    <div class="death-stat-item"><span>Fama</span><span>${c.famePoints}⭐</span></div>
+    <div class="death-stat-item"><span>Carrera</span><span>${c.career ? CAREERS[c.career]?.name : 'Ninguna'}</span></div>
+    <div class="death-stat-item"><span>Logros</span><span>${c.achievements?.filter(a=>a.unlocked).length || 0}/15</span></div>
+    <div class="death-stat-item"><span>Generación</span><span>${G.dynasty.length}</span></div>
+  `;
+  saveGame();
+  showScreen('death-screen');
+}
+
+function showDynasty() {
+  showScreen('game-screen');
+  switchTab('social', document.querySelector('.nav-btn:nth-child(3)'));
+  setTimeout(() => {
+    switchSocialTab('dynasty', document.querySelector('.tab:last-child'));
+  }, 100);
+}
+
+function newLife() {
+  // Continue dynasty with a child if possible
+  const children = G.cat.family.children;
+  if (children.length > 0) {
+    const child = children[0];
+    showChoiceModal('🐣', '¿Continuar la dinastía?',
+      `${child.name} puede continuar la historia familiar. ¿Juegas como ${child.name} o empiezas de cero?`,
+      [
+        { text: `🐱 Jugar como ${child.name}`, fn: () => inheritLife(child) },
+        { text: '🔄 Nueva historia', fn: () => resetGame() }
+      ]
+    );
+  } else {
+    resetGame();
+  }
+}
+
+function inheritLife(child) {
+  const prevMoney = Math.floor(G.cat.money * 0.3);
+  const prevRep = Math.floor(G.cat.reputation * 0.2);
+  resetGame(true, child, prevMoney, prevRep);
+}
+
+function resetGame(isInheritance = false, inheritCat = null, inheritMoney = 0, inheritRep = 0) {
+  const oldDynasty = [...G.dynasty];
+  G = {
+    cat: {
+      name: inheritCat?.name || 'Michi', emoji: inheritCat?.emoji || '🐱',
+      gender: inheritCat?.gender || 'male', breed: 'Mestizo', origin: 'stray',
+      age: 0, stage: 'kitten',
+      stats: { health: 80, happy: 70, hunger: 80, energy: 80, social: 60, hygiene: 85 },
+      skills: { agility: 10, stealth: 10, charm: 10, intelligence: 10, strength: 10 },
+      traits: [], location: 'street_north', home: null,
+      career: null, careerLevel: 0, careerXP: 0,
+      money: isInheritance ? inheritMoney : 0, lives: 9,
+      inventory: [],
+      relationships: [],
+      family: { parents: [], children: [], partner: null, siblings: [] },
+      achievements: ACHIEVEMENTS.map(a => ({ ...a })),
+      isAlive: true, deathReason: '',
+      famePoints: 0, reputation: isInheritance ? inheritRep : 0,
+      pregnancyDays: 0, isPregnant: false,
+      hasCollar: false, isAdopted: false, specialStatus: null
+    },
+    day: 1, season: 'spring', year: 1,
+    world: { weatherRisk: 0.1, eventQueue: [] },
+    dynasty: oldDynasty,
+    log: [], settings: G.settings,
+    eventFilter: 'all', activeTab: 'home',
+    activeSocialTab: 'cats', activeShopTab: 'items',
+    pendingSpecialEvent: null, cats: [], humans: [],
+    unlockedLocations: ['street_north'],
+    dayActions: 0, maxDayActions: 5
+  };
+
+  if (isInheritance) {
+    addLog(`👑 ${G.cat.name} hereda la historia familiar. La dinastía continúa.`, 'special');
+  }
+
+  generateWorldCats();
+  generateWorldHumans();
+  G.cat.traits = getRandomTraits(2);
+  G.dynasty.push({
+    name: G.cat.name, emoji: G.cat.emoji, breed: G.cat.breed,
+    gender: G.cat.gender, generation: G.dynasty.length + 1,
+    born: 1, died: null, deathReason: null,
+    maxMoney: 0, career: 'none', famePoints: 0, achievements: 0, children: 0
+  });
+  addLog(`🐾 ¡Nace ${G.cat.name}! Generación ${G.dynasty.length} de la dinastía.`, 'special');
+  showGameScreen();
+  saveGame();
+}
+
+// ============================================
+// RENDERING
+// ============================================
+function renderEventLog() {
+  const container = document.getElementById('event-log');
+  const filter = G.eventFilter;
+  let logs = G.log;
+  if (filter !== 'all') logs = logs.filter(l => l.type === filter);
+  logs = logs.slice(-20).reverse();
+
+  container.innerHTML = logs.length === 0
+    ? '<div class="loading">No hay eventos en esta categoría.</div>'
+    : logs.map(l => `
+      <div class="event-item ${l.type}">
+        <div class="event-day">Día ${l.day}</div>
+        ${l.msg}
+      </div>`).join('');
+}
+
+function renderWorld() {
+  const list = document.getElementById('locations-list');
+  const current = G.cat.location;
+  list.innerHTML = '';
+
+  Object.entries(LOCATIONS).forEach(([id, loc]) => {
+    if (id === current) return;
+    const unlocked = G.unlockedLocations.includes(id) || loc.accessible;
+    const canVisit = unlocked;
+    const cost = loc.unlockCost || 0;
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div class="location-card" style="cursor:pointer;opacity:${canVisit ? 1 : 0.6};" onclick="${canVisit ? `travelTo('${id}')` : cost > 0 ? `unlockLocation('${id}',${cost})` : ''}">
+        <div class="location-icon">${loc.icon}</div>
+        <div class="location-info">
+          <div class="location-name">${loc.name}</div>
+          <div class="location-type">${loc.type}</div>
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+            <span class="chip ${loc.danger > 0.4 ? 'red' : loc.danger > 0.2 ? 'blue' : 'green'}">⚠️ ${loc.danger > 0.4 ? 'Alto' : loc.danger > 0.2 ? 'Medio' : 'Bajo'} Peligro</span>
+            ${!canVisit ? `<span class="chip red">🔒 ${cost > 0 ? cost + '💰 para desbloquear' : 'Bloqueado'}</span>` : '<span class="chip green">✓ Disponible</span>'}
+          </div>
+        </div>
+      </div>`;
+    list.appendChild(div.firstElementChild);
+  });
+
+  // Current location card
+  const locData = LOCATIONS[current];
+  document.getElementById('loc-icon').textContent = locData.icon;
+  document.getElementById('loc-name').textContent = locData.name;
+  document.getElementById('loc-type').textContent = locData.type;
+  document.getElementById('loc-danger').textContent = `⚠️ Peligro: ${locData.danger > 0.4 ? 'Alto' : locData.danger > 0.2 ? 'Medio' : 'Bajo'}`;
+  document.getElementById('loc-food').textContent = `🍖 Comida: ${locData.food > 0.7 ? 'Excelente' : locData.food > 0.4 ? 'Buena' : 'Escasa'}`;
+}
+
+function travelTo(locationId) {
+  const loc = LOCATIONS[locationId];
+  showChoiceModal(loc.icon, `Viajar a ${loc.name}`,
+    `¿Quieres trasladarte a ${loc.name} (${loc.type})? Esto cuenta como una acción del día.`,
+    [
+      { text: `✅ Viajar a ${loc.name}`, fn: () => {
+        G.cat.location = locationId;
+        G.cat.stats.energy = Math.max(0, G.cat.stats.energy - 15);
+        addLog(`🗺️ Viajaste a ${loc.name}. Nuevo territorio, nuevas oportunidades.`, 'neutral');
+        G.dayActions++;
+        updateUI();
+        renderWorld();
+        // Achievement
+        const visited = new Set(G.log.filter(l => l.msg.includes('Viajaste a')).map(l => l.msg));
+        if (visited.size >= 5) unlockAchievement('world_traveler');
+      }},
+      { text: '❌ Cancelar', fn: () => {} }
+    ]
+  );
+}
+
+function unlockLocation(id, cost) {
+  if (G.cat.money < cost) {
+    showToast(`Necesitas ${cost}💰 para desbloquear esta zona.`, 'bad');
+    return;
+  }
+  showChoiceModal('🔓', 'Desbloquear Zona',
+    `¿Gastar ${cost}💰 para explorar ${LOCATIONS[id].name}?`,
+    [
+      { text: `✅ Pagar ${cost}💰`, fn: () => {
+        G.cat.money -= cost;
+        G.unlockedLocations.push(id);
+        addLog(`🔓 Desbloqueaste ${LOCATIONS[id].name}. ¡Nueva zona explorable!`, 'special');
+        updateUI();
+        renderWorld();
+      }},
+      { text: '❌ Cancelar', fn: () => {} }
+    ]
+  );
+}
+
+function renderSocial() {
+  renderSocialCats();
+  renderSocialHumans();
+  renderSocialFamily();
+  renderSocialDynasty();
+}
+
+function renderSocialCats() {
+  const container = document.getElementById('social-cats');
+  const metCats = G.cats.filter(c => c.met);
+  if (metCats.length === 0) {
+    container.innerHTML = '<div class="loading">No has conocido a ningún gato todavía. ¡Socializa!</div>';
+    return;
+  }
+  container.innerHTML = metCats.map(cat => `
+    <div class="rel-item" style="margin-bottom:8px;cursor:pointer;" onclick="interactWithCat('${cat.id}')">
+      <div class="rel-avatar">${cat.emoji}</div>
+      <div class="rel-info">
+        <div class="rel-name">${cat.name} ${G.cat.family.partner?.id === cat.id ? '💕' : ''}</div>
+        <div class="rel-meta">${cat.personality} • ${cat.gender === 'male' ? '♂' : '♀'} • ${cat.age} años</div>
+        <div class="rel-hearts">${'❤️'.repeat(Math.ceil(cat.affection / 20))}</div>
+      </div>
+      <div style="font-size:0.7rem;color:var(--text3);">${cat.affection}%</div>
+    </div>`).join('');
+}
+
+function renderSocialHumans() {
+  const container = document.getElementById('social-humans');
+  const metHumans = G.humans.filter(h => h.met);
+  if (metHumans.length === 0) {
+    container.innerHTML = '<div class="loading">No has conocido a ningún humano todavía.</div>';
+    return;
+  }
+  container.innerHTML = metHumans.map(h => `
+    <div class="rel-item" style="margin-bottom:8px;cursor:pointer;" onclick="interactWithHuman('${h.id}')">
+      <div class="rel-avatar">${h.emoji}</div>
+      <div class="rel-info">
+        <div class="rel-name">${h.name}</div>
+        <div class="rel-meta">${h.type} ${h.canAdopt ? '• Puede adoptar' : ''}</div>
+        <div class="rel-hearts">${'💗'.repeat(Math.ceil(h.affection / 25))}</div>
+      </div>
+      <div style="font-size:0.7rem;color:var(--text3);">${h.affection}%</div>
+    </div>`).join('');
+}
+
+function renderSocialFamily() {
+  const container = document.getElementById('social-family');
+  const c = G.cat;
+  let html = '';
+
+  if (c.family.partner) {
+    html += `<div class="family-member" style="margin-bottom:8px;">
+      <div class="rel-avatar">${c.family.partner.emoji}</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;">${c.family.partner.name}</div>
+        <div style="font-size:0.75rem;color:var(--text2);">Pareja ❤️</div>
+      </div>
+      <span class="family-role">💕 Pareja</span>
+    </div>`;
+  }
+
+  if (c.isPregnant) {
+    html += `<div class="family-member" style="margin-bottom:8px;border-color:var(--pink);">
+      <div class="rel-avatar">🤰</div>
+      <div style="flex:1;"><div style="font-weight:700;">¡En espera!</div>
+      <div style="font-size:0.75rem;color:var(--text2);">Día ${c.pregnancyDays}/30 de embarazo</div></div>
+    </div>`;
+  }
+
+  if (c.family.children.length === 0 && !c.family.partner) {
+    html = '<div class="loading">No tienes familia todavía. ¡Socializa y encuentra pareja!</div>';
+  }
+
+  c.family.children.forEach(child => {
+    html += `<div class="family-member" style="margin-bottom:8px;">
+      <div class="rel-avatar">${child.emoji}</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;">${child.name}</div>
+        <div style="font-size:0.75rem;color:var(--text2);">${child.gender === 'male' ? '♂' : '♀'}</div>
+      </div>
+      <span class="family-role">🐣 Cría</span>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderSocialDynasty() {
+  const container = document.getElementById('social-dynasty');
+  if (G.dynasty.length === 0) {
+    container.innerHTML = '<div class="loading">La dinastía comienza contigo.</div>';
+    return;
+  }
+  container.innerHTML = G.dynasty.map((cat, i) => `
+    <div class="dynasty-item">
+      <div class="dynasty-num">#${cat.generation}</div>
+      <div style="font-size:1.6rem;">${cat.emoji}</div>
+      <div class="dynasty-info">
+        <div class="dynasty-name">${cat.name}</div>
+        <div class="dynasty-meta">
+          ${cat.died ? `Vivió ${cat.died - cat.born} días · ${cat.deathReason}` : '🟢 Vivo actualmente'}
+          · ${cat.children} crías · ${cat.famePoints}⭐
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function interactWithCat(catId) {
+  const cat = G.cats.find(c => c.id === catId);
+  if (!cat) return;
+  showChoiceModal(cat.emoji, cat.name,
+    `${cat.name} es un gato ${cat.personality}. Vuestra afinidad: ${cat.affection}%.`,
+    [
+      { text: '🐾 Jugar juntos', fn: () => {
+        cat.affection = Math.min(100, cat.affection + 10);
+        G.cat.stats.happy = Math.min(100, G.cat.stats.happy + 10);
+        addLog(`🐾 Jugaste con ${cat.name}. Vuestra amistad crece.`, 'good');
+        renderSocial();
+      }},
+      { text: '💕 Intentar conquistar', fn: () => {
+        if (cat.gender !== G.cat.gender) {
+          cat.affection = Math.min(100, cat.affection + 15);
+          if (cat.affection >= 50) {
+            G.cat.family.partner = cat;
+            addLog(`💕 ¡${cat.name} y tú os habéis enamorado! Son pareja oficial.`, 'special');
+            unlockAchievement('first_love');
+          } else {
+            addLog(`😊 A ${cat.name} le gustas, pero todavía no es el momento.`, 'neutral');
+          }
+        } else {
+          addLog(`😅 ${cat.name} no está interesado de esa manera.`, 'neutral');
+        }
+        renderSocial();
+      }},
+      { text: '⚔️ Pelear por territorio', fn: () => {
+        const win = Math.random() < 0.4 + G.cat.skills.strength / 200;
+        if (win) {
+          cat.affection = Math.max(0, cat.affection - 20);
+          G.cat.reputation += 5;
+          addLog(`💪 ¡Ganas el combate con ${cat.name}! Tu reputación sube.`, 'good');
+        } else {
+          G.cat.stats.health = Math.max(0, G.cat.stats.health - 15);
+          addLog(`😿 ${cat.name} te vence. Retrocedes con heridas.`, 'bad');
+        }
+        renderSocial();
+      }},
+      { text: '❌ Cerrar', fn: () => {} }
+    ]
+  );
+}
+
+function interactWithHuman(humanId) {
+  const human = G.humans.find(h => h.id === humanId);
+  if (!human) return;
+  showChoiceModal(human.emoji, human.name,
+    `${human.name} es un ${human.type}. Le caes bien (${human.affection}%).`,
+    [
+      { text: '😻 Ronronear y maullar', fn: () => {
+        human.affection = Math.min(100, human.affection + 15);
+        G.cat.stats.happy = Math.min(100, G.cat.stats.happy + 10);
+        addLog(`😻 Conquistaste a ${human.name} con tu encanto felino.`, 'good');
+        renderSocial();
+      }},
+      { text: '🤲 Pedir comida', fn: () => {
+        if (human.affection > 30) {
+          G.cat.stats.hunger = Math.min(100, G.cat.stats.hunger + 25);
+          addLog(`🍖 ${human.name} te da comida. ¡Éxito!`, 'good');
+        } else {
+          addLog(`😒 ${human.name} te ignora. Todavía no te conoce bien.`, 'neutral');
+        }
+      }},
+      human.canAdopt ? { text: '🏠 Pedirle adopción', fn: () => {
+        if (human.affection >= 60) {
+          G.cat.isAdopted = true;
+          G.cat.home = 'cozy_home';
+          G.cat.stats.happy = Math.min(100, G.cat.stats.happy + 30);
+          addLog(`🏠 ¡${human.name} te adopta! Tienes un hogar ahora.`, 'special');
+          unlockAchievement('adopted');
+        } else {
+          addLog(`🤔 ${human.name} no te conoce lo suficiente aún. Sigue socializando.`, 'neutral');
+        }
+      }} : { text: '🚶 Seguirle a casa', fn: () => {
+        G.cat.stats.energy = Math.max(0, G.cat.stats.energy - 10);
+        addLog(`👣 Sigues a ${human.name} un rato. Interesante rutina la suya.`, 'neutral');
+      }},
+      { text: '❌ Cerrar', fn: () => {} }
+    ]
+  );
+}
+
+function renderCareer() {
+  const c = G.cat;
+  const careerSection = document.getElementById('career-section');
+  const jobsList = document.getElementById('jobs-list');
+
+  if (c.career && c.career !== 'none') {
+    const career = CAREERS[c.career];
+    const xpPct = Math.min(100, (c.careerXP / (100 * (c.careerLevel + 1))) * 100);
+    careerSection.innerHTML = `
+      <div class="career-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:2rem;">${career.icon}</span>
+          <div>
+            <div class="career-title">${career.name}</div>
+            <div style="font-size:0.75rem;color:var(--text2);">${career.description}</div>
+          </div>
+        </div>
+        <div class="career-level">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text2);">Nivel ${c.careerLevel}</div>
+          <div class="level-bar"><div class="level-fill" style="width:${xpPct}%"></div></div>
+          <div style="font-size:0.72rem;color:var(--text3);">${Math.round(xpPct)}%</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="chip green">💰 ${Math.floor(career.salary * (1 + c.careerLevel * 0.3))}/día</span>
+          <span class="chip blue">⭐ Fama: ${c.famePoints}</span>
+          <span class="chip purple">🏆 Nivel ${c.careerLevel}</span>
+        </div>
+        <button class="choice-btn danger" style="margin-top:12px;width:100%;" onclick="quitCareer()">⛔ Renunciar</button>
+      </div>`;
+  } else {
+    careerSection.innerHTML = `<div class="loading">No tienes trabajo actualmente. Busca uno abajo.</div>`;
+  }
+
+  // Available jobs
+  const skillNames = { agility: 'Agilidad', stealth: 'Sigilo', charm: 'Encanto', intelligence: 'Inteligencia', strength: 'Fuerza' };
+  jobsList.innerHTML = Object.entries(CAREERS)
+    .filter(([id]) => id !== 'none' && id !== c.career)
+    .map(([id, career]) => {
+      const canApply = checkCareerRequirements(id);
+      return `<div class="shop-item" style="opacity:${canApply ? 1 : 0.5};">
+        <div class="shop-icon">${career.icon}</div>
+        <div class="shop-info">
+          <div class="shop-name">${career.name}</div>
+          <div class="shop-desc">${career.description}</div>
+          ${career.req ? `<div style="font-size:0.7rem;color:var(--text3);margin-top:2px;">${formatRequirements(career.req)}</div>` : ''}
+        </div>
+        <div style="text-align:right;">
+          <div class="shop-price">+${career.salary}💰/día</div>
+          <button class="buy-btn ${!canApply ? 'owned' : ''}" onclick="${canApply ? `applyForJob('${id}')` : ''}" style="margin-top:4px;">
+            ${canApply ? '✅ Solicitar' : '🔒 No cumples'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function checkCareerRequirements(careerId) {
+  const career = CAREERS[careerId];
+  if (!career.req) return true;
+  const c = G.cat;
+  if (career.req.skills) {
+    for (const [skill, val] of Object.entries(career.req.skills)) {
+      if (c.skills[skill] < val) return false;
+    }
+  }
+  if (career.req.stats) {
+    for (const [stat, val] of Object.entries(career.req.stats)) {
+      if (c.stats[stat] < val) return false;
+    }
+  }
+  if (career.req.famePoints && c.famePoints < career.req.famePoints) return false;
+  return true;
+}
+
+function formatRequirements(req) {
+  const parts = [];
+  if (req.skills) Object.entries(req.skills).forEach(([s, v]) => parts.push(`${s} ≥${v}`));
+  if (req.stats) Object.entries(req.stats).forEach(([s, v]) => parts.push(`${s} ≥${v}`));
+  if (req.famePoints) parts.push(`fama ≥${req.famePoints}`);
+  return 'Requiere: ' + parts.join(', ');
+}
+
+function applyForJob(careerId) {
+  const career = CAREERS[careerId];
+  showChoiceModal(career.icon, `Solicitar: ${career.name}`,
+    `${career.description}. Salario base: ${career.salary}💰/día.`,
+    [
+      { text: '✅ Aceptar trabajo', fn: () => {
+        G.cat.career = careerId;
+        G.cat.careerLevel = 0;
+        G.cat.careerXP = 0;
+        addLog(`💼 ¡Empiezas como ${career.name}! ${career.icon} Tu vida profesional comienza.`, 'special');
+        renderCareer();
+      }},
+      { text: '❌ Cancelar', fn: () => {} }
+    ]
+  );
+}
+
+function quitCareer() {
+  showChoiceModal('⛔', 'Renunciar al trabajo',
+    '¿Estás seguro? Perderás tu progreso laboral.',
+    [
+      { text: '⛔ Sí, renuncio', fn: () => {
+        const name = CAREERS[G.cat.career]?.name;
+        G.cat.career = null;
+        G.cat.careerLevel = 0;
+        G.cat.careerXP = 0;
+        addLog(`⛔ Renuncias a tu trabajo de ${name}. Ahora eres libre.`, 'neutral');
+        renderCareer();
+      }},
+      { text: '❌ Cancelar', fn: () => {} }
+    ]
+  );
+}
+
+function renderShop() {
+  renderShopItems();
+  renderInventory();
+  renderAchievements();
+}
+
+function renderShopItems() {
+  const container = document.getElementById('shop-items');
+  container.innerHTML = SHOP_ITEMS.map(item => {
+    const owned = !item.consumable && G.cat.inventory.some(i => i.id === item.id);
+    return `<div class="shop-item">
+      <div class="shop-icon">${item.icon}</div>
+      <div class="shop-info">
+        <div class="shop-name">${item.name}</div>
+        <div class="shop-desc">${item.desc}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="shop-price">${item.price}💰</div>
+        <button class="buy-btn ${owned ? 'owned' : ''}" onclick="${owned ? '' : `buyItem('${item.id}')`}" style="margin-top:4px;">
+          ${owned ? '✓ Tienes' : '🛒 Comprar'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buyItem(itemId) {
+  const item = SHOP_ITEMS.find(i => i.id === itemId);
+  if (!item) return;
+  if (G.cat.money < item.price) { showToast(`¡No tienes suficiente dinero! Necesitas ${item.price}💰`, 'bad'); return; }
+
+  showChoiceModal(item.icon, item.name,
+    `${item.desc}. Precio: ${item.price}💰`,
+    [
+      { text: `✅ Comprar por ${item.price}💰`, fn: () => {
+        G.cat.money -= item.price;
+        if (item.consumable) {
+          G.cat.inventory.push({ ...item });
+          applyItemEffect(item);
+          addLog(`🛒 Compraste y usaste ${item.name}. ${item.desc}`, 'good');
+        } else {
+          G.cat.inventory.push({ ...item });
+          applyItemEffect(item);
+          addLog(`🛒 Compraste ${item.name}. ¡Ya es tuyo!`, 'good');
+        }
+        updateUI();
+        renderShop();
+      }},
+      { text: '❌ Cancelar', fn: () => {} }
+    ]
+  );
+}
+
+function applyItemEffect(item) {
+  const e = item.effect;
+  const c = G.cat;
+  if (e.hunger) c.stats.hunger = Math.min(100, c.stats.hunger + e.hunger);
+  if (e.happy) c.stats.happy = Math.min(100, c.stats.happy + e.happy);
+  if (e.health) c.stats.health = Math.min(100, c.stats.health + e.health);
+  if (e.energy) c.stats.energy = Math.min(100, c.stats.energy + e.energy);
+  if (e.reputation) c.reputation += e.reputation;
+  if (e.allStats) {
+    ['health','happy','hunger','energy','social','hygiene'].forEach(s => {
+      c.stats[s] = Math.min(100, c.stats[s] + e.allStats);
+    });
+  }
+  if (e.skillBonus) c.skills[e.skillBonus] = Math.min(100, c.skills[e.skillBonus] + (e.amount || 5));
+  if (e.unlockLocations) {
+    e.unlockLocations.forEach(loc => {
+      if (!G.unlockedLocations.includes(loc)) G.unlockedLocations.push(loc);
+    });
+    addLog(`🔓 Desbloqueaste nuevas zonas con tu nuevo equipo!`, 'special');
+    renderWorld();
+  }
+  if (item.id === 'collar') { c.hasCollar = true; }
+}
+
+function useInventoryItem(itemId) {
+  const idx = G.cat.inventory.findIndex(i => i.id === itemId);
+  if (idx === -1) return;
+  const item = G.cat.inventory[idx];
+  if (!item.consumable) { showToast('Este objeto no es consumible.', 'neutral'); return; }
+  applyItemEffect(item);
+  G.cat.inventory.splice(idx, 1);
+  addLog(`✨ Usaste ${item.name}. ${item.desc}`, 'good');
+  updateUI();
+  renderShop();
+}
+
+function renderInventory() {
+  const container = document.getElementById('shop-inventory');
+  if (G.cat.inventory.length === 0) {
+    container.innerHTML = '<div class="loading">Tu mochila está vacía. ¡Compra cosas en la tienda!</div>';
+    return;
+  }
+  container.innerHTML = `<div class="inventory-grid">` +
+    G.cat.inventory.map(item => `
+      <div class="inv-item" onclick="useInventoryItem('${item.id}')">
+        <div class="inv-icon">${item.icon}</div>
+        <div class="inv-name">${item.name}</div>
+      </div>`).join('') + `</div>`;
+}
+
+function renderAchievements() {
+  const container = document.getElementById('shop-achievements');
+  const achs = G.cat.achievements || [];
+  container.innerHTML = `<div class="achievement-grid">` +
+    achs.map(a => `
+      <div class="achievement ${a.unlocked ? 'unlocked' : ''}">
+        <div class="achievement-icon">${a.icon}</div>
+        <div class="achievement-name">${a.name}</div>
+        <div class="achievement-desc">${a.desc}</div>
+      </div>`).join('') + `</div>`;
+}
+
+// ============================================
+// ACHIEVEMENTS
+// ============================================
+function unlockAchievement(id) {
+  if (!G.cat.achievements) return;
+  const ach = G.cat.achievements.find(a => a.id === id);
+  if (ach && !ach.unlocked) {
+    ach.unlocked = true;
+    showToast(`🏆 Logro: ${ach.name}!`, 'special');
+    addLog(`🏆 ¡Logro desbloqueado! "${ach.name}" - ${ach.desc}`, 'special');
+  }
+}
+
+function checkAchievements() {
+  const c = G.cat;
+  if (c.money >= 200) unlockAchievement('rich_cat');
+  if (c.famePoints >= 50) unlockAchievement('celebrity');
+  if (G.day >= 500) unlockAchievement('long_life');
+  if (G.cats.filter(cat => cat.met).length >= 5) unlockAchievement('social_butterfly');
+  if (c.family.children.length >= 1) unlockAchievement('parent');
+  if (c.family.partner) unlockAchievement('first_love');
+  if (c.isAdopted) unlockAchievement('adopted');
+}
+
+// ============================================
+// TABS & NAVIGATION
+// ============================================
+function switchTab(tab, btn) {
+  G.activeTab = tab;
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab)?.classList.remove('hidden');
+  btn?.classList.add('active');
+
+  if (tab === 'world') renderWorld();
+  if (tab === 'social') renderSocial();
+  if (tab === 'career') renderCareer();
+  if (tab === 'shop') renderShop();
+}
+
+function switchSocialTab(tab, btn) {
+  G.activeSocialTab = tab;
+  ['cats', 'humans', 'family', 'dynasty'].forEach(t => {
+    document.getElementById('social-' + t)?.classList.add('hidden');
+  });
+  document.getElementById('social-' + tab)?.classList.remove('hidden');
+  document.querySelectorAll('#tab-social .tab').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+}
+
+function switchShopTab(tab, btn) {
+  G.activeShopTab = tab;
+  ['items', 'inventory', 'achievements'].forEach(t => {
+    document.getElementById('shop-' + t)?.classList.add('hidden');
+  });
+  document.getElementById('shop-' + tab)?.classList.remove('hidden');
+  document.querySelectorAll('#tab-shop .tab').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+}
+
+function filterLog(filter, btn) {
+  G.eventFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+  renderEventLog();
+}
+
+// ============================================
+// MODALS
+// ============================================
+function showChoiceModal(icon, title, desc, options) {
+  const overlay = document.getElementById('choice-overlay');
+  const inner = document.getElementById('choice-inner');
+  inner.innerHTML = `
+    <div class="choice-emoji">${icon}</div>
+    <div class="choice-title">${title}</div>
+    <div class="choice-desc">${desc}</div>
+    <div class="choice-btns">
+      ${options.map((opt, i) => `
+        <button class="choice-btn ${i === 0 ? 'primary' : i === options.length - 1 && opt.text.includes('❌') ? 'secondary' : ''}" onclick="handleChoice(${i})">
+          ${opt.text}
+        </button>`).join('')}
+    </div>`;
+  overlay.classList.remove('hidden');
+  window._choiceOptions = options;
+}
+
+function handleChoice(i) {
+  document.getElementById('choice-overlay').classList.add('hidden');
+  if (window._choiceOptions && window._choiceOptions[i]) {
+    window._choiceOptions[i].fn();
+    updateUI();
+    renderEventLog();
+  }
+}
+
+function closeModal(e) {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+function openSettings() {
+  const inner = document.getElementById('modal-inner');
+  const c = G.cat;
+  inner.innerHTML = `
+    <div class="modal-title">⚙️ Configuración</div>
+    <div class="modal-sub">Ajustes del juego</div>
+    <div class="modal-options">
+      <div class="modal-option" onclick="toggleTheme()">
+        <div class="opt-icon">🌙</div>
+        <div class="opt-info">
+          <div class="opt-name">Modo Oscuro</div>
+          <div class="opt-desc">Actual: ${G.settings.theme === 'dark' ? 'Oscuro 🌙' : 'Claro ☀️'}</div>
+        </div>
+      </div>
+      <div class="modal-option" onclick="showCatStats()">
+        <div class="opt-icon">📊</div>
+        <div class="opt-info">
+          <div class="opt-name">Ver estadísticas detalladas</div>
+          <div class="opt-desc">Habilidades, reputación, fama...</div>
+        </div>
+      </div>
+      <div class="modal-option danger" onclick="confirmReset()">
+        <div class="opt-icon">🔄</div>
+        <div class="opt-info">
+          <div class="opt-name">Nueva partida</div>
+          <div class="opt-desc">Perderás el progreso actual</div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function showCatStats() {
+  const c = G.cat;
+  const inner = document.getElementById('modal-inner');
+  inner.innerHTML = `
+    <div class="modal-title">${c.emoji} ${c.name} - Stats</div>
+    <div class="modal-sub">Día ${G.day} • ${getLifeStage().name}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div class="career-card"><div style="font-size:0.7rem;color:var(--text3);font-weight:700;">Fama</div><div style="font-size:1.2rem;font-weight:800;">${c.famePoints}⭐</div></div>
+      <div class="career-card"><div style="font-size:0.7rem;color:var(--text3);font-weight:700;">Reputación</div><div style="font-size:1.2rem;font-weight:800;">${c.reputation}🏆</div></div>
+      <div class="career-card"><div style="font-size:0.7rem;color:var(--text3);font-weight:700;">Vidas</div><div style="font-size:1.2rem;font-weight:800;">${c.lives}❤️</div></div>
+      <div class="career-card"><div style="font-size:0.7rem;color:var(--text3);font-weight:700;">Hijos</div><div style="font-size:1.2rem;font-weight:800;">${c.family.children.length}🐣</div></div>
+    </div>
+    <div class="section-title">HABILIDADES</div>
+    ${Object.entries(c.skills).map(([k, v]) => `
+      <div class="stat-bar-wrap" style="margin-bottom:8px;">
+        <div class="stat-label"><span>${k}</span><span>${v}</span></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:${v}%;background:linear-gradient(90deg,var(--accent),var(--accent3))"></div></div>
+      </div>`).join('')}
+    <div style="margin-top:12px;">
+      <div class="section-title">RASGOS</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${c.traits.map(t => `<span class="chip purple">${t}</span>`).join('')}
+      </div>
+    </div>`;
+}
+
+function confirmReset() {
+  closeModal();
+  showChoiceModal('⚠️', '¿Nueva partida?',
+    'Perderás todo el progreso excepto la dinastía. ¿Seguro?',
+    [
+      { text: '🔄 Empezar de nuevo', fn: () => { G.dynasty = []; showScreen('birth-screen'); } },
+      { text: '❌ Cancelar', fn: () => {} }
+    ]
+  );
+}
+
+// ============================================
+// THEME
+// ============================================
+function toggleTheme() {
+  G.settings.theme = G.settings.theme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', G.settings.theme);
+  document.querySelector('.icon-btn[onclick="toggleTheme()"]').textContent = G.settings.theme === 'dark' ? '☀️' : '🌙';
+  saveGame();
+}
+
+// ============================================
+// SAVE / LOAD
+// ============================================
+function saveGame() {
+  try {
+    localStorage.setItem('catslife_save', JSON.stringify(G));
+    // Don't show toast on autosave to avoid spam
+  } catch (e) { console.error('Save error', e); }
+}
+
+function loadGame() {
+  try {
+    const saved = localStorage.getItem('catslife_save');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      G = { ...G, ...parsed };
+      // Ensure achievements exist
+      if (!G.cat.achievements || G.cat.achievements.length < ACHIEVEMENTS.length) {
+        G.cat.achievements = ACHIEVEMENTS.map(a => {
+          const existing = (G.cat.achievements || []).find(e => e.id === a.id);
+          return existing || { ...a };
+        });
+      }
+      if (G.settings?.theme) {
+        document.documentElement.setAttribute('data-theme', G.settings.theme);
+      }
+      if (G.cat.isAlive === false) {
+        showDeathScreen(G.cat.deathReason);
+      } else if (G.day > 0 && G.cat.name) {
+        generateWorldCats();
+        generateWorldHumans();
+        showGameScreen();
+      } else {
+        showScreen('birth-screen');
+      }
+      return true;
+    }
+  } catch (e) { console.error('Load error', e); }
+  return false;
+}
+
+// ============================================
+// TOAST
+// ============================================
+function showToast(msg, type = 'neutral') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
+
+// ============================================
+// LOG
+// ============================================
+function addLog(msg, type = 'neutral') {
+  G.log.push({ msg, type, day: G.day });
+  if (G.log.length > 200) G.log = G.log.slice(-150);
+  // Only refresh if on home tab
+  if (G.activeTab === 'home') renderEventLog();
+}
+
+// ============================================
+// UTILS
+// ============================================
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// ============================================
+// EMOJI PICKER IN BIRTH SCREEN
+// ============================================
+document.querySelectorAll('.emoji-opt').forEach(opt => {
+  opt.addEventListener('click', function () {
+    document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+    this.classList.add('selected');
+    document.getElementById('birth-preview').textContent = this.dataset.emoji;
+  });
+});
+
+// ============================================
+// INIT
+// ============================================
+window.addEventListener('DOMContentLoaded', () => {
+  if (!loadGame()) {
+    showScreen('birth-screen');
+  }
+});
+</script>
+</body>
+</html>
