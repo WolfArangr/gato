@@ -1,0 +1,4878 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crónicas de Kurghaimat</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-darkest: #0a0806;
+  --bg-dark: #110e0a;
+  --bg-mid: #1a1410;
+  --bg-panel: #201a13;
+  --bg-card: #2a2118;
+  --border-gold: #c8922a;
+  --border-gold-dim: #7a5a18;
+  --gold: #e8b84b;
+  --gold-light: #f5d07a;
+  --gold-bright: #ffeaa0;
+  --text-primary: #f0e6c8;
+  --text-secondary: #b8a882;
+  --text-dim: #7a6a4a;
+  --text-dim2: #4a3a2a;
+  --red: #c0392b;
+  --red-bright: #e74c3c;
+  --green: #27ae60;
+  --green-bright: #2ecc71;
+  --blue: #2980b9;
+  --blue-bright: #3498db;
+  --purple: #8e44ad;
+  --purple-bright: #9b59b6;
+  --orange: #e67e22;
+  --cyan: #1abc9c;
+  --health-color: #e74c3c;
+  --mana-color: #3498db;
+  --xp-color: #f39c12;
+  --font-title: 'Cinzel Decorative', serif;
+  --font-display: 'Cinzel', serif;
+  --font-body: 'EB Garamond', serif;
+  --shadow-gold: 0 0 20px rgba(200,146,42,0.3);
+  --shadow-dark: 0 4px 20px rgba(0,0,0,0.8);
+  --glow-gold: 0 0 8px rgba(232,184,75,0.6);
+  --radius: 6px;
+  --radius-lg: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-darkest); }
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: var(--bg-darkest);
+}
+
+/* ===== SCREENS ===== */
+.screen { display: none; width: 100%; height: 100%; }
+.screen.active { display: flex; }
+
+/* ===== TITLE SCREEN ===== */
+#title-screen {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 50% 45%, #1f0c32 0%, #120818 40%, #060408 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Layered animated background */
+#title-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,215,0,0.7) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 28% 72%, rgba(201,168,76,0.5) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 44% 9%,  rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(2px   2px   at 58% 55%, rgba(201,168,76,0.35) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 71% 28%, rgba(255,255,255,0.4)  0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 83% 65%, rgba(255,215,0,0.55)  0%, transparent 100%),
+    radial-gradient(1px   1px   at 6%  82%, rgba(201,168,76,0.45) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 91% 12%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 37% 44%, rgba(201,168,76,0.3)  0%, transparent 100%),
+    radial-gradient(1px   1px   at 65% 88%, rgba(255,215,0,0.4)   0%, transparent 100%);
+  animation: starFloat 9s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Slow rotating rune ring in background */
+#title-screen::after {
+  content: '';
+  position: absolute;
+  width: 700px; height: 700px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(201,168,76,0.07);
+  box-shadow:
+    0 0 0 60px rgba(201,168,76,0.03),
+    0 0 0 130px rgba(201,168,76,0.02),
+    0 0 0 220px rgba(201,168,76,0.015);
+  animation: runeRing 30s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes starFloat {
+  from { transform: translateY(0)   scale(1);    opacity: 0.7; }
+  to   { transform: translateY(-18px) scale(1.02); opacity: 1;   }
+}
+@keyframes runeRing {
+  from { transform: translate(-50%, -50%) rotate(0deg);   }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes patternShift { from { transform: translateY(0); } to { transform: translateY(60px); } }
+
+/* title-emblem removed */
+
+.title-main {
+  font-family: var(--font-title);
+  font-size: clamp(1.9rem, 5.5vw, 3.8rem);
+  color: var(--gold);
+  text-shadow:
+    0 0 20px rgba(255,215,0,0.8),
+    0 0 60px rgba(201,168,76,0.4),
+    0 0 100px rgba(201,168,76,0.15),
+    0 2px 6px rgba(0,0,0,0.95);
+  letter-spacing: 0.06em;
+  text-align: center;
+  margin-bottom: 0.4rem;
+  position: relative;
+  z-index: 1;
+  animation: titlePulse 5s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+  0%,100% { text-shadow: 0 0 20px rgba(255,215,0,0.7), 0 0 60px rgba(201,168,76,0.3), 0 2px 6px rgba(0,0,0,0.95); }
+  50%     { text-shadow: 0 0 35px rgba(255,215,0,1),   0 0 90px rgba(201,168,76,0.55), 0 0 140px rgba(201,168,76,0.2), 0 2px 6px rgba(0,0,0,0.95); }
+}
+
+.title-sub {
+  font-family: var(--font-display);
+  font-size: clamp(0.65rem, 1.8vw, 0.92rem);
+  color: var(--text-secondary);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 2.8rem;
+  position: relative;
+  z-index: 1;
+  opacity: 0.75;
+}
+
+.title-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: min(280px, 88vw);
+  position: relative;
+  z-index: 1;
+}
+
+/* Decorative line before buttons */
+.title-buttons::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(201,168,76,0.5), transparent);
+  margin-bottom: 0.25rem;
+  animation: shimmerLine 3s ease-in-out infinite alternate;
+}
+
+@keyframes shimmerLine {
+  from { opacity: 0.4; transform: scaleX(0.7); }
+  to   { opacity: 1;   transform: scaleX(1); }
+}
+
+.btn {
+  padding: 0.78rem 1.5rem;
+  border: 1px solid var(--border-gold-dim);
+  background: linear-gradient(135deg, rgba(200,146,42,0.09), rgba(200,146,42,0.04));
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 0.83rem;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all 0.28s cubic-bezier(.34,1.56,.64,1);
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -120%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,0.12), transparent);
+  transition: left 0.5s ease;
+}
+.btn:hover::before { left: 120%; }
+
+.btn:hover {
+  border-color: var(--border-gold);
+  background: linear-gradient(135deg, rgba(200,146,42,0.22), rgba(200,146,42,0.1));
+  color: var(--gold-light);
+  box-shadow:
+    0 0 22px rgba(201,168,76,0.35),
+    0 4px 16px rgba(0,0,0,0.5),
+    inset 0 0 20px rgba(201,168,76,0.05);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+  background: linear-gradient(135deg, rgba(200,146,42,0.25), rgba(200,146,42,0.15));
+  border-color: var(--border-gold);
+  color: var(--gold-light);
+  font-size: 0.95rem;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, rgba(200,146,42,0.4), rgba(200,146,42,0.25));
+  color: var(--gold-bright);
+}
+
+.btn-danger {
+  border-color: #7a2018;
+  color: #e8a0a0;
+  background: rgba(192,57,43,0.1);
+}
+.btn-danger:hover { border-color: var(--red-bright); background: rgba(192,57,43,0.2); color: #ffd0d0; box-shadow: 0 0 8px rgba(231,76,60,0.4); }
+
+.btn-small {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+}
+
+.btn-icon {
+  padding: 0.5rem;
+  min-width: 36px;
+  font-size: 1rem;
+}
+
+.title-lore {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0; right: 0;
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--text-dim);
+  font-size: 0.77rem;
+  text-align: center;
+  padding: 0 3rem;
+  z-index: 1;
+  opacity: 0.65;
+  line-height: 1.7;
+}
+
+/* ===== CHARACTER CREATION ===== */
+#char-screen {
+  flex-direction: column;
+  background: radial-gradient(ellipse at top, #1a0e06 0%, #0a0806 70%);
+  overflow-y: auto;
+}
+
+.char-container {
+  width: min(700px, 98vw);
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.panel-title {
+  font-family: var(--font-title);
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 20px rgba(232,184,75,0.3);
+}
+
+.section {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius-lg);
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--border-gold);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--border-gold-dim), transparent);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-group label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.form-group input, .form-group select {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--border-gold);
+  box-shadow: 0 0 0 2px rgba(200,146,42,0.1);
+}
+
+.form-group select option { background: var(--bg-dark); }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+@media (min-width: 500px) { .stats-grid { grid-template-columns: repeat(6, 1fr); } }
+
+.stat-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.stat-box:hover { border-color: var(--border-gold); }
+
+.stat-name {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  display: block;
+}
+
+.stat-value {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  color: var(--gold-light);
+  display: block;
+  line-height: 1;
+  margin: 0.2rem 0;
+}
+
+.stat-mod {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  display: block;
+}
+
+.roll-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.8rem;
+}
+
+.trait-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.6rem;
+}
+
+.trait-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.trait-card:hover, .trait-card.selected {
+  border-color: var(--border-gold);
+  background: rgba(200,146,42,0.1);
+}
+
+.trait-card.selected { box-shadow: var(--glow-gold); }
+
+.trait-name {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  color: var(--gold-light);
+  margin-bottom: 0.2rem;
+}
+
+.trait-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.3;
+}
+
+/* ===== MAIN GAME ===== */
+#game-screen {
+  flex-direction: column;
+  background: var(--bg-darkest);
+  overflow: hidden;
+}
+
+.game-layout {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr;
+  height: 100%;
+  overflow: hidden;
+}
+
+@media (min-width: 900px) {
+  .game-layout {
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 260px 1fr 280px;
+  }
+}
+
+/* Top bar */
+.top-bar {
+  grid-column: 1/-1;
+  background: linear-gradient(to bottom, var(--bg-dark), var(--bg-mid));
+  border-bottom: 1px solid var(--border-gold-dim);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+.game-title-small {
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+.top-stats {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: 20px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+.stat-pill .icon { font-size: 0.85rem; }
+.stat-pill .label { color: var(--text-dim); font-size: 0.65rem; font-family: var(--font-display); letter-spacing: 0.05em; }
+.stat-pill .val { color: var(--text-primary); font-family: var(--font-display); font-weight: 600; }
+
+.bar-container {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: 20px;
+  padding: 0.25rem 0.6rem;
+}
+
+.bar-label { font-size: 0.65rem; color: var(--text-dim); font-family: var(--font-display); letter-spacing: 0.05em; }
+
+.bar-track {
+  width: 60px;
+  height: 6px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.bar-fill.hp { background: linear-gradient(to right, #c0392b, #e74c3c); }
+.bar-fill.mp { background: linear-gradient(to right, #2980b9, #3498db); }
+.bar-fill.xp { background: linear-gradient(to right, #e67e22, #f39c12); }
+
+.bar-val { font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-display); white-space: nowrap; }
+
+.top-spacer { flex: 1; }
+
+.top-buttons { display: flex; gap: 0.4rem; }
+
+/* Left Panel */
+.left-panel {
+  background: var(--bg-dark);
+  border-right: 1px solid var(--border-gold-dim);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+@media (max-width: 899px) {
+  .left-panel { display: none; }
+  .left-panel.mobile-show { display: flex; position: fixed; top: 0; left: 0; width: 280px; height: 100%; z-index: 100; box-shadow: 5px 0 30px rgba(0,0,0,0.8); }
+}
+
+.panel-scroll { overflow-y: auto; padding: 0.8rem; flex: 1; }
+
+.mini-section {
+  margin-bottom: 1rem;
+}
+
+.mini-title {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--border-gold);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mini-title::after { content: ''; flex: 1; height: 1px; background: var(--border-gold-dim); }
+
+/* Character Card */
+.char-avatar {
+  width: 60px; height: 60px;
+  border: 2px solid var(--border-gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+  background: var(--bg-card);
+  margin: 0 auto 0.6rem;
+  box-shadow: var(--shadow-gold);
+}
+
+.char-name-display {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--gold-light);
+  text-align: center;
+  margin-bottom: 0.15rem;
+}
+
+.char-info {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 0.8rem;
+}
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.3rem;
+}
+
+.mini-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.3rem;
+  text-align: center;
+}
+
+.mini-stat .mn { font-family: var(--font-display); font-size: 0.5rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+.mini-stat .mv { font-family: var(--font-display); font-size: 0.85rem; color: var(--gold-light); font-weight: 600; }
+
+/* Party list */
+.party-member {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  margin-bottom: 0.3rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.party-member:hover { border-color: var(--border-gold); }
+
+.party-avatar { font-size: 1.2rem; }
+.party-info { flex: 1; min-width: 0; }
+.party-name { font-family: var(--font-display); font-size: 0.7rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.party-class { font-size: 0.6rem; color: var(--text-dim); }
+.party-hp-bar { width: 40px; height: 4px; background: rgba(0,0,0,0.5); border-radius: 2px; overflow: hidden; }
+.party-hp-fill { height: 100%; background: var(--health-color); border-radius: 2px; transition: width 0.3s; }
+
+/* Quest list */
+.quest-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  margin-bottom: 0.3rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.quest-item:hover { border-color: var(--border-gold); }
+.quest-item.active-quest { border-color: var(--gold); }
+
+.quest-name {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--gold-light);
+  margin-bottom: 0.15rem;
+}
+
+.quest-giver { font-size: 0.65rem; color: var(--text-dim); }
+.quest-type { font-size: 0.6rem; color: var(--text-secondary); position: absolute; top: 0.4rem; right: 0.4rem; }
+
+/* Center - map and text */
+.center-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Tab system */
+.tab-bar {
+  display: flex;
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border-gold-dim);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+
+.tab-bar::-webkit-scrollbar { display: none; }
+
+.tab {
+  padding: 0.5rem 0.8rem;
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.tab:hover { color: var(--text-secondary); }
+.tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+.tab-content { display: none; flex: 1; overflow: hidden; }
+.tab-content.active { display: flex; flex-direction: column; }
+
+/* Story/Text Log */
+#tab-story {
+  overflow-y: auto;
+  padding: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.story-entry {
+  padding: 0.8rem 1rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-gold-dim);
+  border-left: 3px solid var(--border-gold-dim);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.story-entry.combat { border-left-color: var(--red); }
+.story-entry.reward { border-left-color: var(--gold); }
+.story-entry.travel { border-left-color: var(--blue); }
+.story-entry.system { border-left-color: var(--purple); font-style: italic; font-size: 0.8rem; color: var(--text-secondary); }
+.story-entry.dialog { border-left-color: var(--cyan); }
+.story-entry.warning { border-left-color: var(--orange); }
+
+.story-time {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 0.3rem;
+}
+
+.story-speaker {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--gold);
+  margin-bottom: 0.2rem;
+}
+
+/* Action buttons */
+.action-area {
+  background: var(--bg-dark);
+  border-top: 1px solid var(--border-gold-dim);
+  padding: 0.8rem;
+  flex-shrink: 0;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.4rem;
+  max-width: 100%;
+}
+
+.action-btn {
+  padding: 0.5rem 0.3rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.action-btn .icon { font-size: 1.1rem; }
+.action-btn:hover { border-color: var(--border-gold); color: var(--gold-light); background: rgba(200,146,42,0.1); }
+.action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.action-btn.highlight { border-color: var(--gold); color: var(--gold); animation: pulse 1.5s infinite; }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: var(--glow-gold); }
+}
+
+/* Map Tab */
+#tab-map {
+  overflow: hidden;
+  position: relative;
+}
+
+#hex-canvas {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+#hex-canvas:active { cursor: grabbing; }
+
+.map-legend {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(10,8,6,0.9);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  font-size: 0.6rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.15rem;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+/* Right Panel */
+.right-panel {
+  background: var(--bg-dark);
+  border-left: 1px solid var(--border-gold-dim);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 899px) {
+  .right-panel { display: none; }
+  .right-panel.mobile-show { display: flex; position: fixed; top: 0; right: 0; width: 280px; height: 100%; z-index: 100; box-shadow: -5px 0 30px rgba(0,0,0,0.8); }
+}
+
+/* Bottom bar (mobile) */
+.bottom-nav {
+  display: none;
+  background: var(--bg-dark);
+  border-top: 1px solid var(--border-gold-dim);
+  padding: 0.4rem;
+}
+
+@media (max-width: 899px) {
+  .bottom-nav { display: flex; gap: 0.3rem; justify-content: space-around; }
+}
+
+.nav-btn {
+  flex: 1;
+  padding: 0.4rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transition: all 0.2s;
+}
+
+.nav-btn .icon { font-size: 1rem; }
+.nav-btn.active { color: var(--gold); border-color: var(--border-gold-dim); }
+
+/* ===== DICE MODAL ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  width: min(500px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-gold), var(--shadow-dark);
+  animation: modalIn 0.3s ease;
+}
+
+@keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+.modal-header {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border-gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--gold);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  transition: color 0.2s;
+}
+
+.modal-close:hover { color: var(--text-primary); }
+
+.modal-body { padding: 1.2rem; }
+
+/* Dice 3D */
+.dice-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dice-scene {
+  perspective: 400px;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice-3d {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: diceRoll 0.8s ease-out forwards;
+}
+
+@keyframes diceRoll {
+  0% { transform: rotate3d(1,1,0,0deg); }
+  25% { transform: rotate3d(1,0.5,0.3,180deg) scale(1.1); }
+  50% { transform: rotate3d(0.3,1,0.7,360deg) scale(0.9); }
+  75% { transform: rotate3d(0.7,0.3,1,540deg) scale(1.05); }
+  100% { transform: rotate3d(0,0,0,720deg); }
+}
+
+.dice-3d.rolling { animation: diceRolling 0.1s linear infinite; }
+
+@keyframes diceRolling {
+  0% { transform: rotate3d(1,1,0,0deg); }
+  100% { transform: rotate3d(1,1,1,360deg); }
+}
+
+.die-face {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-title);
+  font-size: 1.6rem;
+  color: var(--gold-bright);
+  text-shadow: 0 0 10px rgba(255,234,160,0.8);
+  border: 2px solid var(--border-gold);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--bg-card), var(--bg-mid));
+  box-shadow: inset 0 0 15px rgba(200,146,42,0.15), 0 4px 8px rgba(0,0,0,0.5);
+  backface-visibility: hidden;
+}
+
+/* d4 shape */
+.dice-d4 {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  background: linear-gradient(to bottom, #3a2010, var(--bg-card));
+  border-radius: 0;
+}
+
+/* d6 */
+.dice-d6 {
+  border-radius: 10px;
+}
+
+/* d8 */
+.dice-d8 {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  border-radius: 0;
+}
+
+/* d10 */
+.dice-d10 {
+  clip-path: polygon(50% 0%, 90% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 10% 30%);
+}
+
+/* d12 */
+.dice-d12 {
+  clip-path: polygon(50% 0%, 82% 18%, 100% 50%, 82% 82%, 50% 100%, 18% 82%, 0% 50%, 18% 18%);
+}
+
+/* d20 */
+.dice-d20 {
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  border-radius: 0;
+}
+
+.dice-result-big {
+  font-family: var(--font-title);
+  font-size: 2.5rem;
+  color: var(--gold-bright);
+  text-shadow: 0 0 20px rgba(255,234,160,0.8), var(--glow-gold);
+  text-align: center;
+}
+
+.dice-result-big.crit { color: #ffd700; animation: critGlow 0.5s ease infinite alternate; }
+.dice-result-big.fumble { color: var(--red-bright); }
+
+@keyframes critGlow { from { text-shadow: 0 0 20px rgba(255,215,0,0.8); } to { text-shadow: 0 0 40px rgba(255,215,0,1), 0 0 60px rgba(255,215,0,0.5); } }
+
+.dice-breakdown {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.dice-selector {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.die-type-btn {
+  padding: 0.4rem 0.8rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.die-type-btn:hover, .die-type-btn.active {
+  border-color: var(--border-gold);
+  color: var(--gold);
+  background: rgba(200,146,42,0.1);
+}
+
+/* ===== COMBAT ===== */
+.combat-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.combatant-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+}
+
+.combatant-avatar { font-size: 1.5rem; }
+.combatant-info { flex: 1; }
+.combatant-name { font-family: var(--font-display); font-size: 0.8rem; color: var(--text-primary); }
+.combatant-class { font-size: 0.65rem; color: var(--text-dim); }
+.combatant-hp-bar { height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; overflow: hidden; margin-top: 0.3rem; }
+.combatant-hp-fill { height: 100%; background: var(--health-color); border-radius: 3px; transition: width 0.5s; }
+.combatant-hp-text { font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.15rem; }
+
+/* Inventory */
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.4rem;
+}
+
+.inv-slot {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 65px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.inv-slot:hover { border-color: var(--border-gold); }
+.inv-slot.equipped { border-color: var(--gold); background: rgba(200,146,42,0.08); }
+.inv-slot.empty { opacity: 0.3; cursor: default; }
+
+.inv-icon { font-size: 1.3rem; }
+.inv-name { font-size: 0.6rem; color: var(--text-secondary); line-height: 1.2; }
+.inv-qty { font-size: 0.6rem; color: var(--text-dim); }
+
+/* Item rarities */
+.rarity-common { color: var(--text-secondary); }
+.rarity-uncommon { color: var(--green); }
+.rarity-rare { color: var(--blue-bright); }
+.rarity-epic { color: var(--purple-bright); }
+.rarity-legendary { color: var(--gold-bright); text-shadow: var(--glow-gold); }
+
+/* Spellbook */
+.spell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.spell-card {
+  background: var(--bg-card);
+  border: 1px solid #2a1a4a;
+  border-radius: var(--radius);
+  padding: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.spell-card:hover { border-color: var(--purple-bright); background: rgba(142,68,173,0.1); }
+.spell-card .spell-icon { font-size: 1.2rem; }
+.spell-card .spell-name { font-family: var(--font-display); font-size: 0.65rem; color: var(--purple-bright); margin-top: 0.2rem; }
+.spell-card .spell-level { font-size: 0.55rem; color: var(--text-dim); }
+.spell-card .spell-slots { position: absolute; top: 0.4rem; right: 0.4rem; font-size: 0.6rem; color: var(--blue); }
+
+/* Skills tab */
+.skills-list { display: flex; flex-direction: column; gap: 0.3rem; }
+.skill-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+}
+.skill-prof { width: 12px; height: 12px; border: 2px solid var(--border-gold-dim); border-radius: 50%; flex-shrink: 0; }
+.skill-prof.prof { background: var(--gold); border-color: var(--gold); }
+.skill-name { flex: 1; font-size: 0.75rem; color: var(--text-primary); }
+.skill-stat { font-size: 0.6rem; color: var(--text-dim); }
+.skill-mod { font-family: var(--font-display); font-size: 0.8rem; color: var(--gold); min-width: 30px; text-align: right; }
+
+/* ===== NPC / DIALOG ===== */
+.npc-portrait {
+  width: 80px; height: 80px;
+  border: 2px solid var(--border-gold);
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem;
+  flex-shrink: 0;
+}
+
+.dialog-bubble {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.8rem;
+  position: relative;
+  font-style: italic;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.dialog-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.8rem;
+}
+
+.dialog-choice {
+  padding: 0.5rem 0.8rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.dialog-choice:hover { border-color: var(--border-gold); background: rgba(200,146,42,0.08); }
+
+/* ===== TAVERN / MARKET ===== */
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+
+.market-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.market-item:hover { border-color: var(--border-gold); }
+.market-icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.market-name { font-family: var(--font-display); font-size: 0.7rem; color: var(--text-primary); margin-bottom: 0.15rem; }
+.market-desc { font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 0.4rem; line-height: 1.3; }
+.market-price { display: flex; align-items: center; gap: 0.2rem; font-family: var(--font-display); font-size: 0.7rem; color: var(--gold); }
+
+/* Gold icon */
+.gold-icon { color: var(--gold); font-size: 0.8rem; }
+
+/* Notifications */
+.notif-container {
+  position: fixed;
+  top: 4rem;
+  right: 1rem;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  pointer-events: none;
+  max-width: 280px;
+}
+
+.notif {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.78rem;
+  box-shadow: var(--shadow-dark);
+  animation: notifIn 0.3s ease, notifOut 0.3s ease 2.7s forwards;
+  pointer-events: all;
+}
+
+@keyframes notifIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes notifOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(20px); } }
+
+.notif.level-up { border-color: var(--gold); background: rgba(200,146,42,0.15); color: var(--gold-bright); font-family: var(--font-display); text-align: center; }
+.notif.combat { border-color: var(--red); }
+.notif.reward { border-color: var(--green); color: var(--green-bright); }
+.notif.quest { border-color: var(--blue); color: var(--blue-bright); }
+
+/* Loading / death screen */
+#death-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#death-screen.active {
+  display: flex;
+  background: rgba(120,0,0,0.4);
+  animation: deathFade 2s ease forwards;
+}
+
+@keyframes deathFade { from { background: rgba(120,0,0,0); } to { background: rgba(0,0,0,0.9); } }
+
+.death-title {
+  font-family: var(--font-title);
+  font-size: clamp(2rem, 8vw, 4rem);
+  color: var(--red-bright);
+  text-shadow: 0 0 30px rgba(231,76,60,0.8);
+  text-align: center;
+  animation: deathAppear 2s ease 1.5s both;
+}
+
+@keyframes deathAppear { from { opacity: 0; transform: scale(1.5); } to { opacity: 1; transform: scale(1); } }
+
+/* Overlay for mobile panels */
+.overlay-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 99;
+}
+
+.overlay-backdrop.active { display: block; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-gold-dim); border-radius: 2px; }
+
+/* ===== AUDIO vis ===== */
+.audio-vis {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
+}
+
+.audio-vis span {
+  width: 3px;
+  background: var(--gold);
+  border-radius: 2px;
+  animation: audioBar 0.5s ease infinite alternate;
+  opacity: 0.6;
+}
+
+.audio-vis span:nth-child(2) { animation-delay: 0.1s; }
+.audio-vis span:nth-child(3) { animation-delay: 0.2s; }
+.audio-vis span:nth-child(4) { animation-delay: 0.3s; }
+
+@keyframes audioBar { from { height: 3px; } to { height: 14px; } }
+
+/* Initiative tracker */
+.initiative-track {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.4rem;
+  overflow-x: auto;
+  background: var(--bg-dark);
+  border-radius: var(--radius);
+  scrollbar-width: none;
+}
+
+.init-token {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  min-width: 50px;
+}
+
+.init-token.current { border-color: var(--gold); background: rgba(200,146,42,0.1); }
+.init-token.enemy { border-color: #4a1a1a; }
+.init-token .i-avatar { font-size: 1rem; }
+.init-token .i-name { font-size: 0.5rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; max-width: 48px; text-overflow: ellipsis; }
+.init-token .i-num { font-family: var(--font-display); font-size: 0.7rem; color: var(--gold); }
+
+/* Achievement banner */
+.achievement {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-panel);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 2rem;
+  text-align: center;
+  z-index: 400;
+  box-shadow: var(--shadow-gold), var(--shadow-dark);
+  animation: achievementPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  display: none;
+}
+
+@keyframes achievementPop { from { opacity: 0; transform: translate(-50%,-50%) scale(0.5); } to { opacity: 1; transform: translate(-50%,-50%) scale(1); } }
+
+/* Tooltip */
+.tooltip {
+  position: fixed;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.75rem;
+  max-width: 200px;
+  z-index: 999;
+  pointer-events: none;
+  display: none;
+  line-height: 1.5;
+}
+
+/* Clue tracker */
+.clue-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid #2a1a0a;
+  border-radius: var(--radius);
+  margin-bottom: 0.3rem;
+}
+
+.clue-gem {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--border-gold-dim);
+  flex-shrink: 0;
+}
+
+.clue-gem.found { background: var(--gold); box-shadow: var(--glow-gold); }
+.clue-text { font-size: 0.72rem; color: var(--text-secondary); font-style: italic; }
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  .form-row { grid-template-columns: 1fr 1fr; }
+  .market-grid { grid-template-columns: repeat(2, 1fr); }
+  .action-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ===== CONFETTI LAYER ===== */
+#confetti-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 350;
+  display: none;
+}
+
+/* Fancy horizontal divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-gold-dim);
+}
+
+.divider-icon { color: var(--border-gold); font-size: 0.7rem; }
+
+/* ===== SAVE INDICATOR ===== */
+.save-indicator {
+  display: none;
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-panel);
+  border: 1px solid var(--green);
+  border-radius: 20px;
+  padding: 0.3rem 0.8rem;
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  color: var(--green-bright);
+  z-index: 300;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── THEME ENGINE ── */
+/* Base theme is already :root. JS overrides these vars on <body>. */
+body.theme-ember   { --border-gold:#c8922a;--gold:#e8b84b;--gold-light:#f5d07a;--gold-bright:#ffeaa0;--bg-darkest:#0a0806;--bg-dark:#110e0a;--bg-mid:#1a1410;--bg-panel:#201a13;--bg-card:#2a2118; }
+body.theme-ocean   { --border-gold:#2a7ac8;--gold:#4bb8e8;--gold-light:#7ad0f5;--gold-bright:#a0eaff;--bg-darkest:#050a0e;--bg-dark:#091218;--bg-mid:#101c24;--bg-panel:#152030;--bg-card:#1a2a3a; }
+body.theme-forest  { --border-gold:#2a8c40;--gold:#4bb868;--gold-light:#7ad08a;--gold-bright:#a0f0b0;--bg-darkest:#050a06;--bg-dark:#091208;--bg-mid:#101c12;--bg-panel:#152018;--bg-card:#1a2a1e; }
+body.theme-blood   { --border-gold:#c82a2a;--gold:#e84b4b;--gold-light:#f57a7a;--gold-bright:#ffa0a0;--bg-darkest:#0a0505;--bg-dark:#120808;--bg-mid:#1c1010;--bg-panel:#201515;--bg-card:#2a1a1a; }
+body.theme-arcane  { --border-gold:#7a2ac8;--gold:#9b4be8;--gold-light:#c07af5;--gold-bright:#dca0ff;--bg-darkest:#070509;--bg-dark:#100a14;--bg-mid:#18101e;--bg-panel:#1e1528;--bg-card:#261a32; }
+body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;--gold-bright:#a0f8ff;--bg-darkest:#050810;--bg-dark:#09101a;--bg-mid:#101a28;--bg-panel:#152030;--bg-card:#1a2a3c; }
+
+/* Theme picker panel */
+#theme-picker {
+  display:none; position:fixed; bottom:3.5rem; right:0.6rem; z-index:300;
+  background:var(--bg-panel); border:1px solid var(--border-gold-dim);
+  border-radius:var(--radius-lg); padding:0.75rem; box-shadow:var(--shadow-dark);
+  animation: fadeIn 0.2s ease;
+}
+#theme-picker.open { display:block; }
+#theme-picker h4 {
+  font-family:var(--font-display); font-size:0.65rem; letter-spacing:0.15em;
+  color:var(--text-secondary); text-transform:uppercase; margin-bottom:0.6rem;
+}
+.theme-swatches { display:flex; gap:0.45rem; flex-wrap:wrap; max-width:180px; }
+.theme-swatch {
+  width:28px; height:28px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:all 0.2s;
+  position:relative;
+}
+.theme-swatch:hover, .theme-swatch.active {
+  border-color:#fff; transform:scale(1.15);
+}
+.theme-swatch[title]::after {
+  content: attr(title);
+  position:absolute; bottom:-1.4rem; left:50%; transform:translateX(-50%);
+  font-size:0.55rem; color:var(--text-secondary); white-space:nowrap;
+  font-family:var(--font-display); pointer-events:none; opacity:0;
+  transition:opacity 0.15s;
+}
+.theme-swatch:hover::after { opacity:1; }
+
+</style>
+</head>
+<body>
+
+<!-- SCREENS -->
+<div id="title-screen" class="screen active">
+  <div style="text-align:center; position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; width:100%;">
+    <div class="title-main">Crónicas de Kurghaimat</div>
+    <div class="title-sub">Donde los dragones dictan el destino</div>
+    <div class="title-buttons">
+      <button class="btn btn-primary" onclick="newGame()">⚔️ Nueva Aventura</button>
+      <button class="btn" onclick="loadGame()" id="load-btn" style="display:none">📜 Continuar</button>
+      <button class="btn" onclick="showCredits()">✦ Sobre el Juego</button>
+    </div>
+    <div style="margin-top:1.5rem; font-size:0.7rem; color:var(--text-dim); font-family:var(--font-display); letter-spacing:0.1em;">
+      D&D 5e • Mundo Infinito • Permadeath
+    </div>
+  </div>
+  <div class="title-lore">
+    "En las tierras de Kurghaimat, donde los dragones aún surcan los cielos y la magia impregna cada piedra,<br>
+    una nueva leyenda aguarda ser escrita. ¿Serás tú quien doble la rodilla ante Dovahkiin... o quien lo derrote?"
+  </div>
+</div>
+
+<div id="char-screen" class="screen">
+  <div class="char-container">
+    <div class="panel-title">✦ Forja Tu Destino ✦</div>
+    
+    <div class="section">
+      <div class="section-title">Identidad</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="c-name" placeholder="Tu nombre" maxlength="30">
+        </div>
+        <div class="form-group">
+          <label>Raza</label>
+          <select id="c-race" onchange="updateRaceBonus()">
+            <option value="human">Humano</option>
+            <option value="elf">Elfo</option>
+            <option value="dwarf">Enano</option>
+            <option value="halfling">Mediano</option>
+            <option value="dragonborn">Draconido</option>
+            <option value="tiefling">Tiefling</option>
+            <option value="gnome">Gnomo</option>
+            <option value="half-orc">Semiorco</option>
+            <option value="half-elf">Semielfo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Clase</label>
+          <select id="c-class" onchange="updateClassInfo()">
+            <option value="fighter">Guerrero</option>
+            <option value="wizard">Mago</option>
+            <option value="rogue">Pícaro</option>
+            <option value="cleric">Clérigo</option>
+            <option value="ranger">Explorador</option>
+            <option value="paladin">Paladín</option>
+            <option value="barbarian">Bárbaro</option>
+            <option value="bard">Bardo</option>
+            <option value="druid">Druida</option>
+            <option value="warlock">Brujo</option>
+            <option value="sorcerer">Hechicero</option>
+            <option value="monk">Monje</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Trasfondo</label>
+          <select id="c-background">
+            <option value="soldier">Soldado</option>
+            <option value="criminal">Criminal</option>
+            <option value="sage">Erudito</option>
+            <option value="noble">Noble</option>
+            <option value="folk-hero">Héroe del Pueblo</option>
+            <option value="outlander">Forastero</option>
+            <option value="acolyte">Acólito</option>
+            <option value="charlatan">Charlatán</option>
+          </select>
+        </div>
+      </div>
+      <div id="class-desc" style="font-size:0.78rem; color:var(--text-secondary); font-style:italic; padding:0.5rem; background:var(--bg-card); border-radius:var(--radius); margin-top:0.3rem;"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Características</div>
+      <div class="stats-grid" id="stats-grid">
+        <!-- filled by JS -->
+      </div>
+      <button class="btn roll-btn" onclick="rollStats()">🎲 Lanzar Dados (4d6 eliminar el menor)</button>
+      <div id="race-bonus-info" style="margin-top:0.5rem; font-size:0.72rem; color:var(--border-gold); font-style:italic;"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Alineamiento</div>
+      <div class="trait-grid" id="alignment-grid"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Rasgo de Personalidad</div>
+      <div id="personality-display" style="font-size:0.82rem; color:var(--text-secondary); font-style:italic; padding:0.5rem; background:var(--bg-card); border-radius:var(--radius);">
+        Elige una clase para ver los rasgos disponibles.
+      </div>
+      <button class="btn btn-small roll-btn" onclick="randomPersonality()" style="margin-top:0.5rem">🎲 Aleatorio</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Aspecto</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Avatar</label>
+          <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.3rem;" id="avatar-picker"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-top:1rem;">
+      <button class="btn" onclick="showScreen('title-screen')" style="flex:1">← Atrás</button>
+      <button class="btn btn-primary" onclick="startGame()" style="flex:2">Comenzar la Aventura ⚔️</button>
+    </div>
+    <div style="height:2rem;"></div>
+  </div>
+</div>
+
+<div id="game-screen" class="screen">
+  <div class="game-layout">
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div class="game-title-small">⚔️ Kurghaimat</div>
+      <div class="top-stats" id="top-stats">
+        <div class="bar-container">
+          <div class="bar-label">❤️</div>
+          <div class="bar-track"><div class="bar-fill hp" id="hp-bar" style="width:100%"></div></div>
+          <div class="bar-val" id="hp-val">—</div>
+        </div>
+        <div class="bar-container">
+          <div class="bar-label">💧</div>
+          <div class="bar-track"><div class="bar-fill mp" id="mp-bar" style="width:100%"></div></div>
+          <div class="bar-val" id="mp-val">—</div>
+        </div>
+        <div class="bar-container">
+          <div class="bar-label">✨</div>
+          <div class="bar-track"><div class="bar-fill xp" id="xp-bar" style="width:0%"></div></div>
+          <div class="bar-val" id="xp-val">—</div>
+        </div>
+        <div class="stat-pill">
+          <span class="icon">🪙</span>
+          <span class="label">Oro</span>
+          <span class="val" id="gold-val">0</span>
+        </div>
+        <div class="stat-pill">
+          <span class="icon">📍</span>
+          <span class="label">Lugar</span>
+          <span class="val" id="location-val">—</span>
+        </div>
+        <div class="stat-pill">
+          <span class="icon">🌙</span>
+          <span class="label">Día</span>
+          <span class="val" id="day-val">1</span>
+        </div>
+      </div>
+      <div class="top-spacer"></div>
+      <div class="top-buttons">
+        <button class="btn btn-small" onclick="saveGame()" title="Guardar">💾</button>
+        <button class="btn btn-small" onclick="toggleSound()" id="sound-btn" title="Sonido">🔊</button>
+        <button class="btn btn-small" onclick="toggleThemePicker()" title="Color del tema" id="theme-btn">🎨</button>
+        <button class="btn btn-small btn-danger" onclick="confirmQuit()" title="Salir">✕</button>
+      </div>
+    </div>
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel" id="left-panel">
+      <div class="panel-scroll">
+        <div class="mini-section">
+          <div class="char-avatar" id="player-avatar">⚔️</div>
+          <div class="char-name-display" id="player-name-display">—</div>
+          <div class="char-info" id="player-info">—</div>
+          <div class="mini-stats" id="player-mini-stats"></div>
+        </div>
+
+        <div class="mini-section">
+          <div class="mini-title">⚔️ Grupo</div>
+          <div id="party-list"></div>
+          <button class="btn btn-small" style="width:100%; margin-top:0.3rem" onclick="openTavern()">+ Contratar Aventurero</button>
+        </div>
+
+        <div class="mini-section">
+          <div class="mini-title">📜 Misiones</div>
+          <div id="quest-list"></div>
+        </div>
+
+        <div class="mini-section">
+          <div class="mini-title">🔮 Pistas de Dovahkiin</div>
+          <div id="clue-tracker"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER PANEL -->
+    <div class="center-panel">
+      <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('story')" id="tab-btn-story">📖 Historia</div>
+        <div class="tab" onclick="switchTab('map')" id="tab-btn-map">🗺️ Mapa</div>
+        <div class="tab" onclick="switchTab('inventory')" id="tab-btn-inventory">🎒 Inventario</div>
+        <div class="tab" onclick="switchTab('spells')" id="tab-btn-spells">✨ Hechizos</div>
+        <div class="tab" onclick="switchTab('skills-tab')" id="tab-btn-skills-tab">🎯 Habilidades</div>
+        <div class="tab" onclick="switchTab('lore')" id="tab-btn-lore">📚 Bitácora</div>
+      </div>
+
+      <div class="tab-content active" id="tab-story"></div>
+
+      <div class="tab-content" id="tab-map">
+        <canvas id="hex-canvas"></canvas>
+        <div class="map-legend" id="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#2a4a2a"></div>Bosque</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#6a5a4a"></div>Montaña</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4a3a2a"></div>Llanura</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#3a3a5a"></div>Mar</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#c8922a"></div>Ciudad</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#8a7a5a"></div>Pueblo</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div>Tú</div>
+        </div>
+        <div style="position:absolute;bottom:0.5rem;left:50%;transform:translateX(-50%);display:flex;gap:0.3rem;">
+          <button class="btn btn-small" onclick="mapZoom(1.2)">+</button>
+          <button class="btn btn-small" onclick="mapZoom(0.8)">−</button>
+          <button class="btn btn-small" onclick="centerMap()">⊕</button>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-inventory">
+        <div style="padding:0.8rem; overflow-y:auto; flex:1;">
+          <div class="mini-title">Equipamiento</div>
+          <div id="equip-slots" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:0.4rem; margin-bottom:1rem;"></div>
+          <div class="mini-title">Mochila</div>
+          <div class="inv-grid" id="bag-slots"></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-spells">
+        <div style="padding:0.8rem; overflow-y:auto; flex:1;">
+          <div id="spell-slots-display" style="margin-bottom:0.8rem;"></div>
+          <div class="spell-grid" id="spellbook-grid"></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-skills-tab">
+        <div style="padding:0.8rem; overflow-y:auto; flex:1;">
+          <div class="skills-list" id="skills-list"></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-lore">
+        <div style="overflow-y:auto; flex:1; padding:0.8rem; display:flex; flex-direction:column; gap:1rem;">
+          <!-- Quest Log -->
+          <div>
+            <div style="font-family:var(--font-display);font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.6rem;padding-bottom:0.35rem;border-bottom:1px solid var(--border-gold-dim);">📋 Diario de Misiones</div>
+            <div id="quest-log-content"></div>
+          </div>
+          <!-- World Lore -->
+          <div>
+            <div style="font-family:var(--font-display);font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.6rem;padding-bottom:0.35rem;border-bottom:1px solid var(--border-gold-dim);">📖 Conocimiento del Mundo</div>
+            <div id="lore-content"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION AREA -->
+      <div class="action-area">
+        <div class="action-grid" id="action-grid"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel" id="right-panel">
+      <div class="panel-scroll">
+        <div class="mini-section">
+          <div class="mini-title">🗡️ Turno de Combate</div>
+          <div id="combat-area" style="display:none;">
+            <div class="initiative-track" id="initiative-track"></div>
+            <div style="height:0.5rem;"></div>
+            <div id="combatants-list"></div>
+          </div>
+          <div id="no-combat" style="font-size:0.75rem; color:var(--text-dim); font-style:italic; padding:0.3rem;">Sin combate activo.</div>
+        </div>
+
+        <div class="mini-section">
+          <div class="mini-title">🏘️ Localidad</div>
+          <div id="location-info" style="font-size:0.78rem; color:var(--text-secondary); line-height:1.5; padding:0.3rem;"></div>
+        </div>
+
+        <div class="mini-section">
+          <div class="mini-title">📋 Misión Activa</div>
+          <div id="active-quest-detail" style="font-size:0.78rem; color:var(--text-secondary); line-height:1.5; padding:0.3rem; font-style:italic;"></div>
+        </div>
+
+        <div class="mini-section">
+          <div class="mini-title">⏱️ Registro Reciente</div>
+          <div id="recent-log" style="font-size:0.72rem; color:var(--text-dim); line-height:1.6;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV (mobile) -->
+    <div class="bottom-nav">
+      <button class="nav-btn active" onclick="mobileNav('story',this)"><span class="icon">📖</span>Historia</button>
+      <button class="nav-btn" onclick="mobileNav('left',this)"><span class="icon">🧙</span>Personaje</button>
+      <button class="nav-btn" onclick="mobileNav('map',this)"><span class="icon">🗺️</span>Mapa</button>
+      <button class="nav-btn" onclick="mobileNav('inventory',this)"><span class="icon">🎒</span>Mochila</button>
+      <button class="nav-btn" onclick="mobileNav('right',this)"><span class="icon">⚔️</span>Combate</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAYS & MODALS -->
+<div class="overlay-backdrop" id="overlay" onclick="closeOverlays()"></div>
+<div class="save-indicator" id="save-indicator">✓ Partida guardada</div>
+<div class="notif-container" id="notifs"></div>
+<canvas id="confetti-canvas"></canvas>
+<div class="tooltip" id="tooltip"></div>
+
+<!-- DICE MODAL -->
+<div class="modal-overlay" id="dice-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🎲 Sala de Dados</div>
+      <button class="modal-close" onclick="closeModal('dice-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="dice-selector">
+        <button class="die-type-btn active" onclick="selectDie('d4',this)">d4</button>
+        <button class="die-type-btn" onclick="selectDie('d6',this)">d6</button>
+        <button class="die-type-btn" onclick="selectDie('d8',this)">d8</button>
+        <button class="die-type-btn" onclick="selectDie('d10',this)">d10</button>
+        <button class="die-type-btn" onclick="selectDie('d12',this)">d12</button>
+        <button class="die-type-btn" onclick="selectDie('d20',this)">d20</button>
+        <button class="die-type-btn" onclick="selectDie('d100',this)">d100</button>
+      </div>
+      <div class="dice-stage">
+        <div class="dice-scene" id="dice-scene">
+          <div class="dice-3d" id="dice-3d"><div class="die-face dice-d4" id="die-face">?</div></div>
+        </div>
+        <div class="dice-result-big" id="dice-result-big">—</div>
+        <div class="dice-breakdown" id="dice-breakdown">Selecciona un dado y lanza</div>
+      </div>
+      <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
+        <div class="form-group" style="flex:1;">
+          <label>Cantidad</label>
+          <input type="number" id="dice-count" value="1" min="1" max="10" style="text-align:center;">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>Modificador</label>
+          <input type="number" id="dice-mod" value="0" min="-10" max="20" style="text-align:center;">
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="rollManualDice()">🎲 ¡Lanzar!</button>
+    </div>
+  </div>
+</div>
+
+<!-- DIALOG MODAL -->
+<div class="modal-overlay" id="dialog-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="dialog-npc-name">NPC</div>
+      <button class="modal-close" onclick="closeModal('dialog-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex; gap:0.8rem; align-items:flex-start; margin-bottom:1rem;">
+        <div class="npc-portrait" id="dialog-portrait">🧙</div>
+        <div class="dialog-bubble" id="dialog-text"></div>
+      </div>
+      <div class="dialog-choices" id="dialog-choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MARKET MODAL -->
+<div class="modal-overlay" id="market-modal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <div class="modal-title" id="market-title">Mercado</div>
+      <button class="modal-close" onclick="closeModal('market-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem; align-items:center;">
+        <div style="font-size:0.8rem; color:var(--text-secondary);">Tus monedas de oro:</div>
+        <div style="font-family:var(--font-display); color:var(--gold);">🪙 <span id="market-gold">0</span></div>
+      </div>
+      <div class="market-grid" id="market-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ITEM DETAIL MODAL -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="item-modal-title">Objeto</div>
+      <button class="modal-close" onclick="closeModal('item-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="item-modal-body"></div>
+  </div>
+</div>
+
+<!-- TAVERN MODAL -->
+<div class="modal-overlay" id="tavern-modal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <div class="modal-title">🍺 La Taberna del Dragón Dorado</div>
+      <button class="modal-close" onclick="closeModal('tavern-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-style:italic; font-size:0.82rem; color:var(--text-secondary); margin-bottom:1rem;" id="tavern-desc"></div>
+      <div class="section-title">Aventureros Disponibles</div>
+      <div id="tavern-hires"></div>
+    </div>
+  </div>
+</div>
+
+<!-- QUEST MODAL -->
+<div class="modal-overlay" id="quest-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📜 Tablón de Misiones</div>
+      <button class="modal-close" onclick="closeModal('quest-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="quest-modal-body"></div>
+  </div>
+</div>
+
+<!-- DEATH SCREEN -->
+<div id="death-screen">
+  <div class="death-title">☠ Has Caído</div>
+  <div style="color:var(--text-secondary); font-style:italic; text-align:center; animation:deathAppear 2s ease 2s both; font-size:0.9rem; padding:0 2rem;" id="death-msg"></div>
+  <div style="animation:deathAppear 0.5s ease 3.5s both; display:flex; gap:0.8rem; flex-wrap:wrap; justify-content:center;">
+    <button class="btn btn-primary" onclick="restartFromTitle()">Nueva Leyenda</button>
+  </div>
+</div>
+
+<script>
+
+// ==========================================
+// CHRONICLES OF ELDORIA - COMPLETE GAME ENGINE
+// ==========================================
+
+// ====== GAME DATA ======
+const RACES = {
+  human:     { name:'Humano',     bonuses:{str:1,dex:1,con:1,int:1,wis:1,cha:1}, trait:'Versatilidad', speed:30, emoji:'👤' },
+  elf:       { name:'Elfo',       bonuses:{dex:2,int:1}, trait:'Percepción élfica', speed:35, emoji:'🧝' },
+  dwarf:     { name:'Enano',      bonuses:{con:2,wis:1}, trait:'Resistencia enana', speed:25, emoji:'⛏️' },
+  halfling:  { name:'Mediano',    bonuses:{dex:2,cha:1}, trait:'Suerte', speed:25, emoji:'🧑' },
+  dragonborn:{ name:'Dracónido',  bonuses:{str:2,cha:1}, trait:'Aliento draconico', speed:30, emoji:'🐲' },
+  tiefling:  { name:'Tiefling',   bonuses:{int:1,cha:2}, trait:'Herencia infernal', speed:30, emoji:'😈' },
+  gnome:     { name:'Gnomo',      bonuses:{int:2,con:1}, trait:'Ingenio gnomo', speed:25, emoji:'🧪' },
+  'half-orc':{ name:'Semiorco',   bonuses:{str:2,con:1}, trait:'Dureza orca', speed:30, emoji:'💪' },
+  'half-elf':{ name:'Semielfo',   bonuses:{dex:1,cha:2}, trait:'Herencia dual', speed:30, emoji:'✨' }
+};
+
+const CLASSES = {
+  fighter:  { name:'Guerrero',    hd:'d10', primary:'str',    spellcasting:false, emoji:'⚔️',  desc:'Maestro del combate, domina todo tipo de armas y armaduras. Puede realizar múltiples ataques y recuperarse rápidamente.' },
+  wizard:   { name:'Mago',        hd:'d6',  primary:'int',    spellcasting:true,  emoji:'🧙',  desc:'Estudioso de las artes arcanas. Conjura hechizos devastadores preparados desde su grimorio.' },
+  rogue:    { name:'Pícaro',      hd:'d8',  primary:'dex',    spellcasting:false, emoji:'🗡️',  desc:'Experto en sigilo y engaño. Inflige daño extra con ataques furtivos y evita trampas con maestría.' },
+  cleric:   { name:'Clérigo',     hd:'d8',  primary:'wis',    spellcasting:true,  emoji:'⛪',  desc:'Canal divino de su deidad. Cura heridas, expulsa no-muertos y lanza hechizos sagrados.' },
+  ranger:   { name:'Explorador',  hd:'d10', primary:'dex',    spellcasting:true,  emoji:'🏹',  desc:'Guardián de los territorios salvajes. Rastrea presas, lanza hechizos de naturaleza y tiene un compañero animal.' },
+  paladin:  { name:'Paladín',     hd:'d10', primary:'str',    spellcasting:true,  emoji:'🛡️',  desc:'Guerrero sagrado guiado por su juramento. Impone las manos para curar y aura de protección para sus aliados.' },
+  barbarian:{ name:'Bárbaro',     hd:'d12', primary:'str',    spellcasting:false, emoji:'🪓',  desc:'Guerrero primitivo que entra en furia berserker. Resistencia al daño y ataques salvajes furiosos.' },
+  bard:     { name:'Bardo',       hd:'d8',  primary:'cha',    spellcasting:true,  emoji:'🎵',  desc:'Artista y hechicero. Inspira a sus aliados, lanza hechizos versátiles y conoce muchos secretos.' },
+  druid:    { name:'Druida',      hd:'d8',  primary:'wis',    spellcasting:true,  emoji:'🌿',  desc:'Guardián de la naturaleza. Puede transformarse en animales, controlar el clima y sanar con magia natural.' },
+  warlock:  { name:'Brujo',       hd:'d8',  primary:'cha',    spellcasting:true,  emoji:'👁️',  desc:'Mago que obtuvo poder de un ser sobrenatural. Pocas invocaciones pero recuperadas con descanso corto.' },
+  sorcerer: { name:'Hechicero',   hd:'d6',  primary:'cha',    spellcasting:true,  emoji:'💫',  desc:'Magia innata que fluye por su sangre. Metamagias para modificar hechizos de formas imposibles.' },
+  monk:     { name:'Monje',       hd:'d8',  primary:'dex',    spellcasting:false, emoji:'🥋',  desc:'Maestra del cuerpo y la mente. Ataques desarmados letales, ki para habilidades especiales y deflexión de proyectiles.' }
+};
+
+const ALIGNMENTS = [
+  { id:'lg', name:'Legal Bueno',     emoji:'⚖️✨', desc:'Honor y compasión' },
+  { id:'ng', name:'Neutral Bueno',   emoji:'💛',   desc:'Bien sin ataduras' },
+  { id:'cg', name:'Caótico Bueno',   emoji:'🌟',   desc:'Libertad y bondad' },
+  { id:'ln', name:'Legal Neutral',   emoji:'⚖️',   desc:'Orden sobre todo' },
+  { id:'tn', name:'Neutral',         emoji:'⚫',   desc:'Sin compromisos' },
+  { id:'cn', name:'Caótico Neutral', emoji:'🌀',   desc:'Pura libertad' },
+  { id:'le', name:'Legal Maligno',   emoji:'⚖️💀', desc:'Tiranía calculada' },
+  { id:'ne', name:'Neutral Maligno', emoji:'💀',   desc:'Egoísmo puro' },
+  { id:'ce', name:'Caótico Maligno', emoji:'🔥💀', desc:'Destrucción y caos' }
+];
+
+const PERSONALITIES = {
+  fighter:   ['Nunca dejo a un compañero atrás en el campo de batalla.', 'Soy directo y prefiero los hechos a las palabras.', 'Respeto la fuerza y desprecio la cobardía.'],
+  wizard:    ['El conocimiento es el poder más grande.', 'Observo y analizo antes de actuar.', 'Los detalles importan más que la visión general.'],
+  rogue:     ['Confío en mis instintos más que en mis aliados.', 'Si un trabajo vale la pena hacerlo, vale la pena hacerlo bien.', 'Siempre tengo un plan de escape.'],
+  cleric:    ['La fe es mi escudo y mi espada.', 'Sirvo a mi dios con cada aliento.', 'Todo ser merece una oportunidad de redención.'],
+  ranger:    ['La naturaleza salvaje es mi verdadero hogar.', 'Soy reservado con los extraños pero leal a mis compañeros.', 'Nunca pierdo mi camino en bosques o montañas.'],
+  paladin:   ['Mi palabra es mi pacto sagrado.', 'Los inocentes deben ser protegidos a cualquier costo.', 'El mal debe ser erradicado donde sea que ase su fea cabeza.'],
+  barbarian: ['Confío en mis instintos y mi fuerza bruta.', 'Me río ante el peligro.', 'Las grandes hazañas merecen grandes fiestas.'],
+  bard:      ['Cada aventura es una historia que debo contar.', 'Ninguna situación está más allá de mi capacidad de entretener.', 'Las palabras son más poderosas que las espadas.'],
+  druid:     ['Busco el equilibrio en todas las cosas.', 'La naturaleza tiene sabiduría que los civilizados han olvidado.', 'Cambio como las estaciones.'],
+  warlock:   ['El poder tiene un precio y estoy dispuesto a pagarlo.', 'Mi patrón y yo tenemos un acuerdo que me conviene.', 'Los secretos son mi moneda más valiosa.'],
+  sorcerer:  ['El poder fluye por mis venas como sangre ardiente.', 'No elegiría tener magia diferente aunque pudiera.', 'Emoción me llena cuando libero mi verdadero poder.'],
+  monk:      ['El cuerpo es el templo del espíritu.', 'La paciencia supera a la velocidad.', 'Nada me perturba; soy como agua tranquila.']
+};
+
+const AVATAR_EMOJIS = ['⚔️','🧙','🗡️','⛪','🏹','🛡️','🪓','🎵','🌿','👁️','💫','🥋','🧝','⛏️','🐲','😈','🧪','💪','✨'];
+
+const SKILLS_DATA = [
+  {name:'Acrobacia',     stat:'dex'}, {name:'Arcanos',        stat:'int'},
+  {name:'Atletismo',     stat:'str'}, {name:'Engaño',         stat:'cha'},
+  {name:'Historia',      stat:'int'}, {name:'Perspicacia',    stat:'wis'},
+  {name:'Intimidación',  stat:'cha'}, {name:'Investigación',  stat:'int'},
+  {name:'Medicina',      stat:'wis'}, {name:'Naturaleza',     stat:'int'},
+  {name:'Percepción',    stat:'wis'}, {name:'Actuación',      stat:'cha'},
+  {name:'Persuasión',    stat:'cha'}, {name:'Religión',       stat:'int'},
+  {name:'Juego de manos',stat:'dex'}, {name:'Sigilo',         stat:'dex'},
+  {name:'Supervivencia', stat:'wis'}, {name:'Trato con animales',stat:'wis'}
+];
+
+const CLASS_PROFICIENCIES = {
+  fighter:   ['Atletismo','Intimidación','Percepción','Supervivencia'],
+  wizard:    ['Arcanos','Historia','Investigación','Perspicacia'],
+  rogue:     ['Acrobacia','Engaño','Investigación','Percepción','Sigilo','Juego de manos'],
+  cleric:    ['Historia','Medicina','Persuasión','Religión'],
+  ranger:    ['Atletismo','Naturaleza','Percepción','Sigilo','Supervivencia','Trato con animales'],
+  paladin:   ['Atletismo','Intimidación','Medicina','Persuasión','Religión'],
+  barbarian: ['Atletismo','Intimidación','Naturaleza','Percepción','Supervivencia'],
+  bard:      ['Acrobacia','Engaño','Actuación','Percepción','Persuasión'],
+  druid:     ['Arcanos','Medicina','Naturaleza','Percepción','Religión','Supervivencia','Trato con animales'],
+  warlock:   ['Arcanos','Engaño','Historia','Intimidación','Investigación','Naturaleza','Religión'],
+  sorcerer:  ['Arcanos','Engaño','Perspicacia','Intimidación','Persuasión','Religión'],
+  monk:      ['Acrobacia','Atletismo','Historia','Perspicacia','Religión','Sigilo']
+};
+
+const SPELLS_BY_CLASS = {
+  wizard:   [
+    {name:'Proyectil Mágico', level:1, icon:'💫', desc:'3 dardos de energía mágica. 1d4+1 de daño cada uno.', damage:'1d4+1', slots:2, cooldown:0},
+    {name:'Bola de Fuego', level:3, icon:'🔥', desc:'Explosión de fuego en área. 8d6 de daño de fuego.', damage:'8d6', slots:3, cooldown:0},
+    {name:'Escudo', level:1, icon:'🛡️', desc:'Reacción que aumenta tu CA en 5 hasta tu próximo turno.', damage:null, slots:2, cooldown:0},
+    {name:'Rayo', level:3, icon:'⚡', desc:'Rayo de energía. 8d6 de daño de relámpago.', damage:'8d6', slots:3, cooldown:0},
+    {name:'Flecha de Ácido', level:2, icon:'🟢', desc:'Flecha de ácido. 4d4 inmediato + 2d4 al final de su turno.', damage:'4d4', slots:2, cooldown:0},
+    {name:'Detectar Magia', level:1, icon:'🔮', desc:'Detectas la presencia de magia a tu alrededor.', damage:null, slots:0, cooldown:0},
+    {name:'Dormir', level:1, icon:'💤', desc:'Duerme criaturas con 5d8 puntos de golpe combinados.', damage:null, slots:2, cooldown:0},
+    {name:'Imagen Menor', level:2, icon:'👻', desc:'Creas una ilusión de un objeto o criatura.', damage:null, slots:0, cooldown:0},
+  ],
+  cleric:[
+    {name:'Curar Heridas', level:1, icon:'💚', desc:'Cura 1d8 + mod SAB puntos de golpe.', damage:'-1d8', slots:2, cooldown:0},
+    {name:'Palabra Sagrada', level:1, icon:'✨', desc:'Pronuncias una palabra que daña a las criaturas malvadas. 2d6.', damage:'2d6', slots:2, cooldown:0},
+    {name:'Llama Sagrada', level:0, icon:'🕯️', desc:'Conjuración de llama. 1d8 de daño radiante.', damage:'1d8', slots:0, cooldown:0},
+    {name:'Escudo de Fe', level:1, icon:'🛡️', desc:'+2 CA durante 10 minutos (concentración).', damage:null, slots:2, cooldown:0},
+    {name:'Curación en Masa', level:5, icon:'💛', desc:'Cura 3d8+SAB a hasta 6 criaturas.', damage:'-3d8', slots:5, cooldown:0},
+    {name:'Reanimación', level:5, icon:'☀️', desc:'Devuelves a la vida a una criatura muerta hace menos de 1 día.', damage:null, slots:5, cooldown:0},
+  ],
+  ranger:[
+    {name:'Marca del Cazador', level:1, icon:'🎯', desc:'Marcas un objetivo. +1d6 de daño al atacarlo.', damage:'1d6', slots:2, cooldown:0},
+    {name:'Pasos de la Niebla', level:2, icon:'🌫️', desc:'Teletransporte de hasta 9m en niebla.', damage:null, slots:2, cooldown:0},
+    {name:'Flecha de Hielo', level:2, icon:'❄️', desc:'Flecha de hielo. 2d8 de daño frío.', damage:'2d8', slots:2, cooldown:0},
+  ],
+  paladin:[
+    {name:'Imposición de Manos', level:1, icon:'🙏', desc:'Curas hasta 5×Nivel PG por descanso largo.', damage:null, slots:0, cooldown:0},
+    {name:'Golpe Divino', level:1, icon:'⚡', desc:'+2d8 de daño radiante en el próximo ataque.', damage:'2d8', slots:2, cooldown:0},
+    {name:'Detectar el Mal', level:1, icon:'👁️', desc:'Detectas presencias malvadas a 9m.', damage:null, slots:2, cooldown:0},
+  ],
+  bard:[
+    {name:'Inspiración Bárdica', level:0, icon:'🎵', desc:'Un aliado añade 1d6 a su próxima tirada.', damage:null, slots:0, cooldown:0},
+    {name:'Curar Heridas', level:1, icon:'💚', desc:'Cura 1d8+CAR puntos de golpe.', damage:'-1d8', slots:2, cooldown:0},
+    {name:'Encantamiento', level:1, icon:'💜', desc:'El objetivo no puede atacarte durante 1 minuto.', damage:null, slots:2, cooldown:0},
+  ],
+  druid:[
+    {name:'Forma Salvaje', level:2, icon:'🐺', desc:'Te conviertes en un animal CR 1/4 o menor.', damage:null, slots:2, cooldown:0},
+    {name:'Rayo Solar', level:3, icon:'☀️', desc:'Columna de luz solar. 6d8 radiante.', damage:'6d8', slots:3, cooldown:0},
+    {name:'Llamar Relámpagos', level:3, icon:'⛈️', desc:'Convocas tormenta. 3d10 relámpago cada turno.', damage:'3d10', slots:3, cooldown:0},
+  ],
+  warlock:[
+    {name:'Maldición del Eldritch', level:0, icon:'🟣', desc:'Rayo de oscuridad. 1d10 de daño de fuerza.', damage:'1d10', slots:0, cooldown:0},
+    {name:'Hambre del Vacío', level:2, icon:'🌑', desc:'Zona oscura. 2d6 daño psíquico a los que fallen SAB.', damage:'2d6', slots:2, cooldown:0},
+    {name:'Armadura de Agathys', level:1, icon:'❄️', desc:'10 PG temporales y 5 daño frío si te golpean.', damage:null, slots:2, cooldown:0},
+  ],
+  sorcerer:[
+    {name:'Detonación de Caos', level:0, icon:'💥', desc:'Explosión arcana. 1d10 de daño.', damage:'1d10', slots:0, cooldown:0},
+    {name:'Cono de Frío', level:5, icon:'🌨️', desc:'Cono de aire ártico. 8d8 de daño frío.', damage:'8d8', slots:5, cooldown:0},
+    {name:'Bola de Fuego', level:3, icon:'🔥', desc:'8d6 de daño de fuego en área.', damage:'8d6', slots:3, cooldown:0},
+  ],
+};
+
+const ITEMS = {
+  // Weapons
+  shortsword:   {name:'Espada Corta',      type:'weapon', slot:'mainhand', icon:'🗡️', rarity:'common',    damage:'1d6',  dmgType:'cortante', price:10,   weight:2, desc:'Arma ligera ágil. Perfecta para duelistas.'},
+  longsword:    {name:'Espada Larga',       type:'weapon', slot:'mainhand', icon:'⚔️', rarity:'common',    damage:'1d8',  dmgType:'cortante', price:15,   weight:3, desc:'La espada estándar del caballero.'},
+  greataxe:     {name:'Hacha Enorme',       type:'weapon', slot:'mainhand', icon:'🪓', rarity:'common',    damage:'1d12', dmgType:'cortante', price:30,   weight:7, desc:'Arma pesada de dos manos devastadora.'},
+  bow:          {name:'Arco Largo',         type:'weapon', slot:'mainhand', icon:'🏹', rarity:'common',    damage:'1d8',  dmgType:'perforant', price:50,  weight:2, desc:'Arco de largo alcance.'},
+  dagger:       {name:'Daga',              type:'weapon', slot:'mainhand', icon:'🔪', rarity:'common',    damage:'1d4',  dmgType:'perforant', price:2,   weight:1, desc:'Arma ligera y arrojadiza.'},
+  staff:        {name:'Báculo Arcano',     type:'weapon', slot:'mainhand', icon:'🪄', rarity:'common',    damage:'1d6',  dmgType:'contund.',  price:5,   weight:4, desc:'Canalizador de energía mágica.'},
+  rapier:       {name:'Estoque',           type:'weapon', slot:'mainhand', icon:'🤺', rarity:'uncommon',  damage:'1d8',  dmgType:'perforant', price:25,  weight:2, desc:'Hoja elegante y mortal para duelistas finos.'},
+  warhammer:    {name:'Mazo de Guerra',    type:'weapon', slot:'mainhand', icon:'🔨', rarity:'common',    damage:'1d8',  dmgType:'contund.',  price:15,  weight:5, desc:'Mazo pesado de combate sagrado.'},
+  scimitar:     {name:'Cimitarra',         type:'weapon', slot:'mainhand', icon:'🌙', rarity:'uncommon',  damage:'1d6',  dmgType:'cortante',  price:25,  weight:3, desc:'Hoja curva veloz y elegante.'},
+  flametonge:   {name:'Lengua de Llamas', type:'weapon', slot:'mainhand', icon:'🔥', rarity:'rare',      damage:'1d8+2d6', dmgType:'fuego', price:0,  weight:3, desc:'Espada legendaria envuelta en llamas eternas. +2d6 de daño de fuego.'},
+  frostbite:    {name:'Mordida de Escarcha',type:'weapon',slot:'mainhand', icon:'❄️', rarity:'epic',      damage:'1d10+1d8', dmgType:'frío', price:0, weight:3, desc:'Hoja de hielo encantado. +1d8 daño frío y ralentiza al objetivo.'},
+  // Armor  
+  leather:      {name:'Armadura de Cuero',  type:'armor', slot:'body',    icon:'🥋', rarity:'common',    ac:11, price:10,  weight:10, desc:'Ligera protección de cuero curtido.'},
+  chain:        {name:'Cota de Malla',      type:'armor', slot:'body',    icon:'🛡️', rarity:'common',    ac:13, price:75,  weight:55, desc:'Anillos de metal entrelazados.'},
+  plate:        {name:'Armadura de Placas', type:'armor', slot:'body',    icon:'⚔️', rarity:'uncommon',  ac:18, price:1500,weight:65, desc:'La armadura más protectora del mercado.'},
+  robe:         {name:'Túnica de Mago',     type:'armor', slot:'body',    icon:'🧙', rarity:'common',    ac:10, price:5,   weight:4,  desc:'Vestes arcanas. No protege mucho.'},
+  shield:       {name:'Escudo',             type:'armor', slot:'offhand', icon:'🛡️', rarity:'common',    ac:2,  price:10,  weight:6,  desc:'+2 CA al equipar.'},
+  dragonscale:  {name:'Escamas de Dragón', type:'armor', slot:'body',    icon:'🐲', rarity:'legendary', ac:20, price:0,   weight:40, desc:'Armadura forjada de escamas de un dragón anciano. AC 20 y resistencia al fuego.'},
+  // Consumables
+  healpotion:   {name:'Poción de Curación', type:'consumable',icon:'🧪', rarity:'common',   heal:8,   price:50,  weight:0.5, desc:'Restaura 2d4+2 puntos de golpe al beber.'},
+  greatpotion:  {name:'Poción Mayor',       type:'consumable',icon:'💊', rarity:'uncommon', heal:20,  price:150, weight:0.5, desc:'Restaura 4d4+4 puntos de golpe.'},
+  manapotion:   {name:'Poción de Maná',     type:'consumable',icon:'💙', rarity:'uncommon', mana:2,   price:100, weight:0.5, desc:'Recupera 1 nivel de conjuro.'},
+  antidote:     {name:'Antídoto',           type:'consumable',icon:'💚', rarity:'common',   price:50,  weight:0.1, desc:'Cura estados de envenenamiento.'},
+  rations:      {name:'Raciones',           type:'consumable',icon:'🍖', rarity:'common',   price:1,   weight:2,   desc:'Comida para 1 día de viaje.'},
+  // Accessories
+  amulet:       {name:'Amuleto de Salud',   type:'accessory',slot:'neck', icon:'📿', rarity:'uncommon', bonus:{maxhp:5}, price:200, weight:0, desc:'+5 a los puntos de golpe máximos.'},
+  ring:         {name:'Anillo de Protección',type:'accessory',slot:'ring',icon:'💍', rarity:'rare',     bonus:{ac:1}, price:500, weight:0, desc:'+1 AC y +1 a todas las tiradas de salvación.'},
+  boots:        {name:'Botas del Viento',   type:'accessory',slot:'feet', icon:'👢', rarity:'rare',     bonus:{speed:10}, price:300, weight:2, desc:'+10 pies de velocidad de movimiento.'},
+  cloak:        {name:'Capa de Sombras',    type:'accessory',slot:'back', icon:'🦇', rarity:'epic',     bonus:{stealth:5}, price:0, weight:1, desc:'+5 a sigilo. Puede desaparecer en sombras 1/día.'},
+  // Tools
+  thieves_tools:{name:"Herramientas de Ladrón",type:'tool',icon:'🔑', rarity:'common', price:25, weight:1, desc:'Necesarias para forzar cerraduras y desactivar trampas.'},
+  herbalism:    {name:'Kit de Herbalismo',  type:'tool', icon:'🌿', rarity:'common', price:5, weight:3, desc:'Permite crear pociones y antídotos básicos.'},
+  rope:         {name:'Soga (15m)',          type:'tool', icon:'🪢', rarity:'common', price:1, weight:10, desc:'Soga resistente de 50 pies de longitud.'},
+  torch:        {name:'Antorcha',           type:'tool', icon:'🔦', rarity:'common', price:0, weight:1, qty:3, desc:'Ilumina 6m durante 1 hora.'},
+  // Clues
+  clue1:{name:'Mapa Rúnico',     type:'clue', icon:'🗺️', rarity:'legendary', price:0, weight:0, desc:'Un fragmento de mapa que muestra marcas rúnicas del norte. "Las montañas grises esconden la verdad..."'},
+  clue2:{name:'Escama de Dragón',type:'clue', icon:'🐉', rarity:'legendary', price:0, weight:0, desc:'Una escama carmesí del propio Dovahkiin. El herrero dice que proviene de las Cimas Ardientes.'},
+  clue3:{name:'Diario del Explorador',type:'clue',icon:'📓',rarity:'legendary',price:0,weight:0,desc:'"Tercer día... la cueva humea sin cesar. Criaturas extrañas patrullan el perímetro. No sobreviviré..."'},
+  clue4:{name:'Sello del Culto', type:'clue', icon:'🔴', rarity:'legendary', price:0, weight:0, desc:'El sello de quienes sirven a Dovahkiin. Tres garras sobre un mundo ardiente.'},
+  clue5:{name:'Visión de la Oráculo',type:'clue',icon:'🔮',rarity:'legendary',price:0,weight:0,desc:'La vidente murmuró: "Al este del Lago Oscuro, donde las tres cumbres convergen... allí espera el fin del mundo."'},
+};
+
+const NPC_NAMES = {
+  male:   ['Aldric','Theron','Gareth','Corin','Brennan','Oswin','Leofric','Hadwin','Edric','Caelan','Draven','Soren','Kiran','Vael','Tomas','Rolfir','Ulric','Brand','Eiric','Caius'],
+  female: ['Senna','Lyra','Briar','Isolde','Rowena','Caelia','Thyra','Wren','Elara','Vesper','Aldara','Ciara','Nessa','Faye','Mira','Sorcha','Delia','Remy','Liora','Seraph'],
+  surnames:['Forjafuego','Pedradura','Bruma','Hierroblanco','Cazador','Oscuro','Viento','Piedra','Luna','Espada','Tormenta','Ceniza','Bosque','Mar','Roca','Llama','Sombra','Estrella','Río','Hierba']
+};
+
+const LOCATIONS = {
+  town: {
+    names:['Aldea de Piedra Alta','Millhaven','Torrecampo','Valdebruma','Puente Viejo','La Encrucijada','Aguas Claras','Pradoverde','El Cruce','Villaverde','Hojarasca','Brezales'],
+    desc: (n)=>`${n} es un pueblo tranquilo de casas de madera y piedra. Los aldeanos te miran con curiosidad. El olor a pan recién horneado llena el aire.`,
+    services:['tavern','market','questboard','healer'],
+    ambiance:'🏘️'
+  },
+  city:{
+    names:['Ciudad de Ironhold','La Gran Bastión','Metrópolis de Kael','Valdur el Magnífico','Ciudad Imperial'],
+    desc:(n)=>`${n} se alza imponente con sus murallas de piedra negra. Las calles bullen de vida: mercaderes, soldados y gente de toda condición.`,
+    services:['tavern','market','questboard','healer','guild','blacksmith','library','temple'],
+    ambiance:'🏰'
+  },
+  forest:{
+    names:['Bosque Susurrante','Arboleda Oscura','El Laberinto Verde','Bosque del Cuervo','Pinar Sombrio'],
+    desc:(n)=>`${n} te envuelve con sus árboles centenarios. Luz filtrada, rumores de criaturas entre las ramas. El camino se vuelve difícil de seguir.`,
+    services:[],
+    ambiance:'🌲'
+  },
+  mountain:{
+    names:['Monte Grisáceo','Picos del Trueno','Cimas Ardientes','Montaña del Gigante','Cresta Rota'],
+    desc:(n)=>`El viento cortante del ${n} dificulta el avance. Senderos peligrosos serpentean entre peñascos. Se dice que estas cumbres ocultan secretos ancestrales.`,
+    services:[],
+    ambiance:'⛰️'
+  },
+  plains:{
+    names:['Llanura del Viento','Campos de Centeno','Praderas del Sur','El Páramo','Campos de Kurghaimat','Planicie Dorada'],
+    desc:(n)=>`La vasta extensión de ${n} se extiende hasta el horizonte. El viento mece la hierba alta y el sol calienta la tierra fértil, pero el peligro siempre acecha.`,
+    services:[],
+    ambiance:'🌾'
+  },
+  dungeon:{
+    names:['Cripta de los Condenados','Las Catacumbas','Mazmorras del Señor Gris','La Cueva Sin Nombre','Fortaleza Caída','Subterráneo de Keth'],
+    desc:(n)=>`Ante ti se abre la oscuridad del ${n}. El aire huele a humedad y muerte. Tus instintos te gritan peligro... pero también promesa de tesoro.`,
+    services:[],
+    ambiance:'🏚️'
+  }
+};
+
+const ENEMIES = [
+  // Low level
+  {name:'Goblin',         level:1, hp:7,  ac:15, xp:50,  gold:[0,5],  emoji:'👺', attacks:[{name:'Cimitarra',dmg:'1d6',hit:4}], loot:['dagger','healpotion']},
+  {name:'Scheletor',      level:1, hp:13, ac:13, xp:50,  gold:[0,8],  emoji:'💀', attacks:[{name:'Espada',dmg:'1d6+2',hit:4}], loot:['shortsword']},
+  {name:'Kobold',         level:1, hp:5,  ac:12, xp:25,  gold:[0,3],  emoji:'🦎', attacks:[{name:'Daga',dmg:'1d4+2',hit:4}], loot:['dagger']},
+  {name:'Bandido',        level:2, hp:11, ac:12, xp:100, gold:[2,15], emoji:'🥷', attacks:[{name:'Espada',dmg:'1d8+1',hit:3}], loot:['shortsword','healpotion']},
+  // Mid level
+  {name:'Orco',           level:3, hp:15, ac:13, xp:200, gold:[3,20], emoji:'🧌', attacks:[{name:'Hacha',dmg:'2d6+3',hit:5}], loot:['greataxe','chain']},
+  {name:'Gnoll',          level:3, hp:22, ac:15, xp:200, gold:[2,12], emoji:'🐺', attacks:[{name:'Pica',dmg:'2d6+3',hit:5},{name:'Mordisco',dmg:'1d6+3',hit:5}], loot:['healpotion']},
+  {name:'Troll',          level:5, hp:84, ac:15, xp:700, gold:[5,30], emoji:'👹', attacks:[{name:'Garra',dmg:'2d6+4',hit:7},{name:'Mordisco',dmg:'1d6+4',hit:7}], loot:['greatpotion']},
+  {name:'Vampiro Menor',  level:5, hp:52, ac:14, xp:700, gold:[10,50],emoji:'🧛', attacks:[{name:'Drenaje vital',dmg:'3d6',hit:6}], loot:['cloak','ring']},
+  // High level
+  {name:'Minotauro',      level:6, hp:76, ac:14, xp:1100,gold:[20,80],emoji:'🐂', attacks:[{name:'Hacha gigante',dmg:'2d12+4',hit:6},{name:'Cornada',dmg:'2d8+4',hit:6}], loot:['greataxe','plate']},
+  {name:'Dragón Joven',   level:9, hp:178,ac:18, xp:5000,gold:[100,400],emoji:'🐉',attacks:[{name:'Mordisco',dmg:'2d10+7',hit:10},{name:'Soplo Ígneo',dmg:'12d6',hit:10}], loot:['dragonscale','flametonge']},
+  // Final
+  {name:'DOVAHKIIN',      level:20,hp:560,ac:22, xp:50000,gold:[1000,5000],emoji:'🔥',
+   attacks:[{name:'Zarpa Draconaida',dmg:'4d8+10',hit:14},{name:'Soplo Cósmico',dmg:'20d6',hit:14},{name:'Cola Devastadora',dmg:'3d12+8',hit:12}],
+   loot:['dragonscale','flametonge','frostbite','greatpotion'],
+   isBoss:true}
+];
+
+const QUEST_TEMPLATES = [
+  {type:'kill',emoji:'⚔️',templates:[
+    {name:'La amenaza de {enemies}',
+     objective:'Elimina {count} {enemies} que merodean por {zone}. La gente de {city} vive aterrorizada.',
+     steps:['Localiza a los {enemies} cerca de {zone}','Derrota a {count} {enemies}','Regresa a informar a {giver}'],
+     enemies:['goblins','kobolds','esqueletos','bandidos','orcos','gnolls'],
+     counts:[3,5,7,10],zones:['el bosque sur','las ruinas este','el camino norte','las cuevas','el puente viejo'],
+     reward:{gold:[50,200],xp:[200,600]}},
+    {name:'Caza del {enemy} de {zone}',
+     objective:'Un {enemy} solitario en {zone} ha matado ganado y asustado viajeros. Acaba con él.',
+     steps:['Viaja a {zone}','Localiza al {enemy}','Derrótalo y confirma la muerte','Regresa a {city}'],
+     enemies:['troll de caverna','vampiro menor','gnoll jefe','orco chamán','bandido jefe'],
+     counts:[1],zones:['el bosque del cuervo','las catacumbas','la cueva oscura','el puesto abandonado'],
+     reward:{gold:[80,280],xp:[350,900]}},
+  ]},
+  {type:'fetch',emoji:'📦',templates:[
+    {name:'Recuperar {item}',
+     objective:'{item} fue robado/a de {city}. {giver} cree que está oculto/a en {zone}. Recupéralo/a.',
+     steps:['Viaja a {zone}','Localiza y recupera {item}','Devuélvelo/a a {giver} en {city}'],
+     items:['el amuleto familiar','el grimorio del mago','la reliquia del templo','el sello real','el cristal de visión','la espada del capitán'],
+     zones:['las ruinas del este','la guarida de bandidos','las catacumbas','el bosque del cuervo','la cueva sin nombre'],
+     reward:{gold:[40,150],xp:[150,450]}},
+  ]},
+  {type:'deliver',emoji:'📨',templates:[
+    {name:'Mensaje urgente para {recipient}',
+     objective:'Lleva esta carta sellada de {giver} a {recipient}, que se encuentra en {destination}. La discreción es esencial.',
+     steps:['Recoge la carta de {giver} en {city}','Viaja a {destination}','Entrega la carta en mano a {recipient}','Regresa a {city} a confirmar'],
+     recipients:['el Capitán Harwick','la Archimaga Serel','Lord Valdun','el Alcalde Brom','la Sanadora Mireth','el Comerciante Erek'],
+     destinations:['Millhaven','Ironhold','La Gran Bastión','el puesto de avanzada norte','Torrecampo'],
+     reward:{gold:[20,80],xp:[100,300]}},
+  ]},
+  {type:'escort',emoji:'🛡️',templates:[
+    {name:'Escolta a {npc} hasta {destination}',
+     objective:'Protege a {npc} en el trayecto desde {city} hasta {destination}. Los caminos no son seguros.',
+     steps:['Encuentra a {npc} en {city}','Escóltalo/a por el camino sin que sufra daño','Llégad sanos/as a {destination}','Regresa con la confirmación'],
+     npcs:['el mercader herido','la mensajera real','el sacerdote anciano','la noble fugitiva','el explorador enfermo'],
+     destinations:['Millhaven','Ironhold','La Gran Bastión','el refugio seguro','el campamento norte'],
+     reward:{gold:[60,200],xp:[250,700]}},
+  ]},
+  {type:'explore',emoji:'🔭',templates:[
+    {name:'Investigar {zone}',
+     objective:'Nadie ha regresado de {zone} en semanas. {giver} necesita saber qué hay allí. Investiga y trae un informe.',
+     steps:['Llega a {zone}','Explora el interior con cuidado','Documenta lo que encuentras','Regresa con vida a {city}'],
+     zones:['las ruinas del templo antiguo','la cueva de los murmullos','el castillo abandonado','el asentamiento perdido','las minas inundadas'],
+     reward:{gold:[70,280],xp:[300,900]}},
+  ]},
+  {type:'rescue',emoji:'🆘',templates:[
+    {name:'Rescatar a {victim}',
+     objective:'{victim} fue capturado/a por {captor}. Están retenido/a en {zone}. Cada hora cuenta.',
+     steps:['Localiza {zone}','Neutraliza a {captor}','Libera a {victim} ileso/a','Regresa a {city} con él/ella'],
+     victims:['el hijo del alcalde','la exploradora Nara','el mago Aldric','los mineros atrapados','la familia del granjero'],
+     captors:['los bandidos','los orcos','los goblins','los mercenarios','la banda de ladrones'],
+     zones:['la guarida oculta','el fuerte abandonado','las catacumbas','el campamento enemigo'],
+     reward:{gold:[80,320],xp:[400,1100]}},
+  ]},
+];
+
+
+const DUNGEON_EVENTS = [
+  'Encuentras una habitación con restos de un campamento antiguo. Todavía hay brasas en el fuego.',
+  'Una trampilla oculta bajo el polvo. Tu habilidad de Percepción detecta el peligro.',
+  'Pinturas rupestres en las paredes narran una batalla olvidada hace siglos.',
+  'El pasillo se estrecha hasta ser apenas practicable. El eco de pasos distantes te pone nervioso.',
+  'Una fuente de agua cristalina brota de la roca. ¿Beberás?',
+  'Un símbolo arcano brilla en la pared. Quienes sepan leer magia podrían aprender algo valioso.',
+  'Huesos de aventureros anteriores yacen dispersos. Entre ellos, algo reluce...',
+  'Una trampa de dardos dispara desde las paredes. ¡Tirada de Destreza!',
+  'Una puerta de hierro oxidada bloquea el camino. Necesitarás fuerza o habilidad.',
+  'Criaturas pequeñas huyen al oírte. Las ratas no son el mayor peligro aquí.',
+];
+
+const TRAVEL_EVENTS = [
+  (player)=>`Durante el viaje, encuentras a un viajero solitario con aspecto cansado. Te ofrece información local a cambio de una ración.`,
+  (player)=>`Una tormenta sorpresa os empapa. ${player.name} encuentra refugio bajo un árbol centenario.`,
+  (player)=>`Un mercader ambulante aparece por el camino. Tiene mercancía poco común para vender.`,
+  (player)=>`El camino se divide en tres. Leyendo las señales desgastadas, determinas el camino correcto.`,
+  (player)=>`Huellas frescas de botas cruzan el sendero. Alguien pasó aquí hace poco, y no era amigable.`,
+  (player)=>`Descubres una moneda de oro antigua bajo una piedra. Puede que haya un tesoro enterrado cerca...`,
+  (player)=>`Un cuervo negro te sigue durante horas, observándote con ojos inusualmente inteligentes.`,
+  (player)=>`El horizonte se tiñe de rojo al atardecer. Los nativos dicen que eso anuncia cambio.`,
+];
+
+const LORE_ENTRIES = [
+  {title:'El Origen de Kurghaimat', text:'Kurghaimat fue forjada por los Primeros, seres de luz y sombra que moldearon el mundo en diez mil años. Sus legados son las Ruinas Antiguas que salpican el mapa, llenas de poder y peligro.'},
+  {title:'El Dragón Dovahkiin', text:'Dovahkiin no es un dragón ordinario. Es el Destructor, nacido del odio de los Primeros contra sus propias creaciones. Lleva mil años durmiendo, pero los terremotos recientes indican que despierta.'},
+  {title:'Las Cinco Pistas', text:'Los ancianos hablan de cinco artefactos del conocimiento: un mapa, una escama, un diario, un sello y una visión. Quien los reúna conocerá la guarida del Destructor.'},
+  {title:'El Gremio de Aventureros', text:'El Gremio existe desde hace doscientos años para organizar a quienes se aventuran en zonas peligrosas. Ofrece misiones, formación y fraternidad a sus miembros.'},
+  {title:'La Magia de Kurghaimat', text:'La magia fluye a través de líneas ley invisibles. Los magos aprenden a canalizarla; los clérigos reciben el don divino; los hechiceros la llevan en la sangre. Todos pagan un precio.'},
+];
+
+// ====== GAME STATE ======
+let G = null; // Global game state
+let audioCtx = null;
+let soundEnabled = true;
+let selectedDie = 'd4';
+let currentModal = null;
+let mapCanvas, mapCtx;
+let mapOffset = {x:0, y:0};
+let mapScale = 1;
+let mapDragging = false;
+let mapDragStart = {x:0, y:0};
+let hexMap = {};
+let combatState = null;
+let gameTime = {day:1, hour:8};
+let pendingDialog = null;
+
+// ====== UTILITY ======
+function rand(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function rollDie(sides){ return Math.floor(Math.random()*sides)+1; }
+function mod(val){ return Math.floor((val-10)/2); }
+function modStr(m){ return (m>=0?'+':'')+m; }
+function profBonus(level){ return Math.ceil(level/4)+1; }
+
+function parseDice(expr){
+  // Supports "2d6+3", "1d8-1", "1d4+1", etc.
+  const neg = expr.startsWith('-');
+  const clean = neg ? expr.slice(1) : expr;
+  const match = clean.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+  if(!match) return parseInt(expr)||0;
+  let total = 0;
+  for(let i=0;i<parseInt(match[1]);i++) total += rollDie(parseInt(match[2]));
+  if(match[3]) total += parseInt(match[3]);
+  return neg ? -total : total;
+}
+
+function genName(gender){
+  const list = gender==='female' ? NPC_NAMES.female : NPC_NAMES.male;
+  return pick(list)+' '+pick(NPC_NAMES.surnames);
+}
+
+// ====== AUDIO ======
+function getAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(type){
+  if(!soundEnabled) return;
+  try{
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    const sounds = {
+      dice:    {freq:[300,600,400],  dur:0.15, wave:'sawtooth'},
+      attack:  {freq:[150,80,100],   dur:0.2,  wave:'square'},
+      heal:    {freq:[400,600,800],  dur:0.3,  wave:'sine'},
+      levelup: {freq:[300,400,500,700],dur:0.5,wave:'sine'},
+      gold:    {freq:[800,1000,800], dur:0.15, wave:'sine'},
+      death:   {freq:[200,150,100],  dur:1.0,  wave:'sawtooth'},
+      success: {freq:[500,700,900],  dur:0.4,  wave:'sine'},
+      click:   {freq:[600,600],      dur:0.05, wave:'square'},
+      travel:  {freq:[200,250,200],  dur:0.3,  wave:'sine'},
+      spell:   {freq:[400,800,400],  dur:0.4,  wave:'sine'},
+    };
+    const s = sounds[type]||sounds.click;
+    osc.type = s.wave;
+    let t = ctx.currentTime;
+    s.freq.forEach((f,i)=>{ osc.frequency.setValueAtTime(f, t + i*(s.dur/s.freq.length)); });
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t+s.dur);
+    osc.start(t); osc.stop(t+s.dur);
+  }catch(e){}
+}
+
+function toggleSound(){
+  soundEnabled = !soundEnabled;
+  document.getElementById('sound-btn').textContent = soundEnabled ? '🔊' : '🔇';
+}
+
+// ====== SCREENS ======
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ====== TITLE ======
+function newGame(){
+  showScreen('char-screen');
+  // Init char screen with safe defaults
+  try{ renderStatsGrid(); } catch(e){}
+  try{ renderAlignments(); } catch(e){}
+  try{ renderAvatarPicker(); } catch(e){}
+  try{ rollStats(); } catch(e){}
+  try{ updateClassInfo(); } catch(e){}
+  try{ updateRaceBonus(); } catch(e){}
+}
+
+function showCredits(){
+  const o=document.createElement('div');
+  o.className='modal-overlay active'; o.id='credits-mo';
+  o.innerHTML=`<div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <div class="modal-title">✦ Sobre Crónicas de Kurghaimat</div>
+      <button class="modal-close" onclick="document.getElementById('credits-mo').remove()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:1rem;">
+        <div style="font-family:var(--font-title);font-size:1.1rem;color:var(--gold);margin-bottom:.3rem;">🐉 Kurghaimat</div>
+        <div style="font-size:.78rem;color:var(--text-secondary);font-style:italic;">Un mundo donde los dragones dictan el destino</div>
+      </div>
+      ${['⚔️ Sistema D&D 5e — Tiradas con dados, modificadores, AC, PG, hechizos por niveles.',
+         '🗺️ Mapa hexagonal procedural — Ciudades, pueblos, mazmorras, bosques y montañas.',
+         '🎲 Dados 3D — d4, d6, d8, d10, d12, d20 y d% con animaciones.',
+         '📜 Misiones infinitas — Generadas proceduralmente con recompensas y narrativa.',
+         '🔮 5 Pistas de Dovahkiin — Reúnelas para desafiar al Dragón Eterno.',
+         '💀 Permadeath — Cada decisión importa. No hay segundas oportunidades.']
+        .map(t=>`<div style="background:var(--bg-card);border:1px solid var(--border-gold-dim);border-radius:var(--radius);padding:.65rem;margin-bottom:.5rem;font-size:.82rem;color:var(--text-secondary);">${t}</div>`).join('')}
+      <button class="btn btn-primary" style="width:100%;margin-top:.8rem;" onclick="document.getElementById('credits-mo').remove()">⚔️ ¡A la aventura!</button>
+    </div>
+  </div>`;
+  o.addEventListener('click',e=>{ if(e.target===o) o.remove(); });
+  document.body.appendChild(o);
+}
+
+function loadGame(){
+  try{
+    const data = localStorage.getItem('kurghaimat_save');
+    if(!data){ alert('No se encontró partida guardada.'); return; }
+    G = JSON.parse(data);
+    G.revealedHexes = new Set(G.revealedHexes||[]);
+    showScreen('game-screen');
+    revealHexesAroundPlayer();
+  initGameUI();
+    addStory('El libro de tu aventura se abre de nuevo. Los recuerdos fluyen...', 'system');
+  }catch(e){ alert('Error al cargar la partida.'); }
+}
+
+// ====== CHARACTER CREATION ======
+function initCharScreen(){
+  renderStatsGrid();
+  renderAlignments();
+  updateClassInfo();
+  renderAvatarPicker();
+  rollStats();
+}
+
+function renderStatsGrid(){
+  const stats = ['str','dex','con','int','wis','cha'];
+  const names = {str:'Fuerza',dex:'Destreza',con:'Constitución',int:'Inteligencia',wis:'Sabiduría',cha:'Carisma'};
+  const grid = document.getElementById('stats-grid');
+  grid.innerHTML = stats.map(s=>`
+    <div class="stat-box" title="${names[s]}">
+      <span class="stat-name">${s.toUpperCase()}</span>
+      <span class="stat-value" id="stat-${s}">10</span>
+      <span class="stat-mod" id="stat-${s}-mod">(+0)</span>
+    </div>
+  `).join('');
+}
+
+function rollStats(){
+  const stats = ['str','dex','con','int','wis','cha'];
+  stats.forEach(s=>{
+    const rolls = [rollDie(6),rollDie(6),rollDie(6),rollDie(6)];
+    rolls.sort((a,b)=>a-b);
+    const val = rolls.slice(1).reduce((a,b)=>a+b,0);
+    document.getElementById('stat-'+s).textContent = val;
+    document.getElementById('stat-'+s+'-mod').textContent = '('+modStr(mod(val))+')';
+  });
+  playSound('dice');
+  updateRaceBonus();
+}
+
+function updateRaceBonus(){
+  const race = document.getElementById('c-race').value;
+  const r = RACES[race];
+  const info = document.getElementById('race-bonus-info');
+  const bonusList = Object.entries(r.bonuses).map(([k,v])=>`${k.toUpperCase()} +${v}`).join(', ');
+  info.textContent = `Bonificaciones de ${r.name}: ${bonusList} · Rasgo: ${r.trait}`;
+}
+
+function updateClassInfo(){
+  const cls = document.getElementById('c-class').value;
+  const c = CLASSES[cls];
+  document.getElementById('class-desc').textContent = c.desc;
+  randomPersonality();
+}
+
+function renderAlignments(){
+  const grid = document.getElementById('alignment-grid');
+  grid.innerHTML = ALIGNMENTS.map(a=>`
+    <div class="trait-card" id="align-${a.id}" onclick="selectAlignment('${a.id}')">
+      <div class="trait-name">${a.emoji} ${a.name}</div>
+      <div class="trait-desc">${a.desc}</div>
+    </div>
+  `).join('');
+  selectAlignment('ng');
+}
+
+let selectedAlignment = 'ng';
+function selectAlignment(id){
+  selectedAlignment = id;
+  document.querySelectorAll('[id^="align-"]').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('align-'+id).classList.add('selected');
+}
+
+function randomPersonality(){
+  const cls = document.getElementById('c-class').value;
+  const traits = PERSONALITIES[cls] || ['Un espíritu libre que sigue su propio camino.'];
+  document.getElementById('personality-display').textContent = pick(traits);
+}
+
+let selectedAvatar = '⚔️';
+function renderAvatarPicker(){
+  const picker = document.getElementById('avatar-picker');
+  picker.innerHTML = AVATAR_EMOJIS.map(e=>`
+    <div onclick="selectAvatar('${e}',this)" style="font-size:1.5rem; cursor:pointer; padding:0.3rem; border:1px solid var(--border-gold-dim); border-radius:var(--radius); transition:all 0.2s;" title="${e}">${e}</div>
+  `).join('');
+  picker.children[0] && picker.children[0].click();
+}
+
+function selectAvatar(emoji, el){
+  selectedAvatar = emoji;
+  document.querySelectorAll('#avatar-picker > div').forEach(d=>d.style.borderColor='var(--border-gold-dim)');
+  el.style.borderColor = 'var(--border-gold)';
+}
+
+// ====== GAME START ======
+function startGame(){
+  const name = document.getElementById('c-name').value.trim() || 'Aventurero';
+  const race = document.getElementById('c-race').value;
+  const cls = document.getElementById('c-class').value;
+  const bg = document.getElementById('c-background').value;
+  const r = RACES[race];
+  const c = CLASSES[cls];
+
+  const baseStats = {};
+  ['str','dex','con','int','wis','cha'].forEach(s=>{
+    const base = parseInt(document.getElementById('stat-'+s).textContent)||10;
+    baseStats[s] = base + (r.bonuses[s]||0);
+  });
+
+  const level = 1;
+  const maxHP = parseDice(c.hd) + mod(baseStats.con) + 4;
+  const maxMP = c.spellcasting ? (4 + mod(baseStats.int||baseStats.wis||baseStats.cha)) : 0;
+
+  G = {
+    player: {
+      name, race, cls, background: bg, alignment: selectedAlignment,
+      avatar: selectedAvatar, level, xp: 0, xpNext: 300,
+      stats: baseStats, skills: {},
+      hp: maxHP, maxHP, mp: Math.max(maxMP,0), maxMP: Math.max(maxMP,0),
+      ac: 10 + mod(baseStats.dex), speed: r.speed,
+      gold: 150, proficiencies: CLASS_PROFICIENCIES[cls]||[],
+      inventory: [],
+      equipped: { body:null, mainhand:null, offhand:null, neck:null, ring:null, back:null, feet:null },
+      spells: [], spellSlots:{1:2,2:1}, spellSlotsMax:{1:2,2:1},
+      conditions: [], deathSaves:{success:0,failure:0},
+      personality: pick(PERSONALITIES[cls]||['Un espíritu independiente.']),
+    },
+    party: [],
+    quests: [],
+    activeQuest: null,
+    clues: [],
+    day: 1, hour: 8,
+    currentLocation: null,
+    locationName: 'Punto de Partida',
+    discoveredLocations: [],
+    npcs: {},
+    lore: [...LORE_ENTRIES],
+    log: [],
+    tavernPool: [],
+    globalEventQueue: [],
+    kills: 0,
+    questsCompleted: 0,
+    mapSeed: Math.floor(Math.random()*99999),
+    revealedHexes: new Set(),
+  };
+
+  // Starting equipment by class
+  const startGear = {
+    fighter:   ['longsword','chain','healpotion','rations','torch'],
+    wizard:    ['staff','robe','healpotion','rations','torch'],
+    rogue:     ['shortsword','dagger','leather','healpotion','thieves_tools','rations'],
+    cleric:    ['warhammer','chain','shield','healpotion','rations'],
+    ranger:    ['bow','shortsword','leather','healpotion','rations','torch'],
+    paladin:   ['longsword','chain','shield','healpotion','rations'],
+    barbarian: ['greataxe','leather','healpotion','rations'],
+    bard:      ['rapier','leather','healpotion','rations'],
+    druid:     ['staff','leather','healpotion','rations','herbalism'],
+    warlock:   ['dagger','robe','healpotion','rations'],
+    sorcerer:  ['dagger','robe','healpotion','rations'],
+    monk:      ['shortsword','leather','healpotion','rations'],
+  };
+
+  const gear = startGear[cls]||['shortsword','leather','healpotion','rations'];
+  gear.forEach(itemId=>{ addItem(itemId,1,true); });
+
+  // Spells
+  if(c.spellcasting && SPELLS_BY_CLASS[cls]){
+    G.player.spells = SPELLS_BY_CLASS[cls].map(s=>({...s}));
+  }
+
+  // Skills
+  SKILLS_DATA.forEach(skill=>{
+    G.player.skills[skill.name] = G.player.proficiencies.includes(skill.name);
+  });
+
+  // Generate starting location
+  const startLoc = generateLocation('town');
+  G.currentLocation = startLoc;
+  G.locationName = startLoc.name;
+  G.discoveredLocations.push(startLoc);
+
+  // Generate initial quests
+  for(let i=0;i<3;i++) generateQuest();
+
+  // Generate tavern pool
+  refreshTavernPool();
+
+  showScreen('game-screen');
+  initGameUI();
+
+  const raceData = RACES[race];
+  const classData = CLASSES[cls];
+  addStory(`🌅 **El alba de una nueva leyenda.**\n\nEn las tierras de Kurghaimat, donde la magia impregna cada piedra y el peligro acecha en cada sombra, ${name} el ${classData.name} ${raceData.name} da sus primeros pasos hacia la gloria... o la perdición.\n\nComienzas en ${startLoc.name}. ${startLoc.desc}`, 'system');
+  addStory(`Tienes ${G.player.hp} puntos de golpe, ${G.player.gold} monedas de oro y el corazón lleno de determinación. Que los dioses te acompañen, aventurero.`, 'system');
+
+  setTimeout(()=>{ updateActions('town'); }, 500);
+}
+
+// ====== UI INITIALIZATION ======
+function initGameUI(){
+  updateHUD();
+  renderParty();
+  renderQuests();
+  renderClues();
+  initMap();
+  renderInventory();
+  renderSpells();
+  renderSkills();
+  renderLore();
+  renderLocation();
+  updateActions('town');
+
+  if(G.currentLocation){
+    updateActions(G.currentLocation.type||'town');
+  }
+}
+
+function updateHUD(){
+  if(!G) return;
+  const p = G.player;
+  document.getElementById('hp-bar').style.width = (p.hp/p.maxHP*100)+'%';
+  document.getElementById('hp-val').textContent = p.hp+'/'+p.maxHP;
+  document.getElementById('mp-bar').style.width = (p.maxMP>0?(p.mp/p.maxMP*100):0)+'%';
+  document.getElementById('mp-val').textContent = p.maxMP>0 ? p.mp+'/'+p.maxMP : '—';
+  document.getElementById('xp-bar').style.width = (p.xp/p.xpNext*100)+'%';
+  document.getElementById('xp-val').textContent = p.xp+'/'+p.xpNext;
+  document.getElementById('gold-val').textContent = p.gold;
+  document.getElementById('location-val').textContent = G.locationName.split(' ').slice(0,2).join(' ');
+  document.getElementById('day-val').textContent = G.day;
+
+  // Left panel
+  document.getElementById('player-avatar').textContent = p.avatar;
+  document.getElementById('player-name-display').textContent = p.name;
+  document.getElementById('player-info').textContent = `${RACES[p.race].name} ${CLASSES[p.cls].name} · Nv.${p.level}`;
+  document.getElementById('player-mini-stats').innerHTML = ['str','dex','con','int','wis','cha'].map(s=>`
+    <div class="mini-stat">
+      <div class="mn">${s.toUpperCase()}</div>
+      <div class="mv">${p.stats[s]}</div>
+    </div>
+  `).join('');
+
+  renderLocation();
+}
+
+function renderParty(){
+  const list = document.getElementById('party-list');
+  if(!G||!G.party.length){
+    list.innerHTML = '<div style="font-size:0.72rem;color:var(--text-dim);font-style:italic;padding:0.3rem;">Sin compañeros de aventura.</div>';
+    return;
+  }
+  list.innerHTML = G.party.map((m,i)=>`
+    <div class="party-member" onclick="showNPCDetail(${i})">
+      <div class="party-avatar">${m.avatar}</div>
+      <div class="party-info">
+        <div class="party-name">${m.name}</div>
+        <div class="party-class">${CLASSES[m.cls]?.name||m.cls} Nv.${m.level}</div>
+        <div class="party-hp-bar"><div class="party-hp-fill" style="width:${m.hp/m.maxHP*100}%"></div></div>
+      </div>
+      <div style="font-size:0.6rem;color:${m.loyalty>60?'var(--green)':m.loyalty>30?'var(--gold)':'var(--red)'}">❤️${m.loyalty}%</div>
+    </div>
+  `).join('');
+}
+
+function renderQuests(){
+  const list = document.getElementById('quest-list');
+  if(!G||!G.quests.length){
+    list.innerHTML = '<div style="font-size:0.72rem;color:var(--text-dim);font-style:italic;padding:0.3rem;">Sin misiones activas.</div>';
+    return;
+  }
+  list.innerHTML = G.quests.map((q,i)=>`
+    <div class="quest-item ${G.activeQuest===i?'active-quest':''}" onclick="showQuestDetail(${i})">
+      <div class="quest-name">${q.name}</div>
+      <div class="quest-giver">Por: ${q.giver}</div>
+      <div class="quest-type">${q.typeEmoji}</div>
+    </div>
+  `).join('');
+
+  const detail = document.getElementById('active-quest-detail');
+  if(G.activeQuest!==null && G.quests[G.activeQuest]){
+    const q = G.quests[G.activeQuest];
+    detail.innerHTML = `<strong style="color:var(--gold);">${q.name}</strong><br>${q.desc}<br><br>Recompensa: 🪙${q.reward.gold} · ✨${q.reward.xp} XP`;
+  } else {
+    detail.innerHTML = 'Ninguna misión seleccionada como activa.';
+  }
+}
+
+function renderClues(){
+  const tracker = document.getElementById('clue-tracker');
+  const clueIds = ['clue1','clue2','clue3','clue4','clue5'];
+  const clueNames = ['Mapa Rúnico','Escama de Dragón','Diario','Sello del Culto','Visión Oracular'];
+  tracker.innerHTML = clueIds.map((id,i)=>{
+    const found = G.clues.includes(id);
+    return `
+      <div class="clue-item">
+        <div class="clue-gem ${found?'found':''}"></div>
+        <div class="clue-text">${found ? ITEMS[id].desc.slice(0,50)+'...' : clueNames[i]}</div>
+      </div>
+    `;
+  }).join('');
+
+  if(G.clues.length >= 5){
+    tracker.innerHTML += '<button class="btn btn-primary btn-small" style="width:100%;margin-top:0.5rem" onclick="startFinalQuest()">⚔️ ¡Desafiar a Dovahkiin!</button>';
+  }
+}
+
+function renderLocation(){
+  const el = document.getElementById('location-info');
+  if(!el || !G) return;
+  const loc = G.currentLocation;
+  if(!loc){ el.innerHTML = 'Explorando tierras salvajes.'; return; }
+  el.innerHTML = `
+    <div style="font-size:1.2rem;margin-bottom:0.3rem;">${loc.ambiance||'🏘️'} <strong style="color:var(--gold-light);">${loc.name}</strong></div>
+    <div>${loc.desc.slice(0,120)}...</div>
+    <div style="margin-top:0.4rem; font-size:0.65rem; color:var(--text-dim);">Servicios: ${loc.services?.join(', ')||'Ninguno'}</div>
+  `;
+}
+
+// ====== STORY LOG ======
+function addStory(text, type='normal', speaker=null){
+  const tab = document.getElementById('tab-story');
+  const entry = document.createElement('div');
+  entry.className = `story-entry ${type}`;
+
+  const t = (gameTime && G) ? 'Día ' + G.day + ', hora ' + G.hour + ':00' : '';
+
+  entry.innerHTML = `
+    ${t ? `<div class="story-time">${t}</div>` : ''}
+    ${speaker ? `<div class="story-speaker">${speaker}</div>` : ''}
+    <div>${text.replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--gold-light);">$1</strong>').replace(/\n/g,'<br>')}</div>
+  `;
+
+  tab.appendChild(entry);
+  tab.scrollTop = tab.scrollHeight;
+
+  // Recent log
+  const recent = document.getElementById('recent-log');
+  if(recent){
+    const line = document.createElement('div');
+    line.textContent = '• '+text.replace(/<[^>]+>/g,'').slice(0,60)+(text.length>60?'...':'');
+    recent.prepend(line);
+    while(recent.children.length > 8) recent.removeChild(recent.lastChild);
+  }
+
+  if(G && G.log) G.log.push({text, type, day:G.day||1, hour:G.hour||0});
+}
+
+// ====== ACTIONS ======
+function updateActions(context){
+  const grid = document.getElementById('action-grid');
+  const actions = [];
+
+  const inTown = context === 'town' || context === 'city';
+  const inWild = context==='wild'||context==='forest'||context==='mountain'||context==='plains';
+  const inDungeon = context === 'dungeon';
+
+  if(inTown || inWild || inDungeon){
+    actions.push({icon:'🗺️', label:'Ponerse en camino', fn:'openTravel()', always:true});
+    actions.push({icon:'⚔️', label:'Explorar zona', fn:'explore()', always:true});
+    actions.push({icon:'⛺', label:'Descanso corto', fn:'rest(false)', always:true});
+    actions.push({icon:'🌙', label:'Acampar esta noche', fn:'rest(true)', always:true});
+  }
+
+  if(inTown){
+    actions.push({icon:'🍺', label:'Ir a la taberna', fn:'openTavern()', always:false});
+    actions.push({icon:'🛒', label:'Visitar el mercado', fn:'openMarket()', always:false});
+    actions.push({icon:'📋', label:'Tablón de misiones', fn:'openQuestBoard()', always:false});
+    actions.push({icon:'🗣️', label:'Hablar con alguien', fn:'talkToNPC()', always:false});
+    if(G?.currentLocation?.services?.includes('healer')) actions.push({icon:'💚', label:'Visitar al curandero', fn:'visitHealer()', always:false});
+    if(G?.currentLocation?.services?.includes('blacksmith')) actions.push({icon:'⚒️', label:'Visitar al herrero', fn:'openBlacksmith()', always:false});
+  }
+
+  if(inWild || inDungeon){
+    actions.push({icon:'🔍', label:'Buscar en el área', fn:'searchArea()', always:false});
+    if(inDungeon) actions.push({icon:'🚪', label:'Explorar más fondo', fn:'advanceDungeon()', always:false});
+  }
+
+  // Quest progress shown as info only, not a manual button
+  // Quests advance automatically through combat, exploration, etc.
+
+  grid.innerHTML = actions.map(a=>`
+    <button class="action-btn ${a.highlight?'highlight':''}" onclick="${a.fn}">
+      <span class="icon">${a.icon}</span>
+      ${a.label}
+    </button>
+  `).join('');
+}
+
+// ====== TRAVEL ======
+function openTravel(){
+  if(combatState){ notify('No puedes viajar en combate.','warning'); return; }
+  const known = G.discoveredLocations.filter(l=>l!==G.currentLocation);
+  const fresh = generateTravelDestinations();
+  const all = [
+    ...known.slice(0,3).map(l=>Object.assign({},l,{distance:rand(2,8)})),
+    ...fresh.slice(0, Math.max(2, 5-known.length))
+  ];
+  if(!all.length){ addStory('No hay destinos disponibles. Explora el mapa primero.','system'); return; }
+  showDialog(
+    '🗺️ Destinos de Viaje','🧭',
+    'Los caminos de Kurghaimat se extienden ante ti. ¿Adónde te llama el destino?',
+    all.map(d=>({
+      text: (d.ambiance||'🏘️') + ' ' + d.name + ' — ' + d.type + ' (' + (d.distance||rand(2,8)) + 'h)',
+      fn: (function(dest){ return function(){ travelTo(dest); }; })(Object.assign({},d,{distance:d.distance||rand(2,8)}))
+    }))
+  );
+}
+
+
+function generateTravelDestinations(){
+  const types = ['town','city','forest','mountain','dungeon','plains'];
+  const count = rand(3,5);
+  const dests = [];
+  for(let i=0;i<count;i++){
+    const type = pick(types);
+    const loc = generateLocation(type);
+    loc.distance = rand(1,8);
+    dests.push(loc);
+  }
+  return dests;
+}
+
+function generateLocation(type){
+  const data = LOCATIONS[type];
+  const name = pick(data.names);
+  return {
+    type, name, desc: data.desc(name),
+    services: data.services||[],
+    ambiance: data.ambiance,
+    id: Date.now()+Math.random()
+  };
+}
+
+function travelTo(dest){
+  if(!dest){ notify('Destino no encontrado.','warning'); return; }
+  if(combatState){ notify('No puedes viajar en combate.','warning'); return; }
+  closeModal('dialog-modal');
+  playSound('travel');
+  const hours = dest.distance || rand(2,8);
+  G.hour += hours;
+  if(G.hour>=24){ G.day+=Math.floor(G.hour/24); G.hour=G.hour%24; }
+  addStory('🚶 **Viajando hacia ' + dest.name + '...**\nTras ' + hours + ' hora' + (hours>1?'s':'') + ' de camino, llegas a tu destino.', 'travel');
+  if(Math.random()<0.35){
+    const evt = pick(TRAVEL_EVENTS);
+    addStory(evt(G.player), 'travel');
+    if(Math.random()<0.35) setTimeout(()=>handleTravelEncounter(), 400);
+  }
+  G.currentLocation = dest;
+  G.locationName = dest.name;
+  if(!G.discoveredLocations.find(l=>l.name===dest.name&&l.type===dest.type)){
+    G.discoveredLocations.push(dest);
+    notify('¡Descubriste ' + dest.name + '!','quest');
+    addXP(50);
+  }
+  const amb = dest.ambiance||(LOCATIONS[dest.type]||{}).ambiance||'🏘️';
+  addStory(amb + ' **Bienvenido a ' + dest.name + '**\n' + (dest.desc||'').slice(0,160),'travel');
+  if(Math.random()<0.45) generateQuest();
+  revealHexesAroundPlayer();
+  updateHUD(); updateActions(dest.type||'town'); renderQuests(); renderLocation(); renderLore(); drawMap();
+  if(dest.type==='dungeon') addStory('⚠️ Esta zona parece peligrosa. Prepárate.','warning');
+}
+
+function addHexToMap(){ drawMap(); }
+
+
+function handleTravelEncounter(){
+  const maxLevel = Math.min(G.player.level+2, ENEMIES.length-2);
+  const enemy = ENEMIES[rand(0, maxLevel)];
+  if(enemy.isBoss) return;
+  addStory(`💀 **¡Emboscada!** Un ${enemy.emoji} ${enemy.name} surge del camino.`, 'combat');
+  setTimeout(()=>startCombat([enemy]), 500);
+}
+
+// ====== EXPLORATION ======
+function explore(){
+  addStory(`${G.player.avatar} **Exploras los alrededores de ${G.locationName}...**`, 'travel');
+
+  const roll = rollDie(20) + mod(G.player.stats.wis);
+  addStory(`Tiradas de Percepción: ${roll}.`, 'system');
+
+  if(roll >= 18){
+    // Exceptional find
+    const finds = ['un tesoro escondido','una entrada secreta','un grimorio olvidado','un cofre enterrado'];
+    const find = pick(finds);
+    addStory(`✨ Con tu aguda percepción descubres ${find}!`, 'reward');
+    const gold = rand(20,80);
+    G.player.gold += gold;
+    addXP(50);
+    notify(`+🪙${gold} oro`, 'reward');
+
+    // Small chance clue
+    if(Math.random() < 0.15 && G.clues.length < 5){
+      giveClue();
+    }
+  } else if(roll >= 12){
+    // Normal find
+    addStory(`Encuentras algunas hierbas medicinales y rastros de civilización. Nada extraordinario.`, 'normal');
+    if(Math.random() < 0.3){
+      const gold = rand(5,20);
+      G.player.gold += gold;
+      notify(`+🪙${gold}`, 'reward');
+    }
+  } else if(roll >= 6){
+    addStory(`La exploración no revela nada de interés. Al menos el paisaje es hermoso.`, 'normal');
+  } else {
+    addStory(`¡Un encuentro inesperado! Tus distracciones te llevaron a territorio peligroso.`, 'warning');
+    if(Math.random()<0.5) handleTravelEncounter();
+  }
+
+  advanceTime(1);
+  updateHUD();
+}
+
+function searchArea(){
+  addStory(`🔍 Buscas cuidadosamente en la zona...`, 'normal');
+  const roll = rollDie(20) + mod(G.player.stats.int);
+
+  if(roll >= 15){
+    const items = ['healpotion','dagger','rations','rope','torch','antidote'];
+    const found = pick(items);
+    addItem(found,1);
+    addStory(`Encuentras: ${ITEMS[found].icon} ${ITEMS[found].name}!`, 'reward');
+  } else {
+    addStory(`No encuentras nada de valor.`, 'normal');
+    // Random event from dungeon events
+    if(G.currentLocation?.type==='dungeon'){
+      addStory(pick(DUNGEON_EVENTS), 'normal');
+      if(Math.random()<0.4) handleTravelEncounter();
+    }
+  }
+  advanceTime(1);
+  updateHUD();
+}
+
+function advanceDungeon(){
+  addStory(`🚪 **Avanzas más profundo en las mazmorras...**`, 'normal');
+  addStory(pick(DUNGEON_EVENTS), 'normal');
+
+  if(Math.random()<0.7){
+    // Combat encounter
+    const lvlRange = Math.min(G.player.level+1, ENEMIES.length-2);
+    const enemy = ENEMIES[rand(Math.max(0,G.player.level-2), lvlRange)];
+    if(!enemy.isBoss) startCombat([enemy]);
+  } else if(Math.random()<0.5){
+    // Treasure
+    const gold = rand(10,50)*G.player.level;
+    G.player.gold += gold;
+    addStory(`Encuentras un cofre con ${gold} monedas de oro.`, 'reward');
+    notify(`+🪙${gold}`, 'reward');
+
+    if(Math.random()<0.2){
+      const rareLoot = ['flametonge','frostbite','dragonscale','ring','cloak','boots'];
+      const item = pick(rareLoot);
+      if(ITEMS[item]){
+        addItem(item,1);
+        addStory(`¡Y también encuentras: ${ITEMS[item].icon} ${ITEMS[item].name}!`, 'reward');
+      }
+    }
+  }
+
+  advanceTime(1);
+  updateHUD();
+}
+
+// ====== REST ======
+function rest(long){
+  if(long){
+    addStory(`🌙 **Descanso Largo** — Instalas el campamento y descansas hasta el amanecer.`, 'system');
+    G.player.hp = G.player.maxHP;
+    G.player.mp = G.player.maxMP;
+    Object.keys(G.player.spellSlotsMax).forEach(k=>{ G.player.spellSlots[k] = G.player.spellSlotsMax[k]; });
+    G.day++;
+    G.hour = 8;
+
+    // Party recovery
+    G.party.forEach(m=>{ m.hp = m.maxHP; });
+
+    // Random night event
+    if(Math.random()<0.2){
+      addStory(`Durante la noche, algo se mueve en las sombras... pero al amanecer todo parece tranquilo.`, 'warning');
+    }
+
+    addStory(`☀️ Amanece el día ${G.day}. Te sientes renovado. HP, MP y espacios de conjuro restaurados.`, 'system');
+  } else {
+    const healRoll = parseDice('1d6') + mod(G.player.stats.con);
+    G.player.hp = Math.min(G.player.maxHP, G.player.hp + healRoll);
+    if(G.player.maxMP>0) G.player.mp = Math.min(G.player.maxMP, G.player.mp+1);
+    G.hour += 2;
+    if(G.hour>=24){ G.day++; G.hour=G.hour%24; }
+    addStory(`⛺ **Descanso Corto** — Recuperas ${healRoll} PG. Hora actual: ${G.hour}:00.`, 'system');
+
+    // Warlock slots
+    if(G.player.cls==='warlock'){
+      G.player.spellSlots = {...G.player.spellSlotsMax};
+      addStory(`Como Brujo, recuperas todos tus espacios de conjuro.`, 'system');
+    }
+  }
+
+  renderSpells();
+  updateHUD();
+  renderInventory();
+  playSound('heal');
+}
+
+// ====== COMBAT ======
+function startCombat(enemies){
+  playSound('attack');
+  switchTab('story');
+
+  // Build combatants
+  const playerCombatant = {
+    ...G.player,
+    isPlayer: true,
+    initiative: rollDie(20) + mod(G.player.stats.dex),
+    currentHP: G.player.hp,
+  };
+
+  const enemyCombatants = enemies.map(e=>({
+    ...e,
+    id: Date.now()+Math.random(),
+    isEnemy: true,
+    initiative: rollDie(20) + rand(-1,3),
+    currentHP: e.hp,
+    maxHP: e.hp,
+    conditions: []
+  }));
+
+  // Add party members
+  const partyCombatants = G.party.filter(m=>m.hp>0).map(m=>({
+    ...m,
+    isParty: true,
+    initiative: rollDie(20) + mod(m.stats?.dex||10),
+    currentHP: m.hp,
+  }));
+
+  combatState = {
+    combatants: [...[playerCombatant,...partyCombatants,...enemyCombatants].sort((a,b)=>b.initiative-a.initiative)],
+    round: 1,
+    currentTurn: 0,
+    enemies: enemyCombatants,
+    over: false
+  };
+
+  addStory(`⚔️ **¡Iniciativa!**\n${enemies.map(e=>`${e.emoji} ${e.name} (HP: ${e.hp}, AC: ${e.ac})`).join(', ')}`, 'combat');
+
+  const order = combatState.combatants.map(c=>`${c.emoji||c.avatar} ${c.name} (${c.initiative})`).join(' → ');
+  addStory(`Orden de combate: ${order}`, 'combat');
+
+  updateCombatUI();
+  showCombatActions();
+}
+
+function updateCombatUI(){
+  if(!combatState) return;
+
+  const area = document.getElementById('combat-area');
+  const noC = document.getElementById('no-combat');
+  area.style.display = 'block';
+  noC.style.display = 'none';
+
+  // Initiative track
+  const track = document.getElementById('initiative-track');
+  track.innerHTML = combatState.combatants.map((c,i)=>`
+    <div class="init-token ${i===combatState.currentTurn?'current':''} ${c.isEnemy?'enemy':''}">
+      <div class="i-avatar">${c.avatar||c.emoji||'⚔️'}</div>
+      <div class="i-name">${c.name}</div>
+      <div class="i-num">${c.initiative}</div>
+    </div>
+  `).join('');
+
+  // Combatants list
+  const list = document.getElementById('combatants-list');
+  list.innerHTML = combatState.combatants.filter(c=>c.currentHP>0).map(c=>`
+    <div class="combatant-row">
+      <div class="combatant-avatar">${c.avatar||c.emoji||'⚔️'}</div>
+      <div class="combatant-info">
+        <div class="combatant-name">${c.name}${c.isEnemy?' 👹':''}</div>
+        <div class="combatant-hp-bar"><div class="combatant-hp-fill" style="width:${c.currentHP/c.maxHP*100}%"></div></div>
+        <div class="combatant-hp-text">${c.currentHP}/${c.maxHP} HP</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showCombatActions(){
+  const grid = document.getElementById('action-grid');
+  const current = combatState?.combatants[combatState?.currentTurn];
+
+  if(!current || !current.isPlayer || combatState?.over){
+    grid.innerHTML = '';
+    return;
+  }
+
+  const actions = [
+    {icon:'⚔️', label:'Atacar', fn:'combatAttack()'},
+    {icon:'🏃', label:'Esquivar', fn:'combatDodge()'},
+    {icon:'🧪', label:'Poción', fn:'combatUsePotion()'},
+    {icon:'🏃‍♂️', label:'Huir', fn:'combatFlee()'},
+  ];
+
+  if(G.player.spells.length>0){
+    actions.splice(1,0,{icon:'✨', label:'Hechizo', fn:'combatCastSpell()'});
+  }
+
+  grid.innerHTML = actions.map(a=>`
+    <button class="action-btn" onclick="${a.fn}">
+      <span class="icon">${a.icon}</span>${a.label}
+    </button>
+  `).join('');
+}
+
+function combatAttack(){
+  if(!combatState||combatState.over) return;
+  const player = G.player;
+  const targets = combatState.enemies.filter(e=>e.currentHP>0);
+  if(!targets.length) return;
+
+  const target = targets[0];
+
+  // Get attack bonus
+  const weapon = player.equipped.mainhand ? ITEMS[player.equipped.mainhand] : null;
+  const statMod = weapon?.dmgType==='perforant' ? mod(player.stats.dex) : mod(player.stats.str);
+  const attackRoll = rollDie(20);
+  const totalAttack = attackRoll + statMod + profBonus(player.level);
+  const isCrit = attackRoll === 20;
+  const isFumble = attackRoll === 1;
+
+  addStory(`⚔️ **${player.name}** ataca a ${target.emoji} **${target.name}**!\nAtaque: ${attackRoll}+${statMod}+${profBonus(player.level)} = **${totalAttack}** vs AC ${target.ac}`, 'combat');
+
+  if(isFumble){
+    addStory(`💥 **¡Pifia!** El golpe falla estrepitosamente.`, 'combat');
+  } else if(isCrit || totalAttack >= target.ac){
+    const dmgDice = weapon?.damage || '1d4';
+    let dmg = parseDice(dmgDice) + statMod;
+    if(isCrit){ dmg += parseDice(dmgDice); addStory(`✨ **¡GOLPE CRÍTICO!** Daño doble.`, 'combat'); }
+    dmg = Math.max(1, dmg);
+    target.currentHP -= dmg;
+
+    playSound('attack');
+    addStory(`Inflige **${dmg} de daño** ${weapon?.dmgType||''}. ${target.name}: ${Math.max(0,target.currentHP)}/${target.maxHP} HP.`, 'combat');
+
+    if(target.currentHP <= 0){
+      handleEnemyDeath(target);
+      return;
+    }
+  } else {
+    addStory(`El ataque no supera la armadura de ${target.name}.`, 'combat');
+  }
+
+  nextTurn();
+}
+
+function combatDodge(){
+  addStory(`🛡️ **${G.player.name}** toma la acción Esquivar. Los ataques en su contra tienen desventaja.`, 'combat');
+  G.player.conditions = G.player.conditions||[];
+  G.player.conditions.push('dodge');
+  nextTurn();
+}
+
+function combatCastSpell(){
+  const available = G.player.spells.filter(s=>{
+    if(s.slots===0) return true;
+    return (G.player.spellSlots[s.level]||0) > 0;
+  });
+
+  if(!available.length){ addStory('No tienes hechizos disponibles.', 'system'); return; }
+
+  showDialog(
+    '✨ Lanzar Hechizo',
+    '🧙',
+    'Elige un hechizo para lanzar:',
+    available.map(sp=>({
+      text: `${sp.icon} ${sp.name} (Nv.${sp.level}) — ${sp.desc}`,
+      fn: ()=>executeSpell(sp)
+    }))
+  );
+}
+
+function executeSpell(spell){
+  closeModal('dialog-modal');
+  if(!combatState) return;
+
+  playSound('spell');
+
+  // Consume slot
+  if(spell.slots > 0 && G.player.spellSlots[spell.level] > 0){
+    G.player.spellSlots[spell.level]--;
+  }
+
+  addStory(`✨ **${G.player.name}** lanza **${spell.name}**!`, 'combat');
+
+  if(spell.damage){
+    const negative = spell.damage.startsWith('-');
+    const dmg = Math.abs(parseDice(spell.damage));
+
+    if(negative){
+      // Healing
+      const healed = Math.min(G.player.maxHP - G.player.hp, dmg);
+      G.player.hp += healed;
+      addStory(`💚 ${spell.name} restaura **${healed} PG**.`, 'combat');
+      updateHUD();
+    } else {
+      // Damage to enemies
+      const targets = combatState.enemies.filter(e=>e.currentHP>0);
+      targets.forEach(t=>{
+        t.currentHP -= dmg;
+        addStory(`${spell.icon} ${t.name} recibe **${dmg} de daño**. HP: ${Math.max(0,t.currentHP)}/${t.maxHP}.`, 'combat');
+        if(t.currentHP<=0) handleEnemyDeath(t);
+      });
+    }
+  } else {
+    addStory(`El hechizo surte efecto. Efectos: ${spell.desc}`, 'combat');
+  }
+
+  renderSpells();
+  nextTurn();
+}
+
+function combatUsePotion(){
+  const potIdx = G.player.inventory.findIndex(i=>i.id==='healpotion'||i.id==='greatpotion');
+  if(potIdx<0){ addStory('No tienes pociones.', 'system'); return; }
+
+  const pot = G.player.inventory[potIdx];
+  const heal = parseDice(pot.id==='greatpotion'?'4d4+4':'2d4+2');
+  G.player.hp = Math.min(G.player.maxHP, G.player.hp + heal);
+  removeItem(potIdx);
+
+  playSound('heal');
+  addStory(`🧪 **${G.player.name}** bebe ${ITEMS[pot.id]?.name||'una poción'} y recupera **${heal} PG**. HP: ${G.player.hp}/${G.player.maxHP}.`, 'combat');
+  updateHUD();
+  nextTurn();
+}
+
+function combatFlee(){
+  const roll = rollDie(20) + mod(G.player.stats.dex);
+  if(roll >= 12){
+    addStory(`🏃 **${G.player.name}** escapa del combate!`, 'combat');
+    endCombat(false);
+  } else {
+    addStory(`¡Fallo al huir! El camino está bloqueado.`, 'combat');
+    nextTurn();
+  }
+}
+
+function handleEnemyDeath(enemy){
+  addStory(`☠️ **${enemy.name}** cae derrotado!`, 'combat');
+  G.kills++;
+  addXP(enemy.xp);
+
+  const gold = rand(enemy.gold[0], enemy.gold[1]);
+  G.player.gold += gold;
+  if(gold>0) notify(`+🪙${gold}`, 'reward');
+
+  // Loot
+  enemy.loot?.forEach(itemId=>{
+    if(Math.random()<0.3 && ITEMS[itemId]){
+      addItem(itemId,1);
+      addStory(`Encontraste: ${ITEMS[itemId].icon} **${ITEMS[itemId].name}**!`, 'reward');
+    }
+  });
+
+  // Remove from combat
+  enemy.currentHP = 0;
+  const remaining = combatState.enemies.filter(e=>e.currentHP>0);
+
+  if(!remaining.length){
+    endCombat(true);
+  } else {
+    updateCombatUI();
+    nextTurn();
+  }
+}
+
+function nextTurn(){
+  if(!combatState||combatState.over) return;
+
+  combatState.currentTurn = (combatState.currentTurn+1) % combatState.combatants.length;
+
+  // Skip dead combatants
+  let safety = 0;
+  while(combatState.combatants[combatState.currentTurn]?.currentHP <= 0 && safety<20){
+    combatState.currentTurn = (combatState.currentTurn+1) % combatState.combatants.length;
+    safety++;
+  }
+
+  if(combatState.currentTurn === 0) combatState.round++;
+
+  const current = combatState.combatants[combatState.currentTurn];
+  if(!current) { endCombat(false); return; }
+
+  updateCombatUI();
+
+  if(current.isEnemy){
+    setTimeout(()=>enemyTurn(current), 800);
+  } else if(current.isParty){
+    setTimeout(()=>partyMemberTurn(current), 600);
+  } else {
+    showCombatActions();
+  }
+}
+
+function enemyTurn(enemy){
+  if(combatState.over||enemy.currentHP<=0) return;
+
+  const targets = combatState.combatants.filter(c=>!c.isEnemy&&c.currentHP>0);
+  if(!targets.length){ endCombat(true); return; }
+
+  const target = pick(targets);
+  const attack = pick(enemy.attacks);
+  const roll = rollDie(20);
+  const totalHit = roll + (attack.hit||3);
+  const targetAC = target.isPlayer ? (G.player.ac + (G.player.equipped.offhand?2:0)) : (target.ac||10);
+
+  addStory(`${enemy.emoji} **${enemy.name}** usa ${attack.name} contra ${target.avatar||'⚔️'} ${target.name}. Ataque: ${totalHit} vs AC ${targetAC}.`, 'combat');
+
+  if(roll===20 || totalHit >= targetAC){
+    let dmg = parseDice(attack.dmg);
+    if(roll===20) dmg *= 2;
+
+    if(target.isPlayer){
+      G.player.hp -= dmg;
+      addStory(`💔 **${G.player.name}** recibe **${dmg} de daño**! HP: ${G.player.hp}/${G.player.maxHP}.`, 'combat');
+      updateHUD();
+
+      // Sync to combatant
+      combatState.combatants.find(c=>c.isPlayer).currentHP = G.player.hp;
+
+      if(G.player.hp <= 0){ playerDeath(); return; }
+    } else if(target.isParty){
+      const member = G.party.find(m=>m.name===target.name);
+      if(member){ member.hp -= dmg; target.currentHP = member.hp; }
+      addStory(`💔 **${target.name}** recibe **${dmg} de daño**! HP: ${Math.max(0,target.currentHP)}/${target.maxHP}.`, 'combat');
+      if(target.currentHP<=0){
+        addStory(`☠️ **${target.name}** ha caído inconsciente.`, 'combat');
+      }
+      renderParty();
+    }
+  } else {
+    addStory(`El ataque de ${enemy.name} no supera la defensa.`, 'combat');
+  }
+
+  nextTurn();
+}
+
+function partyMemberTurn(member){
+  const enemies = combatState.enemies.filter(e=>e.currentHP>0);
+  if(!enemies.length) return;
+
+  const target = enemies[0];
+  const dmg = parseDice('1d8') + rand(1,4);
+  target.currentHP -= dmg;
+  addStory(`${member.avatar} **${member.name}** ataca a ${target.name} por **${dmg} de daño**.`, 'combat');
+
+  if(target.currentHP<=0) handleEnemyDeath(target);
+  else nextTurn();
+}
+
+function endCombat(victory){
+  if(combatState) combatState.over = true;
+
+  const area = document.getElementById('combat-area');
+  const noC = document.getElementById('no-combat');
+  if(area) area.style.display = 'none';
+  if(noC) noC.style.display = '';
+
+  combatState = null;
+
+  if(victory){
+    addStory(`⚔️ **¡Victoria!** Todos los enemigos han sido derrotados.`, 'reward');
+    playSound('success');
+
+    // Check quest progress
+    checkQuestProgressInternal();
+  } else {
+    addStory(`Has logrado escapar del combate.`, 'system');
+  }
+
+  updateHUD();
+  updateActions(G.currentLocation?.type||'town');
+  renderParty();
+  renderInventory();
+}
+
+function playerDeath(){
+  G.player.hp = 0;
+  addStory(`☠️ **${G.player.name}** cae al suelo. Todo se vuelve oscuro...`, 'combat');
+
+  // Death saves
+  setTimeout(()=>{
+    addStory('💀 **PERMADEATH** — La aventura ha terminado.', 'system');
+    const msg = document.getElementById('death-msg');
+    msg.textContent = `${G.player.name} cayó en ${G.locationName} tras ${G.day} días de aventura. ${G.kills} enemigos derrotados, ${G.questsCompleted} misiones completadas.`;
+    document.getElementById('death-screen').classList.add('active');
+    playSound('death');
+  }, 2000);
+}
+
+// ====== NPC & DIALOG ======
+function talkToNPC(){
+  const npc = generateNPC();
+  const dialogues = [
+    {text:`"Bienvenido, ${G.player.name}. He oído hablar de aventureros como tú. ¿Busca gloria o tesoro?" — ${npc.name} te observa con curiosidad.`, choices:[
+      {text:'Cuéntame de la zona.', fn:()=>{ addStory(`${npc.name} describe los peligros locales y señala posibles ruinas al este. +1 pista en el mapa.`, 'dialog'); closeModal('dialog-modal'); }},
+      {text:'¿Tienes alguna misión para mí?', fn:()=>{ closeModal('dialog-modal'); generateQuestFromNPC(npc); }},
+      {text:'Solo pasaba por aquí.', fn:()=>{ closeModal('dialog-modal'); addStory(`Intercambias saludos con ${npc.name} y sigues tu camino.`, 'dialog'); }},
+    ]},
+    {text:`"¡Ten cuidado, forastero! Las criaturas se han vuelto más agresivas últimamente. Mi hermano no ha vuelto del bosque hace tres días..." — ${npc.name} parece muy preocupado.`, choices:[
+      {text:'Investigaré qué pasó.', fn:()=>{ closeModal('dialog-modal'); generateRescueQuest(npc); }},
+      {text:'¿Qué recompensa ofreces?', fn:()=>{ closeModal('dialog-modal'); addStory(`${npc.name} apenas tiene recursos pero promete lo poco que tiene. Misión añadida.`, 'dialog'); generateRescueQuest(npc); }},
+    ]},
+    {text:`"Dicen que el gran dragón Dovahkiin está despertando. Yo mismo vi sus huellas quemadas en la montaña del norte..." — ${npc.name} baja la voz.`, choices:[
+      {text:'Cuéntame más sobre Dovahkiin.', fn:()=>{ 
+        addStory(`${npc.name} describe señales de despertar draconico. Las montañas del norte humean sin cesar.`, 'dialog');
+        if(!G.clues.includes('clue4') && Math.random()<0.4) { giveClue(); }
+        closeModal('dialog-modal');
+      }},
+      {text:'Un dragón no me asusta.', fn:()=>{ addStory(`${npc.name} te mira con admiración mezclada con temor. "Los valientes mueren jóvenes..."`, 'dialog'); closeModal('dialog-modal'); }},
+    ]},
+  ];
+
+  const chosen = pick(dialogues);
+  showDialog(npc.name, npc.emoji, chosen.text, chosen.choices);
+}
+
+function generateNPC(){
+  const gender = Math.random()<0.5?'male':'female';
+  const name = genName(gender);
+  const classes = ['comerciante','aldeano','guardia','viajero','erudito','herrero','tabernero','soldado'];
+  const emojis = {'comerciante':'👨‍💼','aldeano':'👤','guardia':'💂','viajero':'🧳','erudito':'🧑‍🎓','herrero':'⚒️','tabernero':'🍺','soldado':'⚔️'};
+  const cls = pick(classes);
+  return { name, gender, cls, emoji: emojis[cls]||'👤', loyalty:rand(30,80) };
+}
+
+function generateQuestFromNPC(npc){
+  generateQuest(npc.name);
+  renderQuests();
+  addStory(`📋 **${npc.name}** te ha dado una nueva misión. Revisa el tablón de misiones.`, 'dialog');
+}
+
+function generateRescueQuest(npc){
+  const q = generateQuest(npc.name, 'rescue');
+  renderQuests();
+  addStory(`📋 **Misión de rescate** aceptada. ${npc.name} espera noticias.`, 'dialog');
+}
+
+function showNPCDetail(idx){
+  const m = G.party[idx];
+  if(!m) return;
+
+  showDialog(
+    m.name,
+    m.avatar,
+    `**${m.name}**, ${CLASSES[m.cls]?.name||m.cls} de nivel ${m.level}.\n\nRelación: ${m.loyalty>70?'Leal 💛':m.loyalty>40?'Neutral ⚪':'Tensa 🔴'}\nHP: ${m.hp}/${m.maxHP}\n\n"${m.personality}"`,
+    [
+      {text:'Hablar con él/ella', fn:()=>{ closeModal('dialog-modal'); partyMemberDialog(m,idx); }},
+      {text:`Despedir (${Math.floor(m.hireGold*0.5)}🪙)`, fn:()=>{ closeModal('dialog-modal'); dismissPartyMember(idx); }},
+    ]
+  );
+}
+
+function partyMemberDialog(m, idx){
+  const responses = [
+    `"${G.player.name}, me alegra estar en tu grupo. Aunque últimamente el peligro parece seguirnos..."`,
+    `"El camino es duro pero la recompensa vale la pena. Seguiré luchando."`,
+    `"Necesitamos descansar. Mis heridas aún duelen de la última batalla."`,
+    `"He oído rumores sobre ese dragón. No estoy seguro de querer enfrentarlo..."`,
+    `"Confío en tu liderazgo. Hasta ahora nos has sacado adelante."`,
+  ];
+
+  if(m.loyalty < 40){
+    addStory(`${m.avatar} **${m.name}**: "Hmm... ¿De verdad crees que esto vale la pena? Reconsidero mi posición en el grupo."`, 'dialog');
+  } else {
+    addStory(`${m.avatar} **${m.name}**: ${pick(responses)}`, 'dialog');
+    m.loyalty = Math.min(100, m.loyalty+2);
+  }
+}
+
+function dismissPartyMember(idx){
+  const m = G.party[idx];
+  const cost = Math.floor(m.hireGold*0.5);
+  if(G.player.gold<cost){ notify('Oro insuficiente','warning'); return; }
+  G.player.gold -= cost;
+  addStory(`${m.avatar} **${m.name}** abandona el grupo. Le pagas ${cost}🪙 como liquidación.`, 'system');
+  G.party.splice(idx,1);
+  renderParty();
+  updateHUD();
+}
+
+// ====== TAVERN ======
+function openTavern(){
+  refreshTavernPool();
+  const modal = document.getElementById('tavern-modal');
+  const desc = document.getElementById('tavern-desc');
+  const hires = document.getElementById('tavern-hires');
+
+  const tavernNames = ['La Taberna del Dragón Dorado','El Jabalí Salvaje','La Lanza Rota','Las Tres Coronas','El Escudo y la Copa'];
+  desc.textContent = `En ${pick(tavernNames)}, varios aventureros descansan entre misiones. El olor a cerveza y carne asada llena el ambiente. ¿A quién contratarás?`;
+
+  hires.innerHTML = G.tavernPool.map((npc,i)=>`
+    <div style="display:flex; align-items:center; gap:0.8rem; padding:0.7rem; background:var(--bg-card); border:1px solid var(--border-gold-dim); border-radius:var(--radius); margin-bottom:0.5rem;">
+      <div style="font-size:1.8rem;">${npc.avatar}</div>
+      <div style="flex:1;">
+        <div style="font-family:var(--font-display); font-size:0.85rem; color:var(--text-primary);">${npc.name}</div>
+        <div style="font-size:0.7rem; color:var(--text-secondary);">${CLASSES[npc.cls]?.name||npc.cls} Nv.${npc.level} · ${npc.personality.slice(0,50)}...</div>
+        <div style="font-size:0.65rem; color:var(--text-dim); margin-top:0.15rem;">HP: ${npc.maxHP} · Contratación: 🪙${npc.hireGold}/misión</div>
+      </div>
+      <button class="btn btn-small ${G.party.length>=4?'':'btn-primary'}" onclick="hireAdventurer(${i})" ${G.party.find(m=>m.name===npc.name)?'disabled':''} ${G.party.length>=4?'disabled':''}>
+        ${G.party.find(m=>m.name===npc.name)?'En grupo':'Contratar'}
+      </button>
+    </div>
+  `).join('');
+
+  openModal('tavern-modal');
+}
+
+function refreshTavernPool(){
+  G.tavernPool = [];
+  for(let i=0;i<4;i++){
+    const cls = pick(Object.keys(CLASSES));
+    const gender = Math.random()<0.5?'male':'female';
+    const level = Math.max(1, G.player.level + rand(-2,2));
+    const hd = CLASSES[cls].hd;
+    const maxHP = parseDice(hd) * level + rand(0,10);
+    G.tavernPool.push({
+      name: genName(gender),
+      cls, level,
+      avatar: CLASSES[cls].emoji,
+      hp: maxHP, maxHP,
+      stats: {str:rand(8,16),dex:rand(8,16),con:rand(8,16),int:rand(8,16),wis:rand(8,16),cha:rand(8,16)},
+      personality: pick(PERSONALITIES[cls]||['Un espíritu aventurero.']),
+      loyalty: rand(50,80),
+      hireGold: rand(20,80),
+      conditions: []
+    });
+  }
+}
+
+function hireAdventurer(idx){
+  if(G.party.length>=4){ notify('Grupo lleno (máx. 4)','warning'); return; }
+  const npc = G.tavernPool[idx];
+  if(G.player.gold < npc.hireGold){ notify('Oro insuficiente','warning'); return; }
+
+  G.player.gold -= npc.hireGold;
+  G.party.push({...npc});
+  addStory(`🤝 **${npc.avatar} ${npc.name}** se une a tu grupo! (${CLASSES[npc.cls]?.name} Nv.${npc.level})`, 'system');
+  notify(`${npc.name} se unió al grupo!`,'quest');
+  renderParty();
+  updateHUD();
+  closeModal('tavern-modal');
+  openTavern();
+}
+
+// ====== MARKET ======
+function openMarket(){
+  const marketItems = ['longsword','shortsword','bow','dagger','rapier','warhammer','scimitar','leather','chain','shield','healpotion','greatpotion','manapotion','antidote','rations','rope','thieves_tools','amulet'];
+  const grid = document.getElementById('market-grid');
+  document.getElementById('market-gold').textContent = G.player.gold;
+
+  grid.innerHTML = marketItems.filter(id=>ITEMS[id]).map(id=>{
+    const item = ITEMS[id];
+    const owned = G.player.inventory.filter(i=>i.id===id).length;
+    return `
+      <div class="market-item">
+        <div class="market-icon">${item.icon}</div>
+        <div class="market-name rarity-${item.rarity}">${item.name}</div>
+        <div class="market-desc">${item.desc.slice(0,60)}${item.desc.length>60?'...':''}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="market-price">🪙 ${item.price}</div>
+          <div style="display:flex;gap:0.3rem;">
+            ${owned>0?`<button class="btn btn-small" onclick="sellItem('${id}')">Vender</button>`:''}
+            <button class="btn btn-small ${G.player.gold>=item.price?'btn-primary':''}" onclick="buyItem('${id}')" ${G.player.gold<item.price?'disabled':''}>Comprar</button>
+          </div>
+        </div>
+        ${owned>0?`<div style="font-size:0.6rem;color:var(--text-dim);">En inventario: ${owned}</div>`:''}
+      </div>
+    `;
+  }).join('');
+
+  openModal('market-modal');
+}
+
+function openBlacksmith(){
+  document.getElementById('market-title').textContent = '⚒️ El Herrero';
+  openMarket();
+}
+
+function buyItem(id){
+  const item = ITEMS[id];
+  if(!item||G.player.gold<item.price){ notify('Oro insuficiente','warning'); return; }
+  G.player.gold -= item.price;
+  addItem(id,1);
+  notify(`Compraste: ${item.icon} ${item.name}`,'reward');
+  playSound('gold');
+  document.getElementById('market-gold').textContent = G.player.gold;
+  updateHUD();
+  openMarket();
+}
+
+function sellItem(id){
+  const item = ITEMS[id];
+  if(!item) return;
+  const idx = G.player.inventory.findIndex(i=>i.id===id);
+  if(idx<0) return;
+  const sellPrice = Math.floor(item.price*0.5);
+  G.player.gold += sellPrice;
+  removeItem(idx);
+  notify(`Vendiste ${item.name} por 🪙${sellPrice}`,'reward');
+  playSound('gold');
+  document.getElementById('market-gold').textContent = G.player.gold;
+  updateHUD();
+  openMarket();
+}
+
+// ====== HEALER ======
+function visitHealer(){
+  const cost = (G.player.maxHP - G.player.hp) * 2;
+  showDialog(
+    '💚 Curandero Local',
+    '⛪',
+    `"Tus heridas hablan de batallas duras, aventurero. Puedo restaurar tu salud por ${cost} monedas de oro. ¿Aceptas?"`,
+    [
+      {text:`Curar (${cost}🪙)`, fn:()=>{ 
+        if(G.player.gold<cost){ closeModal('dialog-modal'); notify('Oro insuficiente','warning'); return; }
+        G.player.gold -= cost;
+        G.player.hp = G.player.maxHP;
+        G.party.forEach(m=>m.hp=m.maxHP);
+        playSound('heal');
+        addStory('💚 El curandero trabaja con habilidad. Te sientes completamente restaurado.', 'system');
+        updateHUD();
+        renderParty();
+        closeModal('dialog-modal');
+      }},
+      {text:'No, gracias.', fn:()=>closeModal('dialog-modal')},
+    ]
+  );
+}
+
+// ====== QUESTS ======
+function generateQuest(giver=null, forceType=null){
+  const tplGroup = forceType ? QUEST_TEMPLATES.find(t=>t.type===forceType) : pick(QUEST_TEMPLATES);
+  if(!tplGroup) return null;
+  const tpl = pick(tplGroup.templates);
+  const giverName = giver||genName('male');
+  const city = pick([...LOCATIONS.town.names,...LOCATIONS.city.names]);
+  const enemy  = tpl.enemies  ? pick(tpl.enemies)  : null;
+  const count  = tpl.counts   ? pick(tpl.counts)   : 1;
+  const zone   = (tpl.zones||tpl.locations) ? pick(tpl.zones||tpl.locations) : pick(LOCATIONS.dungeon.names);
+  const item   = tpl.items    ? pick(tpl.items)    : null;
+  const npc    = tpl.npcs     ? pick(tpl.npcs)     : null;
+  const victim = tpl.victims  ? pick(tpl.victims)  : null;
+  const captor = tpl.captors  ? pick(tpl.captors)  : null;
+  const recipient=tpl.recipients?pick(tpl.recipients):genName('female');
+  const dest   = tpl.destinations?pick(tpl.destinations):pick(LOCATIONS.city.names);
+
+  function fill(s){
+    return (s||'')
+      .replace(/{enemies}/g,enemy||'criaturas')
+      .replace(/{enemy}/g,  enemy||'criatura')
+      .replace(/{count}/g,  count)
+      .replace(/{zone}/g,   zone)
+      .replace(/{city}/g,   city)
+      .replace(/{giver}/g,  giverName)
+      .replace(/{item}/g,   item||'el objeto perdido')
+      .replace(/{npc}/g,    npc||'el viajero')
+      .replace(/{victim}/g, victim||'el prisionero')
+      .replace(/{captor}/g, captor||'los captores')
+      .replace(/{recipient}/g,recipient)
+      .replace(/{destination}/g,dest);
+  }
+
+  const steps = tpl.steps.map(fill);
+  const reward = tpl.reward||{gold:[30,150],xp:[100,400]};
+
+  const quest = {
+    id: Date.now()+Math.random(),
+    name: fill(tpl.name),
+    type: tplGroup.type,
+    typeEmoji: tplGroup.emoji,
+    giver: giverName,
+    objective: fill(tpl.objective),
+    steps,
+    currentStep: 0,
+    reward: {gold:rand(reward.gold[0],reward.gold[1]), xp:rand(reward.xp[0],reward.xp[1])},
+    completed: false,
+    progress: 0,
+    target: steps.length,
+  };
+
+  G.quests.push(quest);
+  if(G.activeQuest===null) G.activeQuest=G.quests.length-1;
+  return quest;
+}
+
+function checkQuestProgressInternal(){
+  if(G.activeQuest===null) return;
+  const q = G.quests[G.activeQuest];
+  if(!q||q.completed) return;
+  q.progress=(q.progress||0)+1;
+  if(q.progress>=q.target){
+    completeQuest(G.activeQuest);
+  } else {
+    q.currentStep=Math.min(q.progress,q.steps.length-1);
+    addStory('📋 **' + q.name + '**\n✓ Paso completado\n→ Siguiente: ' + q.steps[q.currentStep],'system');
+    renderQuests();
+  }
+}
+
+
+function openQuestBoard(){
+  while(G.quests.filter(q=>!q.completed).length<4) generateQuest();
+  const qs = G.quests.filter(q=>!q.completed);
+  const body = document.getElementById('quest-modal-body');
+  let html = '<p style="font-style:italic;font-size:0.82rem;color:var(--text-secondary);margin-bottom:1rem;">Hay ' + qs.length + ' encargos en el tablón. ¿Cuál te llama?</p>';
+  qs.forEach(q=>{
+    const idx=G.quests.indexOf(q), isAct=(idx===G.activeQuest);
+    const pct=q.target>0?Math.round((q.progress||0)/q.target*100):0;
+    html+='<div style="background:var(--bg-card);border:1px solid '+(isAct?'var(--gold)':'var(--border-gold-dim)')+';border-radius:var(--radius);padding:0.85rem;margin-bottom:0.65rem;">';
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;">';
+    html+='<span style="font-family:var(--font-display);font-size:0.85rem;color:var(--gold-light);">'+q.typeEmoji+' '+q.name+'</span>';
+    html+='<span style="font-size:0.62rem;color:var(--text-dim);">De: '+q.giver+'</span></div>';
+    html+='<div style="font-size:0.8rem;color:var(--text-secondary);font-style:italic;margin-bottom:0.5rem;">'+q.objective+'</div>';
+    if(q.steps&&q.steps.length){
+      html+='<div style="font-size:0.7rem;margin-bottom:0.45rem;">';
+      q.steps.forEach((s,i)=>{
+        const done=i<(q.currentStep||0),curr=i===(q.currentStep||0);
+        html+='<div style="padding:0.15rem 0;color:'+(done?'var(--green-bright)':curr?'var(--gold)':'var(--text-dim)')+';">'+(done?'✓ ':curr?'→ ':'○ ')+s+'</div>';
+      });
+      html+='</div>';
+      html+='<div style="height:3px;background:rgba(0,0,0,.4);border-radius:2px;margin-bottom:0.45rem;overflow:hidden;"><div style="height:100%;background:var(--gold);width:'+pct+'%"></div></div>';
+    }
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;">';
+    html+='<span style="font-size:0.72rem;">🪙'+q.reward.gold+' · ✨'+q.reward.xp+' XP</span>';
+    html+='<div style="display:flex;gap:0.3rem;">';
+    if(!isAct) html+='<button class="btn btn-small" onclick="setActiveQuest('+idx+');renderQuests();closeModal(\"quest-modal\");">Seguir esta misión</button>';
+    html+='<button class="btn btn-small btn-primary" onclick="acceptAndTrackQuest('+idx+')">Comprometerse</button>';
+    html+='</div></div></div>';
+  });
+  html+='<button class="btn" style="width:100%;margin-top:0.5rem;" onclick="generateQuest();openQuestBoard();">🌍 Buscar nuevas oportunidades</button>';
+  body.innerHTML=html;
+  openModal('quest-modal');
+}
+
+function setActiveQuest(idx){
+  if(G.activeQuest === idx) return; // already active, do nothing
+  G.activeQuest = idx;
+  renderQuests();
+  const q = G.quests[idx];
+  if(q) addStory('📋 Siguiendo: **' + q.name + '**\n→ ' + (q.steps&&q.steps[q.currentStep||0]||q.objective||''), 'system');
+}
+
+function acceptAndTrackQuest(idx){
+  const q = G.quests[idx];
+  if(!q) return;
+  const alreadyActive = G.activeQuest === idx;
+  G.activeQuest = idx;
+  renderQuests();
+  if(!alreadyActive){
+    addStory('📋 **Encargo aceptado:** "' + q.name + '"\n' + q.objective + '\n\nRecompensa: 🪙' + q.reward.gold + ' · ✨' + q.reward.xp + ' XP', 'system');
+    if(q.steps && q.steps.length) addStory('→ Primer paso: ' + q.steps[0], 'system');
+  } else {
+    addStory('📋 Ya estás siguiendo este encargo.', 'system');
+  }
+  closeModal('quest-modal');
+  switchTab('story');
+}
+
+function showQuestDetail(idx){
+  setActiveQuest(idx);
+  openQuestBoard();
+}
+
+function checkQuestProgress(){
+  checkQuestProgressInternal();
+}
+
+function checkQuestProgressInternal(){
+  if(G.activeQuest===null) return;
+  const q = G.quests[G.activeQuest];
+  if(!q||q.completed) return;
+
+  q.progress++;
+  if(q.progress >= q.target){
+    completeQuest(G.activeQuest);
+  } else {
+    addStory(`✅ Progreso en "${q.name}": ${q.progress}/${q.target}`, 'system');
+  }
+}
+
+function completeQuest(idx){
+  const q = G.quests[idx];
+  if(!q||q.completed) return;
+  q.completed = true;
+
+  addStory(`🎉 **¡Misión completada!**\n"${q.name}" — Has cumplido tu promesa a ${q.giver}.`, 'reward');
+  G.player.gold += q.reward.gold;
+  addXP(q.reward.xp);
+  G.questsCompleted++;
+
+  notify(`¡Misión completada! +🪙${q.reward.gold}`, 'reward');
+  playSound('success');
+
+  // Small chance of clue
+  if(Math.random()<0.12 && G.clues.length<5){
+    giveClue();
+  }
+
+  // Remove from active
+  G.activeQuest = G.quests.findIndex(q=>!q.completed);
+  if(G.activeQuest<0) G.activeQuest=null;
+
+  // Generate new quest to replace
+  setTimeout(()=>generateQuest(), 1000);
+  renderQuests();
+  renderLore();
+  updateHUD();
+}
+
+// ====== CLUES ======
+function giveClue(){
+  const allClues = ['clue1','clue2','clue3','clue4','clue5'];
+  const remaining = allClues.filter(c=>!G.clues.includes(c));
+  if(!remaining.length) return;
+
+  const clue = pick(remaining);
+  G.clues.push(clue);
+  addItem(clue,1);
+  const item = ITEMS[clue];
+  addStory(`🔮 **¡Pista descubierta!**\n"${item.name}": ${item.desc}`, 'reward');
+  notify(`Pista sobre Dovahkiin: ${item.name}`, 'quest');
+
+  renderClues();
+
+  if(G.clues.length>=5){
+    addStory(`⚠️ **Has reunido las Cinco Pistas.** La guarida de Dovahkiin ha sido localizada. Cuando estés listo, puedes afrontar el Desafío Final.`, 'warning');
+  }
+}
+
+function startFinalQuest(){
+  if(G.clues.length<5){ notify('Necesitas las 5 pistas primero.','warning'); return; }
+
+  showDialog(
+    '🔥 El Desafío Final',
+    '🐉',
+    `Las pistas te han guiado hasta las Cimas Ardientes, donde tres picos convergen en torno a una caverna que humea eternamente. Dovahkiin duerme allí... pero su sueño es cada vez más ligero.\n\n¿Estás listo para enfrentar al Destructor? Se recomienda ser nivel 10+ y tener equipamiento legendario.`,
+    [
+      {text:'¡Al combate! (Nivel '+G.player.level+')', fn:()=>{
+        closeModal('dialog-modal');
+        addStory(`🔥 **EL DESAFÍO FINAL COMIENZA.**\nEntras en la caverna. El calor es insoportable. Escamas del tamaño de escudos decoran las paredes. Y entonces... lo ves.`, 'combat');
+        addStory(`🐉 El suelo tiembla. Dovahkiin, el Dragón Eterno, abre sus ojos carmesí. "Pequeña criatura... ¿Cómo osaste venir a mi guarida?"`, 'combat');
+        setTimeout(()=>startCombat([ENEMIES[ENEMIES.length-1]]), 1000);
+      }},
+      {text:'Todavía no estoy listo.', fn:()=>closeModal('dialog-modal')},
+    ]
+  );
+}
+
+// ====== XP & LEVELING ======
+function addXP(amount){
+  G.player.xp += amount;
+  // xp notification handled elsewhere
+
+  while(G.player.xp >= G.player.xpNext){
+    levelUp();
+  }
+  updateHUD();
+}
+
+function levelUp(){
+  G.player.level++;
+  G.player.xp -= G.player.xpNext;
+  G.player.xpNext = Math.floor(G.player.xpNext * 1.8);
+
+  const cls = CLASSES[G.player.cls];
+  const hpGain = parseDice(cls.hd) + mod(G.player.stats.con);
+  G.player.maxHP += hpGain;
+  G.player.hp = G.player.maxHP;
+
+  // More spell slots
+  if(cls.spellcasting){
+    const slots = G.player.spellSlotsMax;
+    if(G.player.level>=3) slots[2] = (slots[2]||0)+1;
+    if(G.player.level>=5) slots[3] = (slots[3]||0)+1;
+    if(G.player.level>=7) slots[4] = (slots[4]||0)+1;
+    G.player.spellSlots = {...slots};
+  }
+
+  addStory(`🌟 **¡SUBIDA DE NIVEL!** ${G.player.name} es ahora nivel **${G.player.level}**!\n+${hpGain} PG máximos. HP totalmente restaurados.`, 'reward');
+  notify('¡Nivel ' + G.player.level + '!', 'reward');
+  playSound('levelup');
+  confetti();
+
+  // Add new skill options every 4 levels (ASI)
+  if(G.player.level%4===0){
+    const stat = pick(['str','dex','con','int','wis','cha']);
+    G.player.stats[stat] = Math.min(20, G.player.stats[stat]+2);
+    addStory(`📈 **Mejora de Característica:** ${stat.toUpperCase()} +2 (ahora ${G.player.stats[stat]}).`, 'system');
+  }
+
+  updateHUD();
+}
+
+// ====== INVENTORY ======
+function addItem(id, qty=1, silent=false){
+  const existing = G.player.inventory.find(i=>i.id===id);
+  if(existing){ existing.qty = (existing.qty||1)+qty; }
+  else { G.player.inventory.push({id, qty:1}); }
+  if(!silent && ITEMS[id]){
+    // Auto-equip if slot is empty
+    const item = ITEMS[id];
+    if(item.slot && !G.player.equipped[item.slot]){
+      equipItem(id, true);
+    }
+  }
+  renderInventory();
+}
+
+function removeItem(idx){
+  if(G.player.inventory[idx]?.qty > 1){
+    G.player.inventory[idx].qty--;
+  } else {
+    G.player.inventory.splice(idx,1);
+  }
+  renderInventory();
+}
+
+function equipItem(id, silent=false){
+  const item = ITEMS[id];
+  if(!item||!item.slot) return;
+
+  const prev = G.player.equipped[item.slot];
+  G.player.equipped[item.slot] = id;
+
+  if(!silent) addStory(`🎒 Equipado: ${item.icon} **${item.name}**.`, 'system');
+
+  // Apply AC
+  recalcAC();
+  updateHUD();
+  renderInventory();
+}
+
+function unequipItem(slot){
+  G.player.equipped[slot] = null;
+  recalcAC();
+  updateHUD();
+  renderInventory();
+}
+
+function recalcAC(){
+  let ac = 10 + mod(G.player.stats.dex);
+  const body = G.player.equipped.body ? ITEMS[G.player.equipped.body] : null;
+  const offhand = G.player.equipped.offhand ? ITEMS[G.player.equipped.offhand] : null;
+  const ring = G.player.equipped.ring ? ITEMS[G.player.equipped.ring] : null;
+
+  if(body?.ac) ac = body.ac + (body.ac<13 ? mod(G.player.stats.dex) : 0);
+  if(offhand?.ac) ac += offhand.ac;
+  if(ring?.bonus?.ac) ac += ring.bonus.ac;
+
+  G.player.ac = ac;
+}
+
+function renderInventory(){
+  if(!G) return;
+
+  // Equipment slots
+  const equipSlots = document.getElementById('equip-slots');
+  const slotDefs = [
+    {key:'mainhand',label:'Arma',icon:'⚔️'},
+    {key:'offhand',label:'Mano 2',icon:'🛡️'},
+    {key:'body',label:'Armadura',icon:'🥋'},
+    {key:'neck',label:'Cuello',icon:'📿'},
+    {key:'ring',label:'Anillo',icon:'💍'},
+    {key:'back',label:'Capa',icon:'🦇'},
+    {key:'feet',label:'Botas',icon:'👢'},
+  ];
+
+  equipSlots.innerHTML = slotDefs.map(sl=>{
+    const eqId = G.player.equipped[sl.key];
+    const item = eqId ? ITEMS[eqId] : null;
+    return `
+      <div class="inv-slot equipped ${!item?'empty':''}" onclick="${item?`showItemModal('${eqId}',true,'${sl.key}')`:''}" title="${item?item.name:sl.label}">
+        <div class="inv-icon">${item?item.icon:sl.icon}</div>
+        <div class="inv-name ${item?'rarity-'+item.rarity:''}">${item?item.name:sl.label}</div>
+        ${item?`<div class="inv-qty" style="color:var(--green-bright);font-size:0.5rem;">✓ Eqp.</div>`:`<div class="inv-qty">${sl.label}</div>`}
+      </div>
+    `;
+  }).join('');
+
+  // Bag
+  const bag = document.getElementById('bag-slots');
+  bag.innerHTML = G.player.inventory.filter(i=>ITEMS[i.id]&&ITEMS[i.id].type!=='clue').map((inv,idx)=>{
+    const item = ITEMS[inv.id];
+    if(!item) return '';
+    const equipped = Object.values(G.player.equipped).includes(inv.id);
+    return `
+      <div class="inv-slot ${equipped?'equipped':''}" onclick="showItemModal('${inv.id}',false,null,${idx})" title="${item.name}">
+        <div class="inv-icon">${item.icon}</div>
+        <div class="inv-name rarity-${item.rarity}">${item.name}</div>
+        <div class="inv-qty">${(inv.qty||1)>1?'x'+(inv.qty||1):''}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function showItemModal(id, equipped, slot, idx){
+  const item = ITEMS[id];
+  if(!item) return;
+
+  document.getElementById('item-modal-title').textContent = `${item.icon} ${item.name}`;
+
+  let actions = '';
+  if(equipped && slot){
+    actions = `<button class="btn btn-small" onclick="unequipItem('${slot}'); closeModal('item-modal');">Desequipar</button>`;
+  } else if(item.slot){
+    actions = `<button class="btn btn-small btn-primary" onclick="equipItem('${id}'); closeModal('item-modal');">Equipar</button>`;
+  } else if(item.type==='consumable'){
+    actions = `<button class="btn btn-small btn-primary" onclick="useConsumable('${id}',${idx}); closeModal('item-modal');">Usar</button>`;
+  }
+
+  if(idx!==undefined) actions += `<button class="btn btn-small btn-danger" onclick="removeItem(${idx}); closeModal('item-modal');">Soltar</button>`;
+
+  document.getElementById('item-modal-body').innerHTML = `
+    <div style="display:flex; gap:0.8rem; align-items:flex-start; margin-bottom:1rem;">
+      <div style="font-size:3rem;">${item.icon}</div>
+      <div>
+        <div class="rarity-${item.rarity}" style="font-family:var(--font-display); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em;">${item.rarity}</div>
+        <div style="font-style:italic; margin:0.3rem 0; font-size:0.85rem;">${item.desc}</div>
+        ${item.damage?`<div>Daño: <strong style="color:var(--gold);">${item.damage} ${item.dmgType||''}</strong></div>`:''}
+        ${item.ac?`<div>CA: <strong style="color:var(--blue);">+${item.ac}</strong></div>`:''}
+        ${item.heal?`<div>Curación: <strong style="color:var(--green);">2d4+2</strong></div>`:''}
+        ${item.price?`<div>Valor: <strong>🪙${item.price}</strong></div>`:''}
+      </div>
+    </div>
+    <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">${actions}</div>
+  `;
+  openModal('item-modal');
+}
+
+function useConsumable(id, idx){
+  const item = ITEMS[id];
+  if(!item) return;
+
+  if(item.heal){
+    const heal = parseDice('2d4+2');
+    G.player.hp = Math.min(G.player.maxHP, G.player.hp+heal);
+    addStory(`🧪 Usas ${item.icon} **${item.name}** y recuperas **${heal} PG**.`, 'system');
+    playSound('heal');
+  } else if(item.mana){
+    G.player.mp = Math.min(G.player.maxMP, G.player.mp+item.mana);
+    addStory(`💙 Usas **${item.name}**. Recuperas espacios de conjuro.`, 'system');
+  }
+
+  removeItem(idx);
+  updateHUD();
+}
+
+// ====== SPELLS ======
+function renderSpells(){
+  if(!G) return;
+  const grid = document.getElementById('spellbook-grid');
+  const slotsDisplay = document.getElementById('spell-slots-display');
+
+  if(!G.player.spells.length){
+    grid.innerHTML = '<div style="color:var(--text-dim); font-style:italic; font-size:0.8rem; padding:1rem;">Tu clase no tiene acceso a hechizos de conjurador.</div>';
+    slotsDisplay.innerHTML = '';
+    return;
+  }
+
+  slotsDisplay.innerHTML = `
+    <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.8rem;">
+      ${Object.entries(G.player.spellSlots).map(([lvl,slots])=>`
+        <div class="stat-pill">
+          <span class="label">Nv.${lvl}</span>
+          <span class="val">${slots}/${G.player.spellSlotsMax[lvl]||0}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  grid.innerHTML = G.player.spells.map(sp=>{
+    const hasSlot = sp.slots===0 || (G.player.spellSlots[sp.level]||0)>0;
+    return `
+      <div class="spell-card ${!hasSlot?'':''}${!hasSlot?'':''}" style="${!hasSlot?'opacity:0.5;':''}" onclick="${hasSlot&&combatState?`executeSpell(${JSON.stringify(sp).replace(/"/g,"'")})`:''}">
+        <div class="spell-icon">${sp.icon}</div>
+        <div class="spell-name">${sp.name}</div>
+        <div class="spell-level">Nivel ${sp.level===0?'Truco':sp.level}</div>
+        <div style="font-size:0.6rem; color:var(--text-dim); margin-top:0.2rem;">${sp.desc.slice(0,50)}...</div>
+        ${sp.slots>0?`<div class="spell-slots">${G.player.spellSlots[sp.level]||0}/${G.player.spellSlotsMax[sp.level]||0}</div>`:''}
+      </div>
+    `;
+  }).join('');
+}
+
+// ====== SKILLS ======
+function renderSkills(){
+  if(!G) return;
+  const list = document.getElementById('skills-list');
+  list.innerHTML = SKILLS_DATA.map(skill=>{
+    const prof = G.player.skills[skill.name];
+    const statMod = mod(G.player.stats[skill.stat]||10);
+    const total = statMod + (prof?profBonus(G.player.level):0);
+    return `
+      <div class="skill-row">
+        <div class="skill-prof ${prof?'prof':''}"></div>
+        <div class="skill-name">${skill.name}</div>
+        <div class="skill-stat">${skill.stat.toUpperCase()}</div>
+        <div class="skill-mod">${modStr(total)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ====== LORE ======
+function renderLore(){
+  if(!G) return;
+
+  // World lore entries
+  const content = document.getElementById('lore-content');
+  if(content){
+    content.innerHTML = G.lore.map(l=>`
+      <div style="margin-bottom:0.85rem; padding:0.75rem; background:var(--bg-panel); border:1px solid var(--border-gold-dim); border-radius:var(--radius);">
+        <div style="font-family:var(--font-display); font-size:0.78rem; color:var(--gold); margin-bottom:0.35rem;">${l.title}</div>
+        <div style="font-size:0.8rem; color:var(--text-secondary); line-height:1.65; font-style:italic;">${l.text}</div>
+      </div>
+    `).join('');
+  }
+
+  // Quest log
+  const ql = document.getElementById('quest-log-content');
+  if(!ql) return;
+  const allQ = G.quests;
+  if(!allQ.length){
+    ql.innerHTML = '<div style="font-style:italic;color:var(--text-dim);font-size:0.8rem;">Aún no has aceptado ningún encargo.</div>';
+    return;
+  }
+  // Active first, then completed
+  const sorted = [
+    ...allQ.filter(q=>!q.completed),
+    ...allQ.filter(q=>q.completed),
+  ];
+  ql.innerHTML = sorted.map(function(q){
+    const idx=G.quests.indexOf(q);
+    const isAct=(idx===G.activeQuest&&!q.completed);
+    const pct=q.target>0?Math.round((q.progress||0)/q.target*100):100;
+    const bCol=q.completed?'var(--green)':isAct?'var(--gold)':'var(--border-gold-dim)';
+    const tCol=q.completed?'var(--green-bright)':isAct?'var(--gold-light)':'var(--text-primary)';
+    const status=q.completed?'\u2713 Completada':isAct?'\u25cf Activa':'\u25cb Pendiente';
+    let stHtml='';
+    if(q.steps&&q.steps.length){
+      stHtml='<div style="font-size:0.68rem;margin-bottom:0.4rem;">';
+      q.steps.forEach(function(s,i){
+        const done=q.completed||i<(q.currentStep||0);
+        const curr=!q.completed&&i===(q.currentStep||0);
+        stHtml+='<div style="padding:0.1rem 0;color:'+(done?'var(--green-bright)':curr?'var(--gold)':'var(--text-dim)')+';">'+(done?'\u2713 ':curr?'\u2192 ':'\u25cb ')+s+'</div>';
+      });
+      stHtml+='</div>';
+    }
+    return '<div style="margin-bottom:0.75rem;padding:0.75rem;background:var(--bg-panel);border:1px solid '+bCol+';border-radius:var(--radius);opacity:'+(q.completed?0.7:1)+';"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.3rem;"><span style="font-family:var(--font-display);font-size:0.78rem;color:'+tCol+';">'+q.typeEmoji+' '+q.name+'</span><span style="font-size:0.58rem;color:var(--text-dim);white-space:nowrap;margin-left:0.4rem;">'+status+'</span></div><div style="font-size:0.76rem;color:var(--text-secondary);font-style:italic;margin-bottom:0.45rem;">'+(q.objective||'')+'</div>'+stHtml+'<div style="height:3px;background:rgba(0,0,0,.4);border-radius:2px;overflow:hidden;"><div style="height:100%;background:'+(q.completed?'var(--green)':'var(--gold)')+';width:'+pct+'%;transition:width .4s;"></div></div><div style="font-size:0.62rem;color:var(--text-dim);margin-top:0.3rem;">De: '+q.giver+' \u00b7 \ud83e\ude99'+q.reward.gold+' \u00b7 \u2728'+q.reward.xp+' XP</div></div>';
+  }).join('');
+}
+
+// ====== HEX MAP ======
+
+// ── FOG OF WAR ────────────────────────────────────────────
+function getPlayerHexCoords(){
+  if(!G?.currentLocation) return {q:0,r:0};
+  for(const [k,h] of Object.entries(hexMap)){
+    if(h.location&&(h.location===G.currentLocation||
+       (h.location.name===G.currentLocation.name&&h.location.type===G.currentLocation.type))){
+      const p=k.split(','); return {q:parseInt(p[0]),r:parseInt(p[1])};
+    }
+  }
+  return {q:0,r:0};
+}
+
+// Flat-top axial neighbors
+const HEX_DIRS=[{q:1,r:0},{q:1,r:-1},{q:0,r:-1},{q:-1,r:0},{q:-1,r:1},{q:0,r:1}];
+
+function revealHexesAroundPlayer(){
+  if(!G) return;
+  const {q,r}=getPlayerHexCoords();
+  // Reveal player hex and all 6 neighbors
+  G.revealedHexes.add(q+','+r);
+  HEX_DIRS.forEach(d=>{
+    const nk=(q+d.q)+','+(r+d.r);
+    G.revealedHexes.add(nk);
+    // Also generate the hex if it doesn't exist yet
+    if(!hexMap[nk]) generateHex(q+d.q, r+d.r);
+  });
+}
+
+function initMap(){
+  mapCanvas = document.getElementById('hex-canvas');
+  if(!mapCanvas) return;
+  mapCtx = mapCanvas.getContext('2d');
+  resizeMap();
+  window.addEventListener('resize', resizeMap);
+
+  let dragMoved=false;
+  mapCanvas.addEventListener('mousedown', e=>{
+    mapDragging=true; dragMoved=false;
+    mapDragStart={x:e.clientX-mapOffset.x, y:e.clientY-mapOffset.y};
+  });
+  mapCanvas.addEventListener('mousemove', e=>{
+    if(!mapDragging) return;
+    dragMoved=true;
+    mapOffset.x=e.clientX-mapDragStart.x;
+    mapOffset.y=e.clientY-mapDragStart.y;
+    drawMap();
+  });
+  mapCanvas.addEventListener('mouseup', e=>{
+    const wasDrag=dragMoved; mapDragging=false; dragMoved=false;
+    if(!wasDrag) mapClick(e);
+  });
+  mapCanvas.addEventListener('mouseleave', ()=>{ mapDragging=false; });
+  mapCanvas.addEventListener('wheel', e=>{ e.preventDefault(); mapZoom(e.deltaY<0?1.1:0.9); },{passive:false});
+  let touchMoved=false;
+  mapCanvas.addEventListener('touchstart', e=>{ touchMoved=false; let t=e.touches[0]; mapDragging=true; mapDragStart={x:t.clientX-mapOffset.x,y:t.clientY-mapOffset.y}; },{passive:true});
+  mapCanvas.addEventListener('touchmove', e=>{ e.preventDefault(); touchMoved=true; let t=e.touches[0]; if(!mapDragging)return; mapOffset.x=t.clientX-mapDragStart.x; mapOffset.y=t.clientY-mapDragStart.y; drawMap(); },{passive:false});
+  mapCanvas.addEventListener('touchend', e=>{ mapDragging=false; if(!touchMoved){let t=e.changedTouches[0]; mapClick({clientX:t.clientX,clientY:t.clientY});} });
+
+  generateInitialMap();
+  centerMap();
+  drawMap();
+}
+
+function resizeMap(){
+  if(!mapCanvas) return;
+  const r=mapCanvas.parentElement.getBoundingClientRect();
+  mapCanvas.width=Math.max(1,r.width);
+  mapCanvas.height=Math.max(1,r.height);
+  drawMap();
+}
+
+const HEX_SIZE=38;
+
+// FLAT-TOP hexagons: x goes with q, y diagonal
+function hexToPixel(q,r){
+  return { x: HEX_SIZE*(1.5*q), y: HEX_SIZE*(Math.sqrt(3)/2*q + Math.sqrt(3)*r) };
+}
+function pixelToHex(px,py){
+  const q=(2/3*px)/HEX_SIZE;
+  const r=(-1/3*px + Math.sqrt(3)/3*py)/HEX_SIZE;
+  return roundHex(q,r);
+}
+function roundHex(fq,fr){
+  const fs=-fq-fr;
+  let q=Math.round(fq),r=Math.round(fr),s=Math.round(fs);
+  const dq=Math.abs(q-fq),dr=Math.abs(r-fr),ds=Math.abs(s-fs);
+  if(dq>dr&&dq>ds) q=-r-s; else if(dr>ds) r=-q-s;
+  return {q,r};
+}
+// 6 corners of a flat-top hex
+function hexCorners(cx,cy,size){
+  const p=[];
+  for(let i=0;i<6;i++){ const a=Math.PI/3*i; p.push({x:cx+size*Math.cos(a),y:cy+size*Math.sin(a)}); }
+  return p;
+}
+
+function generateInitialMap(){
+  hexMap={};
+  for(let q=-10;q<=10;q++)
+    for(let r=-10;r<=10;r++)
+      if(Math.abs(q)+Math.abs(r)+Math.abs(-q-r)<=20) generateHex(q,r);
+}
+
+function generateHex(q,r){
+  const key=q+','+r;
+  if(hexMap[key]) return;
+  const seed=((q*1000+r)^(G.mapSeed||12345))&0xFFFFFF;
+  const v=((Math.abs(Math.sin(seed)*43758.5453))%1);
+  let type;
+  if(q===0&&r===0) type='city';
+  else if(v<0.06) type='city';
+  else if(v<0.16) type='town';
+  else if(v<0.30) type='dungeon';
+  else if(v<0.46) type='mountain';
+  else if(v<0.63) type='forest';
+  else type='plains';
+
+  const colors={city:'#6a5a20',town:'#5a4a28',forest:'#163018',mountain:'#4a3c2a',plains:'#2e2414',dungeon:'#2e1212'};
+  let loc=null;
+  const lt=LOCATIONS[type];
+  if(lt&&lt.names){
+    const v2=((Math.abs(Math.sin(seed*7)*43758.5453))%1);
+    const nm=lt.names[Math.floor(v2*lt.names.length)]||lt.names[0];
+    loc={name:nm,type,services:lt.services||[],desc:lt.desc?lt.desc(nm):nm,ambiance:lt.ambiance||'🏘️'};
+    if((type==='city'||type==='town')&&!G.discoveredLocations.find(l=>l.name===nm&&l.type===type)){
+      G.discoveredLocations.push(loc);
+    }
+  }
+  hexMap[key]={q,r,type,color:colors[type]||'#222',location:loc};
+}
+
+function drawMap(){
+  if(!mapCanvas||!mapCtx||mapCanvas.width<2) return;
+  const ctx=mapCtx, W=mapCanvas.width, H=mapCanvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#07050d'; ctx.fillRect(0,0,W,H);
+  const cx=W/2+mapOffset.x, cy=H/2+mapOffset.y, sz=HEX_SIZE*mapScale;
+
+  // find player hex coords
+  let plq=0,plr=0;
+  if(G?.currentLocation){
+    for(const [k,h] of Object.entries(hexMap)){
+      if(h.location&&(h.location===G.currentLocation||(h.location.name===G.currentLocation.name&&h.location.type===G.currentLocation.type))){
+        const p=k.split(','); plq=parseInt(p[0]); plr=parseInt(p[1]); break;
+      }
+    }
+  }
+
+  const revealed = G?.revealedHexes || null;
+
+  for(const [key,hex] of Object.entries(hexMap)){
+    const pp=hexToPixel(hex.q,hex.r);
+    const x=cx+pp.x*mapScale, y=cy+pp.y*mapScale;
+    if(x<-sz*2||x>W+sz*2||y<-sz*2||y>H+sz*2) continue;
+
+    const isPlayer=(hex.q===plq&&hex.r===plr);
+    const isRevealed=!revealed||revealed.has(key);
+
+    if(!isRevealed){
+      // Draw fog — dark hex with no details
+      drawFogHex(ctx,x,y,sz);
+    } else {
+      drawHex(ctx,x,y,sz,hex,isPlayer);
+    }
+  }
+}
+
+function drawFogHex(ctx,cx,cy,size){
+  const pts=hexCorners(cx,cy,size*0.93);
+  ctx.beginPath();
+  pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.closePath();
+  ctx.fillStyle='#0a0810';
+  ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,0.06)';
+  ctx.lineWidth=0.5;
+  ctx.stroke();
+}
+
+function drawHex(ctx,cx,cy,size,hex,isPlayer){
+  const pts=hexCorners(cx,cy,size*0.93);
+  ctx.beginPath();
+  pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.closePath();
+  if(isPlayer){
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,size);
+    g.addColorStop(0,'#1a3a6b'); g.addColorStop(1,hex.color);
+    ctx.fillStyle=g;
+  } else ctx.fillStyle=hex.color;
+  ctx.fill();
+  ctx.strokeStyle=isPlayer?'#e8b84b':'rgba(200,146,42,0.2)';
+  ctx.lineWidth=isPlayer?2.5:0.8; ctx.stroke();
+
+  if(size>15){
+    const icons={city:'🏰',town:'🏘️',forest:'🌲',mountain:'⛰️',dungeon:'💀',plains:'🌾'};
+    ctx.font=`${Math.min(size*.44,17)}px serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(icons[hex.type]||'', cx, cy-(hex.location&&size>25?size*.16:0));
+    if(hex.location&&size>26){
+      const nm=hex.location.name.length>14?hex.location.name.slice(0,13)+'…':hex.location.name;
+      ctx.font=`${Math.max(8,size*.17)}px 'Cinzel',serif`;
+      ctx.fillStyle='#e8b84b'; ctx.fillText(nm,cx,cy+size*.45); ctx.fillStyle='white';
+    }
+  }
+  if(isPlayer){
+    const r2=Math.max(size*.22,5);
+    ctx.beginPath(); ctx.arc(cx,cy,r2,0,Math.PI*2);
+    ctx.fillStyle='#3498db'; ctx.fill();
+    ctx.strokeStyle='#e8b84b'; ctx.lineWidth=1.5; ctx.stroke();
+    if(size>18){
+      ctx.font=`${Math.min(size*.28,13)}px serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle='white'; ctx.fillText(G?.player?.avatar||'⚔',cx,cy);
+    }
+  }
+}
+
+function mapZoom(f){ mapScale=Math.max(0.3,Math.min(4,mapScale*f)); drawMap(); }
+function centerMap(){ mapOffset={x:0,y:0}; drawMap(); }
+
+function mapClick(e){
+  const rect=mapCanvas.getBoundingClientRect();
+  const cx=mapCanvas.width/2+mapOffset.x, cy=mapCanvas.height/2+mapOffset.y;
+  const {q,r}=pixelToHex((e.clientX-rect.left-cx)/mapScale,(e.clientY-rect.top-cy)/mapScale);
+  const h=hexMap[q+','+r];
+  if(!h?.location) return;
+  const loc=h.location;
+  if(loc===G.currentLocation||(loc.name===G.currentLocation?.name&&loc.type===G.currentLocation?.type)){
+    addStory('📍 Ya estás en **'+loc.name+'**.','system'); return;
+  }
+  showDialog('🗺️ '+loc.name,(LOCATIONS[loc.type]||{}).ambiance||'🏘️',
+    '**'+loc.name+'**\n'+(loc.desc||'').slice(0,150)+'...\n\nServicios: '+((loc.services||[]).join(', ')||'Ninguno'),
+    [{text:'🚶 Viajar aquí',fn:function(){closeModal('dialog-modal');travelTo(loc);}},
+     {text:'Cerrar',fn:function(){closeModal('dialog-modal');}}]);
+}
+
+// ====== TABS ======
+function switchTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id)?.classList.add('active');
+  document.getElementById('tab-btn-'+id)?.classList.add('active');
+
+  if(id==='map') setTimeout(()=>{ resizeMap(); drawMap(); }, 100);
+  if(id==='inventory') renderInventory();
+  if(id==='spells') renderSpells();
+  if(id==='skills-tab') renderSkills();
+  if(id==='lore') renderLore();
+}
+
+// ====== MOBILE NAV ======
+function mobileNav(target, btn){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if(target==='left'||target==='right'){
+    const panel = document.getElementById(target+'-panel');
+    panel.classList.toggle('mobile-show');
+    document.getElementById('overlay').classList.toggle('active', panel.classList.contains('mobile-show'));
+  } else {
+    closeOverlays();
+    switchTab(target);
+  }
+}
+
+function closeOverlays(){
+  document.getElementById('left-panel')?.classList.remove('mobile-show');
+  document.getElementById('right-panel')?.classList.remove('mobile-show');
+  document.getElementById('overlay')?.classList.remove('active');
+}
+
+// ====== MODALS ======
+function openModal(id){
+  document.getElementById(id).classList.add('active');
+  currentModal = id;
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove('active');
+  if(currentModal===id) currentModal=null;
+}
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && currentModal) closeModal(currentModal);
+});
+
+// ====== DIALOG ======
+let _dch = []; // dialog choices store (avoids closure-in-string)
+function showDialog(title, portrait, text, choices){
+  _dch = choices;
+  document.getElementById('dialog-npc-name').textContent = title;
+  document.getElementById('dialog-portrait').textContent = portrait;
+  document.getElementById('dialog-text').innerHTML = text
+    .replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--gold-light);">$1</strong>')
+    .replace(/\n/g,'<br>');
+  document.getElementById('dialog-choices').innerHTML = choices.map((c,i)=>
+    '<button class="dialog-choice" onclick="_dch['+i+'].fn()">' + c.text + '</button>'
+  ).join('');
+  openModal('dialog-modal');
+}
+
+// ====== DICE ======
+// Clean geometric SVG dice — accurate shapes, readable numbers
+const DIE_DEFS = `<defs>
+  <linearGradient id="dg1" x1="15%" y1="10%" x2="85%" y2="90%">
+    <stop offset="0%" stop-color="#3e2c12"/><stop offset="100%" stop-color="#0e0a04"/>
+  </linearGradient>
+  <linearGradient id="dg2" x1="85%" y1="10%" x2="15%" y2="90%">
+    <stop offset="0%" stop-color="#281e09"/><stop offset="100%" stop-color="#07050200"/>
+  </linearGradient>
+  <linearGradient id="edge" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#ffd700"/>
+    <stop offset="50%" stop-color="#c8922a"/>
+    <stop offset="100%" stop-color="#7a5218"/>
+  </linearGradient>
+  <filter id="numglow" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+    <feColorMatrix in="blur" type="matrix" values="1.5 1 0 0 0 1 0.7 0 0 0 0 0 0 0 0 0 0 0 2.5 0" result="c"/>
+    <feMerge><feMergeNode in="c"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="dshad" x="-8%" y="-8%" width="120%" height="130%">
+    <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="rgba(0,0,0,0.75)"/>
+  </filter>
+</defs>`;
+
+function dNum(x, y, v, fs, crit){
+  const col = crit===true?'#ffe060':crit===false?'#ff7070':'#ffeaa0';
+  return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
+    font-family="'Cinzel Decorative',serif" font-size="${fs}" font-weight="700"
+    fill="${col}" filter="url(#numglow)">${v}</text>`;
+}
+
+// D4 — equilateral triangle pointing up
+function makeSvgD4(val,sz){
+  sz=sz||130; const cx=sz/2, pd=sz*0.08;
+  const top=`${cx},${pd}`, bl=`${pd},${sz-pd}`, br=`${sz-pd},${sz-pd}`;
+  return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}" class="die-svg-el">${DIE_DEFS}
+    <polygon points="${top} ${br} ${bl}" fill="url(#dg1)" stroke="url(#edge)" stroke-width="2.8"
+      stroke-linejoin="round" filter="url(#dshad)"/>
+    <polygon points="${top} ${br} ${bl}" fill="none" stroke="rgba(255,224,96,0.06)" stroke-width="14"/>
+    ${dNum(cx,sz*0.66,val,sz*0.24,null)}
+  </svg>`;
+}
+
+// D6 — square with pips
+function makeSvgD6(val,sz){
+  sz=sz||130; const pd=sz*0.09, r=sz*0.12;
+  const g=sz/4;
+  const pos=[[g,g],[g*2,g],[g*3,g],[g,g*2],[g*2,g*2],[g*3,g*2],[g,g*3],[g*2,g*3],[g*3,g*3]];
+  const P={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+  const act=new Set(P[val]||P[1]); const pr=sz*0.056;
+  const pips=pos.map((p,i)=>act.has(i)?`<circle cx="${p[0]}" cy="${p[1]}" r="${pr}" fill="#ffd700" filter="url(#numglow)" opacity="0.92"/>`:'').join('');
+  return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}" class="die-svg-el">${DIE_DEFS}
+    <rect x="${pd}" y="${pd}" width="${sz-pd*2}" height="${sz-pd*2}" rx="${r}"
+      fill="url(#dg1)" stroke="url(#edge)" stroke-width="2.8" filter="url(#dshad)"/>
+    <rect x="${pd}" y="${pd}" width="${sz-pd*2}" height="${sz-pd*2}" rx="${r}"
+      fill="none" stroke="rgba(255,224,96,0.06)" stroke-width="14"/>
+    ${pips}
+  </svg>`;
+}
+
+// D8 — diamond (square rotated 45°)
+function makeSvgD8(val,sz){
+  sz=sz||130; const cx=sz/2, pd=sz*0.06;
+  const pts=`${cx},${pd} ${sz-pd},${cx} ${cx},${sz-pd} ${pd},${cx}`;
+  return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}" class="die-svg-el">${DIE_DEFS}
+    <polygon points="${pts}" fill="url(#dg1)" stroke="url(#edge)" stroke-width="2.8"
+      stroke-linejoin="round" filter="url(#dshad)"/>
+    <line x1="${cx}" y1="${pd}" x2="${cx}" y2="${sz-pd}" stroke="rgba(200,146,42,0.22)" stroke-width="1.4"/>
+    <line x1="${pd}" y1="${cx}" x2="${sz-pd}" y2="${cx}" stroke="rgba(200,146,42,0.22)" stroke-width="1.4"/>
+    <polygon points="${pts}" fill="none" stroke="rgba(255,224,96,0.06)" stroke-width="14"/>
+    ${dNum(cx,cx+sz*0.05,val,sz*0.25,null)}
+  </svg>`;
+}
+
+// D10 — kite/chevron
+function makeSvgD10(val,sz,pct){
+  sz=sz||130; const cx=sz/2, pd=sz*0.07;
+  const disp=pct?(val===100?'00':String(val).padStart(2,'0')):val;
+  const pts=`${cx},${pd} ${sz-pd},${sz*0.44} ${cx},${sz-pd} ${pd},${sz*0.44}`;
+  return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}" class="die-svg-el">${DIE_DEFS}
+    <polygon points="${pts}" fill="url(#dg1)" stroke="url(#edge)" stroke-width="2.8"
+      stroke-linejoin="round" filter="url(#dshad)"/>
+    <line x1="${cx}" y1="${pd}" x2="${cx}" y2="${sz-pd}" stroke="rgba(200,146,42,0.2)" stroke-width="1.4"/>
+    <polygon points="${pts}" fill="none" stroke="rgba(255,224,96,0.06)" stroke-width="14"/>
+    ${dNum(cx,sz*0.46,disp,sz*(pct?0.2:0.23),null)}
+  </svg>`;
+}
+
+// D12 — regular pentagon
+function makeSvgD12(val,sz){
+  sz=sz||130; const cx=sz/2, cy=sz/2, r=sz*0.43;
+  const pts=Array.from({length:5},(_,i)=>{const a=Math.PI*2/5*i-Math.PI/2;return `${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`;}).join(' ');
+  return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}" class="die-svg-el">${DIE_DEFS}
+    <polygon points="${pts}" fill="url(#dg1)" stroke="url(#edge)" stroke-width="2.8"
+      stroke-linejoin="round" filter="url(#dshad)"/>
+    <polygon points="${pts}" fill="none" stroke="rgba(255,224,96,0.06)" stroke-width="14"/>
+    ${dNum(cx,cy+sz*0.04,val,sz*0.24,null)}
+  </svg>`;
+}
+
+// D20 — pentagon (icosahedron face) with internal edge lines
+function makeSvgD20(val,sz){
+  sz=sz||130; const cx=sz/2, cy=sz/2, r=sz*0.43;
+  const pts=Array.from({length:5},(_,i)=>{const a=Math.PI*2/5*i-Math.PI/2;return [(cx+r*Math.cos(a)),(cy+r*Math.sin(a))];});
+  const ptsStr=pts.map(p=>p.map(v=>v.toFixed(1)).join(',')).join(' ');
+  const lines=pts.map(p=>`<line x1="${p[0].toFixed(1)}" y1="${p[1].toFixed(1)}" x2="${cx}" y2="${cy}" stroke="rgba(200,146,42,0.2)" stroke-width="1.2"/>`).join('');
+  const dots=pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="#ffd700" opacity="0.8"/>`).join('');
+  const crit=(val===20),fumb=(val===1);
+  return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}" class="die-svg-el">${DIE_DEFS}
+    <polygon points="${ptsStr}" fill="url(#dg1)" stroke="url(#edge)" stroke-width="2.8"
+      stroke-linejoin="round" filter="url(#dshad)"/>
+    ${lines}${dots}
+    <polygon points="${ptsStr}" fill="none" stroke="rgba(255,224,96,0.06)" stroke-width="14"/>
+    ${dNum(cx,cy+sz*0.04,val,sz*0.23,crit?true:fumb?false:null)}
+  </svg>`;
+}
+
+function makeDieSVG(type,val,sz){
+  const s=parseInt(type.replace('d',''))||6;
+  if(s===4)   return makeSvgD4(val,sz);
+  if(s===6)   return makeSvgD6(val,sz);
+  if(s===8)   return makeSvgD8(val,sz);
+  if(s===10)  return makeSvgD10(val,sz,false);
+  if(s===12)  return makeSvgD12(val,sz);
+  if(s===20)  return makeSvgD20(val,sz);
+  if(s===100) return makeSvgD10(val,sz,true);
+  return makeSvgD20(val,sz);
+}
+
+function buildDie(type,val,count){
+  const c=document.getElementById('dice-3d');
+  if(!c) return;
+  count=Math.min(count||1,6);
+  const sz=count===1?130:Math.max(55,Math.floor(290/count));
+  if(count===1){
+    c.innerHTML=makeDieSVG(type,val,sz);
+  } else {
+    c.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center;">'+
+      Array.from({length:count},()=>makeDieSVG(type,val,sz)).join('')+'</div>';
+  }
+}
+
+function buildTitleD20(){
+  const el=document.getElementById('d20-svg-wrap');
+  if(!el) return;
+  const sz=148, cx=sz/2, cy=sz/2, r=sz*0.42;
+  const pts=Array.from({length:5},(_,i)=>{const a=Math.PI*2/5*i-Math.PI/2;return [(cx+r*Math.cos(a)),(cy+r*Math.sin(a))];});
+  const ptsStr=pts.map(p=>p.map(v=>v.toFixed(1)).join(',')).join(' ');
+  const lines=pts.map(p=>`<line x1="${p[0].toFixed(1)}" y1="${p[1].toFixed(1)}" x2="${cx}" y2="${cy}" stroke="rgba(200,146,42,0.25)" stroke-width="1.5"/>`).join('');
+  const dots=pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4.5" fill="#ffd700" opacity="0.9" filter="url(#numglow)"/>`).join('');
+  el.innerHTML=`<svg viewBox="0 0 ${sz} ${sz}" xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}">
+    <defs>
+      <linearGradient id="tg1" x1="15%" y1="10%" x2="85%" y2="90%">
+        <stop offset="0%" stop-color="#3e2c12"/><stop offset="100%" stop-color="#0d0905"/>
+      </linearGradient>
+      <linearGradient id="edge" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ffd700"/>
+        <stop offset="50%" stop-color="#c8922a"/>
+        <stop offset="100%" stop-color="#7a5218"/>
+      </linearGradient>
+      <filter id="numglow" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="blur"/>
+        <feColorMatrix in="blur" type="matrix" values="1.5 1 0 0 0 1 0.7 0 0 0 0 0 0 0 0 0 0 0 3 0" result="c"/>
+        <feMerge><feMergeNode in="c"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="dshad"><feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="rgba(0,0,0,0.8)"/></filter>
+    </defs>
+    <ellipse cx="${cx}" cy="${sz-5}" rx="${r*0.5}" ry="5" fill="rgba(0,0,0,0.3)"/>
+    <polygon points="${ptsStr}" fill="url(#tg1)" stroke="url(#edge)" stroke-width="3"
+      stroke-linejoin="round" filter="url(#dshad)"/>
+    ${lines}${dots}
+    <polygon points="${ptsStr}" fill="none" stroke="rgba(255,224,96,0.06)" stroke-width="16"/>
+    <text x="${cx}" y="${cy+6}" text-anchor="middle" dominant-baseline="middle"
+      font-family="'Cinzel Decorative',serif" font-size="42" font-weight="700"
+      fill="#ffeaa0" filter="url(#numglow)">20</text>
+  </svg>`;
+}
+
+function spinD20(){
+  const w=document.getElementById('d20-svg-wrap');
+  if(!w) return; playSound('dice');
+  let deg=0,f=0,tot=44;
+  const id=setInterval(()=>{
+    f++;const p=f/tot,spd=p<0.5?1:Math.max(0.05,(1-p)*2.2);
+    deg+=20*spd;const sc=1+Math.sin(p*Math.PI)*0.14;
+    w.style.transform='rotate('+deg+'deg) scale('+sc+')';
+    w.style.filter='drop-shadow(0 0 '+(20+Math.sin(p*Math.PI)*40)+'px rgba(201,168,76,.95))';
+    if(f>=tot){clearInterval(id);w.style.transform='';w.style.filter='';}
+  },18);
+}
+
+function selectDie(type,el){
+  selectedDie=type;
+  document.querySelectorAll('.die-type-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  buildDie(type,parseInt(type.replace('d',''))||6,1);
+}
+
+function rollManualDice(){
+  const count=Math.min(parseInt(document.getElementById('dice-count').value)||1,6);
+  const mod2=parseInt(document.getElementById('dice-mod').value)||0;
+  const sides=parseInt(selectedDie.replace('d',''))||6;
+  playSound('dice');
+  const con=document.getElementById('dice-3d');
+  const res=document.getElementById('dice-result-big');
+  const brk=document.getElementById('dice-breakdown');
+  res.textContent='...'; brk.textContent='Lanzando...';
+  con.classList.remove('rolling','spinning'); void con.offsetWidth;
+  con.classList.add('spinning');
+  setTimeout(()=>{
+    const rolls=[]; for(let i=0;i<count;i++) rolls.push(rollDie(sides));
+    const total=rolls.reduce((a,b)=>a+b,0)+mod2;
+    con.classList.remove('spinning'); void con.offsetWidth;
+    buildDie(selectedDie,rolls[rolls.length-1],count);
+    con.classList.add('rolling'); setTimeout(()=>con.classList.remove('rolling'),800);
+    res.textContent=total; res.className='dice-result-big';
+    const isCrit=count===1&&sides===20&&rolls[0]===20;
+    const isFumb=count===1&&sides===20&&rolls[0]===1;
+    if(isCrit){res.classList.add('crit');playSound('success');}
+    if(isFumb) res.classList.add('fumble');
+    let bd=count+selectedDie+(mod2!==0?(mod2>0?'+':'')+mod2:'');
+    bd+=' → ['+rolls.join(', ')+'] = '+total;
+    if(isCrit) bd+=' ✨ ¡CRÍTICO NATURAL!';
+    if(isFumb) bd+=' 💥 ¡PIFIA NATURAL!';
+    brk.textContent=bd;
+  },400);
+}
+
+
+// ====== NOTIFICATIONS ======
+function notify(text, type='normal'){
+  const container = document.getElementById('notifs');
+  const notif = document.createElement('div');
+  notif.className = `notif ${type}`;
+  notif.textContent = text;
+  container.appendChild(notif);
+  setTimeout(()=>notif.remove(), 3200);
+}
+
+// ====== CONFETTI ======
+function confetti(){
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = Array.from({length:80}, ()=>({
+    x: Math.random()*canvas.width,
+    y: -10,
+    vx: (Math.random()-0.5)*4,
+    vy: Math.random()*4+2,
+    color: ['#e8b84b','#f5d07a','#c8922a','#ffffff','#3498db','#2ecc71'][Math.floor(Math.random()*6)],
+    size: Math.random()*8+4,
+    rotation: Math.random()*360,
+    rotSpeed: (Math.random()-0.5)*10
+  }));
+
+  let frame = 0;
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; p.rotation+=p.rotSpeed;
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rotation*Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+      ctx.restore();
+    });
+    frame++;
+    if(frame<120) requestAnimationFrame(animate);
+    else canvas.style.display='none';
+  }
+  animate();
+}
+
+// ====== SAVE / LOAD ======
+function saveGame(){
+  if(!G) return;
+  try{
+    const saveData = Object.assign({}, G, { revealedHexes: [...(G.revealedHexes||[])] });
+    localStorage.setItem('kurghaimat_save', JSON.stringify(saveData));
+    const indicator = document.getElementById('save-indicator');
+    indicator.style.display = 'block';
+    setTimeout(()=>indicator.style.display='none', 2000);
+    playSound('click');
+  }catch(e){ notify('Error al guardar','warning'); }
+}
+
+function confirmQuit(){
+  if(confirm('¿Guardar y salir?')){
+    saveGame();
+    setTimeout(()=>{ showScreen('title-screen'); checkSave(); }, 500);
+  }
+}
+
+function restartFromTitle(){
+  G = null;
+  combatState = null;
+  document.getElementById('death-screen').classList.remove('active');
+  showScreen('title-screen');
+  checkSave();
+}
+
+function checkSave(){
+  const hasData = !!localStorage.getItem('kurghaimat_save');
+  document.getElementById('load-btn').style.display = hasData ? 'block' : 'none';
+}
+
+// ====== MISC ======
+function advanceTime(hours){
+  G.hour += hours;
+  if(G.hour>=24){ G.day += Math.floor(G.hour/24); G.hour = G.hour%24; }
+}
+
+// ====== INIT ======
+window.addEventListener('DOMContentLoaded', ()=>{
+  checkSave();
+  buildTitleD20();
+  buildDie('d20', 20, 1);
+});
+
+
+// ── THEME ENGINE ──────────────────────────────────────────
+const THEMES = ['ember','ocean','forest','blood','arcane','ice'];
+function setTheme(name, el){
+  document.body.className = document.body.className.replace(/theme-\S+/g,'').trim();
+  if(name !== 'ember') document.body.classList.add('theme-'+name);
+  document.querySelectorAll('.theme-swatch').forEach(s=>s.classList.remove('active'));
+  if(el) el.classList.add('active');
+  try{ localStorage.setItem('kurg_theme', name); }catch(e){}
+  // Redraw map with new colors
+  if(typeof drawMap==='function') drawMap();
+}
+function toggleThemePicker(){
+  document.getElementById('theme-picker').classList.toggle('open');
+}
+function loadSavedTheme(){
+  try{
+    const t = localStorage.getItem('kurg_theme');
+    if(t && THEMES.includes(t)){
+      const sw = document.querySelector('.theme-swatch[title]');
+      // find the right swatch by index
+      const idx = THEMES.indexOf(t);
+      const swatches = document.querySelectorAll('.theme-swatch');
+      setTheme(t, swatches[idx]||null);
+    }
+  }catch(e){}
+}
+// Close picker when clicking outside
+document.addEventListener('click', e=>{
+  const picker = document.getElementById('theme-picker');
+  const btn = document.getElementById('theme-btn');
+  if(picker && btn && !picker.contains(e.target) && !btn.contains(e.target)){
+    picker.classList.remove('open');
+  }
+});
+
+</script>
+
+<!-- THEME PICKER -->
+<div id="theme-picker">
+  <h4>Color del tema</h4>
+  <div class="theme-swatches">
+    <div class="theme-swatch active" style="background:linear-gradient(135deg,#c8922a,#6a3a0a)" title="Ámbar" onclick="setTheme('ember',this)"></div>
+    <div class="theme-swatch" style="background:linear-gradient(135deg,#2a7ac8,#0a3a6a)" title="Océano" onclick="setTheme('ocean',this)"></div>
+    <div class="theme-swatch" style="background:linear-gradient(135deg,#2a8c40,#0a3a1a)" title="Bosque" onclick="setTheme('forest',this)"></div>
+    <div class="theme-swatch" style="background:linear-gradient(135deg,#c82a2a,#6a0a0a)" title="Sangre" onclick="setTheme('blood',this)"></div>
+    <div class="theme-swatch" style="background:linear-gradient(135deg,#7a2ac8,#3a0a6a)" title="Arcano" onclick="setTheme('arcane',this)"></div>
+    <div class="theme-swatch" style="background:linear-gradient(135deg,#2a8ac8,#0a3a5a)" title="Hielo" onclick="setTheme('ice',this)"></div>
+  </div>
+</div>
+
+</body>
+</html>
