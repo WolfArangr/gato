@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaff Classic Tours — Mallorca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#07111f;
+  --navy2:#0c1b30;
+  --navy3:#112240;
+  --gold:#c19a6b;
+  --gold2:#d4aa7d;
+  --gold3:#e8c99a;
+  --cream:#f5f0e8;
+  --cream2:#faf7f2;
+  --white:#ffffff;
+  --text-dark:#1c2533;
+  --text-mid:#5a6474;
+  --text-light:#9aa0aa;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --display:'Cinzel',serif;
+  --sans:'Jost',system-ui,sans-serif;
+  --ease-out:cubic-bezier(0.22,1,0.36,1);
+}
+html{scroll-behavior:smooth}
+body{background:var(--navy);color:var(--white);font-family:var(--sans);font-weight:300;overflow-x:hidden;cursor:none}
+@media(hover:none){body{cursor:auto}}
+
+/* CURSOR */
+#cur{position:fixed;width:8px;height:8px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .25s,height .25s}
+#cur-ring{position:fixed;width:38px;height:38px;border:1px solid rgba(193,154,107,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+body:has(a:hover,button:hover) #cur{width:16px;height:16px}
+body:has(a:hover,button:hover) #cur-ring{width:54px;height:54px;border-color:rgba(193,154,107,.25)}
+@media(hover:none){#cur,#cur-ring{display:none}}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--navy)}
+::-webkit-scrollbar-thumb{background:var(--gold)}
+
+/* LANGUAGE */
+[data-lang="es"] [data-en]{display:none!important}
+[data-lang="en"] [data-es]{display:none!important}
+
+/* PROGRESS */
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0;z-index:1001;transition:width .08s linear}
+
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:900;padding:2rem 5%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2rem;transition:all .5s var(--ease-out);border-bottom:1px solid transparent}
+#nav.scrolled{padding:.9rem 5%;background:rgba(7,17,31,.93);backdrop-filter:blur(18px) saturate(1.6);border-bottom-color:rgba(193,154,107,.12)}
+.nav-left{display:flex;gap:2.5rem;align-items:center}
+.nav-right{display:flex;gap:1.5rem;align-items:center;justify-content:flex-end}
+.nav-a{font-size:.67rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.6);text-decoration:none;position:relative;padding-bottom:2px;transition:color .3s;white-space:nowrap}
+.nav-a::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--gold);transition:width .4s var(--ease-out)}
+.nav-a:hover{color:var(--gold)}
+.nav-a:hover::after,.nav-a.active::after{width:100%}
+.nav-logo{text-align:center;text-decoration:none}
+.nav-logo-main{font-family:var(--display);font-size:1rem;letter-spacing:.18em;color:var(--white);display:block;line-height:1}
+.nav-logo-sub{font-family:var(--sans);font-size:.5rem;letter-spacing:.5em;color:var(--gold);display:block;margin-top:.3rem;font-weight:300}
+.lang-wrap{display:flex;gap:.4rem}
+.lang-btn{padding:.22rem .65rem;border-radius:20px;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.4);font-size:.6rem;letter-spacing:.15em;cursor:pointer;background:transparent;transition:all .3s;font-family:var(--sans)}
+.lang-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(193,154,107,.08)}
+.nav-cta{font-family:var(--display);font-size:.6rem;letter-spacing:.2em;padding:.5rem 1.3rem;background:var(--gold);color:var(--navy);border-radius:1px;text-decoration:none;transition:all .35s var(--ease-out);white-space:nowrap}
+.nav-cta:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 8px 28px rgba(193,154,107,.3)}
+.burger{display:none;width:26px;flex-direction:column;gap:5px;cursor:pointer;padding:.4rem;margin:-.4rem}
+.burger span{display:block;height:1px;background:var(--white);transition:all .4s var(--ease-out)}
+.burger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+
+/* MOBILE MENU */
+#mob-menu{position:fixed;inset:0;background:var(--navy);z-index:895;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2rem;opacity:0;pointer-events:none;transition:opacity .4s var(--ease-out)}
+#mob-menu.open{opacity:1;pointer-events:all}
+#mob-menu a{font-family:var(--display);font-size:1.5rem;color:rgba(255,255,255,.7);text-decoration:none;transition:color .3s}
+#mob-menu a:hover{color:var(--gold)}
+.mob-cta{color:var(--gold)!important;border:1px solid var(--gold);padding:.7rem 2.5rem;border-radius:1px;margin-top:.5rem!important}
+
+@media(max-width:1024px){
+  #nav{grid-template-columns:1fr auto;padding:1.4rem 6%}
+  #nav.scrolled{padding:.7rem 6%}
+  .nav-left,.nav-right .nav-a,.nav-right .nav-cta,.nav-right .lang-wrap{display:none}
+  .burger{display:flex}
+  .nav-right{gap:1rem}
+}
+
+/* HERO */
+#hero{position:relative;height:100vh;min-height:680px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0}
+.hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 42%;transform:scale(1.1);animation:hZoom 14s var(--ease-out) forwards;will-change:transform}
+@keyframes hZoom{to{transform:scale(1)}}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(7,17,31,.35) 0%,rgba(7,17,31,.15) 45%,rgba(7,17,31,.88) 100%)}
+.hero-c{position:relative;z-index:2;text-align:center;padding:0 6%;max-width:960px}
+.hero-eyebrow{font-size:.6rem;letter-spacing:.65em;text-transform:uppercase;color:var(--gold);margin-bottom:2rem;display:flex;align-items:center;justify-content:center;gap:1rem;opacity:0;animation:fUp .9s var(--ease-out) .3s forwards}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';flex:1;max-width:55px;height:1px}
+.hero-eyebrow::before{background:linear-gradient(to right,transparent,var(--gold))}
+.hero-eyebrow::after{background:linear-gradient(to left,transparent,var(--gold))}
+.hero-h1{font-family:var(--display);font-size:clamp(2.8rem,7.5vw,7rem);line-height:.93;letter-spacing:.04em;color:var(--white);opacity:0;animation:fUp 1s var(--ease-out) .55s forwards}
+.hero-h1 em{display:block;font-family:var(--serif);font-style:italic;font-weight:300;color:var(--gold3);font-size:.62em;letter-spacing:.02em;margin-top:.25em;line-height:1.25}
+.hero-sub{font-family:var(--serif);font-style:italic;font-size:clamp(1rem,2vw,1.35rem);color:rgba(255,255,255,.58);line-height:1.82;max-width:580px;margin:1.8rem auto 2.8rem;opacity:0;animation:fUp 1s var(--ease-out) .75s forwards}
+.hero-btns{display:flex;gap:1.1rem;justify-content:center;flex-wrap:wrap;opacity:0;animation:fUp .9s var(--ease-out) .95s forwards}
+.btn-gold{display:inline-flex;align-items:center;gap:.6rem;padding:.88rem 2.2rem;background:var(--gold);color:var(--navy);font-family:var(--display);font-size:.63rem;letter-spacing:.2em;text-decoration:none;border-radius:1px;transition:all .4s var(--ease-out);position:relative;overflow:hidden}
+.btn-gold::after{content:'';position:absolute;inset:0;background:var(--gold2);transform:translateX(-101%);transition:transform .45s var(--ease-out)}
+.btn-gold span{position:relative;z-index:1}
+.btn-gold:hover::after{transform:translateX(0)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 14px 45px rgba(193,154,107,.32)}
+.btn-ghost{display:inline-flex;align-items:center;padding:.88rem 2.2rem;border:1px solid rgba(255,255,255,.32);color:rgba(255,255,255,.82);font-family:var(--display);font-size:.63rem;letter-spacing:.2em;text-decoration:none;border-radius:1px;transition:all .4s}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.scroll-hint{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.6rem;opacity:0;animation:fUp .8s var(--ease-out) 1.3s forwards;cursor:pointer}
+.scroll-hint span{font-size:.55rem;letter-spacing:.4em;color:rgba(255,255,255,.32);text-transform:uppercase}
+.scroll-bar{width:1px;height:55px;overflow:hidden;background:rgba(255,255,255,.08);position:relative}
+.scroll-bar::after{content:'';position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);animation:sBar 2.2s ease infinite}
+@keyframes sBar{0%{transform:translateY(-100%)}100%{transform:translateY(200%)}}
+
+/* NUMBERS */
+#nums{background:var(--navy2);border-top:1px solid rgba(193,154,107,.1);border-bottom:1px solid rgba(193,154,107,.1);padding:3.5rem 5%}
+.nums-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.num-item{text-align:center;padding:1rem 1.5rem;position:relative}
+.num-item::after{content:'';position:absolute;right:0;top:15%;bottom:15%;width:1px;background:rgba(193,154,107,.12)}
+.num-item:last-child::after{display:none}
+.num-val{font-family:var(--serif);font-size:2.8rem;font-weight:300;color:var(--gold);line-height:1;display:block}
+.num-lbl{font-size:.58rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-top:.4rem;display:block}
+@media(max-width:600px){.nums-grid{grid-template-columns:1fr 1fr}.num-item:nth-child(2)::after{display:none}}
+
+/* UTILITIES */
+.eyebrow{font-size:.6rem;letter-spacing:.5em;text-transform:uppercase;color:var(--gold);font-family:var(--sans);margin-bottom:1.1rem;display:flex;align-items:center;gap:.8rem}
+.eyebrow::before{content:'';width:28px;height:1px;background:var(--gold);flex-shrink:0}
+.sec-h{font-family:var(--display);font-size:clamp(1.7rem,3.8vw,3rem);line-height:1.08;letter-spacing:.04em}
+.sec-h.dk{color:var(--navy)}
+.rule{width:48px;height:1px;background:var(--gold);margin:1.4rem 0}
+.rule.c{margin-left:auto;margin-right:auto}
+.serif-lede{font-family:var(--serif);font-style:italic;font-size:clamp(1.05rem,1.9vw,1.3rem);line-height:1.82;font-weight:300;color:rgba(255,255,255,.5)}
+.serif-lede.dk{color:var(--text-mid)}
+section{overflow:hidden}
+
+/* INTRO */
+#intro{background:var(--cream2);padding:9rem 5%}
+.intro-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:7rem;align-items:center}
+.intro-img-wrap{position:relative}
+.intro-frame{position:relative}
+.intro-frame img{width:100%;height:530px;object-fit:cover;display:block;filter:contrast(1.03)}
+.intro-frame::before{content:'';position:absolute;top:-1.5rem;right:-1.5rem;bottom:1.5rem;left:1.5rem;border:1px solid rgba(193,154,107,.3);pointer-events:none;z-index:0}
+.intro-frame::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(7,17,31,.35));pointer-events:none}
+.intro-badge{position:absolute;bottom:-1.5rem;left:-1.5rem;background:var(--navy);border:1px solid rgba(193,154,107,.28);padding:1.4rem 1.8rem;z-index:2}
+.badge-num{font-family:var(--serif);font-size:2.4rem;color:var(--gold);line-height:1;font-weight:300;display:block}
+.badge-lbl{font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-top:.3rem;display:block}
+.intro-text-block{padding-top:.5rem}
+.intro-text-block .eyebrow{color:var(--gold)}
+.intro-text-block .sec-h{color:var(--navy)}
+.intro-body{font-size:.9rem;line-height:1.95;color:var(--text-mid);margin-top:1.4rem}
+.intro-body p{margin-bottom:1rem}
+.hls{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(193,154,107,.18);border:1px solid rgba(193,154,107,.18);margin-top:2.5rem}
+.hl-item{background:var(--cream2);padding:1.4rem 1.5rem;text-align:center;transition:background .3s}
+.hl-item:hover{background:rgba(193,154,107,.05)}
+.hl-icon{font-size:1.3rem;display:block;margin-bottom:.5rem}
+.hl-txt{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dark);font-weight:400}
+@media(max-width:900px){.intro-grid{grid-template-columns:1fr;gap:4rem}}
+
+/* EXPERIENCES */
+#experiences{background:var(--navy);padding:9rem 5%}
+.exp-wrap{max-width:1320px;margin:0 auto}
+.exp-hdr{text-align:center;max-width:680px;margin:0 auto 5rem}
+.exp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(193,154,107,.1)}
+.exp-card{background:var(--navy2);display:flex;flex-direction:column;position:relative;overflow:hidden;transition:background .5s}
+.exp-card:hover{background:rgba(11,21,38,.98)}
+.exp-top-line{position:absolute;top:0;left:0;right:0;height:0;background:var(--gold);transition:height .001s}
+.exp-card:hover .exp-top-line{height:0}
+.exp-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,var(--gold) 50%,transparent 100%);transform:scaleX(0);transition:transform .6s var(--ease-out)}
+.exp-card:hover::before{transform:scaleX(1)}
+.exp-card.feat{border-top:2px solid var(--gold)}
+.feat-pill{position:absolute;top:1.1rem;right:1.1rem;background:var(--gold);color:var(--navy);font-size:.52rem;letter-spacing:.2em;padding:.3rem .75rem;font-family:var(--display);z-index:2}
+.exp-img{height:230px;overflow:hidden;position:relative;flex-shrink:0}
+.exp-img img{width:100%;height:100%;object-fit:cover;transform:scale(1.06);transition:transform .7s var(--ease-out)}
+.exp-card:hover .exp-img img{transform:scale(1)}
+.exp-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,var(--navy2))}
+.exp-body{padding:2rem 2.2rem;flex:1;display:flex;flex-direction:column}
+.exp-tag{font-size:.54rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem}
+.exp-name{font-family:var(--display);font-size:1.3rem;color:var(--white);letter-spacing:.04em;margin-bottom:.25rem}
+.exp-dur{font-family:var(--serif);font-style:italic;color:rgba(255,255,255,.38);font-size:.88rem;margin-bottom:1.4rem}
+.exp-divider{width:32px;height:1px;background:rgba(193,154,107,.35);margin-bottom:1.4rem}
+.exp-list{list-style:none;flex:1}
+.exp-list li{font-size:.8rem;color:rgba(255,255,255,.52);padding:.42rem 0;border-bottom:1px solid rgba(255,255,255,.045);display:flex;align-items:flex-start;gap:.75rem;line-height:1.45}
+.exp-list li::before{content:'';width:3px;height:3px;background:var(--gold);border-radius:50%;flex-shrink:0;margin-top:.45rem}
+.exp-prices{margin-top:1.8rem;padding:1.3rem;background:rgba(193,154,107,.045);border:1px solid rgba(193,154,107,.1)}
+.exp-price-row{display:flex;justify-content:space-between;font-size:.77rem;color:rgba(255,255,255,.45);padding:.28rem 0}
+.exp-price-row span:last-child{color:var(--gold3);font-weight:400}
+.exp-price-note{font-size:.62rem;color:rgba(255,255,255,.28);margin-top:.75rem;font-style:italic;line-height:1.55}
+.exp-btn{display:block;margin:0 2.2rem 2.2rem;text-align:center;border:1px solid rgba(193,154,107,.28);color:var(--gold);font-family:var(--display);font-size:.58rem;letter-spacing:.2em;padding:.75rem;text-decoration:none;transition:all .4s var(--ease-out)}
+.exp-btn:hover{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+@media(max-width:900px){.exp-grid{grid-template-columns:1fr}}
+
+/* BOAT */
+#boat{background:var(--cream2);padding:9rem 5%}
+.boat-wrap{max-width:1200px;margin:0 auto}
+.boat-top{display:grid;grid-template-columns:1.15fr 1fr;gap:7rem;align-items:start;margin-bottom:6rem}
+.boat-txt .sec-h{color:var(--navy)}
+.boat-txt .eyebrow{color:var(--gold)}
+.boat-txt .rule{background:var(--gold)}
+.boat-body{font-size:.89rem;line-height:1.95;color:var(--text-mid);margin-top:1.4rem}
+.boat-body p{margin-bottom:1rem}
+.boat-specs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(193,154,107,.18);border:1px solid rgba(193,154,107,.18);margin-top:3rem}
+.boat-spec{background:var(--cream2);padding:1.6rem 1.4rem;text-align:center}
+.spec-val{font-family:var(--serif);font-size:2rem;color:var(--navy);font-weight:300;line-height:1}
+.spec-lbl{font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-top:.35rem;display:block}
+.boat-side img{width:100%;object-fit:cover;max-height:590px;display:block;filter:contrast(1.04)}
+.boat-gal{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:270px 270px;gap:4px}
+.gal-item{overflow:hidden;position:relative}
+.gal-item img{width:100%;height:100%;object-fit:cover;transition:transform .75s var(--ease-out),filter .4s;cursor:pointer;filter:grayscale(8%)}
+.gal-item:hover img{transform:scale(1.06);filter:grayscale(0)}
+.gal-item:first-child{grid-column:1;grid-row:1/3}
+.gal-item:last-child{grid-column:3;grid-row:1/3}
+.gal-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(7,17,31,.5));opacity:0;transition:opacity .4s;pointer-events:none}
+.gal-item:hover .gal-overlay{opacity:1}
+@media(max-width:900px){.boat-top{grid-template-columns:1fr;gap:3.5rem}.boat-gal{grid-template-columns:1fr 1fr;grid-template-rows:auto}.gal-item:first-child,.gal-item:last-child{grid-column:auto;grid-row:auto}}
+
+/* CAPTAIN */
+#captain{background:var(--navy3);padding:9rem 5%}
+.cap-inner{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:1fr 1.45fr;gap:7rem;align-items:center}
+.cap-img{position:relative}
+.cap-img img{width:100%;display:block;filter:grayscale(15%) contrast(1.05)}
+.cap-img::before{content:'';position:absolute;top:-2rem;right:-2rem;bottom:2rem;left:2rem;border:1px solid rgba(193,154,107,.22)}
+.cap-txt .eyebrow{color:var(--gold)}
+.cap-name{font-family:var(--display);font-size:clamp(1.5rem,3vw,2.4rem);color:var(--white);letter-spacing:.05em;margin-bottom:.4rem}
+.cap-role{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:1.05rem;margin-bottom:1.4rem}
+.cap-rule{width:48px;height:1px;background:var(--gold);margin-bottom:2rem}
+.cap-quote{font-family:var(--serif);font-style:italic;font-size:1.2rem;color:rgba(255,255,255,.5);line-height:1.82;padding-left:1.5rem;border-left:2px solid var(--gold);margin-bottom:2rem}
+.cap-body{font-size:.87rem;line-height:2;color:rgba(255,255,255,.52)}
+.cap-body p{margin-bottom:.95rem}
+.cap-body strong{color:rgba(255,255,255,.84);font-weight:400}
+@media(max-width:800px){.cap-inner{grid-template-columns:1fr;gap:4rem}.cap-img{max-width:400px}}
+
+/* REVIEWS */
+#reviews{background:var(--cream2);padding:9rem 5%}
+.rev-inner{max-width:1180px;margin:0 auto}
+.rev-hdr{text-align:center;margin-bottom:4rem}
+.rev-hdr .sec-h{color:var(--navy)}
+.rev-hdr .eyebrow{justify-content:center}
+.rev-hdr .eyebrow::before{display:none}
+.stars-big{font-size:1.8rem;color:var(--gold);letter-spacing:.08em;margin:.5rem 0 .2rem}
+.rev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem}
+.rev-card{background:var(--white);border:1px solid rgba(193,154,107,.18);padding:2.5rem;position:relative;transition:transform .45s var(--ease-out),box-shadow .45s}
+.rev-card:hover{transform:translateY(-7px);box-shadow:0 28px 65px rgba(0,0,0,.09)}
+.rev-oquote{font-family:var(--serif);font-size:5rem;color:rgba(193,154,107,.13);position:absolute;top:-.2rem;left:1.5rem;line-height:1;pointer-events:none}
+.rev-stars{color:var(--gold);font-size:.82rem;margin-bottom:.9rem;letter-spacing:.04em}
+.rev-text{font-family:var(--serif);font-style:italic;font-size:.93rem;color:var(--text-mid);line-height:1.88;margin-bottom:1.7rem}
+.rev-author{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--navy);font-weight:500}
+.rev-source{font-size:.6rem;color:var(--text-light);margin-top:.2rem}
+@media(max-width:768px){.rev-grid{grid-template-columns:1fr}}
+
+/* GALLERY STRIP */
+#gal-strip{background:var(--navy);padding:0;line-height:0}
+.gal-strip-inner{display:flex;gap:4px;height:300px;overflow:hidden}
+.gal-strip-inner img{height:100%;width:auto;object-fit:cover;flex-shrink:0;filter:grayscale(18%);transition:filter .4s,transform .4s var(--ease-out);cursor:pointer}
+.gal-strip-inner img:hover{filter:grayscale(0);transform:scale(1.02)}
+
+/* CONTACT */
+#contact{background:var(--navy);padding:9rem 5%;position:relative;overflow:hidden}
+#contact::before{content:'';position:absolute;top:0;right:0;width:60%;height:100%;background:radial-gradient(ellipse at 80% 30%,rgba(193,154,107,.04) 0%,transparent 60%);pointer-events:none}
+.contact-inner{max-width:1120px;margin:0 auto;position:relative}
+.contact-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:7rem;align-items:start}
+.contact-left .sec-h{font-size:clamp(1.8rem,4.5vw,3.5rem);line-height:1.06}
+.contact-left .sec-h em{font-family:var(--serif);font-style:italic;color:var(--gold3);font-size:.72em;display:block;font-weight:300;margin-top:.2em}
+.contact-left .serif-lede{margin-top:1.4rem}
+.wa-btn{display:flex;align-items:center;justify-content:center;gap:.8rem;padding:1.2rem 2.8rem;background:var(--gold);color:var(--navy);font-family:var(--display);font-size:.72rem;letter-spacing:.18em;text-decoration:none;border-radius:1px;margin-top:2.8rem;transition:all .45s var(--ease-out);position:relative;overflow:hidden}
+.wa-btn::after{content:'';position:absolute;inset:0;background:var(--gold2);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease-out)}
+.wa-btn span{position:relative;z-index:1}
+.wa-btn:hover::after{transform:scaleX(1)}
+.wa-btn:hover{transform:translateY(-3px);box-shadow:0 18px 55px rgba(193,154,107,.32)}
+.contact-right{display:flex;flex-direction:column;gap:0}
+.c-item{display:flex;align-items:flex-start;gap:1.4rem;padding:1.8rem 0;border-bottom:1px solid rgba(193,154,107,.1)}
+.c-item:first-child{border-top:1px solid rgba(193,154,107,.1)}
+.c-icon{width:46px;height:46px;border:1px solid rgba(193,154,107,.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;color:var(--gold);transition:background .3s}
+.c-item:hover .c-icon{background:rgba(193,154,107,.08)}
+.c-lbl{font-size:.56rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.28);display:block;margin-bottom:.3rem}
+.c-val{font-size:.88rem;color:rgba(255,255,255,.72);text-decoration:none;display:block;line-height:1.55;transition:color .3s}
+.c-val:hover{color:var(--gold)}
+.c-socials{display:flex;gap:1.2rem;margin-top:.4rem}
+.c-socials a{font-size:.8rem;color:rgba(255,255,255,.5);text-decoration:none;transition:color .3s}
+.c-socials a:hover{color:var(--gold)}
+.addr-img{margin-top:2.5rem;padding-top:2rem;border-top:1px solid rgba(193,154,107,.1)}
+.addr-img img{max-width:260px;opacity:.55;filter:brightness(1.4)}
+@media(max-width:900px){.contact-grid{grid-template-columns:1fr;gap:4.5rem}}
+
+/* FOOTER */
+footer{background:var(--navy2);border-top:1px solid rgba(193,154,107,.1);padding:3.5rem 5%}
+.footer-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2rem}
+.f-links{display:flex;gap:2rem}
+.f-links a{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.32);text-decoration:none;transition:color .3s}
+.f-links a:hover{color:var(--gold)}
+.f-logo{text-align:center}
+.f-logo-main{font-family:var(--display);font-size:.9rem;letter-spacing:.2em;color:var(--white);display:block}
+.f-logo-sub{font-size:.5rem;letter-spacing:.45em;color:var(--gold);display:block;margin-top:.3rem}
+.f-socials{display:flex;gap:1.5rem;justify-content:flex-end}
+.f-socials a{font-size:.6rem;letter-spacing:.15em;color:rgba(255,255,255,.32);text-decoration:none;transition:color .3s}
+.f-socials a:hover{color:var(--gold)}
+.f-copy{text-align:center;font-size:.56rem;color:rgba(255,255,255,.18);margin-top:2rem;letter-spacing:.08em}
+@media(max-width:768px){.footer-grid{grid-template-columns:1fr;text-align:center}.f-links,.f-socials{justify-content:center}}
+
+/* LIGHTBOX */
+#lb{position:fixed;inset:0;background:rgba(7,17,31,.97);z-index:9000;display:none;align-items:center;justify-content:center}
+#lb.open{display:flex}
+#lb img{max-width:92vw;max-height:90vh;object-fit:contain}
+#lb-close{position:absolute;top:1.8rem;right:2rem;background:none;border:none;color:rgba(255,255,255,.4);font-size:1.6rem;cursor:pointer;padding:.5rem;transition:color .3s;font-family:var(--sans)}
+#lb-close:hover{color:var(--gold)}
+
+/* ANIMATIONS */
+@keyframes fUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+.fu{opacity:0;transform:translateY(38px);transition:opacity .9s var(--ease-out),transform .9s var(--ease-out)}
+.fl{opacity:0;transform:translateX(-38px);transition:opacity .9s var(--ease-out),transform .9s var(--ease-out)}
+.fr{opacity:0;transform:translateX(38px);transition:opacity .9s var(--ease-out),transform .9s var(--ease-out)}
+.fu.in,.fl.in,.fr.in{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}.d5{transition-delay:.5s}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+<div id="cur"></div>
+<div id="cur-ring"></div>
+<div id="lb" onclick="closeLB()"><button id="lb-close" onclick="closeLB()">✕</button><img id="lb-img" src="" alt=""></div>
+
+<!-- MOBILE MENU -->
+<div id="mob-menu">
+  <a href="#experiences" onclick="closeMob()" data-es>Experiencias</a>
+  <a href="#experiences" onclick="closeMob()" data-en>Experiences</a>
+  <a href="#boat" onclick="closeMob()" data-es>El Velero</a>
+  <a href="#boat" onclick="closeMob()" data-en>The Boat</a>
+  <a href="#captain" onclick="closeMob()" data-es>El Capitán</a>
+  <a href="#captain" onclick="closeMob()" data-en>The Captain</a>
+  <a href="#contact" onclick="closeMob()" data-es>Contacto</a>
+  <a href="#contact" onclick="closeMob()" data-en>Contact</a>
+  <a href="https://wa.me/34680193006?text=Hola!%20Quiero%20informaci%C3%B3n%20sobre%20los%20tours%20%F0%9F%8C%8A" class="mob-cta" data-es>Reservar</a>
+  <a href="https://wa.me/34680193006?text=Hello!%20I%20would%20like%20information%20about%20the%20tours%20%F0%9F%8C%8A" class="mob-cta" data-en>Book Now</a>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-left">
+    <a href="#experiences" class="nav-a" data-es>Experiencias</a>
+    <a href="#experiences" class="nav-a" data-en>Experiences</a>
+    <a href="#boat" class="nav-a" data-es>El Velero</a>
+    <a href="#boat" class="nav-a" data-en>The Boat</a>
+    <a href="#captain" class="nav-a" data-es>El Capitán</a>
+    <a href="#captain" class="nav-a" data-en>The Captain</a>
+    <a href="#contact" class="nav-a" data-es>Contacto</a>
+    <a href="#contact" class="nav-a" data-en>Contact</a>
+  </div>
+  <a href="#" class="nav-logo">
+    <span class="nav-logo-main">GAFF CLASSIC TOURS</span>
+    <span class="nav-logo-sub">Mallorca · Mediterráneo</span>
+  </a>
+  <div class="nav-right">
+    <div class="lang-wrap">
+      <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+    </div>
+    <a href="https://wa.me/34680193006?text=Hola!%20Quiero%20informaci%C3%B3n%20sobre%20los%20tours%20%F0%9F%8C%8A" class="nav-cta" data-es>Reservar</a>
+    <a href="https://wa.me/34680193006?text=Hello!%20I%20would%20like%20information%20about%20the%20tours%20%F0%9F%8C%8A" class="nav-cta" data-en>Book Now</a>
+    <div class="burger" id="burger" onclick="togMob()"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg">
+    <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/freepik__enhance__69233-scaled.png" alt="Velero clásico gaff en Mallorca">
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-c">
+    <p class="hero-eyebrow" data-es>Mallorca · Mediterráneo · Desde 1920</p>
+    <p class="hero-eyebrow" data-en>Mallorca · Mediterranean · Est. 1920</p>
+    <h1 class="hero-h1">GAFF<br>CLASSIC TOURS
+      <em data-es>Descubre Mallorca desde el mar</em>
+      <em data-en>Discover Mallorca from the sea</em>
+    </h1>
+    <p class="hero-sub" data-es>A bordo de una auténtica réplica de velero clásico de 1920 — donde navegar deja de ser un trayecto y se convierte en un arte.</p>
+    <p class="hero-sub" data-en>Aboard an authentic replica of a 1920 classic sailing boat — where sailing ceases to be a journey and becomes an art.</p>
+    <div class="hero-btns">
+      <a href="#experiences" class="btn-gold"><span data-es>Ver Experiencias</span><span data-en>Explore Experiences</span></a>
+      <a href="#boat" class="btn-ghost" data-es>El Velero</a>
+      <a href="#boat" class="btn-ghost" data-en>The Boat</a>
+    </div>
+  </div>
+  <div class="scroll-hint" onclick="document.getElementById('nums').scrollIntoView({behavior:'smooth'})">
+    <span data-es>Descubrir</span><span data-en>Discover</span>
+    <div class="scroll-bar"></div>
+  </div>
+</section>
+
+<!-- NUMBERS -->
+<div id="nums">
+  <div class="nums-grid">
+    <div class="num-item fu"><span class="num-val">27+</span><span class="num-lbl" data-es>Años de experiencia</span><span class="num-lbl" data-en>Years of experience</span></div>
+    <div class="num-item fu d1"><span class="num-val">9m</span><span class="num-lbl" data-es>Eslora del velero</span><span class="num-lbl" data-en>Boat length</span></div>
+    <div class="num-item fu d2"><span class="num-val">★★★★★</span><span class="num-lbl" data-es>Reseñas en Google</span><span class="num-lbl" data-en>Google reviews</span></div>
+    <div class="num-item fu d3"><span class="num-val">1920</span><span class="num-lbl" data-es>Diseño original</span><span class="num-lbl" data-en>Original design</span></div>
+  </div>
+</div>
+
+<!-- INTRO -->
+<section id="intro">
+  <div class="intro-grid">
+    <div class="intro-img-wrap fl">
+      <div class="intro-frame">
+        <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/IMG-20260108-WA0021-scaled-1.jpg" alt="Velero Gaff Classic Tours">
+        <div class="intro-badge">
+          <span class="badge-num">1920</span>
+          <span class="badge-lbl" data-es>Diseño original</span>
+          <span class="badge-lbl" data-en>Original design</span>
+        </div>
+      </div>
+    </div>
+    <div class="intro-text-block fr">
+      <p class="eyebrow" data-es>Nuestra Historia</p>
+      <p class="eyebrow" data-en>Our Story</p>
+      <h2 class="sec-h dk" data-es>Una joya náutica en el Mediterráneo</h2>
+      <h2 class="sec-h dk" data-en>A Nautical Gem in the Mediterranean</h2>
+      <div class="rule"></div>
+      <div class="intro-body">
+        <p data-es>Gaff Classic Tours ofrece tours privados exclusivos a bordo de una fiel réplica del legendario <em>Tyrell &amp; Young 29 Smack</em>, reinterpretando con absoluta elegancia la silueta del histórico <em>Smack Secret</em> de 1920.</p>
+        <p data-en>Gaff Classic Tours offers exclusive private tours aboard a faithful replica of the legendary <em>Tyrell &amp; Young 29 Smack</em>, reinterpreting with absolute elegance the silhouette of the historic <em>Smack Secret</em> of 1920.</p>
+        <p data-es>Partimos del Club de Mar de Palma hacia las calas más espectaculares de Mallorca. Solo vosotros a bordo, sin extraños — con paddle surf, snorkel y aperitivos incluidos.</p>
+        <p data-en>We depart from Club de Mar in Palma towards Mallorca's most spectacular coves. Just your group on board, no strangers — with paddle surfing, snorkelling, and refreshments included.</p>
+      </div>
+      <div class="hls">
+        <div class="hl-item"><span class="hl-icon">⚓</span><span class="hl-txt" data-es>Tour exclusivo privado</span><span class="hl-txt" data-en>Private exclusive tour</span></div>
+        <div class="hl-item"><span class="hl-icon">🏄</span><span class="hl-txt" data-es>Paddle surf &amp; snorkel</span><span class="hl-txt" data-en>Paddle surf &amp; snorkel</span></div>
+        <div class="hl-item"><span class="hl-icon">🥂</span><span class="hl-txt" data-es>Aperitivos &amp; bebidas</span><span class="hl-txt" data-en>Snacks &amp; drinks</span></div>
+        <div class="hl-item"><span class="hl-icon">🗺️</span><span class="hl-txt" data-es>Calas secretas</span><span class="hl-txt" data-en>Secret coves</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCES -->
+<section id="experiences">
+  <div class="exp-wrap">
+    <div class="exp-hdr fu">
+      <p class="eyebrow" style="justify-content:center" data-es>Tours Privados</p>
+      <p class="eyebrow" style="justify-content:center" data-en>Private Tours</p>
+      <h2 class="sec-h" data-es>Experiencias a medida</h2>
+      <h2 class="sec-h" data-en>Tailored Experiences</h2>
+      <div class="rule c"></div>
+      <p class="serif-lede" data-es>Solo vosotros a bordo. Sin extraños. Una experiencia verdaderamente privada e inolvidable.</p>
+      <p class="serif-lede" data-en>Just your group on board. No strangers. A truly private and unforgettable experience.</p>
+    </div>
+    <div class="exp-grid">
+
+      <!-- MORNING SAIL -->
+      <div class="exp-card fu">
+        <div class="exp-img">
+          <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/03/lunch-experience-gaff-charter-1.png" alt="Morning Sail Experience">
+          <div class="exp-img-overlay"></div>
+        </div>
+        <div class="exp-body">
+          <div class="exp-tag" data-es>Tour Matutino</div>
+          <div class="exp-tag" data-en>Morning Tour</div>
+          <div class="exp-name">Morning Sail Experience</div>
+          <div class="exp-dur" data-es>De 10:00 a 15:00 h · 5 horas</div>
+          <div class="exp-dur" data-en>10:00 to 15:00 h · 5 hours</div>
+          <div class="exp-divider"></div>
+          <ul class="exp-list">
+            <li data-es>Parada en 1 o 2 calas</li><li data-en>Stop at 1 or 2 coves</li>
+            <li data-es>Capitán y gasoil incluidos</li><li data-en>Captain and fuel included</li>
+            <li data-es>Paddle Surf y Snorkel</li><li data-en>Paddle Surf and Snorkel</li>
+            <li data-es>Aperitivos, agua, refrescos, vino o cava</li><li data-en>Snacks, water, soft drinks, wine or cava</li>
+            <li data-es>Posibilidad de comida a bordo</li><li data-en>Option to request on-board meal</li>
+            <li data-es>Opcional: Sublue 150€</li><li data-en>Optional: Sublue €150</li>
+          </ul>
+          <div class="exp-prices">
+            <div class="exp-price-row"><span data-es>2 personas</span><span data-en>2 people</span><span>400€</span></div>
+            <div class="exp-price-row"><span data-es>4 personas</span><span data-en>4 people</span><span>600€</span></div>
+            <div class="exp-price-row"><span data-es>Familias</span><span data-en>Families</span><span>500€</span></div>
+            <div class="exp-price-note" data-es>Niños hasta 10 años GRATIS · Mayores de 10 años 50€ · IVA 21% no incluido</div>
+            <div class="exp-price-note" data-en>Children under 10 FREE · Over 10 years €50 · VAT 21% not included</div>
+          </div>
+        </div>
+        <a href="https://wa.me/34680193006?text=Hola!%20Quiero%20reservar%20el%20Morning%20Sail%20Experience%20%F0%9F%8C%8A" class="exp-btn" data-es>Reservar este tour →</a>
+        <a href="https://wa.me/34680193006?text=Hello!%20I%20would%20like%20to%20book%20the%20Morning%20Sail%20Experience%20%F0%9F%8C%8A" class="exp-btn" data-en>Book this tour →</a>
+      </div>
+
+      <!-- SUNSET -->
+      <div class="exp-card feat fu d2">
+        <div class="feat-pill" data-es>Más popular</div>
+        <div class="feat-pill" data-en>Most popular</div>
+        <div class="exp-img">
+          <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/03/freepik__expand__82210.png" alt="Sunset Private Experience">
+          <div class="exp-img-overlay"></div>
+        </div>
+        <div class="exp-body">
+          <div class="exp-tag" data-es>Tour Atardecer</div>
+          <div class="exp-tag" data-en>Sunset Tour</div>
+          <div class="exp-name">Sunset Private Experience</div>
+          <div class="exp-dur" data-es>De 16:00 a 21:00 h · 5 horas</div>
+          <div class="exp-dur" data-en>16:00 to 21:00 h · 5 hours</div>
+          <div class="exp-divider"></div>
+          <ul class="exp-list">
+            <li data-es>Parada en 1 o 2 calas</li><li data-en>Stop at 1 or 2 coves</li>
+            <li data-es>Sujeto al horario de la puesta de sol</li><li data-en>Subject to sunset schedule</li>
+            <li data-es>Capitán y gasoil incluidos</li><li data-en>Captain and fuel included</li>
+            <li data-es>Paddle Surf y Snorkel</li><li data-en>Paddle Surf and Snorkel</li>
+            <li data-es>Aperitivos, agua, refrescos, vino o cava</li><li data-en>Snacks, water, soft drinks, wine or cava</li>
+            <li data-es>Posibilidad de comida a bordo</li><li data-en>Option to request on-board meal</li>
+            <li data-es>Opcional: Sublue 150€</li><li data-en>Optional: Sublue €150</li>
+          </ul>
+          <div class="exp-prices">
+            <div class="exp-price-row"><span data-es>2 personas</span><span data-en>2 people</span><span>400€</span></div>
+            <div class="exp-price-row"><span data-es>4 personas</span><span data-en>4 people</span><span>600€</span></div>
+            <div class="exp-price-row"><span data-es>Familias</span><span data-en>Families</span><span>500€</span></div>
+            <div class="exp-price-note" data-es>Niños hasta 10 años GRATIS · Mayores de 10 años 50€ · IVA 21% no incluido</div>
+            <div class="exp-price-note" data-en>Children under 10 FREE · Over 10 years €50 · VAT 21% not included</div>
+          </div>
+        </div>
+        <a href="https://wa.me/34680193006?text=Hola!%20Quiero%20reservar%20el%20Sunset%20Private%20Experience%20%F0%9F%8C%8A" class="exp-btn" data-es>Reservar este tour →</a>
+        <a href="https://wa.me/34680193006?text=Hello!%20I%20would%20like%20to%20book%20the%20Sunset%20Private%20Experience%20%F0%9F%8C%8A" class="exp-btn" data-en>Book this tour →</a>
+      </div>
+
+      <!-- ESSENTIAL -->
+      <div class="exp-card fu d4">
+        <div class="exp-img">
+          <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/IMG-20260108-WA0016-682x1024-1.jpg" alt="Essential Experience">
+          <div class="exp-img-overlay"></div>
+        </div>
+        <div class="exp-body">
+          <div class="exp-tag" data-es>Tour Esencial</div>
+          <div class="exp-tag" data-en>Essential Tour</div>
+          <div class="exp-name">Essential Experience</div>
+          <div class="exp-dur" data-es>Duración: 3 horas</div>
+          <div class="exp-dur" data-en>Duration: 3 hours</div>
+          <div class="exp-divider"></div>
+          <ul class="exp-list">
+            <li data-es>Parada en 1 cala</li><li data-en>Stop at 1 cove</li>
+            <li data-es>Capitán y gasoil incluidos</li><li data-en>Captain and fuel included</li>
+            <li data-es>Paddle Surf y Snorkel</li><li data-en>Paddle Surf and Snorkel</li>
+            <li data-es>Aperitivos, agua, refrescos, vino o cava</li><li data-en>Snacks, water, soft drinks, wine or cava</li>
+            <li data-es>Posibilidad de comida a bordo</li><li data-en>Option to request on-board meal</li>
+          </ul>
+          <div class="exp-prices">
+            <div class="exp-price-row"><span data-es>2 personas</span><span data-en>2 people</span><span>300€</span></div>
+            <div class="exp-price-row"><span data-es>4 personas</span><span data-en>4 people</span><span>400€</span></div>
+            <div class="exp-price-row"><span data-es>Familias</span><span data-en>Families</span><span>350€</span></div>
+            <div class="exp-price-note" data-es>Niños hasta 10 años GRATIS · Mayores de 10 años 50€ · IVA 21% no incluido</div>
+            <div class="exp-price-note" data-en>Children under 10 FREE · Over 10 years €50 · VAT 21% not included</div>
+          </div>
+        </div>
+        <a href="https://wa.me/34680193006?text=Hola!%20Quiero%20reservar%20el%20Essential%20Experience%20%F0%9F%8C%8A" class="exp-btn" data-es>Reservar este tour →</a>
+        <a href="https://wa.me/34680193006?text=Hello!%20I%20would%20like%20to%20book%20the%20Essential%20Experience%20%F0%9F%8C%8A" class="exp-btn" data-en>Book this tour →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOAT -->
+<section id="boat">
+  <div class="boat-wrap">
+    <div class="boat-top">
+      <div class="boat-txt fl">
+        <p class="eyebrow" data-es>El Velero</p>
+        <p class="eyebrow" data-en>The Boat</p>
+        <h2 class="sec-h dk" data-es>Una réplica de un velero de 1920</h2>
+        <h2 class="sec-h dk" data-en>A replica of a 1920 sailing boat</h2>
+        <div class="rule"></div>
+        <div class="boat-body">
+          <p data-es>Gaff Classic Tours nace como fiel réplica del legendario <em>Tyrell &amp; Young 29 Smack</em>, reinterpretando con absoluta elegancia la silueta del histórico <em>Smack Secret</em> de 1920. Su inconfundible quilla corrida y el majestuoso aparejo evocan la edad dorada de la navegación británica.</p>
+          <p data-en>Gaff Classic Tours was born as a faithful replica of the legendary <em>Tyrell &amp; Young 29 Smack</em>, reinterpreting with absolute elegance the silhouette of the historic <em>Smack Secret</em> of 1920. Its distinctive long keel and majestic rig evoke the golden age of British sailing.</p>
+          <p data-es>Con 9 metros de eslora, 2,70 metros de manga y un calado aproximado de 1,40 metros, cada línea ha sido concebida para preservar el carácter y la nobleza del diseño original.</p>
+          <p data-en>At 9 metres in length, 2.70 metres in beam and approximately 1.40 metres in draft, every line has been conceived to preserve the character and nobility of the original design.</p>
+          <p data-es>A bordo, el tiempo adquiere otra dimensión: navegar deja de ser un trayecto y se convierte en un arte.</p>
+          <p data-en>On board, time takes on another dimension: sailing ceases to be a journey and becomes an art.</p>
+        </div>
+        <div class="boat-specs">
+          <div class="boat-spec"><span class="spec-val">9m</span><span class="spec-lbl" data-es>Eslora</span><span class="spec-lbl" data-en>Length</span></div>
+          <div class="boat-spec"><span class="spec-val">2.70m</span><span class="spec-lbl" data-es>Manga</span><span class="spec-lbl" data-en>Beam</span></div>
+          <div class="boat-spec"><span class="spec-val">1.40m</span><span class="spec-lbl" data-es>Calado</span><span class="spec-lbl" data-en>Draft</span></div>
+        </div>
+      </div>
+      <div class="boat-side fr">
+        <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/unnamed.png" alt="Velero Gaff Classic Tours">
+      </div>
+    </div>
+    <div class="boat-gal fu">
+      <div class="gal-item"><img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/IMG-20260108-WA0001-768x745-1.jpg" alt="Velero en bahía" onclick="openLB(this.src)"><div class="gal-overlay"></div></div>
+      <div class="gal-item"><img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/6d027dff-b871-4a89-a8ad-51118d51147c-edited-768x768-1.jpg" alt="Cubierta velero" onclick="openLB(this.src)"><div class="gal-overlay"></div></div>
+      <div class="gal-item"><img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/2024-06-16.png" alt="Navegando en Mallorca" onclick="openLB(this.src)"><div class="gal-overlay"></div></div>
+      <div class="gal-item"><img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/IMG-20260108-WA0016-682x1024-1.jpg" alt="Cala Mallorca" onclick="openLB(this.src)"><div class="gal-overlay"></div></div>
+      <div class="gal-item"><img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/03/lunch-experience-gaff-charter-1.png" alt="A bordo" onclick="openLB(this.src)"><div class="gal-overlay"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CAPTAIN -->
+<section id="captain">
+  <div class="cap-inner">
+    <div class="cap-img fl">
+      <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/freepik__improve-image-quality-remove-compression-artifacts__74559.png" alt="Capitán Gonzalo Cornet">
+    </div>
+    <div class="cap-txt fr">
+      <p class="eyebrow" data-es>El Capitán</p>
+      <p class="eyebrow" data-en>The Captain</p>
+      <h2 class="cap-name">Gonzalo Cornet</h2>
+      <p class="cap-role" data-es>Capitán · 27 años de experiencia</p>
+      <p class="cap-role" data-en>Captain · 27 years of experience</p>
+      <div class="cap-rule"></div>
+      <blockquote class="cap-quote" data-es>"Navegar deja de ser un trayecto y se convierte en un arte."</blockquote>
+      <blockquote class="cap-quote" data-en>"Sailing ceases to be a journey and becomes an art."</blockquote>
+      <div class="cap-body">
+        <p data-es>Al timón de Gaff Classic Tours se encuentra <strong>Gonzalo Cornet</strong>, marino con más de 27 años de experiencia en la mar y una profunda devoción por la navegación clásica.</p>
+        <p data-en>At the helm of Gaff Classic Tours is <strong>Gonzalo Cornet</strong>, a sailor with over 27 years of experience at sea and a deep devotion to classic sailing.</p>
+        <p data-es>Hace siete años decidió cruzar desde Inglaterra para traer navegando esta joya histórica hasta el Mediterráneo — una travesía que fue mucho más que un traslado; fue el inicio de una nueva etapa bajo el sol del sur.</p>
+        <p data-en>Seven years ago he decided to sail from England to bring this historic gem to the Mediterranean — a voyage that was much more than a transfer; it was the beginning of a new chapter under the southern sun.</p>
+        <p data-es>Hoy, bajo su mando, cada salida es una experiencia distinguida. Allí donde navega, el barco despierta admiración, miradas y fotografías. Gonzalo no solo gobierna un velero excepcional; preserva un legado y lo comparte con quienes saben apreciar el verdadero arte de navegar.</p>
+        <p data-en>Today, under his command, every trip is a distinguished experience. Wherever he sails, the boat attracts admiration, glances, and photographs. Gonzalo does not just captain an exceptional sailboat; he preserves a legacy and shares it with those who appreciate the true art of sailing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews">
+  <div class="rev-inner">
+    <div class="rev-hdr fu">
+      <p class="eyebrow" data-es>Reseñas</p>
+      <p class="eyebrow" data-en>Reviews</p>
+      <h2 class="sec-h dk" data-es>Una experiencia de cinco estrellas</h2>
+      <h2 class="sec-h dk" data-en>A five-star experience</h2>
+      <div class="stars-big">★★★★★</div>
+      <div class="rule c"></div>
+    </div>
+    <div class="rev-grid">
+      <div class="rev-card fu">
+        <div class="rev-oquote">"</div>
+        <div class="rev-stars">★★★★★</div>
+        <p class="rev-text" data-es>Una experiencia preciosa y muy relajante. El capitán fue súper amable y se aseguró de que tuviéramos todo lo que necesitábamos. El barco estaba limpio y acogedor. El precio fue justo y el ambiente muy acogedor, como un paseo con amigos. ¡Muy recomendable!</p>
+        <p class="rev-text" data-en>A beautiful and very relaxing experience. The captain was super friendly and made sure we had everything we needed. The boat was clean and welcoming. The price was fair and the atmosphere very cosy, like a day out with friends. Highly recommended!</p>
+        <div class="rev-author">Bartek Kulik</div>
+        <div class="rev-source" data-es>✓ Reseña verificada de Google</div>
+        <div class="rev-source" data-en>✓ Verified Google review</div>
+      </div>
+      <div class="rev-card fu d2">
+        <div class="rev-oquote">"</div>
+        <div class="rev-stars">★★★★★</div>
+        <p class="rev-text" data-es>¡Un fantástico tour privado en barco! Todo estaba cuidado al detalle: excelentes snacks, bebidas, cómodos cojines y música. El equipo de snorkel y la tabla de paddle hicieron la experiencia aún más divertida. ¡Sin duda lo repetiríamos! 🏄‍♂️⚓</p>
+        <p class="rev-text" data-en>A fantastic private boat tour! Everything was carefully attended to: excellent snacks, drinks, comfortable cushions, and music. The snorkel gear and paddle board made the experience even more fun. We would definitely do it again! 🏄‍♂️⚓</p>
+        <div class="rev-author">Martyna Kopel</div>
+        <div class="rev-source" data-es>✓ Reseña verificada de Google</div>
+        <div class="rev-source" data-en>✓ Verified Google review</div>
+      </div>
+      <div class="rev-card fu d4">
+        <div class="rev-oquote">"</div>
+        <div class="rev-stars">★★★★★</div>
+        <p class="rev-text" data-es>¡La mejor experiencia en barco que he tenido! Gonzalo llevó a mi familia durante 4 horas — fue increíble. Paró para nadar en un lugar con agua azul cristalina. Excelentes snacks y hospitalidad increíble. ¡Una actividad imprescindible en Mallorca!</p>
+        <p class="rev-text" data-en>The best boat experience I have had! Gonzalo took my family for 4 hours — it was incredible. He stopped for us to swim in a place with crystal blue water. Excellent snacks and incredible hospitality. A must-do activity in Mallorca!</p>
+        <div class="rev-author">Iñaki Herranz</div>
+        <div class="rev-source" data-es>✓ Reseña verificada de Google</div>
+        <div class="rev-source" data-en>✓ Verified Google review</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY STRIP -->
+<div id="gal-strip">
+  <div class="gal-strip-inner">
+    <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/freepik__enhance__69233-scaled.png" alt="Velero gaff mallorca" onclick="openLB(this.src)">
+    <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/03/freepik__expand__82210.png" alt="Sunset experience" onclick="openLB(this.src)">
+    <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/IMG-20260108-WA0021-scaled-1.jpg" alt="Velero clásico" onclick="openLB(this.src)">
+    <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/03/lunch-experience-gaff-charter-1.png" alt="A bordo" onclick="openLB(this.src)">
+    <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/2024-06-16.png" alt="Navegando" onclick="openLB(this.src)">
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-inner">
+    <div class="contact-grid">
+      <div class="contact-left fl">
+        <p class="eyebrow" data-es>Reservas &amp; Contacto</p>
+        <p class="eyebrow" data-en>Bookings &amp; Contact</p>
+        <h2 class="sec-h" data-es>¡No esperes más!<em>Reserva tu aventura hoy</em></h2>
+        <h2 class="sec-h" data-en>Don't wait any longer!<em>Book your adventure today</em></h2>
+        <div class="rule"></div>
+        <p class="serif-lede" data-es>Embárcate en una aventura inolvidable en las aguas turquesas de Mallorca. Solo vosotros a bordo — una experiencia verdaderamente privada y exclusiva.</p>
+        <p class="serif-lede" data-en>Embark on an unforgettable adventure in the turquoise waters of Mallorca. Just your group on board — a truly private and exclusive experience.</p>
+        <a href="https://wa.me/34680193006?text=Hola!%20Quiero%20reservar%20un%20tour%20en%20Gaff%20Classic%20Tours%20Mallorca%20%F0%9F%8C%8A" class="wa-btn" data-es><span>💬 Reservar por WhatsApp</span></a>
+        <a href="https://wa.me/34680193006?text=Hello!%20I%20would%20like%20to%20book%20a%20tour%20with%20Gaff%20Classic%20Tours%20Mallorca%20%F0%9F%8C%8A" class="wa-btn" data-en><span>💬 Book via WhatsApp</span></a>
+      </div>
+      <div class="contact-right fr">
+        <div class="c-item">
+          <div class="c-icon">📱</div>
+          <div>
+            <span class="c-lbl" data-es>Teléfono &amp; WhatsApp</span>
+            <span class="c-lbl" data-en>Phone &amp; WhatsApp</span>
+            <a class="c-val" href="https://wa.me/34680193006">+34 680 19 30 06</a>
+          </div>
+        </div>
+        <div class="c-item">
+          <div class="c-icon">✉️</div>
+          <div>
+            <span class="c-lbl">Email</span>
+            <a class="c-val" href="mailto:bookings@gaffchartermallorca.com">bookings@gaffchartermallorca.com</a>
+          </div>
+        </div>
+        <div class="c-item">
+          <div class="c-icon">📍</div>
+          <div>
+            <span class="c-lbl" data-es>Ubicación</span>
+            <span class="c-lbl" data-en>Location</span>
+            <a class="c-val" href="https://www.google.com/maps/search/?api=1&query=Club+de+Mar+Mallorca+Muelle+Pelaires+Amarre+1007+07015+Palma" target="_blank" rel="noopener">
+              Club de Mar — Mallorca<br>
+              <span data-es>Muelle Pelaires, Amarre 1007</span><span data-en>Muelle Pelaires, Berth 1007</span><br>
+              07015 Palma
+            </a>
+          </div>
+        </div>
+        <div class="c-item">
+          <div class="c-icon">🌐</div>
+          <div>
+            <span class="c-lbl" data-es>Redes sociales</span>
+            <span class="c-lbl" data-en>Follow us</span>
+            <div class="c-socials">
+              <a href="https://www.instagram.com/gaffchartermallorca/" target="_blank" rel="noopener">Instagram</a>
+              <a href="https://www.facebook.com/profile.php?id=61563735119799" target="_blank" rel="noopener">Facebook</a>
+            </div>
+          </div>
+        </div>
+        <div class="addr-img">
+          <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/03/Copia-de-Tarjeta-Gaff-Charter-2-1.png" alt="Club de Mar Mallorca" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="f-links">
+      <a href="#experiences" data-es>Experiencias</a>
+      <a href="#experiences" data-en>Experiences</a>
+      <a href="#boat" data-es>El Velero</a>
+      <a href="#boat" data-en>The Boat</a>
+      <a href="#captain" data-es>El Capitán</a>
+      <a href="#captain" data-en>The Captain</a>
+    </div>
+    <div class="f-logo">
+      <span class="f-logo-main">GAFF CLASSIC TOURS</span>
+      <span class="f-logo-sub">Mallorca · Mediterráneo</span>
+    </div>
+    <div class="f-socials">
+      <a href="https://www.instagram.com/gaffchartermallorca/" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.facebook.com/profile.php?id=61563735119799" target="_blank" rel="noopener">Facebook</a>
+      <a href="https://wa.me/34680193006">WhatsApp</a>
+      <a href="mailto:bookings@gaffchartermallorca.com">Email</a>
+    </div>
+  </div>
+  <p class="f-copy" data-es>© 2026 Gaff Classic Tours Mallorca · Todos los derechos reservados · Club de Mar, Amarre 1007, Palma</p>
+  <p class="f-copy" data-en>© 2026 Gaff Classic Tours Mallorca · All rights reserved · Club de Mar, Berth 1007, Palma</p>
+</footer>
+
+<script>
+/* CURSOR */
+const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+const isMobile='ontouchstart' in window;
+if(!isMobile){
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function animR(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animR)})();
+}
+
+/* PROGRESS */
+const prog=document.getElementById('prog');
+window.addEventListener('scroll',()=>{
+  const pct=window.scrollY/(document.documentElement.scrollHeight-innerHeight)*100;
+  prog.style.width=Math.min(pct,100)+'%';
+},{ passive:true });
+
+/* NAV */
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>70),{passive:true});
+
+/* MOBILE MENU */
+const mob=document.getElementById('mob-menu'),burger=document.getElementById('burger');
+function togMob(){mob.classList.toggle('open');burger.classList.toggle('open');document.body.style.overflow=mob.classList.contains('open')?'hidden':'';}
+function closeMob(){mob.classList.remove('open');burger.classList.remove('open');document.body.style.overflow='';}
+
+/* LANGUAGE */
+function setLang(l){
+  document.documentElement.setAttribute('data-lang',l);
+  document.documentElement.lang=l;
+  document.getElementById('btn-es').classList.toggle('active',l==='es');
+  document.getElementById('btn-en').classList.toggle('active',l==='en');
+}
+
+/* SCROLL REVEAL */
+const revEls=document.querySelectorAll('.fu,.fl,.fr');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});
+},{threshold:0.07,rootMargin:'0px 0px -40px 0px'});
+revEls.forEach(el=>obs.observe(el));
+
+/* LIGHTBOX */
+function openLB(src){document.getElementById('lb-img').src=src;document.getElementById('lb').classList.add('open');document.body.style.overflow='hidden';}
+function closeLB(){document.getElementById('lb').classList.remove('open');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
+
+/* PARALLAX HERO */
+const heroImg=document.querySelector('.hero-bg img');
+window.addEventListener('scroll',()=>{
+  if(heroImg&&scrollY<innerHeight)heroImg.style.transform=`scale(1) translateY(${scrollY*.28}px)`;
+},{passive:true});
+
+/* CARD 3D TILT (desktop only) */
+if(!isMobile){
+  document.querySelectorAll('.exp-card,.rev-card').forEach(card=>{
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width-.5;
+      const y=(e.clientY-r.top)/r.height-.5;
+      card.style.transform=`perspective(1100px) rotateY(${x*5}deg) rotateX(${-y*5}deg) translateY(-5px)`;
+      card.style.transition='transform .05s';
+    });
+    card.addEventListener('mouseleave',()=>{
+      card.style.transform='';
+      card.style.transition='transform .55s cubic-bezier(0.22,1,0.36,1)';
+    });
+  });
+}
+
+/* ACTIVE NAV LINK */
+const sections=['experiences','boat','captain','reviews','contact'];
+const navAs=document.querySelectorAll('.nav-a');
+const sObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.id;
+      navAs.forEach(a=>{
+        const href=a.getAttribute('href');
+        a.classList.toggle('active',href==='#'+id);
+      });
+    }
+  });
+},{threshold:.4});
+sections.forEach(id=>{const el=document.getElementById(id);if(el)sObs.observe(el);});
+</script>
+</body>
+</html>
