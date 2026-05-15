@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Paradoja Verde de Mallorca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0a0a08;
+    --bg2: #111110;
+    --bg3: #1a1a17;
+    --surface: #1e1e1b;
+    --border: #2a2a25;
+    --accent: #c8a84b;
+    --accent2: #e8c96b;
+    --accent-dim: rgba(200, 168, 75, 0.15);
+    --red: #c84b4b;
+    --green: #4bc87a;
+    --text: #e8e4d8;
+    --text-dim: #9a9588;
+    --text-faint: #5a5750;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Crimson Pro', Georgia, serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; font-size: 18px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%;
+    z-index: 1000;
+    transition: width 0.1s linear;
+  }
+
+  /* ── HEADER / HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 0 6rem;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 70% 40%, rgba(200,168,75,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 20% 80%, rgba(200,168,75,0.04) 0%, transparent 50%),
+      linear-gradient(180deg, #0a0a08 0%, #0d0d0a 100%);
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(200,168,75,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,168,75,0.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: linear-gradient(180deg, transparent 0%, black 30%, black 70%, transparent 100%);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 3rem;
+    width: 100%;
+  }
+
+  .hero-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  .hero-label::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.8rem, 7vw, 6.5rem);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.4s forwards;
+  }
+
+  .hero-title span {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .hero-subtitle {
+    font-family: var(--font-body);
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-weight: 300;
+    color: var(--text-dim);
+    max-width: 680px;
+    line-height: 1.6;
+    margin-bottom: 3rem;
+    font-style: italic;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.6s forwards;
+  }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.8s forwards;
+  }
+
+  .hero-meta span { display: flex; align-items: center; gap: 0.5rem; }
+  .hero-meta .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    right: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    opacity: 0;
+    animation: fadeUp 1s ease 1.2s forwards;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 50px;
+    background: linear-gradient(180deg, var(--accent), transparent);
+    animation: scrollPulse 2s ease infinite;
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 3rem;
+  }
+
+  /* ── KEYFRAMES ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.1); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .section-rule {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 5rem 0;
+  }
+
+  /* ── INTRO LEDE ── */
+  .lede {
+    padding: 5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lede p {
+    font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--text);
+    max-width: 780px;
+  }
+
+  .lede p:first-child::first-letter {
+    font-family: var(--font-display);
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 0.8;
+    float: left;
+    margin-right: 0.1em;
+    margin-top: 0.08em;
+    color: var(--accent);
+  }
+
+  /* ── KEY DATA CARDS ── */
+  .data-section {
+    padding: 5rem 0;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .section-rule-inline {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.5rem);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  /* ── CO2 COMPARISON ── */
+  .co2-chart {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2.5rem;
+    margin: 3rem 0;
+  }
+
+  .co2-chart-title {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 2rem;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .bar-label {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    width: 220px;
+    flex-shrink: 0;
+    line-height: 1.3;
+  }
+
+  .bar-label strong {
+    display: block;
+    color: var(--text);
+    font-size: 0.9rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 28px;
+    background: var(--bg);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .bar-fill.ev { background: linear-gradient(90deg, #c84b4b, #e06060); }
+  .bar-fill.diesel { background: linear-gradient(90deg, #4b7bc8, #6090e0); }
+  .bar-fill.ev-total { background: linear-gradient(90deg, #c87a4b, #e09060); }
+  .bar-fill.incinerador { background: linear-gradient(90deg, #8b4bc8, #a060e0); }
+  .bar-fill.nuclear { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
+  .bar-value {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    width: 90px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .bar-value strong {
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  /* ── MATRIX ENERGÉTICA ── */
+  .energy-matrix {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 3rem 0;
+  }
+
+  .matrix-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+  }
+
+  .matrix-card:hover { border-color: var(--accent); }
+
+  .matrix-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .matrix-card.bad::before { background: var(--red); }
+  .matrix-card.ok::before { background: #4b90c8; }
+  .matrix-card.worse::before { background: #8b4bc8; }
+  .matrix-card.best::before { background: var(--green); }
+
+  .matrix-card-label {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.75rem;
+  }
+
+  .matrix-card-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .matrix-card-stat {
+    font-family: var(--font-mono);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .matrix-card.bad .matrix-card-stat { color: var(--red); }
+  .matrix-card.ok .matrix-card-stat { color: #4b90c8; }
+  .matrix-card.worse .matrix-card-stat { color: #8b4bc8; }
+  .matrix-card.best .matrix-card-stat { color: var(--green); }
+
+  .matrix-card-desc {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── ARTICLE BODY ── */
+  .article-body {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 5rem;
+    padding: 5rem 0;
+    align-items: start;
+  }
+
+  .article-text h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 3.5rem 0 1.2rem;
+    color: var(--text);
+  }
+
+  .article-text h2:first-child { margin-top: 0; }
+
+  .article-text p {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+  }
+
+  .article-text p strong { color: var(--text); font-weight: 600; }
+
+  /* Pull quote */
+  .pull-quote {
+    border-left: 3px solid var(--accent);
+    padding: 1.5rem 0 1.5rem 2rem;
+    margin: 2.5rem 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.45;
+  }
+
+  .pull-quote cite {
+    display: block;
+    margin-top: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-style: normal;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: sticky;
+    top: 5rem;
+  }
+
+  .sidebar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-card-label {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .sidebar-stat {
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .sidebar-stat-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .sidebar-toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.75rem;
+  }
+
+  .toc-title {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.2rem;
+  }
+
+  .toc-list {
+    list-style: none;
+    counter-reset: toc;
+  }
+
+  .toc-list li {
+    counter-increment: toc;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toc-list li:last-child { border-bottom: none; }
+
+  .toc-list a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    transition: color 0.2s ease;
+  }
+
+  .toc-list a:hover { color: var(--accent); }
+
+  .toc-list a::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    color: var(--text-faint);
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+  }
+
+  .toc-list a:hover::before { color: var(--accent); }
+
+  /* ── ETHICS SECTION ── */
+  .ethics-banner {
+    background: linear-gradient(135deg, rgba(200,75,75,0.08), rgba(200,75,75,0.03));
+    border: 1px solid rgba(200,75,75,0.2);
+    border-radius: 4px;
+    padding: 2.5rem;
+    margin: 3rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ethics-banner::before {
+    content: '⚠';
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 5rem;
+    opacity: 0.05;
+  }
+
+  .ethics-banner-label {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.75rem;
+  }
+
+  .ethics-banner h3 {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+
+  .ethics-banner p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+
+  /* ── LIFECYCLE CALCULATOR ── */
+  .calculator {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2.5rem;
+    margin: 3rem 0;
+  }
+
+  .calculator-title {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .calculator-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 2rem;
+  }
+
+  .calc-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .calc-group label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.5rem;
+  }
+
+  .calc-group input[type=range] {
+    width: 100%;
+    appearance: none;
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .calc-group input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .calc-group input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+  }
+
+  .calc-value {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-top: 0.4rem;
+  }
+
+  .calc-result {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    background: var(--bg);
+    border-radius: 3px;
+    padding: 1.5rem;
+  }
+
+  .calc-vehicle {
+    text-align: center;
+  }
+
+  .calc-vehicle-name {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.5rem;
+  }
+
+  .calc-vehicle-value {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .calc-vehicle-value.ev { color: var(--red); }
+  .calc-vehicle-value.diesel { color: #4b90c8; }
+
+  .calc-vehicle-unit {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+  }
+
+  .calc-verdict {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border);
+    padding-top: 1.2rem;
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .calc-verdict strong { color: var(--text); }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    position: relative;
+    margin: 3rem 0;
+    padding-left: 3rem;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg, var(--accent), transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 2.5rem;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -3.4rem;
+    top: 0.35rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    background: var(--bg);
+    transition: background 0.3s ease;
+  }
+
+  .timeline-item:hover::before { background: var(--accent); }
+
+  .timeline-label {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+
+  .timeline-title {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: var(--text);
+  }
+
+  .timeline-text {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ── SUPPLY CHAIN MAP ── */
+  .supply-chain {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2.5rem;
+    margin: 3rem 0;
+    overflow-x: auto;
+  }
+
+  .chain-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: 600px;
+  }
+
+  .chain-node {
+    flex: 1;
+    text-align: center;
+    position: relative;
+  }
+
+  .chain-node-inner {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1rem 0.75rem;
+    transition: border-color 0.3s ease;
+    cursor: default;
+  }
+
+  .chain-node:hover .chain-node-inner { border-color: var(--accent); }
+
+  .chain-node-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .chain-node-title {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.2rem;
+  }
+
+  .chain-node-location {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+  }
+
+  .chain-node-co2 {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--red);
+    margin-top: 0.3rem;
+  }
+
+  .chain-arrow {
+    width: 30px;
+    flex-shrink: 0;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 1rem;
+  }
+
+  /* ── SOURCES ── */
+  .sources-section {
+    padding: 4rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sources-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .source-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1rem 1.25rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    transition: border-color 0.3s ease;
+  }
+
+  .source-item:hover { border-color: var(--accent); }
+
+  .source-item em {
+    color: var(--text);
+    font-style: normal;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 0;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
+  }
+
+  /* ── REVEAL ANIMATION ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── HIGHLIGHT ── */
+  .highlight {
+    background: var(--accent-dim);
+    border-radius: 2px;
+    padding: 0 0.2em;
+    color: var(--accent2);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .article-body { grid-template-columns: 1fr; gap: 3rem; }
+    .sidebar { position: static; }
+    .calc-controls { grid-template-columns: 1fr; }
+    .calc-result { grid-template-columns: 1fr; }
+    .energy-matrix { grid-template-columns: 1fr; }
+    .sources-grid { grid-template-columns: 1fr; }
+    .container { padding: 0 1.5rem; }
+    .hero-content { padding: 0 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-content">
+    <div class="hero-label">Economía · Energía · Investigación</div>
+    <h1 class="hero-title">La Paradoja<br><span style="color:var(--green);font-style:italic;">Verde</span> de Mallorca</h1>
+    <p class="hero-subtitle">Por qué tu Tesla contamina más que un diésel con AdBlue en las Islas Baleares — un análisis riguroso del ciclo de vida completo</p>
+    <div class="hero-meta">
+      <span><div class="dot"></div>14 de julio, 2025</span>
+      <span><div class="dot"></div>Análisis de ciclo de vida</span>
+      <span><div class="dot"></div>~18 min lectura</span>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    scroll
+  </div>
+</section>
+
+<!-- ═══════════════════ LEDE ═══════════════════ -->
+<section class="lede">
+  <div class="container">
+    <p class="reveal">En las sinuosas carreteras de Mallorca, donde el turismo sostenible se ha convertido en el nuevo mantra y los aparcamientos exhiben orgullosamente sus puntos de carga, se está gestando una de las mayores paradojas ambientales de nuestro tiempo. Mientras los propietarios de Tesla, Polestar y BMW iX se pavonean de su supuesta conciencia ecológica, la realidad termodinámica cuenta una historia radicalmente diferente: en las Islas Baleares, conducir un coche eléctrico contamina <strong>significativamente más</strong> que su equivalente diésel equipado con tecnología AdBlue. La promesa <span style="color:var(--green);font-style:italic;font-weight:600;">verde</span> esconde una deuda de carbono que los folletos institucionales prefieren silenciar.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ KEY STATS ═══════════════════ -->
+<section class="data-section">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">Datos Clave</div>
+      <div class="section-rule-inline"></div>
+    </div>
+
+    <div class="energy-matrix reveal">
+      <div class="matrix-card bad">
+        <div class="matrix-card-label">EV en Baleares — ciclo completo</div>
+        <div class="matrix-card-title">Emisiones totales (15 años, 15.000 km/año)</div>
+        <div class="matrix-card-stat">30,4<span style="font-size:1rem;color:var(--text-dim)"> t CO₂</span></div>
+        <div class="matrix-card-desc">Fabricación vehículo + batería (8.500 kg) + operación con red balear (97 g/km × 225.000 km = 21.870 kg). Ciclo completo.</div>
+      </div>
+      <div class="matrix-card best">
+        <div class="matrix-card-label">Diésel Euro 6d + AdBlue — ciclo completo</div>
+        <div class="matrix-card-title">Emisiones totales (15 años, 15.000 km/año)</div>
+        <div class="matrix-card-stat">28,3<span style="font-size:1rem;color:var(--text-dim)"> t CO₂</span></div>
+        <div class="matrix-card-desc">Fabricación (4.200 kg, sin batería grande) + operación well-to-wheel (107 g/km × 225.000 km = 24.075 kg). El diésel gana en Baleares.</div>
+      </div>
+      <div class="matrix-card worse">
+        <div class="matrix-card-label">Break-even del EV en Baleares</div>
+        <div class="matrix-card-title">Km para igualar al diésel en ciclo completo</div>
+        <div class="matrix-card-stat">439k<span style="font-size:1rem;color:var(--text-dim)"> km</span></div>
+        <div class="matrix-card-desc">Con la red balear (540 g/kWh), el EV necesita recorrer 439.000 km para amortizar su deuda de fabricación. Un motor diésel no llega a tanto en toda su vida útil.</div>
+      </div>
+      <div class="matrix-card ok">
+        <div class="matrix-card-label">Son Reus (incineradora)</div>
+        <div class="matrix-card-title">Emisiones por kWh generado</div>
+        <div class="matrix-card-stat">1707<span style="font-size:1rem;color:var(--text-dim)"> g</span></div>
+        <div class="matrix-card-desc">g CO₂e/kWh. Fuente significativa del mix balear. Peor que el carbón. El EV lo consume cada vez que carga en Palma.</div>
+      </div>
+    </div>
+
+    <!-- BAR CHART -->
+    <div class="co2-chart reveal">
+      <div class="co2-chart-title">Comparativa de emisiones CO₂ — Intensidad energética por fuente (g CO₂e / kWh)</div>
+
+      <div class="bar-row">
+        <div class="bar-label"><strong>Red eléctrica Baleares</strong>Mix actual (2024)</div>
+        <div class="bar-track"><div class="bar-fill ev" data-width="31.6"></div></div>
+        <div class="bar-value"><strong>540</strong> g/kWh</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><strong>Incineradora Son Reus</strong>Residuos a energía</div>
+        <div class="bar-track"><div class="bar-fill incinerador" data-width="100"></div></div>
+        <div class="bar-value"><strong>1.707</strong> g/kWh</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><strong>Media red Europa</strong>Referencia continental</div>
+        <div class="bar-track"><div class="bar-fill diesel" data-width="15.5"></div></div>
+        <div class="bar-value"><strong>265</strong> g/kWh</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><strong>Gas natural (CCGT)</strong>Referencia fósil</div>
+        <div class="bar-track"><div class="bar-fill ev-total" data-width="26"></div></div>
+        <div class="bar-value"><strong>450</strong> g/kWh</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><strong>Energía nuclear</strong>Ciclo de vida completo</div>
+        <div class="bar-track"><div class="bar-fill nuclear" data-width="0.9"></div></div>
+        <div class="bar-value"><strong>15</strong> g/kWh</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ═══════════════════ ARTICLE BODY ═══════════════════ -->
+<section>
+  <div class="container">
+    <div class="article-body">
+      <!-- MAIN TEXT -->
+      <article class="article-text">
+
+        <h2 id="matriz">01. La Trampa de la Matriz Energética Insular</h2>
+
+        <p class="reveal">El primer elemento de esta ecuación perversa radica en la <strong>insularidad energética balear</strong>. A diferencia de territorios continentales que pueden importar electricidad de fuentes renovables o nucleares durante los picos de demanda, Mallorca debe generar localmente casi toda su energía. Los cables submarinos que conectan la isla con la península transportan una fracción minoritaria del consumo total.</p>
+
+        <p class="reveal">La central térmica de Alcudia, que durante décadas quemó carbón importado para alimentar los aires acondicionados de los complejos hoteleros, ha sido sustituida por centrales de gas y, lo que es más relevante, por la <strong>incineración masiva de residuos</strong>.</p>
+
+        <div class="pull-quote reveal">
+          "La descarbonización del transporte requiere una evaluación completa del ciclo de vida, no solo de las emisiones en el tubo de escape. Ignorar las emisiones de la producción y la fuente de electricidad es una forma de greenwashing institucional."
+          <cite>— Vaclav Smil, Energy and Civilization: A History (2017)</cite>
+        </div>
+
+        <p class="reveal">La incineradora de Son Reus, que procesa anualmente más de 400.000 toneladas de residuos domésticos e industriales, emite <span class="highlight">1.707 g CO₂e por kWh producido</span>, superando incluso a las centrales de carbón más ineficientes. Cuando un propietario de vehículo eléctrico conecta su coche a la red en Palma, está alimentando su batería con una electricidad que produce 540 gramos de CO₂ por kWh, aproximadamente el <strong>doble de la media europea</strong>.</p>
+
+        <h2 id="fabricacion">02. El Peso Oculto de la Fabricación</h2>
+
+        <p class="reveal">La segunda variable reside en las emisiones incorporadas durante la fabricación. Un análisis de ciclo de vida encuentra que el <strong>46% de las emisiones de carbono</strong> de un vehículo eléctrico provienen del proceso de producción, mientras que para un vehículo de combustión interna solo representan el 26%.</p>
+
+        <p class="reveal">La producción de una batería típica de 60 kWh requiere aproximadamente <span class="highlight">6.000 kg de CO₂ equivalente</span> solo en extracción y manufactura de celdas. Sumando el resto del vehículo, la fabricación total de un EV alcanza los <strong>8.500 kg de CO₂</strong>, frente a los 4.200 kg de un diésel equivalente (sin batería grande). Con la red balear (97 g CO₂/km operativo para el EV vs 107 g/km para el diésel), la deuda de fabricación de 4.300 kg extra tarda <strong>439.000 kilómetros en amortizarse</strong> — más del doble de la vida útil media de cualquier vehículo.</p>
+
+        <div class="timeline reveal">
+          <div class="timeline-item">
+            <div class="timeline-label">Extracción</div>
+            <div class="timeline-title">Litio, Cobalto, Manganeso, Grafito</div>
+            <div class="timeline-text">Por cada tonelada de litio extraído en roca dura, se emiten 15 toneladas de CO₂. Una batería de 60 kWh requiere ~8 kg de litio = 120 kg CO₂ solo por este metal.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-label">Procesamiento</div>
+            <div class="timeline-title">Refinería y cadena química</div>
+            <div class="timeline-text">La conversión de minerales en materiales activos de batería requiere procesos químicos intensivos en energía. China controla el 80% de esta cadena.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-label">Manufactura</div>
+            <div class="timeline-title">Ensamblaje de celdas y packs</div>
+            <div class="timeline-text">Las salas limpias para fabricación de baterías requieren condiciones ambientales controladas con alto consumo energético continuo.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-label">Fin de vida</div>
+            <div class="timeline-title">Reciclaje — aún sin resolver</div>
+            <div class="timeline-text">Menos del 5% del litio mundial se recicla. Los procesos de recuperación requieren temperaturas superiores a 1.000°C, con el consiguiente consumo energético.</div>
+          </div>
+        </div>
+
+        <h2 id="etica">03. La Dimensión Ética: Trabajo Infantil en la Cadena</h2>
+
+        <div class="ethics-banner reveal">
+          <div class="ethics-banner-label">Implicaciones éticas documentadas</div>
+          <h3>El cobalto congoleño y el trabajo infantil</h3>
+          <p>La República Democrática del Congo produce más del 60% del cobalto mundial. Se estima que <strong>40.000 niños</strong> trabajan en las minas artesanales del país. Informes de Amnistía Internacional documentan que grandes fabricantes de electrónica y automoción están fallando en verificar que el cobalto de sus productos no provenga de trabajo infantil.</p>
+        </div>
+
+        <p class="reveal">Esta realidad transforma cada coche eléctrico en un artefacto que incorpora no solo emisiones de carbono ocultas, sino también explotación laboral infantil sistémica. Cuando un ejecutivo presume de su consciencia ecológica al volante de su BMW i4, está omitiendo convenientemente que su vehículo incorpora el trabajo de menores congoleños.</p>
+
+        <h2 id="cadena">04. La Cadena de Suministro Global</h2>
+
+        <!-- SUPPLY CHAIN -->
+        <div class="supply-chain reveal">
+          <div class="chain-flow">
+            <div class="chain-node">
+              <div class="chain-node-inner">
+                <div class="chain-node-icon">⛏️</div>
+                <div class="chain-node-title">Extracción</div>
+                <div class="chain-node-location">Congo / Bolivia / Chile</div>
+                <div class="chain-node-co2">+120 kg CO₂</div>
+              </div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-node">
+              <div class="chain-node-inner">
+                <div class="chain-node-icon">🏭</div>
+                <div class="chain-node-title">Procesado</div>
+                <div class="chain-node-location">China (80%)</div>
+                <div class="chain-node-co2">+890 kg CO₂</div>
+              </div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-node">
+              <div class="chain-node-inner">
+                <div class="chain-node-icon">🔋</div>
+                <div class="chain-node-title">Batería</div>
+                <div class="chain-node-location">CATL / BYD</div>
+                <div class="chain-node-co2">+3.370 kg CO₂</div>
+              </div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-node">
+              <div class="chain-node-inner">
+                <div class="chain-node-icon">🚗</div>
+                <div class="chain-node-title">Vehículo</div>
+                <div class="chain-node-location">UE / USA</div>
+                <div class="chain-node-co2">+4.380 kg CO₂</div>
+              </div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-node">
+              <div class="chain-node-inner">
+                <div class="chain-node-icon">⚡</div>
+                <div class="chain-node-title">Carga</div>
+                <div class="chain-node-location">Son Reus (Mallorca)</div>
+                <div class="chain-node-co2">540 g/kWh</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="calculadora">05. Calculadora de Emisiones Ciclo de Vida</h2>
+        <p class="reveal">Ajusta los parámetros según tu situación real para ver cómo cambia el balance de CO₂ entre ambas tecnologías en el contexto balear.</p>
+
+        <!-- INTERACTIVE CALCULATOR -->
+        <div class="calculator reveal">
+          <div class="calculator-title">Calculadora de Huella de Carbono</div>
+          <div class="calculator-subtitle">Ciclo completo · Contexto insular balear</div>
+
+          <div class="calc-controls">
+            <div class="calc-group">
+              <label>Kilómetros anuales</label>
+              <input type="range" id="km" min="5000" max="30000" step="1000" value="15000">
+              <div class="calc-value" id="km-val">15.000 km/año</div>
+            </div>
+            <div class="calc-group">
+              <label>Años de uso</label>
+              <input type="range" id="years" min="3" max="15" step="1" value="8">
+              <div class="calc-value" id="years-val">8 años</div>
+            </div>
+            <div class="calc-group">
+              <label>Intensidad red eléctrica (g CO₂/kWh)</label>
+              <input type="range" id="grid" min="50" max="700" step="10" value="540">
+              <div class="calc-value" id="grid-val">540 g/kWh — Baleares actual</div>
+            </div>
+            <div class="calc-group">
+              <label>Consumo EV (kWh/100km)</label>
+              <input type="range" id="consumption" min="14" max="25" step="0.5" value="18">
+              <div class="calc-value" id="consumption-val">18 kWh/100km</div>
+            </div>
+          </div>
+
+          <div class="calc-result">
+            <div class="calc-vehicle">
+              <div class="calc-vehicle-name">⚡ Vehículo eléctrico</div>
+              <div class="calc-vehicle-value ev" id="ev-total">—</div>
+              <div class="calc-vehicle-unit">toneladas CO₂ total</div>
+            </div>
+            <div class="calc-vehicle">
+              <div class="calc-vehicle-name">🛢️ Diésel Euro 6d + AdBlue</div>
+              <div class="calc-vehicle-value diesel" id="diesel-total">—</div>
+              <div class="calc-vehicle-unit">toneladas CO₂ total</div>
+            </div>
+            <div class="calc-verdict" id="calc-verdict">—</div>
+          </div>
+        </div>
+
+        <h2 id="alternativas">06. ¿Existen Alternativas Reales?</h2>
+
+        <p class="reveal">La única configuración energética que podría justificar climáticamente la adopción masiva de vehículos eléctricos sería un sistema eléctrico basado predominantemente en <strong>energía nuclear</strong>. Con emisiones de ciclo de vida de aproximadamente 12-15 g CO₂/kWh, proporcionaría la electricidad limpia necesaria para que los vehículos eléctricos mostraran ventajas ambientales reales. Francia, con más del 70% de generación nuclear, ofrece un contexto donde la movilidad eléctrica presenta beneficios genuinos.</p>
+
+        <p class="reveal">Mientras tanto, otras vías tecnológicas ofrecen soluciones más coherentes con la realidad balear:</p>
+
+        <p class="reveal"><strong>Combustibles sintéticos (e-fuels):</strong> producidos mediante electricidad renovable y captura de CO₂ atmosférico, podrían aprovechar la infraestructura existente sin requerir la transformación completa del parque automovilístico. Porsche y otros fabricantes alemanes están invirtiendo masivamente en esta tecnología.</p>
+
+        <p class="reveal"><strong>Hidrógeno verde:</strong> Mallorca está desarrollando un hub de hidrógeno verde que podría reducir las emisiones de la isla en <span class="highlight">21.000 toneladas de CO₂ anuales</span>. Los vehículos de pila de combustible ofrecen autonomía comparable a los motores de combustión sin las limitaciones de peso y tiempo de carga de las baterías.</p>
+
+        <p class="reveal"><strong>Biodiésel:</strong> El diésel B7/B10 utilizado en España incorpora porcentajes crecientes de biodiésel, cuyo componente renovable reduce las emisiones netas de carbono, creando circuitos económicos regionales y reduciendo dependencias geopolíticas.</p>
+
+        <h2 id="conclusion">07. Conclusión: Honestidad Intelectual vs. Marketing Verde</h2>
+
+        <p class="reveal">La solución a esta paradoja no pasa por el negacionismo tecnológico ni por la nostalgia del pasado. Los motores de combustión interna modernos, equipados con sistemas de post-tratamiento avanzados y alimentados con biocarburantes, ofrecen una transición tecnológica más gradual, ambientalmente superior y éticamente más aceptable para contextos como el balear.</p>
+
+        <div class="pull-quote reveal">
+          "La verdadera sostenibilidad no se mide en percepciones ni marketing, sino en toneladas de CO₂ equivalente, en condiciones laborales de quienes extraen los materiales críticos, y en la independencia estratégica de democracias que no deberían financiar regímenes autoritarios."
+        </div>
+
+        <p class="reveal">La presión regulatoria europea que prevé la prohibición de venta de vehículos de combustión interna a partir de 2035 ignora estas realidades termodinámicas y geopolíticas. Las directivas europeas, elaboradas desde la perspectiva de países continentales con matrices energéticas diversificadas, resultan inadecuadas para territorios insulares con limitaciones energéticas específicas. Esta imposición tecnológica desde Bruselas ilustra el carácter <strong>ideológico, más que científico</strong>, de la transición energética tal como está planteada.</p>
+
+        <p class="reveal">Los ciudadanos baleares que genuinamente se preocupan por el medio ambiente deberían cuestionar las narrativas oficiales y exigir evaluaciones completas de ciclo de vida que incluyan todas las externalidades ambientales y sociales. La paradoja verde balear ilustra que la sostenibilidad real es más compleja que los eslóganes políticos.</p>
+
+      </article>
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-card-label">Break-even del EV en Baleares</div>
+          <div class="sidebar-stat">439k km</div>
+          <div class="sidebar-stat-desc">kilómetros que debe recorrer un Tesla Model 3 en Baleares para igualar el balance de CO₂ de un diésel Euro 6d en ciclo completo. La vida útil media de un coche es 250.000–300.000 km.</div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-card-label">Niños en minas de cobalto (RDC)</div>
+          <div class="sidebar-stat">40.000</div>
+          <div class="sidebar-stat-desc">menores estimados en minas artesanales de cobalto en la República Democrática del Congo, según datos de Amnistía Internacional.</div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-card-label">Control chino cadena EV</div>
+          <div class="sidebar-stat">80%</div>
+          <div class="sidebar-stat-desc">de la cadena de suministro de tierras raras y más del 60% de la producción mundial de baterías de ión-litio están bajo control chino.</div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-card-label">Litio reciclado mundialmente</div>
+          <div class="sidebar-stat">&lt;5%</div>
+          <div class="sidebar-stat-desc">del litio mundial se recicla actualmente. La mayoría de baterías agotadas terminan en vertederos especializados.</div>
+        </div>
+
+        <div class="sidebar-toc">
+          <div class="toc-title">Índice del artículo</div>
+          <ul class="toc-list">
+            <li><a href="#matriz">La matriz energética insular</a></li>
+            <li><a href="#fabricacion">El peso oculto de la fabricación</a></li>
+            <li><a href="#etica">Trabajo infantil en la cadena</a></li>
+            <li><a href="#cadena">La cadena de suministro global</a></li>
+            <li><a href="#calculadora">Calculadora ciclo de vida</a></li>
+            <li><a href="#alternativas">Alternativas reales</a></li>
+            <li><a href="#conclusion">Conclusión</a></li>
+          </ul>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ SOURCES ═══════════════════ -->
+<section class="sources-section">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">Fuentes y Referencias</div>
+      <div class="section-rule-inline"></div>
+    </div>
+
+    <div class="sources-grid reveal">
+      <div class="source-item">
+        <em>Energy and Civilization: A History</em>
+        Vaclav Smil — MIT Press, 2017
+      </div>
+      <div class="source-item">
+        <em>Environmental Impacts of Lithium-Ion Batteries</em>
+        MIT Climate Lab, 2023
+      </div>
+      <div class="source-item">
+        <em>Child Labour Behind Smart Phone and Electric Car Batteries</em>
+        Amnesty International & Afrewatch, 2021
+      </div>
+      <div class="source-item">
+        <em>Understanding the Carbon Impacts of Waste to Energy Incineration</em>
+        Zero Waste Europe, 2022
+      </div>
+      <div class="source-item">
+        <em>Waste Incinerators Undermine Clean Energy Goals</em>
+        PLOS Climate, 2023
+      </div>
+      <div class="source-item">
+        <em>The Environmental Impact of Battery Production for EVs</em>
+        Earth.org, 2024
+      </div>
+      <div class="source-item">
+        <em>Trash Incineration More Polluting than Coal</em>
+        Energy Justice Network, 2025
+      </div>
+      <div class="source-item">
+        <em>The Paradox of Lithium</em>
+        Columbia Climate School, 2023
+      </div>
+      <div class="source-item">
+        <em>Lithium Mining for EVs: How Sustainable Is It?</em>
+        APM Research Lab, 2023
+      </div>
+      <div class="source-item">
+        <em>The Hidden Cost of the Electric Car Boom – Child Labour</em>
+        World Economic Forum, 2018
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <div class="container">
+    <p style="margin-bottom:1rem;">
+      <a href="https://gato.red" style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.15em;color:var(--accent);text-decoration:none;border:1px solid var(--accent);padding:0.4rem 1rem;border-radius:2px;transition:background 0.2s ease;" onmouseover="this.style.background='rgba(200,168,75,0.12)'" onmouseout="this.style.background='transparent'">← Volver a gato.red</a>
+    </p>
+    <p style="margin-bottom:0.5rem;">LA PARADOJA VERDE DE MALLORCA &nbsp;·&nbsp; ANÁLISIS DE CICLO DE VIDA &nbsp;·&nbsp; 2026</p>
+    <p style="color:var(--text-faint);">Este artículo presenta un análisis basado en datos disponibles públicamente. Las cifras de emisiones corresponden al contexto balear actual y pueden variar con cambios en la matriz energética.</p>
+  </div>
+</footer>
+
+<script>
+// ── PROGRESS BAR ──
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = (scrolled / total * 100) + '%';
+});
+
+// ── REVEAL ON SCROLL ──
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+reveals.forEach(r => observer.observe(r));
+
+// ── BAR CHART ANIMATION ──
+const barObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const fills = e.target.querySelectorAll('.bar-fill');
+      fills.forEach(f => {
+        f.style.width = f.dataset.width + '%';
+      });
+      barObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+const chart = document.querySelector('.co2-chart');
+if (chart) barObserver.observe(chart);
+
+// ── CALCULATOR ──
+const kmInput = document.getElementById('km');
+const yearsInput = document.getElementById('years');
+const gridInput = document.getElementById('grid');
+const consumptionInput = document.getElementById('consumption');
+
+const kmVal = document.getElementById('km-val');
+const yearsVal = document.getElementById('years-val');
+const gridVal = document.getElementById('grid-val');
+const consumptionVal = document.getElementById('consumption-val');
+
+const evTotal = document.getElementById('ev-total');
+const dieselTotal = document.getElementById('diesel-total');
+const verdict = document.getElementById('calc-verdict');
+
+const GRID_LABELS = {
+  50: 'Francia (nuclear)',
+  100: '~80 g — Red ideal renovable',
+  265: 'Media europea',
+  450: 'Gas natural CCGT',
+  540: 'Baleares actual',
+  700: 'Peor caso'
+};
+
+function getGridLabel(val) {
+  const keys = Object.keys(GRID_LABELS).map(Number).sort((a, b) => a - b);
+  let closest = keys[0];
+  let minDiff = Math.abs(val - closest);
+  keys.forEach(k => {
+    const diff = Math.abs(val - k);
+    if (diff < minDiff) { minDiff = diff; closest = k; }
+  });
+  if (minDiff < 40) return GRID_LABELS[closest];
+  return val + ' g/kWh';
+}
+
+function calculate() {
+  const km = parseInt(kmInput.value);
+  const years = parseInt(yearsInput.value);
+  const grid = parseInt(gridInput.value);
+  const cons = parseFloat(consumptionInput.value);
+
+  kmVal.textContent = km.toLocaleString('es-ES') + ' km/año';
+  yearsVal.textContent = years + ' años';
+  gridVal.textContent = grid + ' g/kWh — ' + getGridLabel(grid);
+  consumptionVal.textContent = cons + ' kWh/100km';
+
+  // ── EV: fabricación completa + operación ──
+  // Batería 60 kWh: ~6.000 kg CO₂ (extracción litio/cobalto + manufactura celdas)
+  // Resto del vehículo EV: ~2.500 kg CO₂
+  // Total fabricación EV: ~8.500 kg CO₂
+  const evMfg = 8500;
+  // Operación: consumo × intensidad de red
+  const evOperational = (km * years * cons / 100) * grid / 1000; // kg CO₂
+  const evTotalKg = evMfg + evOperational;
+
+  // ── Diésel: fabricación más ligera + operación well-to-wheel ──
+  // Sin batería grande: ~4.200 kg CO₂ (acero, aluminio, motor, transmisión)
+  // Operación: 107 g/km ciclo completo well-to-wheel (incluye extracción y refino de combustible)
+  const dieselMfg = 4200;
+  const dieselOperational = km * years * 0.107; // kg CO₂
+  const dieselTotalKg = dieselMfg + dieselOperational;
+
+  evTotal.textContent = (evTotalKg / 1000).toFixed(1) + ' t';
+  dieselTotal.textContent = (dieselTotalKg / 1000).toFixed(1) + ' t';
+
+  const diff = evTotalKg - dieselTotalKg;
+  const totalKm = km * years;
+
+  // Break-even: km donde EV y diésel se igualan
+  // evMfg + km_be * cons/100 * grid/1000 = dieselMfg + km_be * 0.107
+  // km_be = (evMfg - dieselMfg) / (0.107 - cons/100 * grid/1000)
+  const evPerKm = cons / 100 * grid / 1000;
+  const dieselPerKm = 0.107;
+  let breakEvenKm = null;
+  if (dieselPerKm > evPerKm) {
+    breakEvenKm = (evMfg - dieselMfg) / (dieselPerKm - evPerKm);
+  }
+
+  if (diff > 200) {
+    let breakEvenText = '';
+    if (breakEvenKm && breakEvenKm > 0 && breakEvenKm < 1000000) {
+      breakEvenText = ` El EV no alcanzaría su ventaja ambiental hasta los <strong>${Math.round(breakEvenKm / 1000)}k km</strong> (~${Math.round(breakEvenKm / km)} años a este ritmo).`;
+    } else {
+      breakEvenText = ' Con esta intensidad de red, el EV <strong>nunca</strong> alcanza la ventaja ambiental sobre el diésel.';
+    }
+    verdict.innerHTML = `<strong>El EV emite ${(diff/1000).toFixed(1)} t más CO₂ en total.</strong> La deuda de fabricación de la batería (8,5 t) más la red sucia balear hacen el EV más contaminante.${breakEvenText}`;
+  } else if (diff < -200) {
+    verdict.innerHTML = `<strong>El EV emite ${(Math.abs(diff)/1000).toFixed(1)} t menos CO₂ en total.</strong> Con una red eléctrica más limpia, el EV recupera su ventaja a pesar de la deuda de fabricación.`;
+  } else {
+    verdict.innerHTML = `<strong>Empate técnico</strong>: las emisiones totales son casi idénticas. Incluso en el mejor caso, el EV no ofrece ventaja climática significativa en Baleares.`;
+  }
+}
+
+[kmInput, yearsInput, gridInput, consumptionInput].forEach(i => i.addEventListener('input', calculate));
+calculate();
+</script>
+</body>
+</html>
