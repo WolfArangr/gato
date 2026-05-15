@@ -92,10 +92,13 @@ body:has(a:hover,button:hover) #cur-ring{width:54px;height:54px;border-color:rgb
 
 /* HERO */
 #hero{position:relative;height:100vh;min-height:680px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.hero-bg{position:absolute;inset:0}
+.hero-bg{position:absolute;inset:0;background:var(--navy)}
 .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 42%;transform:scale(1.1);animation:hZoom 14s var(--ease-out) forwards;will-change:transform}
 @keyframes hZoom{to{transform:scale(1)}}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(7,17,31,.35) 0%,rgba(7,17,31,.15) 45%,rgba(7,17,31,.88) 100%)}
+/* Static dark overlay — always present at the bottom for text legibility */
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(7,17,31,.2) 0%,rgba(7,17,31,.1) 40%,rgba(7,17,31,.88) 100%);z-index:1}
+/* Scroll-reveal veil: starts opaque, fades out as user scrolls */
+.hero-veil{position:absolute;inset:0;background:var(--navy);opacity:.72;z-index:1;transition:opacity .05s linear;pointer-events:none}
 .hero-c{position:relative;z-index:2;text-align:center;padding:0 6%;max-width:960px}
 .hero-eyebrow{font-size:.6rem;letter-spacing:.65em;text-transform:uppercase;color:var(--gold);margin-bottom:2rem;display:flex;align-items:center;justify-content:center;gap:1rem;opacity:0;animation:fUp .9s var(--ease-out) .3s forwards}
 .hero-eyebrow::before,.hero-eyebrow::after{content:'';flex:1;max-width:55px;height:1px}
@@ -394,7 +397,8 @@ footer{background:var(--navy2);border-top:1px solid rgba(193,154,107,.1);padding
     <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/02/2024-06-16.png" alt="Velero clásico gaff en Mallorca">
   </div>
   <div class="hero-overlay"></div>
-  <div class="hero-c">
+  <div class="hero-veil" id="heroVeil"></div>
+  <div class="hero-c" style="position:relative;z-index:3">
     <p class="hero-eyebrow" data-es>Mallorca · Mediterráneo · Navegación Clásica</p>
     <p class="hero-eyebrow" data-en>Mallorca · Mediterranean · Classic Sailing</p>
     <h1 class="hero-h1">GAFF<br>CLASSIC TOURS
@@ -409,7 +413,7 @@ footer{background:var(--navy2);border-top:1px solid rgba(193,154,107,.1);padding
       <a href="#boat" class="btn-ghost" data-en>The Boat</a>
     </div>
   </div>
-  <div class="scroll-hint" onclick="document.getElementById('nums').scrollIntoView({behavior:'smooth'})">
+  <div class="scroll-hint" style="z-index:3" onclick="document.getElementById('nums').scrollIntoView({behavior:'smooth'})">
     <div class="scroll-bar"></div>
   </div>
 </section>
@@ -837,10 +841,18 @@ function openLB(src){document.getElementById('lb-img').src=src;document.getEleme
 function closeLB(){document.getElementById('lb').classList.remove('open');document.body.style.overflow='';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
 
-/* PARALLAX HERO */
+/* PARALLAX HERO + VEIL REVEAL */
 const heroImg=document.querySelector('.hero-bg img');
+const heroVeil=document.getElementById('heroVeil');
 window.addEventListener('scroll',()=>{
-  if(heroImg&&scrollY<innerHeight)heroImg.style.transform=`scale(1) translateY(${scrollY*.28}px)`;
+  if(scrollY<innerHeight){
+    if(heroImg) heroImg.style.transform=`scale(1) translateY(${scrollY*.28}px)`;
+    if(heroVeil){
+      // Start at .72 opacity, fade to 0 over first 40% of viewport height
+      const progress=Math.min(scrollY/(innerHeight*.4),1);
+      heroVeil.style.opacity=0.72*(1-progress);
+    }
+  }
 },{passive:true});
 
 /* CARD 3D TILT (desktop only) */
