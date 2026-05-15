@@ -58,9 +58,9 @@ body:has(a:hover,button:hover) #cur-ring{width:54px;height:54px;border-color:rgb
 .nav-a:hover{color:var(--gold)}
 .nav-a:hover::after,.nav-a.active::after{width:100%}
 .nav-logo{text-align:center;text-decoration:none}
-.nav-logo-img{height:52px;width:auto;object-fit:contain;transition:opacity .3s;display:block;margin:0 auto;filter:brightness(0) invert(1)}
-#nav.scrolled .nav-logo-img{filter:brightness(0) invert(1)}
-.nav-logo-img:hover{opacity:.8}
+.nav-logo-img{height:52px;width:auto;object-fit:contain;transition:opacity .3s;display:block;margin:0 auto;filter:none}
+#nav.scrolled .nav-logo-img{filter:none}
+.nav-logo-img:hover{opacity:.75}
 .nav-logo-main{font-family:var(--display);font-size:1rem;letter-spacing:.18em;color:var(--white);display:block;line-height:1}
 .nav-logo-sub{font-family:var(--sans);font-size:.5rem;letter-spacing:.5em;color:var(--gold);display:block;margin-top:.3rem;font-weight:300}
 .lang-wrap{display:flex;gap:.4rem}
@@ -111,9 +111,9 @@ body:has(a:hover,button:hover) #cur-ring{width:54px;height:54px;border-color:rgb
 .btn-gold:hover{transform:translateY(-2px);box-shadow:0 14px 45px rgba(193,154,107,.32)}
 .btn-ghost{display:inline-flex;align-items:center;padding:.88rem 2.2rem;border:1px solid rgba(255,255,255,.32);color:rgba(255,255,255,.82);font-family:var(--display);font-size:.63rem;letter-spacing:.2em;text-decoration:none;border-radius:1px;transition:all .4s}
 .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
-.scroll-hint{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.6rem;opacity:0;animation:fUp .8s var(--ease-out) 1.3s forwards;cursor:pointer}
-.scroll-hint span{font-size:.55rem;letter-spacing:.4em;color:rgba(255,255,255,.32);text-transform:uppercase}
-.scroll-bar{width:1px;height:55px;overflow:hidden;background:rgba(255,255,255,.08);position:relative}
+.scroll-hint{position:absolute;bottom:2rem;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:0;animation:fUp .8s var(--ease-out) 1.3s forwards;cursor:pointer;pointer-events:auto}
+.scroll-hint span{font-size:.52rem;letter-spacing:.4em;color:rgba(255,255,255,.3);text-transform:uppercase}
+.scroll-bar{width:1px;height:50px;overflow:hidden;background:rgba(255,255,255,.08);position:relative}
 .scroll-bar::after{content:'';position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);animation:sBar 2.2s ease infinite}
 @keyframes sBar{0%{transform:translateY(-100%)}100%{transform:translateY(200%)}}
 
@@ -298,7 +298,10 @@ section{overflow:hidden}
 .c-socials a{font-size:.8rem;color:rgba(255,255,255,.5);text-decoration:none;transition:color .3s}
 .c-socials a:hover{color:var(--gold)}
 .addr-img{margin-top:2.5rem;padding-top:2rem;border-top:1px solid rgba(193,154,107,.1)}
-.addr-img img{max-width:260px;opacity:.55;filter:brightness(1.4)}
+.addr-img-label{font-size:.55rem;letter-spacing:.35em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:.8rem;display:block}
+.addr-img-frame{display:inline-flex;background:var(--cream2);border:1px solid rgba(193,154,107,.22);padding:.9rem 1.2rem;position:relative}
+.addr-img-frame::before{content:'';position:absolute;top:3px;right:3px;bottom:3px;left:3px;border:1px solid rgba(193,154,107,.1);pointer-events:none}
+.addr-img-frame img{max-width:240px;width:100%;display:block}
 @media(max-width:900px){.contact-grid{grid-template-columns:1fr;gap:4.5rem}}
 
 /* FOOTER */
@@ -341,7 +344,7 @@ footer{background:var(--navy2);border-top:1px solid rgba(193,154,107,.1);padding
 
 <!-- MOBILE MENU -->
 <div id="mob-menu">
-  <img src="/gaffclassictours/logonuevo.png" alt="Gaff Classic Tours" style="height:60px;width:auto;filter:brightness(0) invert(1);opacity:.7;margin-bottom:1rem" onerror="this.style.display='none'">
+  <img src="/gaffclassictours/logonuevotr.png" alt="Gaff Classic Tours" style="height:60px;width:auto;opacity:.85;margin-bottom:1rem" onerror="this.style.display='none'">
   <a href="#experiences" onclick="closeMob()" data-es>Experiencias</a>
   <a href="#experiences" onclick="closeMob()" data-en>Experiences</a>
   <a href="#boat" onclick="closeMob()" data-es>El Velero</a>
@@ -367,7 +370,7 @@ footer{background:var(--navy2);border-top:1px solid rgba(193,154,107,.1);padding
     <a href="#contact" class="nav-a" data-en>Contact</a>
   </div>
   <a href="#" class="nav-logo">
-    <img src="/gaffclassictours/logonuevo.png" alt="Gaff Classic Tours" class="nav-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <img src="/gaffclassictours/logonuevotr.png" alt="Gaff Classic Tours" class="nav-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
     <span class="nav-logo-fallback" style="display:none">
       <span class="nav-logo-main">GAFF CLASSIC TOURS</span>
       <span class="nav-logo-sub">Mallorca · Mediterráneo</span>
@@ -406,7 +409,6 @@ footer{background:var(--navy2);border-top:1px solid rgba(193,154,107,.1);padding
     </div>
   </div>
   <div class="scroll-hint" onclick="document.getElementById('nums').scrollIntoView({behavior:'smooth'})">
-    <span data-es>Descubrir</span><span data-en>Discover</span>
     <div class="scroll-bar"></div>
   </div>
 </section>
@@ -748,7 +750,9 @@ footer{background:var(--navy2);border-top:1px solid rgba(193,154,107,.1);padding
           </div>
         </div>
         <div class="addr-img">
-          <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/03/Copia-de-Tarjeta-Gaff-Charter-2-1.png" alt="Club de Mar Mallorca" onerror="this.style.display='none'">
+          <div class="addr-img-frame">
+            <img src="https://gaffcharter-mallorca.com/wp-content/uploads/2026/03/Copia-de-Tarjeta-Gaff-Charter-2-1.png" alt="Govern Illes Balears · Club de Mar Mallorca">
+          </div>
         </div>
       </div>
     </div>
@@ -767,7 +771,7 @@ footer{background:var(--navy2);border-top:1px solid rgba(193,154,107,.1);padding
       <a href="#captain" data-en>The Captain</a>
     </div>
     <div class="f-logo">
-      <img src="/gaffclassictours/logonuevo.png" alt="Gaff Classic Tours" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);opacity:.7;display:block;margin:0 auto" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <img src="/gaffclassictours/logonuevotr.png" alt="Gaff Classic Tours" style="height:48px;width:auto;object-fit:contain;opacity:.75;display:block;margin:0 auto" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
       <div style="display:none">
         <span class="f-logo-main">GAFF CLASSIC TOURS</span>
         <span class="f-logo-sub">Mallorca · Mediterráneo</span>
