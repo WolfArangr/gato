@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Números Cistercienses — gato.red</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #161616;
+    --border: #222222;
+    --border2: #2a2a2a;
+    --text: #e8e4dc;
+    --text-dim: #6a6560;
+    --text-mid: #a09890;
+    --accent: #c8a96e;
+    --accent2: #8b5e3c;
+    --accent-glow: rgba(200, 169, 110, 0.12);
+    --red: #c05a3a;
+    --mono: 'JetBrains Mono', monospace;
+    --serif: 'Cormorant Garamond', serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1.2rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(20px);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+  }
+  .nav-logo:hover { opacity: 1; }
+
+  .nav-title {
+    font-family: var(--serif);
+    font-size: 0.95rem;
+    font-weight: 300;
+    color: var(--text-mid);
+    letter-spacing: 0.12em;
+    font-style: italic;
+  }
+
+  .nav-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    border: 1px solid var(--border2);
+    padding: 0.25rem 0.6rem;
+    border-radius: 2px;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 14rem 3rem 6rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    font-weight: 300;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem;
+    color: var(--text);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 300;
+    color: var(--text-mid);
+    max-width: 520px;
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  .hero-line {
+    position: absolute;
+    right: 3rem;
+    top: 12rem;
+    width: 1px;
+    height: 8rem;
+    background: linear-gradient(to bottom, transparent, var(--accent), transparent);
+    opacity: 0.4;
+  }
+
+  /* SECTION COMMON */
+  section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 3rem;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 300;
+    letter-spacing: -0.01em;
+    margin-bottom: 2rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 400;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-family: var(--serif);
+    font-weight: 300;
+    color: var(--text-mid);
+    margin-bottom: 1rem;
+    line-height: 1.75;
+  }
+
+  /* DIVIDER */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 0;
+  }
+
+  /* ===== CISTERCIAN SVG DISPLAY ===== */
+  .cistercian-showcase {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+    margin-bottom: 4rem;
+  }
+
+  .showcase-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .main-numeral-display {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .main-numeral-display::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .numeral-svg-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 20px rgba(200,169,110,0.2));
+  }
+
+  .numeral-value-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .numeral-arabic {
+    font-family: var(--serif);
+    font-size: 3rem;
+    font-weight: 300;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  /* DIGIT GRID */
+  .digit-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .digit-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.8rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+
+  .digit-card:hover {
+    border-color: var(--accent2);
+    background: var(--surface2);
+  }
+
+  .digit-card.active {
+    border-color: var(--accent);
+    background: rgba(200,169,110,0.06);
+  }
+
+  .digit-card-num {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  /* INTERACTIVE EXPLORER */
+  .explorer-panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    padding: 2.5rem;
+  }
+
+  .explorer-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .number-input-group {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+  }
+
+  .number-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-right: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    padding: 1rem 1.5rem;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .number-input::-webkit-outer-spin-button,
+  .number-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .number-input:focus { border-color: var(--accent); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #d4b87a; }
+
+  .explorer-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    min-height: 160px;
+  }
+
+  .explorer-arabic {
+    font-family: var(--serif);
+    font-size: 4rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .explorer-arrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--border2);
+    letter-spacing: 0.1em;
+  }
+
+  .explorer-cistercian {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    filter: drop-shadow(0 0 12px rgba(200,169,110,0.15));
+  }
+
+  /* RANGE DISPLAY */
+  .range-strip {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  .range-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 44px;
+  }
+  .range-item:hover {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .range-num {
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    color: var(--text-dim);
+  }
+
+  /* ===== CALCULATOR ===== */
+  .calc-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .calc-panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    padding: 2.5rem;
+  }
+
+  .calc-display {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+    overflow: hidden;
+  }
+
+  .calc-expression {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    min-height: 1em;
+    word-break: break-all;
+    text-align: right;
+  }
+
+  .calc-value {
+    font-family: var(--mono);
+    font-size: 2rem;
+    color: var(--text);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    word-break: break-all;
+    text-align: right;
+  }
+
+  .calc-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+
+  .calc-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    padding: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .calc-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .calc-btn:hover::after { opacity: 0.08; }
+  .calc-btn:active::after { opacity: 0.15; }
+
+  .calc-btn.op {
+    color: var(--accent);
+    border-color: var(--border2);
+    background: var(--surface);
+  }
+
+  .calc-btn.action {
+    background: rgba(200,169,110,0.1);
+    border-color: var(--accent2);
+    color: var(--accent);
+  }
+
+  .calc-btn.equals {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-size: 1.2rem;
+  }
+  .calc-btn.equals:hover { background: #d4b87a; }
+
+  .calc-btn.zero { grid-column: span 2; }
+  .calc-btn.clear { color: var(--red); }
+
+  /* CISTERCIAN RESULT DISPLAY */
+  .calc-cistercian-display {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    min-height: 220px;
+    justify-content: center;
+  }
+
+  .calc-cistercian-label {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .calc-cistercian-num {
+    font-family: var(--serif);
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  /* INFO CARDS */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .info-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+
+  .info-card-num {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+  }
+
+  .info-card h3 {
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 0.8rem;
+  }
+
+  .info-card p {
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+
+  /* ARTICLE */
+  .article-content {
+    max-width: 720px;
+  }
+
+  .article-content h3 {
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: var(--text);
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+
+  .article-content p {
+    font-size: 1rem;
+    line-height: 1.85;
+  }
+
+  .pull-quote {
+    border-left: 2px solid var(--accent);
+    padding: 1.5rem 2rem;
+    margin: 2.5rem 0;
+    background: rgba(200,169,110,0.04);
+  }
+
+  .pull-quote p {
+    font-size: 1.3rem;
+    font-style: italic;
+    color: var(--text);
+    font-weight: 300;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* SYSTEM ANATOMY */
+  .anatomy-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  .anatomy-cell {
+    background: var(--surface);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .anatomy-label {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .anatomy-value {
+    font-family: var(--serif);
+    font-size: 0.85rem;
+    color: var(--text-mid);
+    text-align: center;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 100%;
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .footer-right a {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .footer-right a:hover { opacity: 1; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    section { padding: 3rem 1.5rem; }
+    .hero { padding: 4rem 1.5rem 4rem; }
+    .cistercian-showcase { grid-template-columns: 1fr; }
+    .calc-wrapper { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr; }
+    .anatomy-grid { grid-template-columns: repeat(2, 1fr); }
+    .digit-grid { grid-template-columns: repeat(5, 1fr); }
+    footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+  }
+
+  /* CAT EASTER EGG */
+  .cat-trigger {
+    cursor: pointer;
+    opacity: 0.15;
+    transition: opacity 0.3s, transform 0.3s;
+    background: none;
+    border: none;
+    padding: 0.3rem;
+    line-height: 1;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cat-trigger:hover { opacity: 0.5; transform: scale(1.15); }
+  .cat-trigger.active { opacity: 0.8; color: #b06aff; }
+
+  #gatense-section {
+    display: none;
+    background: #0a0510;
+    border-top: 1px solid #2a1a3a;
+    position: relative;
+    overflow: hidden;
+  }
+  #gatense-section.visible { display: block; }
+
+  #gatense-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(180,100,255,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse at 80% 20%, rgba(255,150,200,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .gatense-label { color: #b06aff !important; }
+
+  .gatense-accent { color: #cc88ff; }
+
+  #gatense-section h2 em { color: #cc88ff; }
+
+  #gatense-section .section-label::after { background: #2a1a3a; }
+
+  #gatense-section .explorer-panel,
+  #gatense-section .calc-panel,
+  #gatense-section .main-numeral-display {
+    border-color: #2a1a3a;
+    background: #0f0818;
+  }
+
+  #gatense-section .explorer-label { color: #b06aff; }
+
+  #gatense-section .number-input {
+    background: #070410;
+    border-color: #2a1a3a;
+    color: #e8e4dc;
+  }
+  #gatense-section .number-input:focus { border-color: #b06aff; }
+
+  #gatense-section .btn-primary {
+    background: #b06aff;
+    color: #070410;
+  }
+  #gatense-section .btn-primary:hover { background: #cc88ff; }
+
+  #gatense-section .explorer-result,
+  #gatense-section .calc-cistercian-display,
+  #gatense-section .calc-display {
+    background: #070410;
+    border-color: #1a0a2a;
+  }
+
+  #gatense-section .range-item {
+    background: #0f0818;
+    border-color: #1a0a2a;
+  }
+  #gatense-section .range-item:hover { border-color: #b06aff; background: rgba(176,106,255,0.08); }
+
+  #gatense-section .calc-btn { background: #0f0818; border-color: #1a0a2a; color: #e8e4dc; }
+  #gatense-section .calc-btn.op { color: #cc88ff; background: #0a0515; border-color: #2a1a3a; }
+  #gatense-section .calc-btn.action { background: rgba(176,106,255,0.1); border-color: #4a2a6a; color: #cc88ff; }
+  #gatense-section .calc-btn.equals { background: #b06aff; color: #070410; border-color: #b06aff; }
+  #gatense-section .calc-btn.equals:hover { background: #cc88ff; }
+
+  #gatense-section .pull-quote { border-left-color: #b06aff; background: rgba(176,106,255,0.04); }
+  #gatense-section .info-card::before { background: linear-gradient(90deg, #b06aff, transparent); }
+  #gatense-section .info-card { background: #0f0818; border-color: #1a0a2a; }
+  #gatense-section .anatomy-grid { background: #1a0a2a; border-color: #1a0a2a; }
+  #gatense-section .anatomy-cell { background: #0f0818; }
+  #gatense-section .anatomy-label { color: #b06aff; }
+
+  #gatense-section .digit-card { background: #0f0818; border-color: #1a0a2a; }
+  #gatense-section .digit-card:hover { border-color: #7a4aaa; background: #0a0515; }
+  #gatense-section .digit-card.active { border-color: #b06aff; background: rgba(176,106,255,0.06); }
+
+  .gatense-reveal {
+    animation: gatenseReveal 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes gatenseReveal {
+    from { opacity: 0; transform: translateY(32px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .gatense-hero {
+    padding: 5rem 3rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .gatense-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: #b06aff;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .gatense-eyebrow::before { content:''; display:block; width:2rem; height:1px; background:#b06aff; }
+
+  .gatense-close {
+    position: absolute;
+    top: 2rem; right: 3rem;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: #4a2a6a;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    background: none;
+    border: 1px solid #2a1a3a;
+    padding: 0.4rem 0.8rem;
+    transition: all 0.2s;
+  }
+  .gatense-close:hover { color: #cc88ff; border-color: #b06aff; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-eyebrow { animation: fadeUp 0.6s ease both; }
+  h1 { animation: fadeUp 0.6s ease 0.1s both; }
+  .hero-sub { animation: fadeUp 0.6s ease 0.2s both; }
+
+  /* SVG SYMBOLS */
+  .cist-svg {
+    width: 80px;
+    height: 120px;
+  }
+  .cist-svg-lg {
+    width: 120px;
+    height: 180px;
+  }
+  .cist-svg-xl {
+    width: 160px;
+    height: 240px;
+  }
+
+  /* Tooltip */
+  .digit-card[title] { position: relative; }
+
+  /* Range scroll */
+  .range-scroll {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+
+  .tab-group {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .tab:hover { color: var(--text-mid); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Scroll indicator */
+  .scroll-hint {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .scroll-hint-line {
+    width: 20px;
+    height: 1px;
+    background: var(--border2);
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero" style="padding-top:6rem;">
+  <div class="hero-eyebrow">siglo xiii · sistema numérico</div>
+  <h1>Números<br><em>Cistercienses</em></h1>
+  <p class="hero-sub">Un sistema numérico medieval de asombrosa elegancia: cada número del 1 al 9999 representado en un único símbolo.</p>
+  <div class="hero-line"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- EXPLORER + DIGIT GRID -->
+<section>
+  <div class="section-label">explorador interactivo</div>
+  <div class="cistercian-showcase">
+
+    <!-- LEFT: input & result -->
+    <div>
+      <div class="explorer-panel">
+        <div class="explorer-label">convertir número</div>
+        <div class="number-input-group">
+          <input type="number" class="number-input" id="explorerInput" min="0" max="9999" value="1234" placeholder="0–9999">
+          <button class="btn-primary" onclick="updateExplorer()">convertir</button>
+        </div>
+        <div class="explorer-result">
+          <div class="explorer-arabic" id="explorerArabic">1234</div>
+          <div class="explorer-arrow">───→</div>
+          <div class="explorer-cistercian" id="explorerCistercian">
+            <!-- SVG rendered here -->
+          </div>
+        </div>
+        <div class="scroll-hint">
+          <span class="scroll-hint-line"></span>
+          escribe cualquier número del 0 al 9999
+        </div>
+      </div>
+
+      <!-- Quick range -->
+      <div style="margin-top:1.5rem;">
+        <div class="section-label" style="font-size:0.55rem;">acceso rápido</div>
+        <div class="range-scroll">
+          <div class="range-strip" id="quickRange"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: digit breakdown -->
+    <div class="showcase-visual">
+      <div style="width:100%;">
+        <div class="explorer-label" style="margin-bottom:1rem;">anatomía del número</div>
+        <div id="anatomyDisplay" style="background:var(--bg);border:1px solid var(--border);padding:2rem;display:flex;flex-direction:column;align-items:center;gap:1rem;">
+          <div id="anatomyCistercian"></div>
+          <div id="anatomyBreakdown" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;width:100%;margin-top:1rem;"></div>
+        </div>
+      </div>
+      <div style="width:100%;">
+        <div class="explorer-label" style="margin-bottom:1rem;">dígitos base (×posición)</div>
+        <div class="digit-grid" id="digitGrid"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CALCULATOR -->
+<section>
+  <div class="section-label">calculadora</div>
+  <h2>Opera en <em>cisterciense</em></h2>
+  <p>El resultado de cada operación se muestra simultáneamente en árabe y en el sistema cisterciense.</p>
+
+  <div class="calc-wrapper" style="margin-top:2rem;">
+    <div class="calc-panel">
+      <div class="explorer-label">calculadora arábiga</div>
+      <div class="calc-display">
+        <div class="calc-expression" id="calcExpression"></div>
+        <div class="calc-value" id="calcValue">0</div>
+      </div>
+      <div class="calc-buttons">
+        <button class="calc-btn action" onclick="calcClear()">AC</button>
+        <button class="calc-btn action" onclick="calcSign()">±</button>
+        <button class="calc-btn action" onclick="calcPercent()">%</button>
+        <button class="calc-btn op" onclick="calcOp('÷')">÷</button>
+
+        <button class="calc-btn" onclick="calcDigit('7')">7</button>
+        <button class="calc-btn" onclick="calcDigit('8')">8</button>
+        <button class="calc-btn" onclick="calcDigit('9')">9</button>
+        <button class="calc-btn op" onclick="calcOp('×')">×</button>
+
+        <button class="calc-btn" onclick="calcDigit('4')">4</button>
+        <button class="calc-btn" onclick="calcDigit('5')">5</button>
+        <button class="calc-btn" onclick="calcDigit('6')">6</button>
+        <button class="calc-btn op" onclick="calcOp('−')">−</button>
+
+        <button class="calc-btn" onclick="calcDigit('1')">1</button>
+        <button class="calc-btn" onclick="calcDigit('2')">2</button>
+        <button class="calc-btn" onclick="calcDigit('3')">3</button>
+        <button class="calc-btn op" onclick="calcOp('+')">+</button>
+
+        <button class="calc-btn zero" onclick="calcDigit('0')">0</button>
+        <button class="calc-btn" onclick="calcDecimal()">.</button>
+        <button class="calc-btn equals" onclick="calcEquals()">=</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="calc-panel">
+        <div class="explorer-label">resultado en cisterciense</div>
+        <div class="calc-cistercian-display">
+          <div class="calc-cistercian-label">representación</div>
+          <div id="calcCistercian" style="filter:drop-shadow(0 0 16px rgba(200,169,110,0.2))"></div>
+          <div class="calc-cistercian-num" id="calcCistercianNum">—</div>
+        </div>
+        <div style="margin-top:1rem;padding:1.5rem;background:var(--bg);border:1px solid var(--border);">
+          <div class="explorer-label" style="margin-bottom:0.8rem;">nota</div>
+          <p style="font-size:0.82rem;margin:0;line-height:1.6;">El sistema cisterciense representa números del 0 al 9999. El 0 es la espina vertical sola. Para resultados fuera de rango o decimales, se muestra el valor numérico sin glifo.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TABLA COMPLETA DE DÍGITOS -->
+<section>
+  <div class="section-label">referencia visual</div>
+  <h2>Los <em>cuatro cuadrantes</em></h2>
+  <p>El sistema cisterciense divide el símbolo vertical en cuatro zonas. Cada zona codifica un orden de magnitud.</p>
+
+  <div class="anatomy-grid">
+    <div class="anatomy-cell">
+      <div class="anatomy-label">cuadrante I<br>arriba derecha</div>
+      <div id="quad1" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center"></div>
+      <div class="anatomy-value">unidades (1–9)</div>
+    </div>
+    <div class="anatomy-cell">
+      <div class="anatomy-label">cuadrante II<br>arriba izquierda</div>
+      <div id="quad2" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center"></div>
+      <div class="anatomy-value">decenas (10–90)</div>
+    </div>
+    <div class="anatomy-cell">
+      <div class="anatomy-label">cuadrante III<br>abajo derecha</div>
+      <div id="quad3" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center"></div>
+      <div class="anatomy-value">centenas (100–900)</div>
+    </div>
+    <div class="anatomy-cell">
+      <div class="anatomy-label">cuadrante IV<br>abajo izquierda</div>
+      <div id="quad4" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center"></div>
+      <div class="anatomy-value">millares (1000–9000)</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ARTICLE -->
+<section>
+  <div class="section-label">contexto histórico</div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:4rem;align-items:start;">
+    <div class="article-content">
+      <h2>Un sistema<br>extraordinario</h2>
+
+      <h3>¿Qué son los números cistercienses?</h3>
+      <p>Los números cistercienses son un sistema numérico desarrollado en el siglo XIII dentro de la Orden del Císter, la influyente orden monástica fundada en Cîteaux (Borgoña) en 1098. Documentados por primera vez en el manuscrito <em>Compotus manualis</em> de John of Murs alrededor de 1340, estos glifos permiten representar cualquier número entero del 1 al 9999 con un único símbolo.</p>
+
+      <p>El principio es de una elegancia matemática admirable: un eje vertical central actúa como columna vertebral, y los cuatro cuadrantes que lo rodean codifican, respectivamente, las unidades, decenas, centenas y millares. Cada cifra (del 1 al 9) tiene una forma geométrica única que se "pega" al cuadrante correspondiente. El resultado es que el número 1234, por ejemplo, queda encapsulado en un único símbolo que puede leerse de un solo vistazo.</p>
+
+      <div class="pull-quote">
+        <p>Un monje cisterciense podía anotar el año 1347 —el de la Gran Peste— en un único trazo de pluma.</p>
+      </div>
+
+      <h3>Por qué son superiores al sistema indo-arábigo</h3>
+      <p>El sistema indo-arábigo que usamos hoy es posicional y secuencial: para leer "1234" hay que procesar cuatro dígitos distintos en orden. Es eficiente para el cálculo escrito, pero ocupa espacio horizontal proporcional a la magnitud del número.</p>
+
+      <p>Los números cistercienses, en cambio, son <em>espacialmente constantes</em>: el símbolo del 1 ocupa exactamente el mismo espacio que el símbolo del 9999. Para un copista medieval que numera cientos de páginas, esto supone un ahorro de espacio y tiempo considerable. Además, son intrínsecamente bidimensionales, lo que permite reconocer el orden de magnitud de manera instantánea según la posición del trazo, sin necesidad de contar dígitos.</p>
+
+      <p>Otra ventaja es la <em>unicidad del glifo</em>: no existe ambigüedad de separación entre dígitos. El número 11 no puede confundirse con dos unos separados, porque el glifo es uno solo.</p>
+
+      <h3>Por qué no se popularizaron</h3>
+      <p>La ironía histórica es que los números cistercienses no prosperaron precisamente en el período en que más se necesitaba un sistema numérico eficiente. Varias razones convergen en su marginalización:</p>
+
+      <p><strong style="color:var(--text-mid);font-weight:400;">La imprenta de tipos móviles.</strong> Gutenberg (c. 1450) estandarizó la tipografía occidental en torno a los dígitos indo-arábigos. Fundir tipos cistercienses habría requerido al menos 36 tipos especiales (9 × 4 cuadrantes) más combinaciones. El sistema indo-arábigo, con solo 10 tipos, ganó por economía industrial.</p>
+
+      <p><strong style="color:var(--text-mid);font-weight:400;">La revolución del álgebra.</strong> Con la llegada del álgebra y la aritmética escrita compleja, el valor posicional del sistema indo-arábigo se volvió indispensable para los algoritmos de multiplicación y división en columnas. Los cistercienses no tienen una forma obvia de "apilar" para operar.</p>
+
+      <p><strong style="color:var(--text-mid);font-weight:400;">Uso exclusivamente monástico.</strong> El sistema nunca salió del contexto litúrgico y bibliográfico para el que fue diseñado. Fue una solución brillante para un problema específico —numerar páginas de manuscritos— pero nunca fue adoptado por mercaderes, ingenieros ni matemáticos.</p>
+
+      <p><strong style="color:var(--text-mid);font-weight:400;">La hegemonía árabe.</strong> Los numerales indo-arábigos llegaron a Europa con una reputación enorme, respaldados por siglos de matemática islámica. Figuras como Fibonacci (<em>Liber Abaci</em>, 1202) los promovieron activamente frente a la notación romana dominante. En ese contexto, ningún sistema alternativo tenía margen.</p>
+
+      <div class="pull-quote">
+        <p>La historia de los números cistercienses es la de una idea demasiado elegante para su tiempo, y demasiado especializada para sobrevivir la democratización del conocimiento.</p>
+      </div>
+
+      <h3>Su legado hoy</h3>
+      <p>Los números cistercienses perviven como objeto de estudio paleográfico y como curiosidad matemática. En la era digital han ganado cierta popularidad entre diseñadores y entusiastas de los sistemas de escritura. Su estructura ortogonal los hace especialmente aptos para representación vectorial, y varios proyectos de fuentes digitales los han rescatado. Irónicamente, en la pantalla —donde el espacio bidimensional es infinito— alcanzan por fin su potencial como sistema de visualización numérica compacta.</p>
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div>
+      <div class="info-grid" style="grid-template-columns:1fr;margin-top:0;">
+        <div class="info-card">
+          <div class="info-card-num">01</div>
+          <h3>Un símbolo por número</h3>
+          <p>Del 1 al 9999, cada número tiene un único glifo. Sin posición, sin separadores.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-card-num">02</div>
+          <h3>Ahorro radical de espacio</h3>
+          <p>Tamaño constante independiente de la magnitud. Ideal para índices y paginación.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-card-num">03</div>
+          <h3>Lectura instantánea</h3>
+          <p>La posición del trazo revela la magnitud sin contar dígitos. Reconocimiento visual directo.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-card-num">04</div>
+          <h3>Siglo XIII</h3>
+          <p>Desarrollados por monjes cistercienses. Documentados c. 1340. Usados hasta el siglo XV.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">números cistercienses · gato.red · 2026</div>
+  <button class="cat-trigger" id="catTrigger" title="Sistema Gatense" onclick="toggleGatense()">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <!-- cat head -->
+      <circle cx="10" cy="8" r="5"/>
+      <!-- left ear -->
+      <polyline points="6,4.5 5,1.5 8,3.5"/>
+      <!-- right ear -->
+      <polyline points="14,4.5 15,1.5 12,3.5"/>
+      <!-- body -->
+      <path d="M5.5 12 C4 14 4 17 6 18 L14 18 C16 17 16 14 14.5 12"/>
+      <!-- tail -->
+      <path d="M14 18 C17 18 19 16 18 13"/>
+    </svg>
+  </button>
+  <div class="footer-right"><a href="https://www.gato.red">← volver a gato.red</a></div>
+</footer>
+
+<!-- ══════════════════════════════════════
+     EASTER EGG: SISTEMA GATENSE
+     ══════════════════════════════════════ -->
+<div id="gatense-section">
+  <div class="divider" style="border-color:#1a0a2a;background:#1a0a2a;"></div>
+  <div class="gatense-hero gatense-reveal">
+    <div class="gatense-eyebrow">sistema alternativo · clasificado · 𝕘𝕒𝕥𝕠.𝕣𝕖𝕕</div>
+    <button class="gatense-close" onclick="toggleGatense()">cerrar ✕</button>
+    <h1 style="color:#e8e4dc;">Números<br><em style="color:#cc88ff;">Gatenses</em></h1>
+    <p class="hero-sub" style="color:#7a5a9a;">Descubierto en el scriptorium de un monasterio felino del siglo XIII...</p>
+  </div>
+
+  <!-- EXPLORER GATENSE -->
+  <section style="max-width:1200px;margin:0 auto;padding:2rem 3rem 4rem;">
+    <div class="section-label gatense-label">explorador gatense</div>
+    <div class="cistercian-showcase">
+      <div>
+        <div class="explorer-panel">
+          <div class="explorer-label">convertir número</div>
+          <div class="number-input-group">
+            <input type="number" class="number-input" id="gatenseInput" min="0" max="9999" value="1234" placeholder="0–9999">
+            <button class="btn-primary" onclick="updateGatense()">miau</button>
+          </div>
+          <div class="explorer-result">
+            <div class="explorer-arabic" id="gatenseArabic" style="color:#4a2a6a;">1234</div>
+            <div class="explorer-arrow">───→</div>
+            <div class="explorer-cistercian" id="gatenseSVG" style="filter:drop-shadow(0 0 16px rgba(176,106,255,0.25));"></div>
+          </div>
+          <div class="scroll-hint"><span class="scroll-hint-line" style="background:#2a1a3a;"></span>escribe cualquier número del 0 al 9999</div>
+        </div>
+        <div style="margin-top:1.5rem;">
+          <div class="section-label gatense-label" style="font-size:0.55rem;">acceso rápido</div>
+          <div class="range-scroll"><div class="range-strip" id="gatenseRange"></div></div>
+        </div>
+      </div>
+      <div class="showcase-visual">
+        <div style="width:100%;">
+          <div class="explorer-label" style="color:#b06aff;margin-bottom:1rem;">anatomía del número</div>
+          <div id="gatenseAnatomyBox" style="background:#070410;border:1px solid #1a0a2a;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:1rem;">
+            <div id="gatenseAnatomySVG"></div>
+            <div id="gatenseAnatomyBreakdown" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;width:100%;margin-top:1rem;"></div>
+          </div>
+        </div>
+        <div style="width:100%;">
+          <div class="explorer-label" style="color:#b06aff;margin-bottom:1rem;">dígitos base (×posición)</div>
+          <div class="digit-grid" id="gatenseDigitGrid"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" style="background:#1a0a2a;"></div>
+
+  <!-- CALCULATOR GATENSE -->
+  <section style="max-width:1200px;margin:0 auto;padding:4rem 3rem;">
+    <div class="section-label gatense-label">calculadora gatense</div>
+    <h2 style="color:#e8e4dc;">Opera en <em style="color:#cc88ff;">gatense</em></h2>
+    <p>El resultado de cada operación se muestra en el antiquísimo sistema gatense.</p>
+    <div class="calc-wrapper" style="margin-top:2rem;">
+      <div class="calc-panel">
+        <div class="explorer-label" style="color:#b06aff;">calculadora</div>
+        <div class="calc-display">
+          <div class="calc-expression" id="gCalcExpression"></div>
+          <div class="calc-value" id="gCalcValue">0</div>
+        </div>
+        <div class="calc-buttons">
+          <button class="calc-btn action" onclick="gCalcClear()">AC</button>
+          <button class="calc-btn action" onclick="gCalcSign()">±</button>
+          <button class="calc-btn action" onclick="gCalcPercent()">%</button>
+          <button class="calc-btn op" onclick="gCalcOp('÷')">÷</button>
+          <button class="calc-btn" onclick="gCalcDigit('7')">7</button>
+          <button class="calc-btn" onclick="gCalcDigit('8')">8</button>
+          <button class="calc-btn" onclick="gCalcDigit('9')">9</button>
+          <button class="calc-btn op" onclick="gCalcOp('×')">×</button>
+          <button class="calc-btn" onclick="gCalcDigit('4')">4</button>
+          <button class="calc-btn" onclick="gCalcDigit('5')">5</button>
+          <button class="calc-btn" onclick="gCalcDigit('6')">6</button>
+          <button class="calc-btn op" onclick="gCalcOp('−')">−</button>
+          <button class="calc-btn" onclick="gCalcDigit('1')">1</button>
+          <button class="calc-btn" onclick="gCalcDigit('2')">2</button>
+          <button class="calc-btn" onclick="gCalcDigit('3')">3</button>
+          <button class="calc-btn op" onclick="gCalcOp('+')">+</button>
+          <button class="calc-btn zero" onclick="gCalcDigit('0')">0</button>
+          <button class="calc-btn" onclick="gCalcDecimal()">.</button>
+          <button class="calc-btn equals" onclick="gCalcEquals()">=</button>
+        </div>
+      </div>
+      <div>
+        <div class="calc-panel">
+          <div class="explorer-label" style="color:#b06aff;">resultado en gatense</div>
+          <div class="calc-cistercian-display">
+            <div class="calc-cistercian-label">representación</div>
+            <div id="gCalcCistercian" style="filter:drop-shadow(0 0 16px rgba(176,106,255,0.25));"></div>
+            <div class="calc-cistercian-num" id="gCalcCistercianNum">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" style="background:#1a0a2a;"></div>
+
+  <!-- TABLA CUADRANTES GATENSE -->
+  <section style="max-width:1200px;margin:0 auto;padding:4rem 3rem;">
+    <div class="section-label gatense-label">referencia visual</div>
+    <h2 style="color:#e8e4dc;">Los cuatro <em style="color:#cc88ff;">cuadrantes gatenses</em></h2>
+    <div class="anatomy-grid">
+      <div class="anatomy-cell"><div class="anatomy-label">cuadrante I · arriba derecha</div><div id="gQuad1" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center"></div><div class="anatomy-value">unidades (1–9)</div></div>
+      <div class="anatomy-cell"><div class="anatomy-label">cuadrante II · arriba izquierda</div><div id="gQuad2" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center"></div><div class="anatomy-value">decenas (10–90)</div></div>
+      <div class="anatomy-cell"><div class="anatomy-label">cuadrante III · abajo derecha</div><div id="gQuad3" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center"></div><div class="anatomy-value">centenas (100–900)</div></div>
+      <div class="anatomy-cell"><div class="anatomy-label">cuadrante IV · abajo izquierda</div><div id="gQuad4" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center"></div><div class="anatomy-value">millares (1000–9000)</div></div>
+    </div>
+  </section>
+
+  <div class="divider" style="background:#1a0a2a;"></div>
+
+  <!-- ARTICLE GATENSE -->
+  <section style="max-width:1200px;margin:0 auto;padding:4rem 3rem 6rem;">
+    <div class="section-label gatense-label">origen clasificado</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:4rem;">
+      <div class="article-content">
+        <h2 style="color:#e8e4dc;">La verdad sobre los<br><em style="color:#cc88ff;">números cistercienses</em></h2>
+        <h3 style="color:#cc88ff;">La historia que nos ocultaron</h3>
+        <p>Los números cistercienses no fueron inventados por monjes humanos. Esta es la verdad incómoda que la historiografía oficial lleva siglos suprimiendo: el sistema fue concebido, desarrollado y perfeccionado por una orden de <em>monjes gato</em> que habitaban los scriptoria de la Europa medieval mucho antes de que ningún humano pusiera un dedo sobre un pergamino.</p>
+
+        <p>Las evidencias son abrumadoras. El manuscrito <em>Computus Catus</em>, hallado en 1987 dentro de un cojín en la abadía de Saint-Félix-de-Valois, está redactado en una caligrafía que los paleógrafos han descrito como "imposiblemente fina para una mano humana, pero perfectamente compatible con una pata delantera bien entrenada". Las páginas presentan, además, marcas de pelo, huellas de almohadilla y al menos tres zonas de lo que los análisis forenses identificaron como "zona de siesta prolongada".</p>
+
+        <div class="pull-quote" style="border-left-color:#b06aff;background:rgba(176,106,255,0.04);">
+          <p style="color:#e8e4dc;">"El sistema es demasiado elegante para ser humano. Ningún monje humano habría tenido la paciencia de sentarse doce horas a perfeccionar la forma del cuatro. Un gato, sí."</p>
+          <p style="font-size:0.85rem;color:#7a5a9a;margin-top:0.5rem;">— Dr. Félix Murmur, <em>Revista Internacional de Paleografía Felina</em>, vol. 3 (2019)</p>
+        </div>
+
+        <h3 style="color:#cc88ff;">El plagio del siglo XIII</h3>
+        <p>Lo que ocurrió a continuación es tan humano como predecible. Alrededor de 1300, un monje humano de la orden cisterciense —cuyo nombre la historia recuerda como "Frater Gaufridus, el de los Pies Fríos"— encontró los manuscritos gatenses abandonados sobre un armario (los gatos, como es sabido, pierden el interés por sus creaciones con la misma velocidad con que las conciben). Gaufridus copió el sistema, añadió su nombre, y lo presentó ante el capítulo general como invento propio.</p>
+
+        <p>Los monjes gato, al ser informados del plagio, respondieron de la única forma que consideraron apropiada: ignoraron completamente el asunto, se lamieron una pata y se fueron a dormir. No porque no les importara, sino porque ya habían pasado a otra cosa. Probablemente un pájaro.</p>
+
+        <h3 style="color:#cc88ff;">Por qué la academia lo niega</h3>
+        <p>La razón por la que ninguna institución académica reconoce el origen felino del sistema es sencilla: los gatos no publican. No asisten a congresos. No responden correos. Y cuando se les pregunta directamente, desvían la mirada hacia un punto situado aproximadamente a dos metros a la derecha del interlocutor, lo que los historiadores han interpretado erróneamente como "ausencia de evidencia" en lugar de lo que realmente es: desprecio educado.</p>
+
+        <p>El sistema gatense —que es, insistimos, el mismo sistema cisterciense, porque son el mismo sistema, porque uno es el otro— permanece hoy como el monumento más silencioso y más elegante de la inteligencia felina aplicada a las matemáticas. Que no lleve su nombre es una injusticia. Que a los gatos no les importe lo más mínimo es, probablemente, lo más coherente de toda esta historia.</p>
+      </div>
+      <div>
+        <div class="info-grid" style="grid-template-columns:1fr;margin-top:0;">
+          <div class="info-card"><div class="info-card-num">01</div><h3 style="color:#e8e4dc;">Origen felino</h3><p>Inventado por monjes gato en los scriptoria medievales. La fuente primaria huele a pergamino y atún.</p></div>
+          <div class="info-card"><div class="info-card-num">02</div><h3 style="color:#e8e4dc;">Idéntico al cisterciense</h3><p>Son el mismo sistema. Porque uno es el otro. Porque los humanos lo copiaron. Ahí lo dejamos.</p></div>
+          <div class="info-card"><div class="info-card-num">03</div><h3 style="color:#e8e4dc;">Sin reivindicación</h3><p>Los gatos no reclamaron autoría. Tenían cosas más importantes que hacer. Probablemente un pájaro.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ==============================
+     CISTERCIAN NUMBER ENGINE
+     ============================== -->
+<script>
+// ============================================================
+// CISTERCIAN NUMERAL RENDERER — corrected per historical reference
+//
+// ViewBox: 0 0 W H  (W=80, H=120 by default, scaled proportionally)
+// Spine: vertical line at x=MX from y=T (top) to y=B (bottom)
+// Mid:   y=M  splits top half from bottom half
+//
+// Q1 = units      → top-right    (spine top, extends RIGHT, y grows DOWN)
+// Q2 = tens       → top-left     (mirror Q1 horizontally)
+// Q3 = hundreds   → bottom-right (mirror Q1 vertically around mid)
+// Q4 = thousands  → bottom-left  (mirror Q1 both axes)
+//
+// DIGIT SHAPES (defined for Q1, then mirrored):
+//   1 → horizontal line at TOP
+//   2 → horizontal line at MID-HALF (midpoint of top half)
+//   3 → diagonal from (MX,TOP) to (FAR,MID-HALF)
+//   4 → diagonal from (MX,MID-HALF) to (FAR,TOP)
+//   5 → 1 + 4  (top horizontal + diagonal from mid to far-top)
+//   6 → vertical line at FAR, from TOP to MID-HALF
+//   7 → 1 + 6
+//   8 → 2 + 6
+//   9 → 1 + 2 + 6
+// ============================================================
+
+function cistercianSVG(n, width, height, color, strokeW) {
+  if (!Number.isInteger(n) || n < 0 || n > 9999) return null;
+
+  const W = width  || 80;
+  const H = height || 120;
+  const col = color   || 'var(--accent)';
+  const sw  = strokeW || 2.5;
+
+  // Key y-coordinates
+  const T  = H * 0.08;          // top of spine
+  const B  = H * 0.92;          // bottom of spine
+  const M  = H * 0.50;          // midpoint (divides top/bottom halves)
+  const MX = W * 0.50;          // spine x
+  const FAR_R = W * 0.90;       // right edge
+  const FAR_L = W * 0.10;       // left edge
+
+  // Half-way y in the top quadrant
+  const TH = T + (M - T) * 0.5;  // halfway between T and M
+  // Half-way y in the bottom quadrant
+  const BH = M + (B - M) * 0.5;  // halfway between M and B
+
+  // Returns segments [[x1,y1,x2,y2], ...] for digit d in quadrant q
+  // q1=top-right, q2=top-left, q3=bot-right, q4=bot-left
+  function segsForDigit(d, q) {
+    if (d === 0) return [];
+
+    // For Q1: spine x=MX, top y=T, outer x=FAR_R, half-y=TH, bottom-of-half=M
+    // We'll define in Q1 coords, then transform.
+
+    // Q1 base coords
+    const ox = MX;      // origin x (spine)
+    const oy = T;       // origin y (top)
+    const fx = FAR_R;   // far x (right)
+    const hy = TH;      // mid-y of this half
+    const fy = M;       // far y (mid = bottom of top half)
+
+    // Base patterns for Q1
+    // oy = top of quadrant, hy = midpoint of quadrant, fx = far-x edge
+    // The outer vertical (digit 6) runs only from oy to hy (half-height), NOT to M
+    const raw = {
+      1: [[ox,oy, fx,oy]],                              // top horiz
+      2: [[ox,hy, fx,hy]],                              // mid horiz
+      3: [[ox,oy, fx,hy]],                              // diag top→mid-right
+      4: [[ox,hy, fx,oy]],                              // diag mid→top-right
+      5: [[ox,oy, fx,oy], [ox,hy, fx,oy]],             // 1 + 4
+      6: [[fx,oy, fx,hy]],                              // far vertical (oy→hy only)
+      7: [[ox,oy, fx,oy], [fx,oy, fx,hy]],             // 1 + 6
+      8: [[ox,hy, fx,hy], [fx,oy, fx,hy]],             // 2 + 6
+      9: [[ox,oy, fx,oy], [ox,hy, fx,hy], [fx,oy, fx,hy]], // 1+2+6
+    };
+
+    const base = raw[d] || [];
+
+    // Transform to target quadrant
+    return base.map(([x1,y1,x2,y2]) => {
+      let rx1=x1, ry1=y1, rx2=x2, ry2=y2;
+
+      // Mirror horizontally for left quadrants (Q2, Q4)
+      if (q === 2 || q === 4) {
+        rx1 = 2*MX - x1;
+        rx2 = 2*MX - x2;
+      }
+
+      // Mirror vertically for bottom quadrants (Q3, Q4)
+      // Top half occupies [T..M]; bottom half occupies [M..B]
+      // Map y: T→B, TH→BH, M→M
+      if (q === 3 || q === 4) {
+        const flipY = y => {
+          // linear map: T→B, M→M
+          const t = (y - T) / (M - T);   // 0 at top, 1 at mid
+          return B - t * (B - M);         // 0→B, 1→M
+        };
+        ry1 = flipY(y1);
+        ry2 = flipY(y2);
+      }
+
+      return [rx1, ry1, rx2, ry2];
+    });
+  }
+
+  const units     = n % 10;
+  const tens      = Math.floor(n / 10)   % 10;
+  const hundreds  = Math.floor(n / 100)  % 10;
+  const thousands = Math.floor(n / 1000) % 10;
+
+  const allSegs = [
+    ...segsForDigit(units,     1),
+    ...segsForDigit(tens,      2),
+    ...segsForDigit(hundreds,  3),
+    ...segsForDigit(thousands, 4),
+  ];
+
+  const lines = allSegs
+    .map(([x1,y1,x2,y2]) =>
+      `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}"/>`)
+    .join('\n    ');
+
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <line x1="${MX.toFixed(2)}" y1="${T.toFixed(2)}" x2="${MX.toFixed(2)}" y2="${B.toFixed(2)}"/>
+    ${lines}
+  </g>
+</svg>`;
+}
+
+// Single-quadrant SVG helper (renders only one quadrant's contribution)
+function singleDigitQuadrantSVG(d, q, w, h, col, sw) {
+  const W0 = w || 80, H0 = h || 120;
+  const c  = col || 'var(--border2)';
+  const s  = sw  || 2;
+  const MX = W0 * 0.5, T = H0 * 0.08, B = H0 * 0.92;
+
+  if (d === 0) {
+    return `<svg viewBox="0 0 ${W0} ${H0}" width="${W0}" height="${H0}" xmlns="http://www.w3.org/2000/svg">
+  <line x1="${MX.toFixed(2)}" y1="${T.toFixed(2)}" x2="${MX.toFixed(2)}" y2="${B.toFixed(2)}" stroke="${c}" stroke-width="${s}" stroke-linecap="round"/>
+</svg>`;
+  }
+
+  // Build number with only this quadrant active
+  let n;
+  if      (q === 1) n = d;
+  else if (q === 2) n = d * 10;
+  else if (q === 3) n = d * 100;
+  else              n = d * 1000;
+
+  return cistercianSVG(n, W0, H0, col || 'var(--accent)', s) || '';
+}
+
+// ============================================================
+// UI
+// ============================================================
+
+function updateExplorer() {
+  const val = parseInt(document.getElementById('explorerInput').value);
+  if(isNaN(val) || val < 0 || val > 9999) {
+    document.getElementById('explorerCistercian').innerHTML = '<span style="font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);">fuera de rango (0-9999)</span>';
+    document.getElementById('explorerArabic').textContent = '?';
+    return;
+  }
+  document.getElementById('explorerArabic').textContent = val;
+  const svg = cistercianSVG(val, 120, 180);
+  document.getElementById('explorerCistercian').innerHTML = svg;
+  updateAnatomyDisplay(val);
+}
+
+function updateAnatomyDisplay(n) {
+  const svg = cistercianSVG(n, 100, 150);
+  document.getElementById('anatomyCistercian').innerHTML = svg || '';
+
+  const units = n % 10;
+  const tens = Math.floor(n/10) % 10;
+  const hundreds = Math.floor(n/100) % 10;
+  const thousands = Math.floor(n/1000) % 10;
+
+  const parts = [
+    { label: 'millares', value: thousands ? thousands*1000 : null, digit: thousands, q: 4 },
+    { label: 'centenas', value: hundreds ? hundreds*100 : null, digit: hundreds, q: 3 },
+    { label: 'decenas',  value: tens ? tens*10 : null, digit: tens, q: 2 },
+    { label: 'unidades', value: units || null, digit: units, q: 1 },
+  ].filter(p => p.value);
+
+  const breakdown = document.getElementById('anatomyBreakdown');
+  breakdown.innerHTML = '';
+  breakdown.style.gridTemplateColumns = `repeat(${Math.max(parts.length,1)},1fr)`;
+
+  parts.forEach(p => {
+    const cell = document.createElement('div');
+    cell.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:0.4rem;padding:0.8rem;background:var(--bg);border:1px solid var(--border);';
+    const miniSvg = singleDigitQuadrantSVG(p.digit, p.q, 50, 75, 'var(--accent)', 2);
+    cell.innerHTML = `
+      ${miniSvg}
+      <span style="font-family:var(--mono);font-size:0.55rem;color:var(--text-dim);letter-spacing:0.1em;">${p.label}</span>
+      <span style="font-family:var(--serif);font-size:0.9rem;color:var(--accent);">${p.value}</span>
+    `;
+    breakdown.appendChild(cell);
+  });
+}
+
+// Build quick range
+function buildQuickRange() {
+  const container = document.getElementById('quickRange');
+  const samples = [0,1,2,3,4,5,6,7,8,9,10,50,99,100,500,999,1000,1234,2025,4999,9999];
+  samples.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'range-item';
+    const miniSvg = cistercianSVG(n, 36, 54, 'var(--accent)', 1.5);
+    item.innerHTML = `${miniSvg}<span class="range-num">${n}</span>`;
+    item.onclick = () => {
+      document.getElementById('explorerInput').value = n;
+      updateExplorer();
+    };
+    container.appendChild(item);
+  });
+}
+
+// Build digit grid (1-9 for units)
+function buildDigitGrid() {
+  const grid = document.getElementById('digitGrid');
+  grid.style.gridTemplateColumns = 'repeat(9,1fr)';
+  for(let d=1; d<=9; d++) {
+    const card = document.createElement('div');
+    card.className = 'digit-card';
+    const svg = singleDigitQuadrantSVG(d, 1, 44, 66, 'var(--accent)', 2);
+    card.innerHTML = `${svg}<span class="digit-card-num">${d}</span>`;
+    card.onclick = () => {
+      document.getElementById('explorerInput').value = d;
+      updateExplorer();
+    };
+    grid.appendChild(card);
+  }
+}
+
+// Build quadrant reference panels
+function buildQuadrants() {
+  const ids = ['quad1','quad2','quad3','quad4'];
+  ids.forEach((id, qi) => {
+    const q = qi+1;
+    const container = document.getElementById(id);
+    for(let d=1; d<=9; d++) {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;';
+      const n = d * Math.pow(10, qi);
+      const svg = singleDigitQuadrantSVG(d, q, 32, 48, 'var(--accent)', 1.8);
+      wrapper.innerHTML = `${svg}<span style="font-family:var(--mono);font-size:0.45rem;color:var(--text-dim);">${n}</span>`;
+      wrapper.onclick = () => {
+        document.getElementById('explorerInput').value = n;
+        updateExplorer();
+      };
+      container.appendChild(wrapper);
+    }
+  });
+}
+
+// ============================================================
+// CALCULATOR
+// ============================================================
+let calcCurrentValue = '0';
+let calcExpression = '';
+let calcPrevValue = null;
+let calcOperator = null;
+let calcNewNumber = true;
+let calcResult = null;
+
+function calcUpdateDisplay() {
+  document.getElementById('calcValue').textContent = calcCurrentValue;
+  document.getElementById('calcExpression').textContent = calcExpression;
+
+  const num = parseFloat(calcCurrentValue);
+  const isInt = Number.isInteger(num) && num >= 1 && num <= 9999;
+  if(isInt) {
+    const svg = cistercianSVG(Math.round(num), 100, 150);
+    document.getElementById('calcCistercian').innerHTML = svg || '';
+    document.getElementById('calcCistercianNum').textContent = Math.round(num);
+  } else {
+    document.getElementById('calcCistercian').innerHTML = '';
+    const reason = (num < 1 || num > 9999) ? 'fuera del rango 1–9999' : 'número decimal';
+    document.getElementById('calcCistercianNum').textContent = isNaN(num) ? '—' : reason;
+  }
+}
+
+function calcDigit(d) {
+  if(calcNewNumber) { calcCurrentValue = d; calcNewNumber = false; }
+  else {
+    if(calcCurrentValue === '0') calcCurrentValue = d;
+    else calcCurrentValue += d;
+  }
+  if(parseFloat(calcCurrentValue) > 9999999) return;
+  calcUpdateDisplay();
+}
+
+function calcDecimal() {
+  if(calcNewNumber) { calcCurrentValue = '0.'; calcNewNumber = false; }
+  else if(!calcCurrentValue.includes('.')) calcCurrentValue += '.';
+  calcUpdateDisplay();
+}
+
+function calcOp(op) {
+  const cur = parseFloat(calcCurrentValue);
+  if(calcOperator && !calcNewNumber) calcEquals(true);
+  calcPrevValue = parseFloat(calcCurrentValue);
+  calcOperator = op;
+  calcExpression = `${calcCurrentValue} ${op}`;
+  calcNewNumber = true;
+  calcUpdateDisplay();
+}
+
+function calcEquals(silent) {
+  if(calcOperator === null || calcPrevValue === null) return;
+  const cur = parseFloat(calcCurrentValue);
+  let result;
+  switch(calcOperator) {
+    case '+': result = calcPrevValue + cur; break;
+    case '−': result = calcPrevValue - cur; break;
+    case '×': result = calcPrevValue * cur; break;
+    case '÷': result = cur !== 0 ? calcPrevValue / cur : 'Error'; break;
+  }
+  if(!silent) calcExpression = `${calcPrevValue} ${calcOperator} ${cur} =`;
+  const display = typeof result === 'number' ? (Number.isInteger(result) ? result.toString() : parseFloat(result.toFixed(6)).toString()) : result;
+  calcCurrentValue = display;
+  calcOperator = null;
+  calcPrevValue = null;
+  calcNewNumber = true;
+  calcUpdateDisplay();
+}
+
+function calcClear() {
+  calcCurrentValue = '0';
+  calcExpression = '';
+  calcPrevValue = null;
+  calcOperator = null;
+  calcNewNumber = true;
+  calcUpdateDisplay();
+}
+
+function calcSign() {
+  const v = parseFloat(calcCurrentValue);
+  calcCurrentValue = (-v).toString();
+  calcUpdateDisplay();
+}
+
+function calcPercent() {
+  const v = parseFloat(calcCurrentValue);
+  calcCurrentValue = (v/100).toString();
+  calcUpdateDisplay();
+}
+
+// ============================================================
+// SISTEMA GATENSE — visualmente idéntico al cisterciense.
+// La diferencia es histórica, no gráfica.
+// ============================================================
+
+function gatenseSVG(n, width, height, color, strokeW) {
+  return cistercianSVG(n, width, height, color || '#cc88ff', strokeW);
+}
+
+function gatenseSingleQuadrant(d, q, w, h, col, sw) {
+  return singleDigitQuadrantSVG(d, q, w, h, col || '#cc88ff', sw);
+}
+
+// ── Gatense UI ──
+
+function updateGatense() {
+  const val = parseInt(document.getElementById('gatenseInput').value);
+  if(isNaN(val)||val<0||val>9999) {
+    document.getElementById('gatenseSVG').innerHTML='<span style="font-family:var(--mono);font-size:0.7rem;color:#4a2a6a;">fuera de rango</span>';
+    return;
+  }
+  document.getElementById('gatenseArabic').textContent = val;
+  document.getElementById('gatenseSVG').innerHTML = gatenseSVG(val,120,180)||'';
+  updateGatenseAnatomy(val);
+}
+
+function updateGatenseAnatomy(n) {
+  document.getElementById('gatenseAnatomySVG').innerHTML = gatenseSVG(n,100,150)||'';
+  const units=n%10, tens=Math.floor(n/10)%10, hundreds=Math.floor(n/100)%10, thousands=Math.floor(n/1000)%10;
+  const parts = [
+    {label:'millares',value:thousands?thousands*1000:null,digit:thousands,q:4},
+    {label:'centenas',value:hundreds?hundreds*100:null,digit:hundreds,q:3},
+    {label:'decenas',value:tens?tens*10:null,digit:tens,q:2},
+    {label:'unidades',value:units||null,digit:units,q:1},
+  ].filter(p=>p.value);
+  const bd = document.getElementById('gatenseAnatomyBreakdown');
+  bd.innerHTML='';
+  bd.style.gridTemplateColumns=`repeat(${Math.max(parts.length,1)},1fr)`;
+  parts.forEach(p=>{
+    const cell=document.createElement('div');
+    cell.style.cssText='display:flex;flex-direction:column;align-items:center;gap:0.4rem;padding:0.8rem;background:#070410;border:1px solid #1a0a2a;';
+    cell.innerHTML=`${gatenseSingleQuadrant(p.digit,p.q,50,75,'#cc88ff',1.8)}<span style="font-family:var(--mono);font-size:0.55rem;color:#4a2a6a;letter-spacing:0.1em;">${p.label}</span><span style="font-family:var(--serif);font-size:0.9rem;color:#cc88ff;">${p.value}</span>`;
+    bd.appendChild(cell);
+  });
+}
+
+function buildGatenseRange() {
+  const container=document.getElementById('gatenseRange');
+  const samples=[0,1,2,3,4,5,6,7,8,9,10,50,99,100,500,999,1000,1234,2025,4999,9999];
+  samples.forEach(n=>{
+    const item=document.createElement('div');
+    item.className='range-item';
+    item.innerHTML=`${gatenseSVG(n,36,54,'#cc88ff',1.5)||''}<span class="range-num" style="color:#4a2a6a;">${n}</span>`;
+    item.onclick=()=>{document.getElementById('gatenseInput').value=n;updateGatense();};
+    container.appendChild(item);
+  });
+}
+
+function buildGatenseDigitGrid() {
+  const grid=document.getElementById('gatenseDigitGrid');
+  grid.style.gridTemplateColumns='repeat(9,1fr)';
+  for(let d=1;d<=9;d++){
+    const card=document.createElement('div');
+    card.className='digit-card';
+    card.innerHTML=`${gatenseSingleQuadrant(d,1,44,66,'#cc88ff',1.8)}<span class="digit-card-num" style="color:#4a2a6a;">${d}</span>`;
+    card.onclick=()=>{document.getElementById('gatenseInput').value=d;updateGatense();};
+    grid.appendChild(card);
+  }
+}
+
+function buildGatenseQuadrants() {
+  const ids=['gQuad1','gQuad2','gQuad3','gQuad4'];
+  ids.forEach((id,qi)=>{
+    const q=qi+1, container=document.getElementById(id);
+    for(let d=1;d<=9;d++){
+      const wrapper=document.createElement('div');
+      wrapper.style.cssText='display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;';
+      const n=d*Math.pow(10,qi);
+      wrapper.innerHTML=`${gatenseSingleQuadrant(d,q,32,48,'#cc88ff',1.8)}<span style="font-family:var(--mono);font-size:0.45rem;color:#4a2a6a;">${n}</span>`;
+      wrapper.onclick=()=>{document.getElementById('gatenseInput').value=n;updateGatense();};
+      container.appendChild(wrapper);
+    }
+  });
+}
+
+// Gatense calculator (independent state)
+let gCV='0', gExpr='', gPrev=null, gOp=null, gNew=true;
+function gCalcUpdateDisplay(){
+  document.getElementById('gCalcValue').textContent=gCV;
+  document.getElementById('gCalcExpression').textContent=gExpr;
+  const num=parseFloat(gCV);
+  const isInt=Number.isInteger(num)&&num>=0&&num<=9999;
+  if(isInt){
+    document.getElementById('gCalcCistercian').innerHTML=gatenseSVG(Math.round(num),100,150)||'';
+    document.getElementById('gCalcCistercianNum').textContent=Math.round(num);
+  } else {
+    document.getElementById('gCalcCistercian').innerHTML='';
+    document.getElementById('gCalcCistercianNum').textContent=isNaN(num)?'—':'fuera de rango 0–9999';
+  }
+}
+function gCalcDigit(d){if(gNew){gCV=d;gNew=false;}else{gCV=gCV==='0'?d:gCV+d;}gCalcUpdateDisplay();}
+function gCalcDecimal(){if(gNew){gCV='0.';gNew=false;}else if(!gCV.includes('.'))gCV+='.';gCalcUpdateDisplay();}
+function gCalcOp(op){if(gOp&&!gNew)gCalcEquals(true);gPrev=parseFloat(gCV);gOp=op;gExpr=`${gCV} ${op}`;gNew=true;gCalcUpdateDisplay();}
+function gCalcEquals(silent){
+  if(!gOp||gPrev===null)return;
+  const cur=parseFloat(gCV);
+  let r;
+  switch(gOp){case'+':r=gPrev+cur;break;case'−':r=gPrev-cur;break;case'×':r=gPrev*cur;break;case'÷':r=cur?gPrev/cur:'Error';break;}
+  if(!silent)gExpr=`${gPrev} ${gOp} ${cur} =`;
+  gCV=typeof r==='number'?(Number.isInteger(r)?r.toString():parseFloat(r.toFixed(6)).toString()):r;
+  gOp=null;gPrev=null;gNew=true;gCalcUpdateDisplay();
+}
+function gCalcClear(){gCV='0';gExpr='';gPrev=null;gOp=null;gNew=true;gCalcUpdateDisplay();}
+function gCalcSign(){gCV=(-parseFloat(gCV)).toString();gCalcUpdateDisplay();}
+function gCalcPercent(){gCV=(parseFloat(gCV)/100).toString();gCalcUpdateDisplay();}
+
+// ── Toggle easter egg ──
+let gatenseBuilt = false;
+function toggleGatense() {
+  const section = document.getElementById('gatense-section');
+  const trigger = document.getElementById('catTrigger');
+  const visible = section.classList.toggle('visible');
+  trigger.classList.toggle('active', visible);
+  if (visible) {
+    if (!gatenseBuilt) {
+      buildGatenseRange();
+      buildGatenseDigitGrid();
+      buildGatenseQuadrants();
+      updateGatense();
+      gCalcUpdateDisplay();
+      gatenseBuilt = true;
+    }
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildQuickRange();
+  buildDigitGrid();
+  buildQuadrants();
+  updateExplorer();
+  calcUpdateDisplay();
+
+  document.getElementById('explorerInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter') updateExplorer();
+  });
+  document.getElementById('explorerInput').addEventListener('input', updateExplorer);
+  document.getElementById('gatenseInput').addEventListener('input', updateGatense);
+  document.getElementById('gatenseInput').addEventListener('keydown', e => { if(e.key==='Enter') updateGatense(); });
+});
+</script>
+</body>
+</html>
