@@ -1433,13 +1433,81 @@ body {
 .clue-gem.found { background: var(--gold); box-shadow: var(--glow-gold); }
 .clue-text { font-size: 0.72rem; color: var(--text-secondary); font-style: italic; }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
+/* Combat Banner */
+#combat-banner {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: linear-gradient(135deg, rgba(192,57,43,0.95), rgba(100,20,10,0.95));
+  border-bottom: 2px solid var(--red-bright);
+  padding: 0.5rem 1rem;
+  z-index: 150;
+  align-items: center;
+  gap: 0.8rem;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  box-shadow: 0 4px 20px rgba(192,57,43,0.4);
+  animation: fadeIn 0.3s ease;
+}
+#combat-banner.active { display: flex; }
+#combat-banner .cb-title { color: #ffd0d0; font-size: 0.85rem; font-weight: 700; }
+#combat-banner .cb-round { color: var(--red-bright); }
+#combat-banner .cb-turn { flex:1; color: #ffb0a0; font-style:italic; }
+
+/* Combat action buttons in action-grid during combat */
+.action-btn.combat-action { border-color: #6a1a1a; }
+.action-btn.combat-action:hover { border-color: var(--red-bright); color: #ffd0d0; background: rgba(192,57,43,0.15); }
+.action-btn.combat-action.primary { border-color: var(--red-bright); color: #ffd0d0; background: rgba(192,57,43,0.12); }
+
+
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
   .form-row { grid-template-columns: 1fr 1fr; }
   .market-grid { grid-template-columns: repeat(2, 1fr); }
   .action-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* Clickable recent log entries */
+.recent-log-entry {
+  cursor: pointer;
+  padding: 0.18rem 0.3rem;
+  border-radius: 3px;
+  transition: background 0.15s;
+  line-height: 1.5;
+}
+.recent-log-entry:hover {
+  background: rgba(200,146,42,0.12);
+  color: var(--text-primary);
+}
+
+/* Log detail modal */
+#log-detail-modal .modal { max-width: 460px; }
+#log-detail-text {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+
+#travel-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(10,8,6,0.6) 0%, rgba(0,0,0,0.95) 100%);
+  z-index: 250;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+#travel-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
+#travel-overlay.active .travel-anim-icon { animation: travelBounce 0.6s ease infinite alternate; }
+@keyframes travelBounce { from { transform: translateY(0) rotate(-5deg); } to { transform: translateY(-12px) rotate(5deg); } }
+.travel-anim-text { font-family: var(--font-display); font-size: 0.9rem; color: var(--gold-light); letter-spacing: 0.15em; }
+.travel-anim-dest { font-family: var(--font-title); font-size: 1.2rem; color: var(--gold); text-shadow: var(--glow-gold); }
+.travel-progress { width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-top: 0.5rem; }
+.travel-progress-fill { height: 100%; background: linear-gradient(to right, var(--border-gold), var(--gold-bright)); border-radius: 2px; width: 0%; transition: width 1.8s ease-in-out; }
 
 /* ===== CONFETTI LAYER ===== */
 #confetti-canvas {
@@ -1618,6 +1686,20 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
     </div>
 
     <div class="section">
+      <div class="section-title">⚔️ Dificultad</div>
+      <div style="display:flex;gap:0.6rem;">
+        <div class="trait-card selected" id="diff-easy" onclick="selectDifficulty('easy',this)" style="flex:1">
+          <div class="trait-name">🌿 Fácil</div>
+          <div class="trait-desc">+50% daño infligido · −50% daño recibido. Para disfrutar la historia.</div>
+        </div>
+        <div class="trait-card" id="diff-normal" onclick="selectDifficulty('normal',this)" style="flex:1">
+          <div class="trait-name">⚔️ Normal</div>
+          <div class="trait-desc">D&D 5e estándar. El mundo es peligroso y exigente.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
       <div class="section-title">Alineamiento</div>
       <div class="trait-grid" id="alignment-grid"></div>
     </div>
@@ -1707,7 +1789,7 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
         <div class="mini-section">
           <div class="mini-title">⚔️ Grupo</div>
           <div id="party-list"></div>
-          <button class="btn btn-small" style="width:100%; margin-top:0.3rem" onclick="openTavern()">+ Contratar Aventurero</button>
+          <button class="btn btn-small" id="hire-btn" style="width:100%; margin-top:0.3rem" onclick="openTavern()">+ Contratar Aventurero</button>
         </div>
 
         <div class="mini-section">
@@ -1835,6 +1917,36 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
       <button class="nav-btn" onclick="mobileNav('right',this)"><span class="icon">⚔️</span>Combate</button>
     </div>
   </div>
+</div>
+
+<!-- COMBAT BANNER -->
+<div id="combat-banner">
+  <span style="font-size:1.2rem;">⚔️</span>
+  <span class="cb-title">¡COMBATE!</span>
+  <span class="cb-round" id="cb-round">Ronda 1</span>
+  <span class="cb-turn" id="cb-turn">Tu turno</span>
+  <span style="font-size:0.65rem; color:rgba(255,200,200,0.7)">Las demás acciones están bloqueadas</span>
+</div>
+
+<!-- LOG DETAIL MODAL -->
+<div class="modal-overlay" id="log-detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="log-detail-title">📖 Registro</div>
+      <button class="modal-close" onclick="closeModal('log-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="log-detail-text"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TRAVEL OVERLAY -->
+<div id="travel-overlay">
+  <div class="travel-anim-icon" id="travel-anim-icon" style="font-size:3.5rem;"></div>
+  <div class="travel-anim-text">Viajando hacia...</div>
+  <div class="travel-anim-dest" id="travel-anim-dest">—</div>
+  <div class="travel-progress"><div class="travel-progress-fill" id="travel-progress-fill"></div></div>
 </div>
 
 <!-- OVERLAYS & MODALS -->
@@ -2010,19 +2122,226 @@ const ALIGNMENTS = [
 ];
 
 const PERSONALITIES = {
-  fighter:   ['Nunca dejo a un compañero atrás en el campo de batalla.', 'Soy directo y prefiero los hechos a las palabras.', 'Respeto la fuerza y desprecio la cobardía.'],
-  wizard:    ['El conocimiento es el poder más grande.', 'Observo y analizo antes de actuar.', 'Los detalles importan más que la visión general.'],
-  rogue:     ['Confío en mis instintos más que en mis aliados.', 'Si un trabajo vale la pena hacerlo, vale la pena hacerlo bien.', 'Siempre tengo un plan de escape.'],
-  cleric:    ['La fe es mi escudo y mi espada.', 'Sirvo a mi dios con cada aliento.', 'Todo ser merece una oportunidad de redención.'],
-  ranger:    ['La naturaleza salvaje es mi verdadero hogar.', 'Soy reservado con los extraños pero leal a mis compañeros.', 'Nunca pierdo mi camino en bosques o montañas.'],
-  paladin:   ['Mi palabra es mi pacto sagrado.', 'Los inocentes deben ser protegidos a cualquier costo.', 'El mal debe ser erradicado donde sea que ase su fea cabeza.'],
-  barbarian: ['Confío en mis instintos y mi fuerza bruta.', 'Me río ante el peligro.', 'Las grandes hazañas merecen grandes fiestas.'],
-  bard:      ['Cada aventura es una historia que debo contar.', 'Ninguna situación está más allá de mi capacidad de entretener.', 'Las palabras son más poderosas que las espadas.'],
-  druid:     ['Busco el equilibrio en todas las cosas.', 'La naturaleza tiene sabiduría que los civilizados han olvidado.', 'Cambio como las estaciones.'],
-  warlock:   ['El poder tiene un precio y estoy dispuesto a pagarlo.', 'Mi patrón y yo tenemos un acuerdo que me conviene.', 'Los secretos son mi moneda más valiosa.'],
-  sorcerer:  ['El poder fluye por mis venas como sangre ardiente.', 'No elegiría tener magia diferente aunque pudiera.', 'Emoción me llena cuando libero mi verdadero poder.'],
-  monk:      ['El cuerpo es el templo del espíritu.', 'La paciencia supera a la velocidad.', 'Nada me perturba; soy como agua tranquila.']
+  fighter: [
+    'Nunca dejo a un compañero atrás en el campo de batalla.',
+    'Soy directo y prefiero los hechos a las palabras.',
+    'Respeto la fuerza y desprecio la cobardía.',
+    'He visto demasiadas guerras. Solo peleo cuando vale la pena.',
+    'Mi escudo no es solo para mí. Es para los que no pueden defenderse.',
+    'Aprendí a luchar antes que a leer. Y no me arrepiento.',
+    'La disciplina es lo único que separa a un guerrero de una bestia.',
+    'No busco la gloria. Busco sobrevivir, y hacer que los míos sobrevivan.',
+    'Cada cicatriz es una lección. Tengo muchas lecciones.',
+    'Un arma bien cuidada es la diferencia entre vivir y morir.',
+    'El honor en batalla es sagrado. La traición, imperdonable.',
+    'No me importa la política. Me importa quién está a mi lado cuando las cosas se ponen mal.',
+    'Sirvo con lealtad, pero no con ceguera. Hay órdenes que no ejecuto.',
+    'La fuerza sin causa es violencia. Con causa, es protección.',
+    'Prefiero morir de pie que vivir de rodillas.',
+  ],
+  wizard: [
+    'El conocimiento es el poder más grande.',
+    'Observo y analizo antes de actuar.',
+    'Los detalles importan más que la visión general.',
+    'He leído más libros de los que tú has visto en tu vida.',
+    'La magia sin comprensión es solo explosión aleatoria.',
+    'Todo tiene una explicación. Solo hay que buscarla.',
+    'Los libros nunca me han traicionado. Las personas, sí.',
+    'La impaciencia es el enemigo del conocimiento.',
+    'Cada hechizo fallido es información valiosa.',
+    'No subestimes a quien tiene tiempo de prepararse.',
+    'La magia es el lenguaje del universo. Yo solo aprendo a hablarlo.',
+    'Hay cosas que prefiero saber aunque duelan.',
+    'Mi grimorio vale más que mi vida. Y lo sé.',
+    'La arrogancia es el vicio del mago mediocre.',
+    'Prefiero preguntar "por qué funciona" antes que "cómo se usa".',
+  ],
+  rogue: [
+    'Confío en mis instintos más que en mis aliados.',
+    'Si un trabajo vale la pena hacerlo, vale la pena hacerlo bien.',
+    'Siempre tengo un plan de escape.',
+    'La información es más valiosa que el oro.',
+    'No mato por placer. Solo cobro lo acordado.',
+    'La sombra es mi aliada. La luz, un peligro.',
+    'La gente habla demasiado cuando cree que no la escuchan.',
+    'Trabajo por dinero, pero tengo mis principios. Algunos.',
+    'El mejor combate es el que termina antes de empezar.',
+    'Nunca firmo nada. Nada escrito puede usarse como prueba.',
+    'Los ricos tienen guardaespaldas. Los pobres tienen sorpresas.',
+    'Todo el mundo tiene secretos. Yo simplemente sé encontrarlos.',
+    'La paciencia no es una virtud para mí. Es una herramienta.',
+    'No soy un asesino. Soy un solucionador de problemas.',
+    'Si te has dado cuenta de que estoy aquí, ya he cometido un error.',
+  ],
+  cleric: [
+    'La fe es mi escudo y mi espada.',
+    'Sirvo a mi dios con cada aliento.',
+    'Todo ser merece una oportunidad de redención.',
+    'Los dioses prueban a sus siervos con cada prueba.',
+    'La curación es un arte, no un milagro automático.',
+    'Mi dios no me habla en palabras. Me habla en situaciones.',
+    'La piedad no es debilidad. Es la forma más difícil de fuerza.',
+    'He visto morir a inocentes. Sigo creyendo. Precisamente por eso.',
+    'No impongo mi fe. Pero tampoco la escondo.',
+    'El bien y el mal no son conceptos abstractos. Son decisiones cotidianas.',
+    'La oración no mueve montañas. Mueve a las personas que las mueven.',
+    'Mi mayor miedo no es la muerte. Es perder la fe antes de morir.',
+    'Servir no me rebaja. Me da propósito.',
+    'Hay una diferencia entre perdonar y olvidar. Hago lo primero.',
+    'Las dudas no me abandonan, pero tampoco me definen.',
+  ],
+  ranger: [
+    'La naturaleza salvaje es mi verdadero hogar.',
+    'Soy reservado con los extraños pero leal a mis compañeros.',
+    'Nunca pierdo mi camino en bosques o montañas.',
+    'Cada huella cuenta una historia. Sé leer el mundo.',
+    'Los animales son mejores compañía que la mayoría de personas.',
+    'Las ciudades me sofocan. El horizonte abierto me libera.',
+    'Sigo las huellas del enemigo mejor de lo que sigo conversaciones sociales.',
+    'He dormido más noches bajo las estrellas que bajo un techo.',
+    'La naturaleza no es cruel. Solo es honesta.',
+    'Mi arco habla cuando las palabras no bastan.',
+    'Conozco cada planta de este bosque. Y cuáles matan.',
+    'La paciencia del cazador no se enseña. Se aprende esperando.',
+    'No soy un asesino. Soy el equilibrio de este ecosistema.',
+    'La soledad no me pesa. Es donde mejor pienso.',
+    'El camino más corto no siempre es el más seguro.',
+  ],
+  paladin: [
+    'Mi palabra es mi pacto sagrado.',
+    'Los inocentes deben ser protegidos a cualquier costo.',
+    'El mal debe ser erradicado donde se encuentre.',
+    'El honor no es una debilidad. Es mi fortaleza.',
+    'He jurado. Y un juramento no se rompe.',
+    'Cargo con el peso de mi juramento con orgullo.',
+    'No soy perfecto. Pero aspiro a serlo.',
+    'La justicia sin misericordia es crueldad. La misericordia sin justicia es debilidad.',
+    'Protejo incluso a quienes no lo merecen. Esa es la prueba real.',
+    'Mi aura no es un superpoder. Es una responsabilidad.',
+    'El camino del paladín es solitario a veces. Vale la pena.',
+    'No combato por gloria. Combato porque nadie más puede.',
+    'He fallado en el pasado. Mi juramento nació de ese fracaso.',
+    'La fe ciega es peligrosa. La fe razonada, incontenible.',
+    'La espada es el último recurso. El diálogo, el primero.',
+  ],
+  barbarian: [
+    'Confío en mis instintos y mi fuerza bruta.',
+    'Me río ante el peligro.',
+    'Las grandes hazañas merecen grandes fiestas.',
+    'Mi tribu me enseñó a sobrevivir. La civilización me enseñó a contener la rabia.',
+    'El dolor es una señal de que sigues vivo.',
+    'No necesito estrategia. Necesito velocidad y fuerza.',
+    'En la furia encuentro claridad. Suena raro, pero es verdad.',
+    'La gente me teme antes de que abra la boca. Me ahorra tiempo.',
+    'Mi cuerpo es mi arma. Y lo mantengo afilado.',
+    'El frío, el hambre y el cansancio son viejos amigos.',
+    'No soy un bruto. Soy alguien que eligió no fingir ser refinado.',
+    'La rabia que siento es real. Aprendí a usarla en lugar de suprimirla.',
+    'Los cobardes planean. Los valientes actúan.',
+    'No entiendo las reglas de la ciudad. Entiendo las de la supervivencia.',
+    'Mi cultura no es inferior. Es diferente. Y ha sobrevivido milenios.',
+  ],
+  bard: [
+    'Cada aventura es una historia que debo contar.',
+    'Ninguna situación está más allá de mi capacidad de entretener.',
+    'Las palabras son más poderosas que las espadas.',
+    'Un buen bardo nunca dice la verdad completa, ni miente del todo.',
+    'He cantado en castillos y en mazmorras. Ambos tienen su encanto.',
+    'La música es el lenguaje universal. Y yo soy políglota.',
+    'Observo a las personas. Luego las retrato en mis canciones.',
+    'Tengo un don para aparecer cuando algo interesante está a punto de ocurrir.',
+    'La adulación es una herramienta. La sinceridad, un arma más poderosa.',
+    'Recuerdo cada cara, cada nombre, cada deuda pendiente.',
+    'Mi laud ha salvado más vidas que cualquier espada.',
+    'El aburrimiento es mi único enemigo real.',
+    'Sé cuándo mentir, cuándo exagerar y cuándo guardar silencio.',
+    'Las historias que cuento cambian según el público. La esencia permanece.',
+    'La fama es temporal. Las canciones son eternas.',
+  ],
+  druid: [
+    'Busco el equilibrio en todas las cosas.',
+    'La naturaleza tiene sabiduría que los civilizados han olvidado.',
+    'Cambio como las estaciones.',
+    'Cada árbol talado es una historia borrada.',
+    'La civilización es una enfermedad que la naturaleza eventualmente cura.',
+    'No destruyo la naturaleza. Tampoco la idealizo. La respeto.',
+    'El ciclo de la vida incluye la muerte. No la temo.',
+    'Me transformo en bestia y entiendo algo que los humanos no pueden.',
+    'Las plantas sienten. Los animales piensan. Los humanos, a veces.',
+    'El mundo no pertenece a una sola especie.',
+    'He vivido entre lobos. Los lobos son más honestos que la gente.',
+    'Las estaciones me recuerdan que todo cambia. Incluyéndome a mí.',
+    'La magia de la naturaleza no se aprende. Se recibe.',
+    'No lucho por civilizaciones. Lucho por ecosistemas.',
+    'El caos natural tiene su propio orden. Solo hay que saber verlo.',
+  ],
+  warlock: [
+    'El poder tiene un precio y estoy dispuesto a pagarlo.',
+    'Mi patrón y yo tenemos un acuerdo que me conviene.',
+    'Los secretos son mi moneda más valiosa.',
+    'No vendí mi alma. Hice una inversión.',
+    'Mi patrón me observa. Pero yo también lo observo a él.',
+    'El poder no se regala. Se negocia.',
+    'Hay cosas que solo los pactos pueden conseguir.',
+    'Mi patrón es poderoso. Pero no soy su marioneta.',
+    'La oscuridad que manejo no me define. Es solo una herramienta.',
+    'Conocer los límites del contrato es la clave para no perder.',
+    'Todos hacemos pactos. Los míos son solo más explícitos.',
+    'Temo a mi patrón. También lo respeto. No es contradictorio.',
+    'El conocimiento prohibido existe por alguna razón. Esa razón me importa.',
+    'No me disculpo por el poder que tengo. Lo obtuve yo.',
+    'Vivo en el filo entre lo que soy y lo que mi patrón quiere que sea.',
+  ],
+  sorcerer: [
+    'El poder fluye por mis venas como sangre ardiente.',
+    'No elegiría tener magia diferente aunque pudiera.',
+    'La emoción me llena cuando libero mi verdadero poder.',
+    'Nací con esto. No lo aprendí. Eso me da una perspectiva diferente.',
+    'A veces la magia actúa sola. Aprendo a seguirla.',
+    'Mi linaje es un regalo y una maldición a partes iguales.',
+    'No entiendo la magia. La siento. Y es suficiente.',
+    'La espontaneidad es mi mayor virtud y mi mayor debilidad.',
+    'Cuando me enfado, las cosas se incendian. Trabajo en ello.',
+    'No necesito un grimorio. Lo llevo dentro.',
+    'Mi poder asusta a los académicos. Me alegra.',
+    'El origen de mi magia es un misterio incluso para mí.',
+    'Cada vez que lanzo un hechizo, siento que soy más yo mismo.',
+    'La metamagia no es un truco. Es intuición destilada.',
+    'Prefiero actuar y rectificar que calcular y no hacer nada.',
+  ],
+  monk: [
+    'El cuerpo es el templo del espíritu.',
+    'La paciencia supera a la velocidad.',
+    'Nada me perturba; soy como agua tranquila.',
+    'Mi maestro dijo que el enemigo más difícil es uno mismo.',
+    'El silencio dice más que mil palabras.',
+    'El ki no es magia. Es la voluntad hecha fuerza.',
+    'He pasado años perfeccionando un solo golpe. Vale la pena.',
+    'La mente en calma ve más que los ojos abiertos.',
+    'No peleo para ganar. Peleo para resolver.',
+    'La disciplina no es restricción. Es libertad estructurada.',
+    'Mi monasterio me enseñó que el ego es el mayor obstáculo.',
+    'Puedo matar con las manos. Por eso raramente necesito hacerlo.',
+    'El movimiento perfecto no necesita fuerza. Solo precisión.',
+    'El dolor físico es temporal. El dolor del fracaso enseña.',
+    'No juzgo a los que toman caminos distintos. Observo.',
+  ],
 };
+
+const COMPANION_QUIRKS = [
+  'Habla en voz baja y siempre mira las salidas de cada habitación.',
+  'Colecciona dientes de enemigos derrotados como recuerdo.',
+  'Nunca come en presencia de extraños. Confía poco en la comida ofrecida.',
+  'Tararea canciones antiguas mientras camina. Dice que aleja a los malos espíritus.',
+  'Tiene cicatrices que no explica, pero que hablan de batallas antiguas.',
+  'Lleva siempre una carta sin abrir. Dice que es para cuando llegue el momento.',
+  'Dibuja mapas compulsivamente de cada lugar que visita.',
+  'Habla con su arma como si fuera una persona. Dice que tiene nombre.',
+  'Se despierta antes del amanecer y medita en silencio.',
+  'No duerme en interiores. Prefiere dormir bajo las estrellas.',
+  'Guarda la mitad de cada recompensa para un destino desconocido.',
+  'Tiene miedo irracional a los murciélagos, pero no lo admitirá jamás.',
+];
 
 const AVATAR_EMOJIS = ['⚔️','🧙','🗡️','⛪','🏹','🛡️','🪓','🎵','🌿','👁️','💫','🥋','🧝','⛏️','🐲','😈','🧪','💪','✨'];
 
@@ -2156,38 +2475,196 @@ const NPC_NAMES = {
 
 const LOCATIONS = {
   town: {
-    names:['Aldea de Piedra Alta','Millhaven','Torrecampo','Valdebruma','Puente Viejo','La Encrucijada','Aguas Claras','Pradoverde','El Cruce','Villaverde','Hojarasca','Brezales'],
-    desc: (n)=>`${n} es un pueblo tranquilo de casas de madera y piedra. Los aldeanos te miran con curiosidad. El olor a pan recién horneado llena el aire.`,
+    names:[
+      'Aldea de Piedra Alta','Millhaven','Torrecampo','Valdebruma','Puente Viejo','La Encrucijada',
+      'Aguas Claras','Pradoverde','El Cruce','Villaverde','Hojarasca','Brezales',
+      'Riscos de Sal','Molino Quemado','Candela','Portillo','Raíces Viejas','Cascada Gris',
+      'Vado del Lobo','El Álamo','Tierra Blanda','Crestabaja','Nublares','Pedernal',
+      'Fuente del Ciervo','Atalaya Rota','Camino del Buey','Aldea de la Niebla','Pozuelo',
+      'Encina Hueca','Cuatro Caminos','La Caldera','Senda del Río','Cabeza de Piedra',
+      'Prados del Norte','Espino Blanco','Laguna Seca','Robledal','Altura del Viento',
+      'Balsain','Cerro Negro','Monte Bajo','El Berrueco','Valparaíso','Tórtola',
+      'Alféizar','Ventisca','Cuerna de Toro','La Herradura','Barro Rojo',
+      'Pozo de la Luna','Aldea del Sauce','Tres Robles','Camino de la Sal',
+      'Tejado de Pizarra','El Cañaveral','Venta del Olivo','Horcajo','Somontano',
+      'Aldea de las Nubes','Paso del Oso','Rincón del Pájaro','La Jara','Majada Vieja',
+      'Cimera','La Manga','Valbuena','Villaseca','Umbría','El Collado',
+      'Puente de Piedra Gris','Canto del Gallo','Arroyuelo','La Golondrina',
+      'Espejuelo','Callejuela','Puerto del Barro','Raso del Viento','El Tablero',
+      'Aldea del Molino','Fuente Amarga','Cruz de los Cuatro Vientos','La Cañada',
+      'Barrio del Herrero','Casas del Eje','Pueblo de la Niebla Roja','Camino del Eco',
+      'Altura de los Cuervos','El Farol','Villamorada','Marisol','La Hondonada',
+    ],
+    descs:[
+      (n)=>`${n} es un pueblo tranquilo de casas de madera y piedra. Los aldeanos te miran con curiosidad y el olor a pan recién horneado llena el aire.`,
+      (n)=>`Las calles de ${n} están empedradas con guijarros del río cercano. Los niños juegan entre los puestos del mercado mientras los ancianos hablan en los porches.`,
+      (n)=>`${n} huele a humo de leña y paja húmeda. Es un lugar pequeño, pero los lugareños cuidan de los suyos con orgullo y cierta desconfianza hacia los forasteros.`,
+      (n)=>`Un letrero desgastado marca la entrada de ${n}. Las tabernas están llenas a esta hora y el ruido de conversaciones y risas se cuela por las ventanas.`,
+      (n)=>`${n} creció alrededor de un pozo antiguo cuyas aguas se dicen medicinales. El pueblo es próspero a su manera, con artesanos que exportan su obra a ciudades lejanas.`,
+      (n)=>`La muralla de madera que rodea ${n} está algo envejecida, pero la comunidad es unida. Todos se conocen aquí, y los secretos duran poco.`,
+      (n)=>`${n} reposa junto a un arroyo de aguas cristalinas. Los pescadores comparten sus capturas en la plaza central, rodeados de perros dormilones y palomas.`,
+      (n)=>`La torre del vigía de ${n} está inclinada desde el último temblor, pero nadie ha querido derribarla. Es casi un símbolo del pueblo: torcida, pero en pie.`,
+      (n)=>`${n} es famosa en la región por su feria anual de ganado. Ahora mismo está tranquila, pero en temporada alta bulle de vida, comercio y más de una pelea.`,
+      (n)=>`Un molino de viento marca el horizonte de ${n}. Los granjeros de los alrededores traen su grano aquí, convirtiendo al molinero en uno de los hombres más influyentes del lugar.`,
+    ],
+    desc: function(n){ return pick(this.descs)(n); },
     services:['tavern','market','questboard','healer'],
     ambiance:'🏘️'
   },
   city:{
-    names:['Ciudad de Ironhold','La Gran Bastión','Metrópolis de Kael','Valdur el Magnífico','Ciudad Imperial'],
-    desc:(n)=>`${n} se alza imponente con sus murallas de piedra negra. Las calles bullen de vida: mercaderes, soldados y gente de toda condición.`,
+    names:[
+      'Ciudad de Ironhold','La Gran Bastión','Metrópolis de Kael','Valdur el Magnífico','Ciudad Imperial',
+      'Fortaleza de Drakmoor','Puerta de las Naciones','Altamira','Caballeros del Norte','Bastión del Sur',
+      'Ciudadela de Ash','Puerto de Velmor','La Corona Gris','Muralla de Hierro','Gran Alcázar',
+      'Espada del Rey','Capital de Kurghaimat','Ciudad de los Magos','Kurrath','Velmund',
+      'Thornwall','Kael Prime','La Ciudad del Sello','Fortaleza Aethon','Bahía de los Mercaderes',
+      'Ciudad de los Cuatro Vientos','Altos de Valdris','Sede de la Orden','Karathmor','Puerta del Este',
+      'Ciudadela de Velmoor','Gran Puerto de Ash','Trono de Hierro','Ciudad Eterna de Krath',
+      'Bastión de los Primeros','Metrópolis de Aeldor','Puerto Gris','Torremagna','Aldebast',
+      'Ciudad Submarina de Mor','Fortaleza Solar','Capitolio de Kurth','Ciudad del Dragón Blanco',
+    ],
+    descs:[
+      (n)=>`${n} se alza imponente con sus murallas de piedra negra. Las calles bullen de vida: mercaderes, soldados y gente de toda condición.`,
+      (n)=>`${n} es la joya de la región. Sus torres de mármol oscuro dominan el horizonte durante kilómetros. En su interior conviven el lujo y la miseria en calles adyacentes.`,
+      (n)=>`La ciudad de ${n} nunca duerme del todo. Incluso de madrugada, los barrios del mercado huelen a especias y los callejones guardan sus propios secretos.`,
+      (n)=>`Fundada hace tres siglos, ${n} acumula capas de historia en cada piedra de sus murallas. El gremio de aventureros aquí es poderoso, casi tanto como el propio gobernador.`,
+      (n)=>`${n} es conocida por sus bibliotecas y sus intrigas políticas a partes iguales. Los magos tienen aquí tanto peso como los generales, y los asesinos trabajan para ambos bandos.`,
+      (n)=>`El puerto de ${n} es uno de los más activos de Kurghaimat. Barcos de tierras lejanas descargan mercancías exóticas y se cargan con secretos y pasajeros anónimos.`,
+      (n)=>`${n} lleva décadas siendo el centro del comercio regional. Su mercado central ocupa tres plazas y el olor a cuero, especias y metal impregna cada rincón.`,
+      (n)=>`Las murallas de ${n} han resistido tres asedios. Los vecinos lo recuerdan con orgullo amargo. Cada piedra fue colocada sobre los huesos de los que murieron defendiéndola.`,
+    ],
+    desc: function(n){ return pick(this.descs)(n); },
     services:['tavern','market','questboard','healer','guild','blacksmith','library','temple'],
     ambiance:'🏰'
   },
   forest:{
-    names:['Bosque Susurrante','Arboleda Oscura','El Laberinto Verde','Bosque del Cuervo','Pinar Sombrio'],
-    desc:(n)=>`${n} te envuelve con sus árboles centenarios. Luz filtrada, rumores de criaturas entre las ramas. El camino se vuelve difícil de seguir.`,
+    names:[
+      'Bosque Susurrante','Arboleda Oscura','El Laberinto Verde','Bosque del Cuervo','Pinar Sombrío',
+      'Selva del Murmullo','Espesura de los Ciervos','Robledal Antiguo','Arboleda de Plata',
+      'El Bosque Prohibido','Raíces Negras','Fronda Eterna','Encinar del Duende',
+      'Manto de Musgo','Bosque de los Huesos','Arboleda de la Bruja','Pinar del Lobo',
+      'El Gran Dosel','Zona de las Sombras Largas','Selva de Karath',
+      'Espesura de las Almas','Robledal del Silencio','El Corazón Verde','Bosque del Alba Rota',
+      'Arboleda de los Murmullos','Selva sin Nombre','Fronda de Sombras','Bosque de Niebla',
+      'El Laberinto de Raíces','Espesura de los Desaparecidos','Bosque de los Espectros',
+      'Arboleda Encantada','Selva del Dragón Durmiente','El Bosque que Recuerda',
+      'Pinar de la Última Luz','Fronda de los Antiguos','Robledal de los Caídos',
+      'Bosque de los Mil Pasos','Arboleda del Susurro','El Corazón de Kurghaimat',
+      'Selva de las Raíces Vivas','Bosque del Eco','Espesura de los Juramentos',
+      'El Manto Eterno','Bosque de la Lluvia Roja','Arboleda de Cristal',
+    ],
+    descs:[
+      (n)=>`${n} te envuelve con sus árboles centenarios. La luz se filtra en rayos dorados y los rumores de criaturas entre las ramas te mantienen alerta.`,
+      (n)=>`Adentrarse en ${n} es como entrar en otra dimensión del tiempo. Los árboles aquí son tan viejos que sus raíces emergen del suelo como dedos de gigantes dormidos.`,
+      (n)=>`${n} tiene fama de que quienes se pierden en él nunca regresan iguales. El silencio aquí es tan denso que puedes oír tu propio corazón.`,
+      (n)=>`La canopy de ${n} bloquea casi toda la luz solar. De día parece noche cerrada, y los únicos sonidos son los crujidos de ramas y algo que podría ser respiración.`,
+      (n)=>`${n} huele a tierra húmeda, hongos y algo dulzón que no logras identificar. Los animales del bosque no huyen al verte: te observan con demasiada inteligencia.`,
+      (n)=>`Las historias de ${n} dicen que los árboles aquí guardan memoria. Los chamanes locales vienen a escuchar. Tú escuchas también, y algo escucha de vuelta.`,
+      (n)=>`La niebla es constante en ${n}, incluso en días despejados. Los lugareños dicen que no es niebla sino los espíritus de quienes cayeron aquí hace siglos.`,
+      (n)=>`Los robles de ${n} tienen marcas de garras muy altas en los troncos. Muy, muy altas. Nada que conozcas podría hacer esas marcas. Al menos, eso esperas.`,
+      (n)=>`${n} es hermoso de una manera inquietante. Las flores son de colores que no deberían existir aquí, y los arroyos suenan demasiado parecido a voces.`,
+      (n)=>`El viento en ${n} crea melodías entre las ramas. Los bardos dicen que el bosque compone sus propias canciones. Canciones que a veces cuentan el futuro.`,
+    ],
+    desc: function(n){ return pick(this.descs)(n); },
     services:[],
     ambiance:'🌲'
   },
   mountain:{
-    names:['Monte Grisáceo','Picos del Trueno','Cimas Ardientes','Montaña del Gigante','Cresta Rota'],
-    desc:(n)=>`El viento cortante del ${n} dificulta el avance. Senderos peligrosos serpentean entre peñascos. Se dice que estas cumbres ocultan secretos ancestrales.`,
+    names:[
+      'Monte Grisáceo','Picos del Trueno','Cimas Ardientes','Montaña del Gigante','Cresta Rota',
+      'Aguja del Cielo','Sierra de los Muertos','Cumbre Helada','Farallones de Roca','Paso del Dragón',
+      'Alto del Viento','Picacho Ennegrecido','Monte Ceniza','Cordillera del Olvido',
+      'Cresta de Hierro','Pináculo de Kurth','Sierra Sombría','Ladera de los Trolls',
+      'Pico del Último Suspiro','Monte del Eclipse',
+      'Cumbre de los Cien Vientos','Pico del Dragón Dormido','Sierra del Trueno Negro',
+      'Monte de la Tormenta Eterna','Cresta del Grito','Ladera Ennegrecida','Pináculo del Abismo',
+      'Altos de Krath','Farallones del Fin del Mundo','Monte de la Última Niebla',
+      'Pico Sangriento','Cresta de la Luna Muerta','Sierra Interminable','Monte Encadenado',
+      'Altos de los Titanes','Pico de los Dioses Caídos','Cumbre de Piedra Negra',
+      'Monte del Fuego Antiguo','Sierra de los Juramentos','Ladera del Eterno Invierno',
+      'Pico del Centinela','Monte de las Voces','Cresta de los Olvidados',
+      'Farallones de la Tormenta','Sierra del Grito Silencioso','Pico del Alba Rota',
+    ],
+    descs:[
+      (n)=>`El viento cortante de ${n} dificulta el avance. Senderos peligrosos serpentean entre peñascos, y en las grietas crecen plantas que no deberían poder sobrevivir aquí.`,
+      (n)=>`${n} impresiona por su pura escala. Cada paso hacia arriba revela un paisaje más desolado y hermoso. También más mortal.`,
+      (n)=>`Las leyendas dicen que ${n} fue forjado por los Primeros como prisión. Los enanos que aquí vivieron encontraron algo en las profundidades y abandonaron sus minas en un solo día.`,
+      (n)=>`El aire en ${n} sabe a metal y a tormenta. Nubes de tormenta permanentes coronan sus cimas, y el relámpago cae aquí con una frecuencia que los meteorólogos no saben explicar.`,
+      (n)=>`${n} guarda silencio de una manera que da miedo. No hay aves, no hay insectos. Solo piedra, viento y algo que parece observarte desde las cuevas que puntúan la roca.`,
+      (n)=>`Los caminos de ${n} están tallados en la roca por manos antiguas. Los jeroglíficos en las paredes del sendero cuentan algo en un idioma que ningún erudito vivo reconoce.`,
+      (n)=>`La cara norte de ${n} nunca recibe sol directo. Ahí crecen formaciones de hielo que llevan siglos sin derretirse, atrapando en su interior formas que parecen... figuras.`,
+      (n)=>`${n} es territorio de gigantes de piedra, o eso dicen. Las estructuras megalíticas en sus laderas son demasiado grandes para manos humanas, y demasiado recientes para ser ruinas.`,
+      (n)=>`Desde la cima de ${n} se puede ver casi todo Kurghaimat en días claros. Los exploradores dicen que también se puede ver algo más. Algo que se mueve en el horizonte lejano.`,
+      (n)=>`Las venas de mineral rojo que recorren ${n} brillan levemente de noche. Los enanos lo llaman sangre de dragón. Los magos dicen que tiene propiedades arcanas. Todos lo codician.`,
+    ],
+    desc: function(n){ return pick(this.descs)(n); },
     services:[],
     ambiance:'⛰️'
   },
   plains:{
-    names:['Llanura del Viento','Campos de Centeno','Praderas del Sur','El Páramo','Campos de Kurghaimat','Planicie Dorada'],
-    desc:(n)=>`La vasta extensión de ${n} se extiende hasta el horizonte. El viento mece la hierba alta y el sol calienta la tierra fértil, pero el peligro siempre acecha.`,
+    names:[
+      'Llanura del Viento','Campos de Centeno','Praderas del Sur','El Páramo','Campos de Kurghaimat',
+      'Planicie Dorada','Extensión Silenciosa','Mar de Hierba','Llano de los Caídos',
+      'Campo del Alba','Pradera Roja','Tierras Secas','Campiña de Ash','El Gran Llano',
+      'Estepa Gris','Planicie de las Tres Lunas','Campo del Eco','Llanura de Sal',
+      'Tierras Baldías','Praderas de Kael',
+      'El Gran Silencio','Llanura de los Huesos Blancos','Campos del Ocaso',
+      'Estepa del Viento Frío','Planicie de las Tormentas','Llano del Fin del Día',
+      'Campos de la Luna Vieja','Mar de Paja','El Páramo Sin Nombre',
+      'Tierras del Horizonte Roto','Campo de los Mil Cuervos','Pradera de Ceniza',
+      'Llanura de los Antiguos','Campiña Silenciosa','El Llano Eterno',
+      'Extensión de la Niebla Baja','Campos del Sueño','Pradera del Último Árbol',
+      'Llanura del Viento Helado','El Gran Páramo de Krath','Campos del Eco Perdido',
+      'Tierras de Nadie','Estepa de los Nómadas','Planicie de las Estrellas Caídas',
+      'Llano del Trueno Lejano','Campos Quemados del Norte',
+    ],
+    descs:[
+      (n)=>`La vasta extensión de ${n} se extiende hasta el horizonte. El viento mece la hierba alta y el sol calienta la tierra fértil, pero el peligro siempre acecha.`,
+      (n)=>`${n} parece inofensiva a primera vista: tierra plana, hierba y cielo. Pero en terreno abierto como este, eres tú quien no tiene dónde esconderse.`,
+      (n)=>`El viento en ${n} no para nunca. Silba entre las hierbas altas con una constancia que se vuelve inquietante al tercer día. Los viajeros dicen que el viento aquí tiene memoria.`,
+      (n)=>`${n} está atravesada por caminos de tierra apisonada por siglos de caravanas. Son seguros en grupo. Solos, los caminos de ${n} tienen fama de tragarse a los imprudentes.`,
+      (n)=>`En primavera, ${n} explota en colores: flores silvestres de todo tipo cubren la tierra. En invierno, es una extensión gris y desolada donde el horizonte y el cielo se confunden.`,
+      (n)=>`Las ruinas dispersas por ${n} son de civilizaciones que nadie recuerda. Los arqueólogos no osan excavar aquí: dicen que la tierra misma parece resistirse.`,
+      (n)=>`${n} es un buen lugar para cabalgar rápido y para que te vean venir de lejos. Eso puede ser una ventaja. O no, dependiendo de quién más esté mirando.`,
+      (n)=>`De noche, ${n} es espeluznante. La luz de luna lo convierte todo en plata y sombra, y las siluetas que se mueven en la distancia pueden ser ciervos... o no serlo.`,
+      (n)=>`Los huesos de animales grandes abundan en ${n}. Los locales dicen que algo grande migra por aquí periódicamente. Nadie ha visto qué. Los que lo vieron no volvieron a contarlo.`,
+      (n)=>`${n} tiene buen suelo para cultivos, pero poca gente se instala permanentemente. Las tormentas eléctricas son brutales, y la ausencia de árboles las hace imposibles de evitar.`,
+    ],
+    desc: function(n){ return pick(this.descs)(n); },
     services:[],
     ambiance:'🌾'
   },
   dungeon:{
-    names:['Cripta de los Condenados','Las Catacumbas','Mazmorras del Señor Gris','La Cueva Sin Nombre','Fortaleza Caída','Subterráneo de Keth'],
-    desc:(n)=>`Ante ti se abre la oscuridad del ${n}. El aire huele a humedad y muerte. Tus instintos te gritan peligro... pero también promesa de tesoro.`,
+    names:[
+      'Cripta de los Condenados','Las Catacumbas','Mazmorras del Señor Gris','La Cueva Sin Nombre',
+      'Fortaleza Caída','Subterráneo de Keth','Guarida del Oscuro','Ruinas de Valdrek',
+      'Foso del Silencio','Laberinto de Huesos','Caverna del Último Rey','Sótanos de Ash',
+      'El Pozo Sin Fondo','Cripta de los Mil Ojos','Túneles de Morthak','Prisión de Piedra',
+      'Abismo de Krath','Catacumbas del Dragón Roto','La Madriguera','Ruinas de Elthar',
+      'Fosa del Olvido','Mazmorra del Eco','Cripta Encantada','Refugio de los Renegados',
+      'Sótano de los Primeros','Guarida de la Sombra','Catacumba del Dragón Dormido',
+      'Cavernas de Morthul','El Laberinto de Piedra','Ruinas de Karath',
+      'Cripta del Rey Sin Nombre','Foso de los Demonios','Mazmorra de Ash',
+      'Subterráneo de los Caídos','La Guarida de la Bestia','Caverna del Último Aliento',
+      'Laberinto del Eco','Ruinas de Valdmoor','El Sótano Eterno','Cripta de Hierro',
+      'Fosa de los Condenados','Caverna del Dragón Negro','Mazmorra de los Juramentos',
+      'Subterráneo de los Antiguos','La Tumba del Héroe Traicionado','Guarida del Culto',
+      'Catacumbas de Krath','Ruinas Subterráneas de Elthmoor','El Abismo de los Perdidos',
+      'Caverna de los Mil Huesos','Laberinto de los Espectros','Cripta de la Orden Rota',
+    ],
+    descs:[
+      (n)=>`Ante ti se abre la oscuridad de ${n}. El aire huele a humedad y muerte. Tus instintos gritan peligro... pero también promesa de tesoro.`,
+      (n)=>`La entrada de ${n} está marcada con advertencias en tres idiomas distintos, dos de los cuales ya nadie habla. El tercero dice simplemente: "no entres".`,
+      (n)=>`${n} parece tragarte en cuanto cruzas el umbral. La oscuridad es total a veinte pasos de la entrada y el silencio tiene una calidad opresiva, como si algo estuviera conteniendo la respiración.`,
+      (n)=>`Las paredes de ${n} están cubiertas de marcas: arañazos de uñas, inscripciones desesperadas, mapas incompletos trazados con sangre seca. Alguien estuvo aquí. Muchos alguienes.`,
+      (n)=>`${n} huele a metal oxidado, agua estancada y algo animal que no reconoces. Ecos de pasos que no son tuyos rebotan en las paredes. O quizás son tuyos, con mucho retraso.`,
+      (n)=>`Los constructores de ${n} tenían una arquitectura peculiar: pasillos que se estrechan progresivamente, escaleras que llevan hacia abajo sin fin aparente, salas sin salida visible.`,
+      (n)=>`Lo que fue ${n} en el pasado es materia de debate entre los eruditos. Fortaleza, templo, prisión, arca. Lo que es ahora es claro: el hogar de algo que prefiere la oscuridad.`,
+      (n)=>`El suelo de ${n} está cubierto de una capa fina de polvo fino y blancuzco. Huellas de criaturas diversas se superponen en él, pero las más recientes son de algo muy grande.`,
+      (n)=>`${n} tiene varios niveles que se hunden en la tierra como capas de historia. Cada uno fue construido por una civilización diferente, sobre los huesos de la anterior.`,
+      (n)=>`La temperatura en ${n} baja drásticamente en los niveles más profundos, donde el hielo cubre las paredes aunque estés a cientos de metros bajo tierra. Algo ahí produce frío.`,
+    ],
+    desc: function(n){ return pick(this.descs)(n); },
     services:[],
     ambiance:'🏚️'
   }
@@ -2286,14 +2763,18 @@ const DUNGEON_EVENTS = [
 ];
 
 const TRAVEL_EVENTS = [
-  (player)=>`Durante el viaje, encuentras a un viajero solitario con aspecto cansado. Te ofrece información local a cambio de una ración.`,
-  (player)=>`Una tormenta sorpresa os empapa. ${player.name} encuentra refugio bajo un árbol centenario.`,
-  (player)=>`Un mercader ambulante aparece por el camino. Tiene mercancía poco común para vender.`,
-  (player)=>`El camino se divide en tres. Leyendo las señales desgastadas, determinas el camino correcto.`,
-  (player)=>`Huellas frescas de botas cruzan el sendero. Alguien pasó aquí hace poco, y no era amigable.`,
-  (player)=>`Descubres una moneda de oro antigua bajo una piedra. Puede que haya un tesoro enterrado cerca...`,
-  (player)=>`Un cuervo negro te sigue durante horas, observándote con ojos inusualmente inteligentes.`,
-  (player)=>`El horizonte se tiñe de rojo al atardecer. Los nativos dicen que eso anuncia cambio.`,
+  (player)=>`Un viajero solitario y cansado pide compañía en el camino. Tiene información local valiosa y la comparte a cambio de protección.`,
+  (player)=>`Una tormenta sorpresa os empapa. ${player.name} encuentra refugio bajo un árbol centenario con runas talladas en su tronco.`,
+  (player)=>`Un mercader ambulante detiene su carromato. Tiene mercancía de procedencia dudosa, incluyendo piezas de equipamiento usadas.`,
+  (player)=>`El camino se divide en tres. Las señales están desgastadas, pero una dirección tiene marcas recientes de sangre.`,
+  (player)=>`Huellas frescas de botas militares cruzan el sendero. Un grupo armado pasó aquí hace menos de una hora.`,
+  (player)=>`Encuentras una moneda de oro con una inscripción en lengua dracónica: "El fuego recuerda". Es antigua y valiosa.`,
+  (player)=>`Un cuervo negro con ojos dorados te sigue durante horas. Al anochecer, deja caer una pluma plateada y desaparece.`,
+  (player)=>`El horizonte se tiñe de rojo al atardecer. Los aldeanos cercanos cierran sus puertas con prisa y te aconsejan no seguir.`,
+  (player)=>`Encuentras el cadáver reciente de un aventurero. Tiene equipo de calidad y una nota: "No vayas al norte. No vuelvan."`,
+  (player)=>`Un niño te detiene en el camino. Dice haber visto "un lagarto enorme que escupía fuego" dos días atrás al este.`,
+  (player)=>`Cruzas un puente sobre un río que huele a azufre. Las piedras del fondo están ennegrecidas. Algo ocurrió aquí.`,
+  (player)=>`Una caravana de comerciantes te saluda. Ofrecen provisiones a precio elevado... o información sobre la zona, gratis.`,
 ];
 
 const LORE_ENTRIES = [
@@ -2302,6 +2783,11 @@ const LORE_ENTRIES = [
   {title:'Las Cinco Pistas', text:'Los ancianos hablan de cinco artefactos del conocimiento: un mapa, una escama, un diario, un sello y una visión. Quien los reúna conocerá la guarida del Destructor.'},
   {title:'El Gremio de Aventureros', text:'El Gremio existe desde hace doscientos años para organizar a quienes se aventuran en zonas peligrosas. Ofrece misiones, formación y fraternidad a sus miembros.'},
   {title:'La Magia de Kurghaimat', text:'La magia fluye a través de líneas ley invisibles. Los magos aprenden a canalizarla; los clérigos reciben el don divino; los hechiceros la llevan en la sangre. Todos pagan un precio.'},
+  {title:'La Orden del Sello Roto', text:'Una secta secreta que venera a Dovahkiin y trabaja para romper su sello. Se infiltran en ciudades, corrompiendo a guardias y mercaderes. Su símbolo: tres garras sobre un mundo ardiente.'},
+  {title:'Las Ruinas de los Primeros', text:'Diseminadas por Kurghaimat, estas estructuras de piedra negra y oro aún contienen magia activa. Son peligrosas, pero quienes saben buscar pueden encontrar conocimiento perdido o armamento antiguo.'},
+  {title:'El Lago Oscuro', text:'Al este del continente, el Lago Oscuro no refleja el cielo. Los nativos dicen que sus aguas conectan con el plano de las sombras. Peces ciegos y criaturas sin nombre habitan sus profundidades.'},
+  {title:'Los Dragones Menores', text:'Antes del sellamiento de Dovahkiin, otros dragones dominaban Kurghaimat. Muchos fueron exterminados; los que quedan son jóvenes y erráticos, buscando establecer sus propios territorios.'},
+  {title:'La Economía de la Guerra', text:'Las guerras contra criaturas han creado una próspera industria de aventureros. Las ciudades pagan bien por cabezas de monstruos, artefactos recuperados y escoltas. Sin peligro, no habría negocio.'},
 ];
 
 // ====== GAME STATE ======
@@ -2326,7 +2812,7 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function rollDie(sides){ return Math.floor(Math.random()*sides)+1; }
 function mod(val){ return Math.floor((val-10)/2); }
 function modStr(m){ return (m>=0?'+':'')+m; }
-function profBonus(level){ return Math.ceil(level/4)+1; }
+// profBonus defined below with D&D 5e table
 
 function parseDice(expr){
   // Supports "2d6+3", "1d8-1", "1d4+1", etc.
@@ -2436,6 +2922,7 @@ function loadGame(){
     if(!data){ alert('No se encontró partida guardada.'); return; }
     G = JSON.parse(data);
     G.revealedHexes = new Set(G.revealedHexes||[]);
+    G.usedLocationNames = new Set(G.usedLocationNames||[]);
     showScreen('game-screen');
     revealHexesAroundPlayer();
   initGameUI();
@@ -2504,17 +2991,104 @@ function renderAlignments(){
   selectAlignment('ng');
 }
 
+let selectedDifficulty = 'easy'; // default easy
+function selectDifficulty(diff, el){
+  selectedDifficulty = diff;
+  document.querySelectorAll('#diff-easy,#diff-normal').forEach(d=>d.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
 let selectedAlignment = 'ng';
 function selectAlignment(id){
   selectedAlignment = id;
   document.querySelectorAll('[id^="align-"]').forEach(el=>el.classList.remove('selected'));
   document.getElementById('align-'+id).classList.add('selected');
+  randomPersonality(); // refresh personality to reflect new alignment
 }
+
+// Personality modifiers by alignment — these phrases blend with class traits
+const PERSONALITY_BY_ALIGNMENT = {
+  lg: [ // Legal Bueno
+    'Sigo las reglas porque creo en ellas, no por miedo al castigo.',
+    'El orden es la base de la civilización. Sin él, solo hay caos.',
+    'Cumplo mi palabra siempre. Mi reputación es todo lo que soy.',
+    'Protejo a los débiles porque es lo correcto, no porque sea rentable.',
+    'Hay líneas que no cruzo, sin importar la recompensa.',
+  ],
+  ng: [ // Neutral Bueno
+    'Hago el bien cuando puedo, sin atarme a leyes ni tradiciones.',
+    'La bondad no necesita justificación ni reglas que la expliquen.',
+    'Ayudo a los demás porque quiero, no porque deba.',
+    'No soy perfecto, pero intento dejar el mundo mejor de lo que lo encontré.',
+    'Las buenas intenciones importan, aunque los métodos no sean perfectos.',
+  ],
+  cg: [ // Caótico Bueno
+    'Las reglas son sugerencias cuando el bien mayor está en juego.',
+    'La libertad es sagrada. Para todos, sin excepciones.',
+    'Rompo las cadenas: las de otros primero, las mías después.',
+    'Hago lo correcto aunque vaya contra las normas establecidas.',
+    'El sistema no siempre protege a los inocentes. Yo sí.',
+  ],
+  ln: [ // Legal Neutral
+    'El orden funciona. El caos destruye. Es así de simple.',
+    'Las leyes existen por razones que la mayoría no ve.',
+    'Sigo mi código personal con más rigor que cualquier ley externa.',
+    'La estructura y la jerarquía tienen su lugar en el mundo.',
+    'Hago mi trabajo, cumplo mis contratos, mantengo mis compromisos.',
+  ],
+  tn: [ // Neutral
+    'No soy el árbitro del bien y el mal. Ese no es mi papel.',
+    'El equilibrio es frágil. Prefiero no perturbarlo innecesariamente.',
+    'Me mantengo al margen de los grandes conflictos de ideales.',
+    'Veo todos los lados de cada situación. Eso me hace difícil de encasillar.',
+    'La supervivencia no tiene alineamiento político.',
+  ],
+  cn: [ // Caótico Neutral
+    'Nadie me dice cómo vivir mi vida. Nadie.',
+    'Las reglas son para quienes no tienen suficiente poder para ignorarlas.',
+    'Hoy aquí, mañana allá. La libertad es no deber nada a nadie.',
+    'No soy predecible. Eso es una ventaja, no un defecto.',
+    'Sigo mis impulsos. La mayoría de las veces me llevan a donde necesito ir.',
+  ],
+  le: [ // Legal Maligno
+    'El poder sobre los demás es el único objetivo real.',
+    'Las reglas son herramientas. Las uso para avanzar, no para seguirlas.',
+    'La lealtad se compra. Todo tiene un precio.',
+    'Soy predecible: siempre elijo lo que me beneficia.',
+    'Los débiles merecen ser gobernados. Yo soy el que gobierna.',
+  ],
+  ne: [ // Neutral Maligno
+    'Sobrevivo. Los demás son instrumentos o irrelevantes.',
+    'No tengo principios que me limiten. Eso me hace más eficiente.',
+    'La compasión es un lujo que no me puedo permitir.',
+    'Hago lo que debo hacer. El resto es filosofía.',
+    'El mundo me fue hostil. Aprendí a serlo yo también.',
+  ],
+  ce: [ // Caótico Maligno
+    'El orden es una mentira que los poderosos usan para controlar a los demás.',
+    'Que todo arda. Las cenizas son honestas.',
+    'No tengo cadenas. Ni reglas. Ni lealtades.',
+    'El miedo que inspiro es la única libertad real.',
+    'Destruyo lo que otros construyeron. A veces por razones. A veces no.',
+  ],
+};
 
 function randomPersonality(){
   const cls = document.getElementById('c-class').value;
-  const traits = PERSONALITIES[cls] || ['Un espíritu libre que sigue su propio camino.'];
-  document.getElementById('personality-display').textContent = pick(traits);
+  const classTraits = PERSONALITIES[cls] || ['Un espíritu libre que sigue su propio camino.'];
+  const alignTraits = PERSONALITY_BY_ALIGNMENT[selectedAlignment] || [];
+
+  // 60% chance class trait, 40% alignment trait — or combine both
+  let result;
+  if(alignTraits.length && Math.random() < 0.4){
+    result = pick(alignTraits);
+  } else if(alignTraits.length && Math.random() < 0.3){
+    // Combine class + alignment into one compound trait
+    result = pick(classTraits) + ' ' + pick(alignTraits).charAt(0).toLowerCase() + pick(alignTraits).slice(1);
+  } else {
+    result = pick(classTraits);
+  }
+  document.getElementById('personality-display').textContent = result;
 }
 
 let selectedAvatar = '⚔️';
@@ -2548,20 +3122,23 @@ function startGame(){
   });
 
   const level = 1;
-  const maxHP = parseDice(c.hd) + mod(baseStats.con) + 4;
+  // D&D 5e: Max HD at level 1 + CON modifier (minimum 1)
+  const hdMax = {'d6':6,'d8':8,'d10':10,'d12':12}[c.hd]||8;
+  const conMod = mod(baseStats.con);
+  const maxHP = Math.max(1, hdMax + conMod);
   const maxMP = c.spellcasting ? (4 + mod(baseStats.int||baseStats.wis||baseStats.cha)) : 0;
 
   G = {
     player: {
       name, race, cls, background: bg, alignment: selectedAlignment,
-      avatar: selectedAvatar, level, xp: 0, xpNext: 300,
+      avatar: selectedAvatar, level, xp: 0, xpNext: DND_XP_THRESHOLDS[1],
       stats: baseStats, skills: {},
       hp: maxHP, maxHP, mp: Math.max(maxMP,0), maxMP: Math.max(maxMP,0),
       ac: 10 + mod(baseStats.dex), speed: r.speed,
       gold: 150, proficiencies: CLASS_PROFICIENCIES[cls]||[],
       inventory: [],
       equipped: { body:null, mainhand:null, offhand:null, neck:null, ring:null, back:null, feet:null },
-      spells: [], spellSlots:{1:2,2:1}, spellSlotsMax:{1:2,2:1},
+      spells: [], spellSlots:{}, spellSlotsMax:{},
       conditions: [], deathSaves:{success:0,failure:0},
       personality: pick(PERSONALITIES[cls]||['Un espíritu independiente.']),
     },
@@ -2582,30 +3159,40 @@ function startGame(){
     questsCompleted: 0,
     mapSeed: Math.floor(Math.random()*99999),
     revealedHexes: new Set(),
+    difficulty: selectedDifficulty,
+    usedLocationNames: new Set(), // track all names ever used
   };
 
-  // Starting equipment by class
+  // D&D 5e Starting Equipment by class (PHB)
   const startGear = {
-    fighter:   ['longsword','chain','healpotion','rations','torch'],
-    wizard:    ['staff','robe','healpotion','rations','torch'],
-    rogue:     ['shortsword','dagger','leather','healpotion','thieves_tools','rations'],
-    cleric:    ['warhammer','chain','shield','healpotion','rations'],
-    ranger:    ['bow','shortsword','leather','healpotion','rations','torch'],
-    paladin:   ['longsword','chain','shield','healpotion','rations'],
-    barbarian: ['greataxe','leather','healpotion','rations'],
-    bard:      ['rapier','leather','healpotion','rations'],
-    druid:     ['staff','leather','healpotion','rations','herbalism'],
-    warlock:   ['dagger','robe','healpotion','rations'],
-    sorcerer:  ['dagger','robe','healpotion','rations'],
-    monk:      ['shortsword','leather','healpotion','rations'],
+    fighter:   ['longsword','chain','shield','healpotion','rations','torch','rope'],
+    wizard:    ['staff','robe','healpotion','rations','torch','rope'],
+    rogue:     ['rapier','dagger','leather','thieves_tools','healpotion','rations','rope'],
+    cleric:    ['warhammer','chain','shield','healpotion','rations','torch'],
+    ranger:    ['bow','shortsword','shortsword','leather','healpotion','rations','torch'],
+    paladin:   ['longsword','chain','shield','healpotion','rations','torch'],
+    barbarian: ['greataxe','dagger','dagger','healpotion','rations'],
+    bard:      ['rapier','leather','healpotion','rations','torch'],
+    druid:     ['staff','leather','healpotion','rations','herbalism','rope'],
+    warlock:   ['dagger','robe','healpotion','rations','torch'],
+    sorcerer:  ['dagger','robe','healpotion','rations','torch'],
+    monk:      ['shortsword','dagger','rations','rope'],
   };
+
+  // D&D 5e starting gold by background
+  const bgGold = {soldier:100,criminal:150,sage:50,noble:250,
+    'folk-hero':100,'outlander':50,acolyte:50,charlatan:150};
+  G.player.gold = bgGold[bg]||100;
 
   const gear = startGear[cls]||['shortsword','leather','healpotion','rations'];
   gear.forEach(itemId=>{ addItem(itemId,1,true); });
 
-  // Spells
-  if(c.spellcasting && SPELLS_BY_CLASS[cls]){
+  // Spells and spell slots (D&D 5e)
+  if((c.spellcasting || cls === 'warlock') && SPELLS_BY_CLASS[cls]){
     G.player.spells = SPELLS_BY_CLASS[cls].map(s=>({...s}));
+    const initSlots = getSpellSlotsForLevel(cls, level);
+    G.player.spellSlotsMax = initSlots;
+    G.player.spellSlots = {...initSlots};
   }
 
   // Skills
@@ -2613,15 +3200,17 @@ function startGame(){
     G.player.skills[skill.name] = G.player.proficiencies.includes(skill.name);
   });
 
-  // Generate starting location
-  const startLoc = generateLocation('town');
+  // Generate starting location at center hex (0,0)
+  const startType = 'town';
+  const startLoc = generateLocation(startType);
   G.currentLocation = startLoc;
   G.locationName = startLoc.name;
   G.discoveredLocations.push(startLoc);
 
-  // Generate initial quests
-  for(let i=0;i<3;i++) generateQuest();
+  // Ensure hex 0,0 is properly initialized with starting location
+  // (generateInitialMap will overwrite with a city, we patch it after)
 
+  // Quests start empty — player discovers them through exploration and NPCs
   // Generate tavern pool
   refreshTavernPool();
 
@@ -2630,10 +3219,53 @@ function startGame(){
 
   const raceData = RACES[race];
   const classData = CLASSES[cls];
-  addStory(`🌅 **El alba de una nueva leyenda.**\n\nEn las tierras de Kurghaimat, donde la magia impregna cada piedra y el peligro acecha en cada sombra, ${name} el ${classData.name} ${raceData.name} da sus primeros pasos hacia la gloria... o la perdición.\n\nComienzas en ${startLoc.name}. ${startLoc.desc}`, 'system');
-  addStory(`Tienes ${G.player.hp} puntos de golpe, ${G.player.gold} monedas de oro y el corazón lleno de determinación. Que los dioses te acompañen, aventurero.`, 'system');
 
-  setTimeout(()=>{ updateActions('town'); }, 500);
+  // === INTRO LORE ===
+  // Generate main quest hook details
+  const ancientHero = pick(['Aldric el Inmortal','el Gran Cazador Theron','la Archimaga Serel','el Paladín Brennan','Leofric Pedradura']);
+  const dragonLocation = pick(['las Cimas Ardientes al norte','el Pico de los Vientos del este','las Montañas Grises más allá del río','las Ruinas del Dragón en las alturas']);
+  const weakness = pick(['la Espada del Amanecer','las Runas del Fin','el Ritual de los Primeros','el Conjuro de Enlazamiento']);
+  const warningSign = pick(['temblores que sacuden la tierra','lluvia de cenizas volcánicas','ríos que hierven sin razón aparente','el cielo teñido de rojo en las noches']);
+
+  const introText = `**Las Crónicas de Kurghaimat — El Despertar**\n\n` +
+    `En las tierras de Kurghaimat, la magia antigua impregna cada piedra y la sangre de dragón corre por las leyendas. ` +
+    `Tú, **${name}**, ${raceData.name} ${classData.name}, llegas en el peor momento posible.\n\n` +
+    `Desde hace semanas, ${warningSign} presagian lo que los sabios temen: **Dovahkiin, el Destructor**, dragón primigenio de los tiempos oscuros, **está despertando de su sueño milenario**.\n\n` +
+    `Hace mil años, ${ancientHero} lo selló en ${dragonLocation} usando ${weakness}. Ese sello se fractura. Si Dovahkiin despierta por completo, su fuego consumirá Kurghaimat.\n\n` +
+    `**Tu misión:** Reúne las Cinco Pistas del conocimiento antiguo dispersas por el mundo. Solo quien conozca el secreto de la guarida del Destructor podrá enfrentarse a él y sobrevivir. Sin esas pistas, es suicidio.\n\n` +
+    `Empieza por **explorar, hacerte fuerte, ganar experiencia** y buscar aliados. Las pistas pueden aparecer en mazmorras, con NPCs, explorando o completando misiones. **No te enfrentes al dragón sin estar preparado.**`;
+
+  addStory(introText, 'dialog', '📜 La Profecía');
+  addStory(`${classData.emoji} **${name} el ${classData.name} ${raceData.name}** llega a ${startLoc.name}. ${startLoc.desc}`, 'system');
+  addStory(`Tienes **${G.player.hp} PG**, **${G.player.gold} monedas de oro** y el peso del destino sobre tus hombros. Prepárate bien antes de desafiar a Dovahkiin.`, 'system');
+
+  // Show intro dialog
+  setTimeout(()=>{
+    showDialog(
+      '📜 La Profecía de Kurghaimat',
+      '🔮',
+      `**${name}**, el oráculo ha hablado:\n\n` +
+      `"${warningSign.charAt(0).toUpperCase()+warningSign.slice(1)} anuncian el fin de los tiempos. Dovahkiin despierta en ${dragonLocation}.\n\n` +
+      `Reúne las Cinco Pistas. Fórjate en el combate. Cuando estés listo, enfréntate al Destructor.\n\n` +
+      `O Kurghaimat arderá."`,
+      [
+        {text:'⚔️ Aceptar el destino', fn:()=>{ closeModal('dialog-modal'); updateActions('town'); notify('¡Que comience la aventura!','quest'); }},
+        {text:'📖 ¿Qué son las Cinco Pistas?', fn:()=>{
+          closeModal('dialog-modal');
+          showDialog('🔮 Las Cinco Pistas','📜',
+            `Las Cinco Pistas son fragmentos del conocimiento del Sellador:\n\n` +
+            `🗺️ **Mapa Rúnico** — Revela la ubicación general de la guarida\n` +
+            `🐉 **Escama de Dragón** — Muestra la naturaleza de Dovahkiin\n` +
+            `📓 **Diario del Explorador** — Describe el acceso a la cueva\n` +
+            `🔴 **Sello del Culto** — Devela a quienes sirven al Destructor\n` +
+            `🔮 **Visión Oracular** — La profecía del enfrentamiento final\n\n` +
+            `Explora, completa misiones y habla con NPCs para encontrarlas.`,
+            [{text:'⚔️ Comenzar la búsqueda', fn:()=>{ closeModal('dialog-modal'); updateActions('town'); }}]
+          );
+        }},
+      ]
+    );
+  }, 800);
 }
 
 // ====== UI INITIALIZATION ======
@@ -2643,6 +3275,12 @@ function initGameUI(){
   renderQuests();
   renderClues();
   initMap();
+  // Patch hex 0,0 to hold the current starting location
+  if(G.currentLocation && hexMap['0,0']){
+    hexMap['0,0'].location = G.currentLocation;
+    hexMap['0,0'].type = G.currentLocation.type || 'town';
+  }
+  revealHexesAroundPlayer();
   renderInventory();
   renderSpells();
   renderSkills();
@@ -2662,8 +3300,14 @@ function updateHUD(){
   document.getElementById('hp-val').textContent = p.hp+'/'+p.maxHP;
   document.getElementById('mp-bar').style.width = (p.maxMP>0?(p.mp/p.maxMP*100):0)+'%';
   document.getElementById('mp-val').textContent = p.maxMP>0 ? p.mp+'/'+p.maxMP : '—';
-  document.getElementById('xp-bar').style.width = (p.xp/p.xpNext*100)+'%';
-  document.getElementById('xp-val').textContent = p.xp+'/'+p.xpNext;
+  // D&D 5e XP progress within current level
+  const xpPrev = DND_XP_THRESHOLDS[p.level-1]||0;
+  const xpNext = DND_XP_THRESHOLDS[p.level]||DND_XP_THRESHOLDS[19];
+  const xpInLevel = p.xp - xpPrev;
+  const xpNeeded = xpNext - xpPrev;
+  const xpPct = p.level >= 20 ? 100 : Math.min(100, xpInLevel/xpNeeded*100);
+  document.getElementById('xp-bar').style.width = xpPct+'%';
+  document.getElementById('xp-val').textContent = p.level>=20 ? 'MAX' : xpInLevel+'/'+xpNeeded;
   document.getElementById('gold-val').textContent = p.gold;
   document.getElementById('location-val').textContent = G.locationName.split(' ').slice(0,2).join(' ');
   document.getElementById('day-val').textContent = G.day;
@@ -2772,20 +3416,43 @@ function addStory(text, type='normal', speaker=null){
   tab.appendChild(entry);
   tab.scrollTop = tab.scrollHeight;
 
-  // Recent log
+  // Recent log — clickable entries showing truncated text, full text on click
   const recent = document.getElementById('recent-log');
   if(recent){
+    const fullText = text.replace(/<[^>]+>/g,'').replace(/\*\*(.*?)\*\*/g,'$1');
+    const preview = fullText.slice(0,55) + (fullText.length > 55 ? '…' : '');
+    const typeIcons = {combat:'⚔️',reward:'✨',travel:'🚶',system:'⚙️',dialog:'💬',warning:'⚠️',normal:'•'};
+    const icon = typeIcons[type] || '•';
+
     const line = document.createElement('div');
-    line.textContent = '• '+text.replace(/<[^>]+>/g,'').slice(0,60)+(text.length>60?'...':'');
+    line.className = 'recent-log-entry';
+    line.textContent = icon + ' ' + preview;
+    // Store full text and type for modal
+    line.dataset.full = fullText;
+    line.dataset.type = type;
+    line.dataset.time = G ? `Día ${G.day||1}, hora ${G.hour||0}:00` : '';
+    line.onclick = () => openLogDetail(line.dataset.full, line.dataset.type, line.dataset.time);
     recent.prepend(line);
-    while(recent.children.length > 8) recent.removeChild(recent.lastChild);
+    while(recent.children.length > 10) recent.removeChild(recent.lastChild);
   }
 
   if(G && G.log) G.log.push({text, type, day:G.day||1, hour:G.hour||0});
 }
 
+// ====== LOG DETAIL ======
+function openLogDetail(fullText, type, time){
+  const typeLabels = {combat:'⚔️ Combate',reward:'✨ Recompensa',travel:'🚶 Viaje',system:'⚙️ Sistema',dialog:'💬 Diálogo',warning:'⚠️ Aviso',normal:'📖 Evento'};
+  const title = typeLabels[type] || '📖 Registro';
+  document.getElementById('log-detail-title').textContent = (time ? time + ' — ' : '') + title;
+  document.getElementById('log-detail-text').textContent = fullText;
+  openModal('log-detail-modal');
+}
+
 // ====== ACTIONS ======
 function updateActions(context){
+  // Never replace combat actions while in combat
+  if(combatState && !combatState.over){ showCombatActions(); return; }
+
   const grid = document.getElementById('action-grid');
   const actions = [];
 
@@ -2861,9 +3528,23 @@ function generateTravelDestinations(){
 
 function generateLocation(type){
   const data = LOCATIONS[type];
-  const name = pick(data.names);
+  if(!data) return null;
+  // Pick a name not already used globally
+  const used = G?.usedLocationNames || new Set();
+  const available = data.names.filter(n => !used.has(n));
+  // If all names exhausted, generate a procedural variant
+  let name;
+  if(available.length > 0){
+    name = pick(available);
+  } else {
+    const suffixes = ['Viejo','Nuevo','del Norte','del Sur','del Este','del Oeste','Oscuro','Olvidado','Perdido','Lejano'];
+    const base = pick(data.names);
+    name = base + ' ' + pick(suffixes);
+  }
+  if(G?.usedLocationNames) G.usedLocationNames.add(name);
+  const desc = typeof data.desc === 'function' ? data.desc(name) : data.desc.call(data, name);
   return {
-    type, name, desc: data.desc(name),
+    type, name, desc,
     services: data.services||[],
     ambiance: data.ambiance,
     id: Date.now()+Math.random()
@@ -2875,75 +3556,148 @@ function travelTo(dest){
   if(combatState){ notify('No puedes viajar en combate.','warning'); return; }
   closeModal('dialog-modal');
   playSound('travel');
-  const hours = dest.distance || rand(2,8);
-  G.hour += hours;
-  if(G.hour>=24){ G.day+=Math.floor(G.hour/24); G.hour=G.hour%24; }
-  addStory('🚶 **Viajando hacia ' + dest.name + '...**\nTras ' + hours + ' hora' + (hours>1?'s':'') + ' de camino, llegas a tu destino.', 'travel');
-  if(Math.random()<0.35){
-    const evt = pick(TRAVEL_EVENTS);
-    addStory(evt(G.player), 'travel');
-    if(Math.random()<0.35) setTimeout(()=>handleTravelEncounter(), 400);
+
+  const hours = dest.distance || rand(1,4);
+  const ambIcon = dest.ambiance||(LOCATIONS[dest.type]||{}).ambiance||'🏘️';
+
+  // Show travel animation overlay
+  const overlay = document.getElementById('travel-overlay');
+  const iconEl = document.getElementById('travel-anim-icon');
+  const destEl = document.getElementById('travel-anim-dest');
+  const progEl = document.getElementById('travel-progress-fill');
+  if(overlay){
+    iconEl.textContent = ambIcon;
+    destEl.textContent = dest.name;
+    overlay.classList.add('active');
+    // Animate progress bar
+    setTimeout(()=>{ if(progEl) progEl.style.width='100%'; }, 50);
   }
-  G.currentLocation = dest;
-  G.locationName = dest.name;
-  if(!G.discoveredLocations.find(l=>l.name===dest.name&&l.type===dest.type)){
-    G.discoveredLocations.push(dest);
-    notify('¡Descubriste ' + dest.name + '!','quest');
-    addXP(50);
+
+  // Determine destination hex — if dest came from a hex click it has coords, else find or assign a neighboring hex
+  const playerCoords = getPlayerHexCoords();
+  let destQ = null, destR = null;
+
+  // Search existing hexMap for this location
+  for(const [k,h] of Object.entries(hexMap)){
+    if(h.location && h.location.name===dest.name && h.location.type===dest.type){
+      const p=k.split(','); destQ=parseInt(p[0]); destR=parseInt(p[1]); break;
+    }
   }
-  const amb = dest.ambiance||(LOCATIONS[dest.type]||{}).ambiance||'🏘️';
-  addStory(amb + ' **Bienvenido a ' + dest.name + '**\n' + (dest.desc||'').slice(0,160),'travel');
-  if(Math.random()<0.45) generateQuest();
-  revealHexesAroundPlayer();
-  updateHUD(); updateActions(dest.type||'town'); renderQuests(); renderLocation(); renderLore(); drawMap();
-  if(dest.type==='dungeon') addStory('⚠️ Esta zona parece peligrosa. Prepárate.','warning');
+
+  // If no hex found, place it in a random adjacent unrevealed hex
+  if(destQ===null){
+    const neighbors = HEX_DIRS.map(d=>({q:playerCoords.q+d.q, r:playerCoords.r+d.r}));
+    const free = neighbors.filter(n=>{
+      const h=hexMap[n.q+','+n.r];
+      return !h?.location || !G.discoveredLocations.find(l=>l.name===h.location?.name&&l.type===h.location?.type);
+    });
+    const chosen = free.length ? pick(free) : pick(neighbors);
+    destQ = chosen.q; destR = chosen.r;
+    // Assign location to that hex
+    if(!hexMap[destQ+','+destR]) generateHex(destQ, destR);
+    hexMap[destQ+','+destR].location = dest;
+    hexMap[destQ+','+destR].type = dest.type;
+    hexMap[destQ+','+destR].color = ({city:'#6a5a20',town:'#5a4a28',forest:'#163018',mountain:'#4a3c2a',plains:'#2e2414',dungeon:'#2e1212'})[dest.type]||'#222';
+  }
+
+  // After animation delay, complete travel
+  const travelDuration = 1900;
+  setTimeout(()=>{
+    if(overlay) overlay.classList.remove('active');
+    if(progEl) progEl.style.width='0%'; // reset for next time
+
+    G.hour += hours;
+    if(G.hour>=24){ G.day+=Math.floor(G.hour/24); G.hour=G.hour%24; }
+
+    addStory(`${ambIcon} **Viaje a ${dest.name}** — ${hours} hora${hours>1?'s':''} de camino.`, 'travel');
+
+    if(Math.random()<0.65){
+      addStory(pick(TRAVEL_EVENTS)(G.player), 'travel');
+      if(Math.random()<0.55) setTimeout(()=>handleTravelEncounter(), 400);
+    }
+
+    G.currentLocation = dest;
+    G.locationName = dest.name;
+
+    if(!G.discoveredLocations.find(l=>l.name===dest.name&&l.type===dest.type)){
+      G.discoveredLocations.push(dest);
+      notify('¡Descubriste ' + dest.name + '!','quest');
+      addXP(50);
+    }
+
+    addStory(`**Bienvenido a ${dest.name}**\n${(dest.desc||'').slice(0,160)}`, 'travel');
+    if(Math.random()<0.45) generateQuest();
+
+    revealHexesAroundPlayer();
+    updateHUD();
+    updateActions(dest.type||'town');
+    renderQuests(); renderLocation(); renderLore();
+    // Center map on new location
+    if(typeof centerMap==='function') setTimeout(()=>centerMap(), 80);
+    if(dest.type==='dungeon') addStory('⚠️ Esta zona parece peligrosa. Prepárate.','warning');
+    checkDovahkiinRaid();
+  }, travelDuration);
 }
 
 function addHexToMap(){ drawMap(); }
 
 
 function handleTravelEncounter(){
-  const maxLevel = Math.min(G.player.level+2, ENEMIES.length-2);
-  const enemy = ENEMIES[rand(0, maxLevel)];
-  if(enemy.isBoss) return;
+  // Only spawn enemies at or below player level (max +1)
+  const eligibleEnemies = ENEMIES.filter(e=>!e.isBoss && e.level <= G.player.level+1);
+  if(!eligibleEnemies.length) return;
+  const enemy = pick(eligibleEnemies);
   addStory(`💀 **¡Emboscada!** Un ${enemy.emoji} ${enemy.name} surge del camino.`, 'combat');
   setTimeout(()=>startCombat([enemy]), 500);
 }
 
 // ====== EXPLORATION ======
+const EXPLORE_EVENTS = [
+  (loc)=>`Un mercader errante con mercancía inusual cruza tu camino en ${loc}. Ofrece un trato rápido.`,
+  (loc)=>`Descubres una cueva poco profunda cerca de ${loc}. Restos de un antiguo campamento yacen dentro.`,
+  (loc)=>`Un mensajero herido cae de su caballo cerca de ti. Lleva una carta sellada con un sello que no reconoces.`,
+  (loc)=>`Un viejo mapa grabado en una piedra revela un posible escondite secreto en los alrededores de ${loc}.`,
+  (loc)=>`Ves humo en la distancia. Al acercarte, encuentras una caravana atacada. Los heridos necesitan ayuda.`,
+  (loc)=>`Un niño te señala un árbol marcado con runas. Parece reciente y extraño para esta zona.`,
+  (loc)=>`Escuchas voces en un idioma antiguo provenientes de unas ruinas. Al asomarte, el silencio cae de repente.`,
+  (loc)=>`Un animal herido bloquea el camino. Al curarlo, nota un collar con un nombre y una dirección grabados.`,
+];
+
 function explore(){
   addStory(`${G.player.avatar} **Exploras los alrededores de ${G.locationName}...**`, 'travel');
 
   const roll = rollDie(20) + mod(G.player.stats.wis);
-  addStory(`Tiradas de Percepción: ${roll}.`, 'system');
+  addStory(`Tirada de Percepción: **${roll}**.`, 'system');
+
+  // Always trigger a random event (one of: find, combat, story)
+  const eventRoll = Math.random();
 
   if(roll >= 18){
-    // Exceptional find
-    const finds = ['un tesoro escondido','una entrada secreta','un grimorio olvidado','un cofre enterrado'];
-    const find = pick(finds);
-    addStory(`✨ Con tu aguda percepción descubres ${find}!`, 'reward');
-    const gold = rand(20,80);
+    const finds = ['un cofre medio enterrado','una estatuilla de valor','un pergamino arcano','monedas antiguas de plata'];
+    addStory(`✨ **¡Hallazgo excepcional!** Encuentras ${pick(finds)}.`, 'reward');
+    const gold = rand(30,100);
     G.player.gold += gold;
-    addXP(50);
+    addXP(75);
     notify(`+🪙${gold} oro`, 'reward');
-
-    // Small chance clue
-    if(Math.random() < 0.15 && G.clues.length < 5){
-      giveClue();
-    }
-  } else if(roll >= 12){
-    // Normal find
-    addStory(`Encuentras algunas hierbas medicinales y rastros de civilización. Nada extraordinario.`, 'normal');
-    if(Math.random() < 0.3){
-      const gold = rand(5,20);
-      G.player.gold += gold;
-      notify(`+🪙${gold}`, 'reward');
-    }
-  } else if(roll >= 6){
-    addStory(`La exploración no revela nada de interés. Al menos el paisaje es hermoso.`, 'normal');
+    if(Math.random() < 0.25 && G.clues.length < 5) giveClue();
+    // Still chance of encounter even on good rolls
+    if(eventRoll < 0.3) { addStory(`Pero no estás solo... algo se mueve entre las sombras.`, 'warning'); setTimeout(()=>handleTravelEncounter(), 500); }
+  } else if(roll >= 13){
+    addStory(pick(EXPLORE_EVENTS)(G.locationName), 'travel');
+    const gold = rand(10,35);
+    G.player.gold += gold;
+    addXP(30);
+    notify(`+🪙${gold}`, 'reward');
+    // Medium encounter chance
+    if(eventRoll < 0.45) setTimeout(()=>handleTravelEncounter(), 400);
+  } else if(roll >= 7){
+    addStory(`La exploración no revela nada de interés en ${G.locationName}. Sin embargo, ${pick(EXPLORE_EVENTS)(G.locationName).toLowerCase()}`, 'normal');
+    addXP(15);
+    // High encounter chance on low rolls
+    if(eventRoll < 0.65) setTimeout(()=>handleTravelEncounter(), 400);
   } else {
-    addStory(`¡Un encuentro inesperado! Tus distracciones te llevaron a territorio peligroso.`, 'warning');
-    if(Math.random()<0.5) handleTravelEncounter();
+    addStory(`¡Tu distracción te delata! Algo te ha estado siguiendo.`, 'warning');
+    setTimeout(()=>handleTravelEncounter(), 300);
   }
 
   advanceTime(1);
@@ -2976,10 +3730,9 @@ function advanceDungeon(){
   addStory(pick(DUNGEON_EVENTS), 'normal');
 
   if(Math.random()<0.7){
-    // Combat encounter
-    const lvlRange = Math.min(G.player.level+1, ENEMIES.length-2);
-    const enemy = ENEMIES[rand(Math.max(0,G.player.level-2), lvlRange)];
-    if(!enemy.isBoss) startCombat([enemy]);
+    // Combat encounter - scale to player level (max +1)
+    const eligible = ENEMIES.filter(e=>!e.isBoss && e.level <= G.player.level+1);
+    if(eligible.length){ const enemy = pick(eligible); startCombat([enemy]); }
   } else if(Math.random()<0.5){
     // Treasure
     const gold = rand(10,50)*G.player.level;
@@ -3007,7 +3760,12 @@ function rest(long){
     addStory(`🌙 **Descanso Largo** — Instalas el campamento y descansas hasta el amanecer.`, 'system');
     G.player.hp = G.player.maxHP;
     G.player.mp = G.player.maxMP;
-    Object.keys(G.player.spellSlotsMax).forEach(k=>{ G.player.spellSlots[k] = G.player.spellSlotsMax[k]; });
+    // D&D 5e: Long rest restores all spell slots for all except warlock
+    if(G.player.cls !== 'warlock'){
+      const fullSlots = getSpellSlotsForLevel(G.player.cls, G.player.level);
+      G.player.spellSlotsMax = fullSlots;
+      G.player.spellSlots = {...fullSlots};
+    }
     G.day++;
     G.hour = 8;
 
@@ -3020,6 +3778,7 @@ function rest(long){
     }
 
     addStory(`☀️ Amanece el día ${G.day}. Te sientes renovado. HP, MP y espacios de conjuro restaurados.`, 'system');
+    setTimeout(()=>checkDovahkiinRaid(), 600);
   } else {
     const healRoll = parseDice('1d6') + mod(G.player.stats.con);
     G.player.hp = Math.min(G.player.maxHP, G.player.hp + healRoll);
@@ -3028,10 +3787,17 @@ function rest(long){
     if(G.hour>=24){ G.day++; G.hour=G.hour%24; }
     addStory(`⛺ **Descanso Corto** — Recuperas ${healRoll} PG. Hora actual: ${G.hour}:00.`, 'system');
 
-    // Warlock slots
+    // D&D 5e short rest: Warlock recovers all pact magic slots, Fighter gets Second Wind
     if(G.player.cls==='warlock'){
-      G.player.spellSlots = {...G.player.spellSlotsMax};
-      addStory(`Como Brujo, recuperas todos tus espacios de conjuro.`, 'system');
+      const warlockSlots = getSpellSlotsForLevel('warlock', G.player.level);
+      G.player.spellSlotsMax = warlockSlots;
+      G.player.spellSlots = {...warlockSlots};
+      addStory(`👁️ Como Brujo, tu **Magia de Pacto** se restaura en el descanso corto.`, 'system');
+    }
+    if(G.player.cls==='fighter'){
+      const swHeal = parseDice('1d10') + G.player.level;
+      G.player.hp = Math.min(G.player.maxHP, G.player.hp + swHeal);
+      addStory(`⚔️ **Recuperación de Heridas** (Guerrero): +${swHeal} PG adicionales.`, 'system');
     }
   }
 
@@ -3085,12 +3851,40 @@ function startCombat(enemies){
   const order = combatState.combatants.map(c=>`${c.emoji||c.avatar} ${c.name} (${c.initiative})`).join(' → ');
   addStory(`Orden de combate: ${order}`, 'combat');
 
+  // Show combat banner and block UI
+  document.getElementById('combat-banner')?.classList.add('active');
+  const hireBtn = document.getElementById('hire-btn');
+  if(hireBtn) hireBtn.disabled = true;
+
   updateCombatUI();
-  showCombatActions();
+
+  // Kick off the first turn properly
+  const first = combatState.combatants[0];
+  if(first.isEnemy){
+    addStory(`${first.emoji} **${first.name}** actúa primero!`, 'combat');
+    setTimeout(()=>enemyTurn(first), 1000);
+  } else if(first.isParty){
+    setTimeout(()=>partyMemberTurn(first), 600);
+  } else {
+    // Player goes first
+    showCombatActions();
+  }
 }
 
 function updateCombatUI(){
   if(!combatState) return;
+
+  // Update combat banner
+  const cbRound = document.getElementById('cb-round');
+  const cbTurn = document.getElementById('cb-turn');
+  if(cbRound) cbRound.textContent = `Ronda ${combatState.round}`;
+  if(cbTurn){
+    const cur = combatState.combatants[combatState.currentTurn];
+    if(cur){
+      const isPlayer = cur.isPlayer;
+      cbTurn.textContent = isPlayer ? '⚡ ¡Es tu turno!' : `${cur.emoji||'👹'} ${cur.name} actúa...`;
+    }
+  }
 
   const area = document.getElementById('combat-area');
   const noC = document.getElementById('no-combat');
@@ -3123,15 +3917,21 @@ function updateCombatUI(){
 
 function showCombatActions(){
   const grid = document.getElementById('action-grid');
-  const current = combatState?.combatants[combatState?.currentTurn];
+  if(!grid) return;
 
-  if(!current || !current.isPlayer || combatState?.over){
-    grid.innerHTML = '';
+  if(!combatState || combatState.over){
+    // Combat ended - grid will be repopulated by updateActions called from endCombat
+    return;
+  }
+
+  const current = combatState.combatants[combatState.currentTurn];
+  if(!current || !current.isPlayer){
+    grid.innerHTML = '<div style="color:var(--text-dim);font-style:italic;font-size:0.75rem;padding:0.4rem;">Turno del enemigo...</div>';
     return;
   }
 
   const actions = [
-    {icon:'⚔️', label:'Atacar', fn:'combatAttack()'},
+    {icon:'⚔️', label:'Atacar', fn:'combatAttack()', primary:true},
     {icon:'🏃', label:'Esquivar', fn:'combatDodge()'},
     {icon:'🧪', label:'Poción', fn:'combatUsePotion()'},
     {icon:'🏃‍♂️', label:'Huir', fn:'combatFlee()'},
@@ -3142,7 +3942,7 @@ function showCombatActions(){
   }
 
   grid.innerHTML = actions.map(a=>`
-    <button class="action-btn" onclick="${a.fn}">
+    <button class="action-btn combat-action ${a.primary?'primary':''}" onclick="${a.fn}">
       <span class="icon">${a.icon}</span>${a.label}
     </button>
   `).join('');
@@ -3172,7 +3972,29 @@ function combatAttack(){
     const dmgDice = weapon?.damage || '1d4';
     let dmg = parseDice(dmgDice) + statMod;
     if(isCrit){ dmg += parseDice(dmgDice); addStory(`✨ **¡GOLPE CRÍTICO!** Daño doble.`, 'combat'); }
+
+    // Rogue: Sneak Attack (1d6 per 2 levels, rounded up)
+    if(G.player.cls === 'rogue'){
+      const sneakDice = Math.ceil(G.player.level/2);
+      let sneakDmg = 0;
+      for(let i=0;i<sneakDice;i++) sneakDmg+=rollDie(6);
+      if(isCrit) sneakDmg *= 2;
+      dmg += sneakDmg;
+      addStory(`🗡️ **Ataque Furtivo:** +${sneakDmg} daño extra (${sneakDice}d6).`, 'combat');
+    }
+    // Barbarian rage: +str mod to damage
+    if(G.player.cls === 'barbarian'){
+      const rageDmg = G.player.level>=9?4:G.player.level>=5?3:2;
+      dmg += rageDmg;
+      addStory(`🪓 **Furia:** +${rageDmg} daño de rabia.`, 'combat');
+    }
+    // Fighter extra attack (level 5+)
+    if(G.player.cls === 'fighter' && G.player.level >= 5){
+      addStory(`⚔️ **Ataque Extra:** Puedes atacar de nuevo.`, 'combat');
+    }
     dmg = Math.max(1, dmg);
+    // Difficulty: easy = +50% damage dealt
+    if(G.difficulty === 'easy') dmg = Math.floor(dmg * 1.5);
     target.currentHP -= dmg;
 
     playSound('attack');
@@ -3313,6 +4135,10 @@ function handleEnemyDeath(enemy){
 function nextTurn(){
   if(!combatState||combatState.over) return;
 
+  // Clear player actions while waiting
+  const grid = document.getElementById('action-grid');
+  if(grid) grid.innerHTML = '<div style="color:var(--text-dim);font-style:italic;font-size:0.75rem;padding:0.4rem;">Esperando turno...</div>';
+
   combatState.currentTurn = (combatState.currentTurn+1) % combatState.combatants.length;
 
   // Skip dead combatants
@@ -3322,6 +4148,7 @@ function nextTurn(){
     safety++;
   }
 
+  // New round when we wrap back to 0
   if(combatState.currentTurn === 0) combatState.round++;
 
   const current = combatState.combatants[combatState.currentTurn];
@@ -3330,10 +4157,11 @@ function nextTurn(){
   updateCombatUI();
 
   if(current.isEnemy){
-    setTimeout(()=>enemyTurn(current), 800);
+    setTimeout(()=>enemyTurn(current), 900);
   } else if(current.isParty){
     setTimeout(()=>partyMemberTurn(current), 600);
   } else {
+    // It's the player's turn
     showCombatActions();
   }
 }
@@ -3355,6 +4183,8 @@ function enemyTurn(enemy){
   if(roll===20 || totalHit >= targetAC){
     let dmg = parseDice(attack.dmg);
     if(roll===20) dmg *= 2;
+    // Difficulty: easy = -50% damage received
+    if(G.difficulty === 'easy' && target.isPlayer) dmg = Math.max(1, Math.floor(dmg * 0.5));
 
     if(target.isPlayer){
       G.player.hp -= dmg;
@@ -3382,13 +4212,76 @@ function enemyTurn(enemy){
 }
 
 function partyMemberTurn(member){
+  if(!combatState || combatState.over) return;
   const enemies = combatState.enemies.filter(e=>e.currentHP>0);
   if(!enemies.length) return;
 
-  const target = enemies[0];
-  const dmg = parseDice('1d8') + rand(1,4);
+  const cls = member.cls;
+  const strMod = mod(member.stats?.str||10);
+  const dexMod = mod(member.stats?.dex||10);
+  const wisMod = mod(member.stats?.wis||10);
+  const profB = profBonus(member.level||1);
+
+  // Healer classes (cleric, druid, paladin bard) check if player is hurt
+  const playerHurtBadly = G.player.hp < G.player.maxHP * 0.4;
+  const isHealer = ['cleric','druid','paladin','bard'].includes(cls);
+
+  if(isHealer && playerHurtBadly && Math.random() < 0.65){
+    const healAmt = parseDice('1d8') + wisMod + profB;
+    G.player.hp = Math.min(G.player.maxHP, G.player.hp + healAmt);
+    combatState.combatants.find(c=>c.isPlayer).currentHP = G.player.hp;
+    addStory(`${member.avatar} **${member.name}** canaliza energía curativa sobre ${G.player.name}. +${healAmt} PG.`, 'combat');
+    updateHUD();
+    nextTurn(); return;
+  }
+
+  // Target selection: weakest enemy first
+  const target = enemies.sort((a,b)=>a.currentHP-b.currentHP)[0];
+
+  let dmg, actionName;
+  switch(cls){
+    case 'fighter': case 'paladin': case 'barbarian':
+      dmg = parseDice('1d8') + strMod + profB;
+      actionName = cls==='paladin' ? 'golpe sagrado' : cls==='barbarian' ? 'ataque frenético' : 'ataque';
+      break;
+    case 'rogue':
+      dmg = parseDice('1d6') + dexMod + profB + parseDice('1d6'); // sneak attack
+      actionName = 'ataque furtivo';
+      break;
+    case 'ranger':
+      dmg = parseDice('1d8') + dexMod + profB;
+      actionName = 'flecha certera';
+      break;
+    case 'wizard': case 'sorcerer':
+      dmg = parseDice('2d6') + mod(member.stats?.int||10);
+      actionName = 'hechizo arcano';
+      break;
+    case 'warlock':
+      dmg = parseDice('1d10') + mod(member.stats?.cha||10);
+      actionName = 'maldición de Eldritch';
+      break;
+    case 'cleric': case 'druid':
+      dmg = parseDice('1d8') + wisMod;
+      actionName = cls==='cleric' ? 'llama sagrada' : 'rayo de luna';
+      break;
+    case 'bard':
+      dmg = parseDice('1d6') + mod(member.stats?.cha||10);
+      actionName = 'insulto vicious';
+      break;
+    case 'monk':
+      dmg = parseDice('1d6') + dexMod + profB;
+      const ki = parseDice('1d4');
+      dmg += ki;
+      actionName = `golpe de ki (+${ki})`;
+      break;
+    default:
+      dmg = parseDice('1d6') + strMod;
+      actionName = 'ataque';
+  }
+
+  dmg = Math.max(1, dmg);
   target.currentHP -= dmg;
-  addStory(`${member.avatar} **${member.name}** ataca a ${target.name} por **${dmg} de daño**.`, 'combat');
+  addStory(`${member.avatar} **${member.name}** usa ${actionName} contra ${target.emoji} ${target.name} por **${dmg} de daño**. (${Math.max(0,target.currentHP)}/${target.maxHP} HP)`, 'combat');
 
   if(target.currentHP<=0) handleEnemyDeath(target);
   else nextTurn();
@@ -3401,6 +4294,11 @@ function endCombat(victory){
   const noC = document.getElementById('no-combat');
   if(area) area.style.display = 'none';
   if(noC) noC.style.display = '';
+
+  // Hide combat banner, restore UI
+  document.getElementById('combat-banner')?.classList.remove('active');
+  const hireBtn = document.getElementById('hire-btn');
+  if(hireBtn) hireBtn.disabled = false;
 
   combatState = null;
 
@@ -3415,6 +4313,7 @@ function endCombat(victory){
   }
 
   updateHUD();
+  // Restore normal action buttons
   updateActions(G.currentLocation?.type||'town');
   renderParty();
   renderInventory();
@@ -3541,6 +4440,7 @@ function openTavern(){
       <div style="flex:1;">
         <div style="font-family:var(--font-display); font-size:0.85rem; color:var(--text-primary);">${npc.name}</div>
         <div style="font-size:0.7rem; color:var(--text-secondary);">${CLASSES[npc.cls]?.name||npc.cls} Nv.${npc.level} · ${npc.personality.slice(0,50)}...</div>
+        <div style="font-size:0.62rem; color:var(--cyan); font-style:italic; margin-top:0.1rem;">"${(npc.quirk||'').slice(0,60)}..."</div>
         <div style="font-size:0.65rem; color:var(--text-dim); margin-top:0.15rem;">HP: ${npc.maxHP} · Contratación: 🪙${npc.hireGold}/misión</div>
       </div>
       <button class="btn btn-small ${G.party.length>=4?'':'btn-primary'}" onclick="hireAdventurer(${i})" ${G.party.find(m=>m.name===npc.name)?'disabled':''} ${G.party.length>=4?'disabled':''}>
@@ -3557,9 +4457,11 @@ function refreshTavernPool(){
   for(let i=0;i<4;i++){
     const cls = pick(Object.keys(CLASSES));
     const gender = Math.random()<0.5?'male':'female';
-    const level = Math.max(1, G.player.level + rand(-2,2));
+    const level = Math.max(1, G.player.level + rand(-1,1));
     const hd = CLASSES[cls].hd;
-    const maxHP = parseDice(hd) * level + rand(0,10);
+    const hdMax = {'d6':6,'d8':8,'d10':10,'d12':12}[hd]||8;
+    const conBonus = rand(-1,2);
+    const maxHP = Math.max(1, hdMax + conBonus) * level;
     G.tavernPool.push({
       name: genName(gender),
       cls, level,
@@ -3567,8 +4469,9 @@ function refreshTavernPool(){
       hp: maxHP, maxHP,
       stats: {str:rand(8,16),dex:rand(8,16),con:rand(8,16),int:rand(8,16),wis:rand(8,16),cha:rand(8,16)},
       personality: pick(PERSONALITIES[cls]||['Un espíritu aventurero.']),
+      quirk: pick(COMPANION_QUIRKS),
       loyalty: rand(50,80),
-      hireGold: rand(20,80),
+      hireGold: rand(20,80)*level,
       conditions: []
     });
   }
@@ -3893,49 +4796,150 @@ function startFinalQuest(){
   );
 }
 
-// ====== XP & LEVELING ======
+// ====== D&D 5e XP THRESHOLDS ======
+const DND_XP_THRESHOLDS = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+// Index = level reached, value = XP needed total
+
+// D&D 5e Spell Slots by class and level (full casters)
+const FULL_CASTER_SLOTS = {
+  1:  {1:2},
+  2:  {1:3},
+  3:  {1:4,2:2},
+  4:  {1:4,2:3},
+  5:  {1:4,2:3,3:2},
+  6:  {1:4,2:3,3:3},
+  7:  {1:4,2:3,3:3,4:1},
+  8:  {1:4,2:3,3:3,4:2},
+  9:  {1:4,2:3,3:3,4:3,5:1},
+  10: {1:4,2:3,3:3,4:3,5:2},
+  11: {1:4,2:3,3:3,4:3,5:2,6:1},
+  12: {1:4,2:3,3:3,4:3,5:2,6:1},
+  13: {1:4,2:3,3:3,4:3,5:2,6:1,7:1},
+  14: {1:4,2:3,3:3,4:3,5:2,6:1,7:1},
+  15: {1:4,2:3,3:3,4:3,5:2,6:1,7:1,8:1},
+  16: {1:4,2:3,3:3,4:3,5:2,6:1,7:1,8:1},
+  17: {1:4,2:3,3:3,4:3,5:2,6:1,7:1,8:1,9:1},
+  18: {1:4,2:3,3:3,4:3,5:3,6:1,7:1,8:1,9:1},
+  19: {1:4,2:3,3:3,4:3,5:3,6:2,7:1,8:1,9:1},
+  20: {1:4,2:3,3:3,4:3,5:3,6:2,7:2,8:1,9:1},
+};
+// Half-casters (paladin, ranger): slots from level 2, half caster table
+const HALF_CASTER_SLOTS = {
+  2:  {1:2}, 3:{1:3}, 4:{1:3}, 5:{1:4,2:2}, 6:{1:4,2:2}, 7:{1:4,2:3},
+  8:  {1:4,2:3}, 9:{1:4,2:3,3:2}, 10:{1:4,2:3,3:2}, 11:{1:4,2:3,3:3},
+  12: {1:4,2:3,3:3}, 13:{1:4,2:3,3:3,4:1}, 14:{1:4,2:3,3:3,4:1},
+  15: {1:4,2:3,3:3,4:2}, 16:{1:4,2:3,3:3,4:2}, 17:{1:4,2:3,3:3,4:3,5:1},
+  18: {1:4,2:3,3:3,4:3,5:1}, 19:{1:4,2:3,3:3,4:3,5:2}, 20:{1:4,2:3,3:3,4:3,5:2},
+};
+// Warlock: pact magic slots
+const WARLOCK_SLOTS = {
+  1:{1:1}, 2:{1:2}, 3:{2:2}, 4:{2:2}, 5:{3:2}, 6:{3:2}, 7:{4:2}, 8:{4:2},
+  9:{5:2}, 10:{5:2}, 11:{5:3}, 12:{5:3}, 13:{5:3}, 14:{5:3}, 15:{5:3},
+  16:{5:3}, 17:{5:4}, 18:{5:4}, 19:{5:4}, 20:{5:4},
+};
+
+const FULL_CASTERS = ['wizard','cleric','druid','bard','sorcerer'];
+const HALF_CASTERS = ['paladin','ranger'];
+
+function getSpellSlotsForLevel(cls, level){
+  if(FULL_CASTERS.includes(cls)) return {...(FULL_CASTER_SLOTS[level]||{})};
+  if(HALF_CASTERS.includes(cls)) return {...(HALF_CASTER_SLOTS[level]||{})};
+  if(cls==='warlock') return {...(WARLOCK_SLOTS[level]||{})};
+  return {};
+}
+
+// D&D 5e proficiency bonus
+function profBonus(level){ 
+  if(level>=17) return 6;
+  if(level>=13) return 5;
+  if(level>=9)  return 4;
+  if(level>=5)  return 3;
+  return 2;
+}
+
+// ====== XP & LEVELING (D&D 5e) ======
 function addXP(amount){
   G.player.xp += amount;
-  // xp notification handled elsewhere
+  notify(`+${amount} XP`, 'reward');
 
-  while(G.player.xp >= G.player.xpNext){
+  // Check for level up (D&D 5e thresholds)
+  while(G.player.level < 20 && G.player.xp >= DND_XP_THRESHOLDS[G.player.level]){
     levelUp();
   }
   updateHUD();
 }
 
 function levelUp(){
+  const oldLevel = G.player.level;
   G.player.level++;
-  G.player.xp -= G.player.xpNext;
-  G.player.xpNext = Math.floor(G.player.xpNext * 1.8);
-
+  const newLevel = G.player.level;
   const cls = CLASSES[G.player.cls];
-  const hpGain = parseDice(cls.hd) + mod(G.player.stats.con);
-  G.player.maxHP += hpGain;
-  G.player.hp = G.player.maxHP;
 
-  // More spell slots
-  if(cls.spellcasting){
-    const slots = G.player.spellSlotsMax;
-    if(G.player.level>=3) slots[2] = (slots[2]||0)+1;
-    if(G.player.level>=5) slots[3] = (slots[3]||0)+1;
-    if(G.player.level>=7) slots[4] = (slots[4]||0)+1;
-    G.player.spellSlots = {...slots};
+  // HP gain: roll HD + CON modifier (minimum 1)
+  const hpRoll = parseDice(cls.hd);
+  const hpGain = Math.max(1, hpRoll + mod(G.player.stats.con));
+  G.player.maxHP += hpGain;
+  G.player.hp = G.player.maxHP; // Full heal on level up
+
+  // Proficiency bonus
+  const newProf = profBonus(newLevel);
+  const oldProf = profBonus(oldLevel);
+  const profMsg = newProf > oldProf ? `\n📈 **Bonificador de Competencia** aumenta a +${newProf}.` : '';
+
+  // Spell slots
+  const spellcasting = cls.spellcasting;
+  let slotMsg = '';
+  if(spellcasting || G.player.cls === 'warlock'){
+    const newSlots = getSpellSlotsForLevel(G.player.cls, newLevel);
+    G.player.spellSlotsMax = newSlots;
+    G.player.spellSlots = {...newSlots};
+    slotMsg = '\n✨ **Espacios de conjuro** actualizados.';
   }
 
-  addStory(`🌟 **¡SUBIDA DE NIVEL!** ${G.player.name} es ahora nivel **${G.player.level}**!\n+${hpGain} PG máximos. HP totalmente restaurados.`, 'reward');
-  notify('¡Nivel ' + G.player.level + '!', 'reward');
+  // ASI at levels 4, 8, 12, 16, 19 (fighter gets extra at 6, 14)
+  const asiLevels = G.player.cls === 'fighter' ? [4,6,8,12,14,16,19] : [4,8,12,16,19];
+  let asiMsg = '';
+  if(asiLevels.includes(newLevel)){
+    // Auto-apply ASI to primary stat (max 20)
+    const primary = cls.primary || 'str';
+    const secondary = pick(['str','dex','con','int','wis','cha'].filter(s=>s!==primary));
+    if(G.player.stats[primary] < 20){
+      G.player.stats[primary] = Math.min(20, G.player.stats[primary]+2);
+      asiMsg = `\n📊 **Mejora de Característica (ASI):** ${primary.toUpperCase()} +2 → ${G.player.stats[primary]}.`;
+    } else if(G.player.stats[secondary] < 20){
+      G.player.stats[secondary] = Math.min(20, G.player.stats[secondary]+1);
+      G.player.stats[primary] = Math.min(20, G.player.stats[primary]+1);
+      asiMsg = `\n📊 **Mejora de Característica (ASI):** +1 a dos características.`;
+    }
+    recalcAC(); // AC might change
+  }
+
+  // Class features by level
+  let featMsg = '';
+  if(G.player.cls === 'fighter' && newLevel === 5) featMsg = '\n⚔️ **Ataque Extra:** Puedes atacar dos veces en tu turno.';
+  if(G.player.cls === 'rogue' && newLevel === 5) featMsg = '\n🗡️ **Ataque sin rastro:** Bonificador de Competencia × 2 en Sigilo.';
+  if(G.player.cls === 'barbarian' && newLevel === 5) featMsg = '\n🪓 **Ataque Extra + Movimiento Rápido.**';
+  if(G.player.cls === 'paladin' && newLevel === 5) featMsg = '\n🛡️ **Ataque Extra + Destruir el Mal Potenciado.**';
+  if(G.player.cls === 'ranger' && newLevel === 5) featMsg = '\n🏹 **Ataque Extra.**';
+  if(G.player.cls === 'monk' && newLevel === 5) featMsg = '\n🥋 **Ataque Extra + Golpe Aturdidor.**';
+
+  addStory(
+    `🌟 **¡SUBIDA DE NIVEL!** ${G.player.name} es ahora **nivel ${newLevel}**!\n` +
+    `❤️ +${hpGain} PG máximos (${cls.hd}+CON). HP totalmente restaurados.` +
+    profMsg + slotMsg + asiMsg + featMsg,
+    'reward'
+  );
+  notify('¡Nivel ' + newLevel + '!', 'level-up');
   playSound('levelup');
   confetti();
 
-  // Add new skill options every 4 levels (ASI)
-  if(G.player.level%4===0){
-    const stat = pick(['str','dex','con','int','wis','cha']);
-    G.player.stats[stat] = Math.min(20, G.player.stats[stat]+2);
-    addStory(`📈 **Mejora de Característica:** ${stat.toUpperCase()} +2 (ahora ${G.player.stats[stat]}).`, 'system');
-  }
+  // Update XP threshold display
+  G.player.xpNext = DND_XP_THRESHOLDS[newLevel] || DND_XP_THRESHOLDS[19];
 
+  recalcAC();
   updateHUD();
+  renderSpells();
+  renderSkills();
 }
 
 // ====== INVENTORY ======
@@ -4320,9 +5324,20 @@ function generateHex(q,r){
   let loc=null;
   const lt=LOCATIONS[type];
   if(lt&&lt.names){
-    const v2=((Math.abs(Math.sin(seed*7)*43758.5453))%1);
-    const nm=lt.names[Math.floor(v2*lt.names.length)]||lt.names[0];
-    loc={name:nm,type,services:lt.services||[],desc:lt.desc?lt.desc(nm):nm,ambiance:lt.ambiance||'🏘️'};
+    const used = G?.usedLocationNames || new Set();
+    const available = lt.names.filter(n => !used.has(n));
+    let nm;
+    if(available.length > 0){
+      // Use deterministic pick from available names based on seed
+      nm = available[Math.floor(((Math.abs(Math.sin(seed*7)*43758.5453))%1) * available.length)] || available[0];
+    } else {
+      const suffixes = ['Viejo','Nuevo','del Norte','del Sur','Oscuro','Olvidado'];
+      const base = lt.names[Math.floor(((Math.abs(Math.sin(seed*7)*43758.5453))%1)*lt.names.length)]||lt.names[0];
+      nm = base + ' ' + suffixes[Math.floor(((Math.abs(Math.sin(seed*13)*43758.5453))%1)*suffixes.length)];
+    }
+    if(G?.usedLocationNames) G.usedLocationNames.add(nm);
+    const locDesc = lt.desc ? (typeof lt.desc === 'function' ? lt.desc(nm) : lt.desc.call(lt, nm)) : nm;
+    loc={name:nm,type,services:lt.services||[],desc:locDesc,ambiance:lt.ambiance||'🏘️'};
     if((type==='city'||type==='town')&&!G.discoveredLocations.find(l=>l.name===nm&&l.type===type)){
       G.discoveredLocations.push(loc);
     }
@@ -4417,9 +5432,26 @@ function drawHex(ctx,cx,cy,size,hex,isPlayer){
 }
 
 function mapZoom(f){ mapScale=Math.max(0.3,Math.min(4,mapScale*f)); drawMap(); }
-function centerMap(){ mapOffset={x:0,y:0}; drawMap(); }
+
+function centerMap(){
+  // Center on player position
+  if(mapCanvas && G?.currentLocation){
+    let plq=0, plr=0;
+    for(const [k,h] of Object.entries(hexMap)){
+      if(h.location&&(h.location===G.currentLocation||(h.location.name===G.currentLocation.name&&h.location.type===G.currentLocation.type))){
+        const p=k.split(','); plq=parseInt(p[0]); plr=parseInt(p[1]); break;
+      }
+    }
+    const pp = hexToPixel(plq, plr);
+    mapOffset = { x: -pp.x * mapScale, y: -pp.y * mapScale };
+  } else {
+    mapOffset = {x:0, y:0};
+  }
+  drawMap();
+}
 
 function mapClick(e){
+  if(combatState){ notify('No puedes viajar en combate.','warning'); return; }
   const rect=mapCanvas.getBoundingClientRect();
   const cx=mapCanvas.width/2+mapOffset.x, cy=mapCanvas.height/2+mapOffset.y;
   const {q,r}=pixelToHex((e.clientX-rect.left-cx)/mapScale,(e.clientY-rect.top-cy)/mapScale);
@@ -4429,6 +5461,22 @@ function mapClick(e){
   if(loc===G.currentLocation||(loc.name===G.currentLocation?.name&&loc.type===G.currentLocation?.type)){
     addStory('📍 Ya estás en **'+loc.name+'**.','system'); return;
   }
+
+  // Check if hex is revealed — if not, must be adjacent (distance 1)
+  const key = q+','+r;
+  const isRevealed = G.revealedHexes && G.revealedHexes.has(key);
+
+  if(!isRevealed){
+    // Check adjacency to player
+    const {q:pq, r:pr} = getPlayerHexCoords();
+    const isAdjacent = HEX_DIRS.some(d => (pq+d.q)===q && (pr+d.r)===r);
+    if(!isAdjacent){
+      addStory('⚠️ **Terreno desconocido.** Solo puedes explorar casillas adyacentes a tu posición actual. Desplázate paso a paso para revelar el mapa.','warning');
+      notify('Explora casillas adyacentes primero','warning');
+      return;
+    }
+  }
+
   showDialog('🗺️ '+loc.name,(LOCATIONS[loc.type]||{}).ambiance||'🏘️',
     '**'+loc.name+'**\n'+(loc.desc||'').slice(0,150)+'...\n\nServicios: '+((loc.services||[]).join(', ')||'Ninguno'),
     [{text:'🚶 Viajar aquí',fn:function(){closeModal('dialog-modal');travelTo(loc);}},
@@ -4442,7 +5490,7 @@ function switchTab(id){
   document.getElementById('tab-'+id)?.classList.add('active');
   document.getElementById('tab-btn-'+id)?.classList.add('active');
 
-  if(id==='map') setTimeout(()=>{ resizeMap(); drawMap(); }, 100);
+  if(id==='map') setTimeout(()=>{ resizeMap(); centerMap(); }, 100);
   if(id==='inventory') renderInventory();
   if(id==='spells') renderSpells();
   if(id==='skills-tab') renderSkills();
@@ -4777,11 +5825,77 @@ function confetti(){
   animate();
 }
 
-// ====== SAVE / LOAD ======
+// ====== DOVAHKIIN WORLD EVENTS ======
+function checkDovahkiinRaid(){
+  if(!G) return;
+  // Every 7 in-game days there's a chance Dovahkiin raids a settlement
+  if(G.day % 7 !== 0) return;
+  if(G._lastRaidDay === G.day) return; // only once per 7-day mark
+  G._lastRaidDay = G.day;
+
+  // Pick a discovered town/city that isn't the current location
+  const targets = G.discoveredLocations.filter(l=>
+    (l.type==='town'||l.type==='city') &&
+    l.name !== G.locationName &&
+    !l.razed
+  );
+  if(!targets.length) return;
+
+  const victim = pick(targets);
+  victim.razed = true;
+  victim.services = [];
+  victim.desc = `${victim.name} fue arrasada por el fuego de Dovahkiin. Solo quedan cenizas y ruinas humeantes.`;
+  victim.ambiance = '🔥';
+
+  // Update hexMap to show devastation
+  for(const [k,h] of Object.entries(hexMap)){
+    if(h.location && h.location.name === victim.name && h.location.type === victim.type){
+      h.color = '#3a1010';
+      h.type = 'dungeon';
+      if(h.location) h.location.razed = true;
+    }
+  }
+
+  const isCurrentLocation = G.locationName === victim.name;
+  const msg = isCurrentLocation
+    ? `🔥 **¡ATAQUE DRACÓNICO!** Dovahkiin sobrevuela ${victim.name} y lanza su aliento de fuego. ¡Las llamas te rodean! El pueblo arde y la gente huye en pánico.`
+    : `🔥 **NOTICIA SOMBRÍA:** Mensajeros llegan exhaustos con noticias terribles. **${victim.name}** ha sido arrasada por el fuego de **Dovahkiin**. No quedaron supervivientes. El mapa cambia.`;
+
+  addStory(msg, 'warning');
+  notify(`¡Dovahkiin arrasó ${victim.name}!`, 'combat');
+  drawMap(); // Refresh to show burned hex
+
+  // If player is in that town, they take damage
+  if(isCurrentLocation){
+    const fireDmg = rand(10,30);
+    G.player.hp = Math.max(1, G.player.hp - fireDmg);
+    addStory(`Las llamas te alcanzan. Recibes **${fireDmg} puntos de daño de fuego**. Debes huir.`, 'combat');
+    updateHUD();
+    // Force relocate player
+    const escape = G.discoveredLocations.find(l=>!l.razed&&l.type!=='dungeon'&&l.name!==victim.name);
+    if(escape){
+      setTimeout(()=>{
+        G.currentLocation = escape;
+        G.locationName = escape.name;
+        addStory(`🏃 Huyes a **${escape.name}**, exhausto pero con vida.`, 'travel');
+        updateHUD(); renderLocation(); updateActions(escape.type||'town');
+      }, 1500);
+    }
+  }
+
+  // Add lore entry
+  G.lore.push({title:`La caída de ${victim.name}`, text:`En el día ${G.day} de la aventura, Dovahkiin arrasó ${victim.name} sin previo aviso. El dragón demuestra que ningún asentamiento está a salvo mientras permanezca libre.`});
+  renderLore();
+}
+
+
 function saveGame(){
   if(!G) return;
   try{
-    const saveData = Object.assign({}, G, { revealedHexes: [...(G.revealedHexes||[])] });
+    const saveData = Object.assign({}, G, {
+      revealedHexes: [...(G.revealedHexes||[])],
+      usedLocationNames: [...(G.usedLocationNames||[])]
+    });
     localStorage.setItem('kurghaimat_save', JSON.stringify(saveData));
     const indicator = document.getElementById('save-indicator');
     indicator.style.display = 'block';
@@ -4801,6 +5915,7 @@ function restartFromTitle(){
   G = null;
   combatState = null;
   document.getElementById('death-screen').classList.remove('active');
+  document.getElementById('combat-banner')?.classList.remove('active');
   showScreen('title-screen');
   checkSave();
 }
