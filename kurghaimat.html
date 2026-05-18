@@ -2852,7 +2852,7 @@ const LORE_ENTRIES = [
 ];
 
 // ====== PORTRAIT SYSTEM ======
-const PORTRAIT_BASE = '/retratoskurghaimat/';
+const PORTRAIT_BASE = 'https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/retratoskurghaimat/';
 
 // All valid races and classes for filename generation
 const PORTRAIT_RACES = ['human','elf','dwarf','halfling','dragonborn','tiefling','gnome','half-orc','half-elf'];
@@ -2865,23 +2865,23 @@ const NPC_PORTRAIT_TYPES = ['merchant','innkeeper','guard','scholar','blacksmith
 // Fallback emojis by gender
 const FALLBACK_EMOJI = { male:'👨', female:'👩', neutral:'🧑' };
 
-// Build player portrait filename: {race}_{class}_{gender}.jpg
+// Build player portrait filename: {race}_{class}_{gender}.jpeg
 function playerPortraitPath(race, cls, gender){
   const r = (race||'human').replace('-','');
   const c = cls||'fighter';
   const g = gender||'male';
-  return PORTRAIT_BASE + r + '_' + c + '_' + g + '.jpg';
+  return PORTRAIT_BASE + r + '_' + c + '_' + g + '.jpeg';
 }
 
-// Build NPC portrait filename: npc_{class}_{gender}.jpg
-// For generic NPCs (merchant etc): npc_{type}_{gender}.jpg
+// Build NPC portrait filename: npc_{class}_{gender}.jpeg
+// For generic NPCs (merchant etc): npc_{type}_{gender}.jpeg
 function npcPortraitPath(cls, gender, npcType){
   const g = gender||'male';
   if(npcType && NPC_PORTRAIT_TYPES.includes(npcType)){
-    return PORTRAIT_BASE + 'npc_' + npcType + '_' + g + '.jpg';
+    return PORTRAIT_BASE + 'npc_' + npcType + '_' + g + '.jpeg';
   }
   const c = cls && PORTRAIT_CLASSES.includes(cls) ? cls : 'fighter';
-  return PORTRAIT_BASE + 'npc_' + c + '_' + g + '.jpg';
+  return PORTRAIT_BASE + 'npc_' + c + '_' + g + '.jpeg';
 }
 
 // Render a portrait <img> with emoji fallback, inside the given container element
@@ -5712,9 +5712,9 @@ function showDialog(title, portraitSrcOrEmoji, text, choices){
   _dch = choices;
   document.getElementById('dialog-npc-name').textContent = title;
 
-  // Portrait: if it ends in .jpg it's an image path, otherwise it's an emoji
+  // Portrait: if it ends in .jpeg it's an image path, otherwise it's an emoji
   const portraitEl = document.getElementById('dialog-portrait');
-  const isPath = typeof portraitSrcOrEmoji === 'string' && portraitSrcOrEmoji.includes('.jpg');
+  const isPath = typeof portraitSrcOrEmoji === 'string' && portraitSrcOrEmoji.includes('.jpeg');
   if(isPath){
     const img = document.createElement('img');
     img.src = portraitSrcOrEmoji;
