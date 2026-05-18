@@ -1551,7 +1551,200 @@ body {
 .travel-progress { width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-top: 0.5rem; }
 .travel-progress-fill { height: 100%; background: linear-gradient(to right, var(--border-gold), var(--gold-bright)); border-radius: 2px; width: 0%; transition: width 1.8s ease-in-out; }
 
-/* ===== CONFETTI LAYER ===== */
+/* ===== CHARACTER SHEET MODAL ===== */
+#char-sheet-modal .modal {
+  max-width: 520px;
+  padding: 0;
+  overflow: hidden;
+}
+.cs-header {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a0f00, #0e0700);
+  display: flex;
+  align-items: flex-end;
+}
+.cs-header-bg {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  object-position: top center;
+  width: 100%;
+  height: 100%;
+  opacity: 0.45;
+  filter: blur(1px) saturate(0.7);
+}
+.cs-header-portrait {
+  position: relative;
+  z-index: 2;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 3px solid var(--border-gold);
+  box-shadow: 0 0 24px rgba(200,146,42,0.5);
+  object-fit: cover;
+  object-position: top center;
+  margin: 0 1.2rem 1rem;
+  flex-shrink: 0;
+  cursor: zoom-in;
+  transition: transform 0.2s;
+}
+.cs-header-portrait:hover { transform: scale(1.04); }
+.cs-header-portrait-fallback {
+  position: relative;
+  z-index: 2;
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  border: 3px solid var(--border-gold);
+  box-shadow: 0 0 24px rgba(200,146,42,0.5);
+  margin: 0 1.2rem 1rem;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem;
+}
+.cs-header-info {
+  position: relative;
+  z-index: 2;
+  padding-bottom: 1rem;
+  flex: 1;
+}
+.cs-char-name {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  color: var(--gold-bright);
+  text-shadow: var(--glow-gold);
+  line-height: 1.1;
+}
+.cs-char-sub {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  color: var(--gold-light);
+  letter-spacing: 0.1em;
+  margin-top: 0.2rem;
+}
+.cs-char-align {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+.cs-body {
+  padding: 1.2rem 1.4rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cs-section-title {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border-gold-dim);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.6rem;
+}
+.cs-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+}
+.cs-stat {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.2rem;
+  text-align: center;
+}
+.cs-stat-label {
+  font-size: 0.55rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.cs-stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-title);
+  line-height: 1.1;
+}
+.cs-stat-mod {
+  font-size: 0.65rem;
+  color: var(--gold-light);
+}
+.cs-bars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1rem;
+}
+.cs-bar-row { display: flex; flex-direction: column; gap: 0.2rem; }
+.cs-bar-label { font-size: 0.65rem; color: var(--text-secondary); display: flex; justify-content: space-between; }
+.cs-bar-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+.cs-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.cs-personality {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.7;
+  background: var(--bg-secondary);
+  border-left: 2px solid var(--border-gold-dim);
+  padding: 0.6rem 0.8rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.cs-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.cs-trait-tag {
+  background: rgba(200,146,42,0.1);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: 20px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.65rem;
+  color: var(--gold-light);
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+}
+.cs-equipment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+.cs-equip-item {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.cs-equip-item span { color: var(--text-primary); }
+/* Portrait zoom overlay */
+#portrait-zoom-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+#portrait-zoom-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+#portrait-zoom-img {
+  max-width: min(768px, 90vw);
+  max-height: 90vh;
+  border-radius: 12px;
+  border: 2px solid var(--border-gold);
+  box-shadow: 0 0 60px rgba(200,146,42,0.3);
+  object-fit: contain;
+}
+
+
 #confetti-canvas {
   position: fixed;
   inset: 0;
@@ -1776,9 +1969,7 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
         <div id="portrait-preview-wrap" style="margin-top:0.5rem;display:flex;align-items:center;gap:1rem;">
           <div id="portrait-main-preview" style="width:80px;height:80px;border-radius:50%;border:2px solid var(--border-gold);overflow:hidden;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:2.2rem;flex-shrink:0;">👤</div>
           <div style="font-size:0.78rem;color:var(--text-secondary);font-style:italic;line-height:1.6;">
-            Tu retrato se genera automáticamente según tu <strong style="color:var(--gold-light)">raza, clase y género</strong>.<br>
-            Las imágenes deben estar en <code style="color:var(--cyan);font-size:0.72rem;">retratoskurghaimat/</code><br>
-            Si no se encuentran, se muestra un emoji de reserva.
+            Tu retrato se genera automáticamente según tu <strong style="color:var(--gold-light)">raza, clase y género</strong>.
           </div>
         </div>
       </div>
@@ -1842,7 +2033,8 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
     <div class="left-panel" id="left-panel">
       <div class="panel-scroll">
         <div class="mini-section">
-          <div class="char-avatar" id="player-avatar">⚔️</div>
+          <div class="char-avatar" id="player-avatar" onclick="openCharSheet()" title="Ver ficha de personaje" style="cursor:pointer;">⚔️</div>
+          <div style="text-align:center;font-size:0.55rem;color:var(--text-dim);margin-top:-0.3rem;margin-bottom:0.3rem;letter-spacing:0.08em;opacity:0.7;" onclick="openCharSheet()" style="cursor:pointer;">📋 ver ficha</div>
           <div class="char-name-display" id="player-name-display">—</div>
           <div class="char-info" id="player-info">—</div>
           <div class="mini-stats" id="player-mini-stats"></div>
@@ -1988,6 +2180,59 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
   <span class="cb-round" id="cb-round">Ronda 1</span>
   <span class="cb-turn" id="cb-turn">Tu turno</span>
   <span style="font-size:0.65rem; color:rgba(255,200,200,0.7)">Las demás acciones están bloqueadas</span>
+</div>
+
+<!-- CHARACTER SHEET MODAL -->
+<div class="modal-overlay" id="char-sheet-modal">
+  <div class="modal" style="padding:0;overflow:hidden;">
+    <div class="cs-header" id="cs-header">
+      <img id="cs-header-bg" src="" alt="" class="cs-header-bg" onerror="this.style.display='none'">
+      <div id="cs-portrait-wrap"></div>
+      <div class="cs-header-info">
+        <div class="cs-char-name" id="cs-name">—</div>
+        <div class="cs-char-sub" id="cs-sub">—</div>
+        <div class="cs-char-align" id="cs-align">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('char-sheet-modal')" style="position:absolute;top:0.6rem;right:0.6rem;z-index:10;">✕</button>
+    </div>
+    <div class="cs-body">
+      <!-- Stats -->
+      <div>
+        <div class="cs-section-title">Características</div>
+        <div class="cs-stats-grid" id="cs-stats"></div>
+      </div>
+      <!-- Bars -->
+      <div>
+        <div class="cs-section-title">Estado</div>
+        <div class="cs-bars" id="cs-bars"></div>
+      </div>
+      <!-- Personality -->
+      <div>
+        <div class="cs-section-title">Rasgo de personalidad</div>
+        <div class="cs-personality" id="cs-personality">—</div>
+      </div>
+      <!-- Traits / Tags -->
+      <div>
+        <div class="cs-section-title">Rasgos</div>
+        <div class="cs-traits" id="cs-traits"></div>
+      </div>
+      <!-- Equipment -->
+      <div>
+        <div class="cs-section-title">Equipo destacado</div>
+        <div class="cs-equipment" id="cs-equipment"></div>
+      </div>
+      <!-- Lore -->
+      <div>
+        <div class="cs-section-title">Historia del personaje</div>
+        <div class="cs-personality" id="cs-lore" style="border-left-color:var(--cyan);"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PORTRAIT ZOOM OVERLAY -->
+<div id="portrait-zoom-overlay" onclick="closePortraitZoom()">
+  <img id="portrait-zoom-img" src="" alt="Retrato">
 </div>
 
 <!-- LOG DETAIL MODAL -->
@@ -3714,6 +3959,130 @@ function addStory(text, type='normal', speaker=null){
   }
 
   if(G && G.log) G.log.push({text, type, day:G.day||1, hour:G.hour||0});
+}
+
+// ====== CHARACTER SHEET ======
+function openCharSheet(){
+  if(!G?.player) return;
+  const p = G.player;
+  const raceData  = RACES[p.race]  || {name: p.race};
+  const classData = CLASSES[p.cls] || {name: p.cls, hd:'d8'};
+  const alignData = ALIGNMENTS.find(a=>a.id===p.alignment) || {name: p.alignment||'Neutral', desc:''};
+
+  // Header
+  const filename = p.portrait || playerPortraitFilename(p.race, p.cls, p.gender||'male');
+  const jpgSrc   = PORTRAIT_BASE + filename + '.jpg';
+  const jpegSrc  = PORTRAIT_BASE + filename + '.jpeg';
+  document.getElementById('cs-name').textContent   = p.name;
+  document.getElementById('cs-sub').textContent    = `${raceData.name} · ${classData.name} · Nivel ${p.level}`;
+  document.getElementById('cs-align').textContent  = `${alignData.name} · Trasfondo: ${(p.background||'—')}`;
+
+  // Background blur image (same portrait)
+  const bgImg = document.getElementById('cs-header-bg');
+  bgImg.src = jpgSrc;
+  bgImg.onerror = function(){ if(bgImg.src.endsWith('.jpg')) bgImg.src = jpegSrc; else bgImg.style.display='none'; };
+  bgImg.style.display = '';
+
+  // Portrait circle
+  const wrap = document.getElementById('cs-portrait-wrap');
+  const portraitImg = document.createElement('img');
+  portraitImg.src = jpgSrc;
+  portraitImg.className = 'cs-header-portrait';
+  portraitImg.title = 'Clic para ampliar';
+  portraitImg.onclick = ()=>openPortraitZoom(jpgSrc, jpegSrc);
+  portraitImg.onerror = function(){
+    if(portraitImg.src.endsWith('.jpg')){ portraitImg.src = jpegSrc; }
+    else {
+      wrap.innerHTML = `<div class="cs-header-portrait-fallback"><span style="font-size:3rem;">${p.avatar||'👤'}</span></div>`;
+    }
+  };
+  wrap.innerHTML = '';
+  wrap.appendChild(portraitImg);
+
+  // Stats
+  const statNames = {str:'FUE',dex:'DES',con:'CON',int:'INT',wis:'SAB',cha:'CAR'};
+  document.getElementById('cs-stats').innerHTML = Object.entries(p.stats||{}).map(([k,v])=>`
+    <div class="cs-stat">
+      <div class="cs-stat-label">${statNames[k]||k}</div>
+      <div class="cs-stat-value">${v}</div>
+      <div class="cs-stat-mod">${mod(v)>=0?'+':''}${mod(v)}</div>
+    </div>`).join('');
+
+  // Bars
+  const xpPrev = DND_XP_THRESHOLDS[p.level-1]||0;
+  const xpNext = DND_XP_THRESHOLDS[p.level]||DND_XP_THRESHOLDS[19];
+  const xpPct  = p.level>=20?100:Math.min(100,Math.round((p.xp-xpPrev)/(xpNext-xpPrev)*100));
+  const hpPct  = Math.round(p.hp/p.maxHP*100);
+  const gprofB = profBonus(p.level);
+  document.getElementById('cs-bars').innerHTML = `
+    <div class="cs-bar-row">
+      <div class="cs-bar-label"><span>❤️ Puntos de Golpe</span><span>${p.hp}/${p.maxHP}</span></div>
+      <div class="cs-bar-track"><div class="cs-bar-fill" style="width:${hpPct}%;background:var(--red-bright);"></div></div>
+    </div>
+    <div class="cs-bar-row">
+      <div class="cs-bar-label"><span>⭐ Experiencia</span><span>${p.level>=20?'MAX':xpPct+'%'}</span></div>
+      <div class="cs-bar-track"><div class="cs-bar-fill" style="width:${xpPct}%;background:var(--gold);"></div></div>
+    </div>
+    <div class="cs-bar-row">
+      <div class="cs-bar-label"><span>🛡️ Clase de Armadura</span><span>${p.ac||10}</span></div>
+      <div class="cs-bar-track"><div class="cs-bar-fill" style="width:${Math.min(100,((p.ac||10)/30)*100)}%;background:var(--cyan);"></div></div>
+    </div>
+    <div class="cs-bar-row">
+      <div class="cs-bar-label"><span>📚 Bon. Competencia</span><span>+${gprofB}</span></div>
+      <div class="cs-bar-track"><div class="cs-bar-fill" style="width:${Math.round(gprofB/6*100)}%;background:var(--text-secondary);"></div></div>
+    </div>`;
+
+  // Personality
+  document.getElementById('cs-personality').textContent = p.personality || '—';
+
+  // Trait tags
+  const traitTags = [
+    raceData.name,
+    classData.name,
+    alignData.name,
+    `Nivel ${p.level}`,
+    classData.hd ? `Dado: ${classData.hd}` : null,
+    `🪙 ${p.gold} oro`,
+    p.gender === 'female' ? 'Femenino' : 'Masculino',
+    ...(p.proficiencies||[]).slice(0,3),
+  ].filter(Boolean);
+  document.getElementById('cs-traits').innerHTML = traitTags.map(t=>`<span class="cs-trait-tag">${t}</span>`).join('');
+
+  // Equipment (equipped items)
+  const slots = [{k:'mainhand',l:'⚔️ Mano ppal.'},{k:'offhand',l:'🛡️ Mano sec.'},{k:'body',l:'👕 Cuerpo'},{k:'neck',l:'📿 Cuello'},{k:'ring',l:'💍 Anillo'},{k:'back',l:'🧣 Espalda'}];
+  document.getElementById('cs-equipment').innerHTML = slots.map(s=>{
+    const eq = p.equipped?.[s.k];
+    const item = eq ? (ITEMS[eq]||{name:eq,icon:'📦'}) : null;
+    return `<div class="cs-equip-item">${s.l}: <span>${item ? item.icon+' '+item.name : '<em style="color:var(--text-dim)">—</em>'}</span></div>`;
+  }).join('');
+
+  // Lore / backstory
+  const bgDesc = {
+    soldier:`${p.name} sirvió en los ejércitos del reino durante años. La disciplina militar forjó su carácter, aunque también dejó cicatrices que no siempre son visibles.`,
+    criminal:`Las sombras siempre han sido el hogar natural de ${p.name}. El pasado no se olvida fácilmente, pero los viejos contactos pueden ser útiles.`,
+    sage:`${p.name} ha pasado años en bibliotecas y scriptoriums, acumulando conocimiento. La aventura real es otra cosa, pero la preparación intelectual es inigualable.`,
+    noble:`Nacido/a entre privilegios, ${p.name} conoce los juegos de poder y las intrigas de la corte. Pero el mundo real tiene sus propias reglas.`,
+    'folk-hero':`${p.name} es conocido/a entre la gente común por un acto de valentía que cambió su destino. Las expectativas son altas, a veces incómodamente.`,
+    outlander:`${p.name} creció lejos de la civilización, aprendiendo a leer el mundo natural mejor que cualquier libro. Las ciudades aún resultan extrañas.`,
+    acolyte:`${p.name} sirvió a los dioses antes de servir a la espada. La fe es el ancla que mantiene firme el propósito en los momentos más oscuros.`,
+    charlatan:`${p.name} ha adoptado tantas identidades que a veces cuesta recordar la verdadera. Pero esa flexibilidad tiene un valor incalculable en el campo.`,
+  };
+  const loreText = bgDesc[p.background] ||
+    `${p.name} llegó a Kurghaimat buscando algo que no sabe nombrar del todo. Una mezcla de propósito, aventura y quizás redención por algo que solo ellos conocen.`;
+  document.getElementById('cs-lore').textContent = loreText;
+
+  openModal('char-sheet-modal');
+}
+
+function openPortraitZoom(jpgSrc, jpegSrc){
+  const overlay = document.getElementById('portrait-zoom-overlay');
+  const img = document.getElementById('portrait-zoom-img');
+  img.src = jpgSrc;
+  img.onerror = function(){ if(img.src.endsWith('.jpg')) img.src = jpegSrc; else closePortraitZoom(); };
+  overlay.classList.add('active');
+}
+function closePortraitZoom(){
+  document.getElementById('portrait-zoom-overlay')?.classList.remove('active');
 }
 
 // ====== LOG DETAIL ======
