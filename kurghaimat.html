@@ -1777,7 +1777,8 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
           <div id="portrait-main-preview" style="width:80px;height:80px;border-radius:50%;border:2px solid var(--border-gold);overflow:hidden;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:2.2rem;flex-shrink:0;">👤</div>
           <div style="font-size:0.78rem;color:var(--text-secondary);font-style:italic;line-height:1.6;">
             Tu retrato se genera automáticamente según tu <strong style="color:var(--gold-light)">raza, clase y género</strong>.<br>
-            Si no carga correctamente, se muestra un emoji de reserva.
+            Las imágenes deben estar en <code style="color:var(--cyan);font-size:0.72rem;">retratoskurghaimat/</code><br>
+            Si no se encuentran, se muestra un emoji de reserva.
           </div>
         </div>
       </div>
@@ -2852,73 +2853,143 @@ const LORE_ENTRIES = [
 ];
 
 // ====== PORTRAIT SYSTEM ======
-const PORTRAIT_BASE = 'https://raw.githubusercontent.com/WolfArangr/gato/refs/heads/main/retratoskurghaimat/';
+const PORTRAIT_BASE = 'retratoskurghaimat/';
 
-// All valid races and classes for filename generation
-const PORTRAIT_RACES = ['human','elf','dwarf','halfling','dragonborn','tiefling','gnome','half-orc','half-elf'];
+// Enemy special portrait filenames (no prefix variant)
+const ENEMY_PORTRAITS = {
+  'DOVAHKIIN':      'dovahkiin',
+  'Dragón Joven':   'ancient_dragon',
+  'Minotauro':      'beastmaster',
+  'Vampiro Menor':  'dark_sorcerer',
+  'Bandido':        'bandit_leader',
+  'Troll':          'fallen_paladin',
+};
+// Special NPC portraits
+const NPC_SPECIAL_PORTRAITS = {
+  'healer': 'old_sage',
+  'scholar': 'old_sage',
+};
+
+const PORTRAIT_RACES   = ['human','elf','dwarf','halfling','dragonborn','tiefling','gnome','halforc','halfelf'];
 const PORTRAIT_CLASSES = ['fighter','wizard','rogue','cleric','ranger','paladin','barbarian','bard','druid','warlock','sorcerer','monk'];
 const PORTRAIT_GENDERS = ['male','female'];
+const NPC_PORTRAIT_TYPES = ['merchant','innkeeper','guard','scholar','blacksmith','healer','farmer','noble','priest'];
 
-// NPC types that have dedicated portraits
-const NPC_PORTRAIT_TYPES = ['merchant','innkeeper','guard','scholar','blacksmith','healer','farmer','noble','priest','beggar'];
-
-// Fallback emojis by gender
 const FALLBACK_EMOJI = { male:'👨', female:'👩', neutral:'🧑' };
 
-// Build player portrait filename: {race}_{class}_{gender}.jpeg
+// Try .jpg first, fallback to .jpeg — returns a path that tries both via onerror chain
+function portraitSrc(filename){
+  return PORTRAIT_BASE + filename + '.jpg';
+}
+function portraitSrcJpeg(filename){
+  return PORTRAIT_BASE + filename + '.jpeg';
+}
+
+// Player: player_{race}_{class}_{gender}
 function playerPortraitPath(race, cls, gender){
-  const r = (race||'human').replace('-','');
+  const r = (race||'human').replace(/[-\s]/g,'');
   const c = cls||'fighter';
   const g = gender||'male';
-  return PORTRAIT_BASE + r + '_' + c + '_' + g + '.jpeg';
+  return portraitSrc('player_' + r + '_' + c + '_' + g);
+}
+function playerPortraitFilename(race, cls, gender){
+  const r = (race||'human').replace(/[-\s]/g,'');
+  return 'player_' + r + '_' + (cls||'fighter') + '_' + (gender||'male');
 }
 
-// Build NPC portrait filename: npc_{class}_{gender}.jpeg
-// For generic NPCs (merchant etc): npc_{type}_{gender}.jpeg
+// Companion: companion_{class}_{gender}
+function companionPortraitPath(cls, gender){
+  return portraitSrc('companion_' + (cls||'fighter') + '_' + (gender||'male'));
+}
+function companionPortraitFilename(cls, gender){
+  return 'companion_' + (cls||'fighter') + '_' + (gender||'male');
+}
+
+// NPC generic type: npc_{type}_{gender}
+function npcTypePath(npcType, gender){
+  const special = NPC_SPECIAL_PORTRAITS[npcType];
+  if(special) return portraitSrc(special);
+  return portraitSrc('npc_' + (npcType||'merchant') + '_' + (gender||'male'));
+}
+
+// Enemy portrait
+function enemyPortraitPath(name){
+  const special = ENEMY_PORTRAITS[name];
+  if(special) return portraitSrc(special);
+  return null; // no specific portrait — use emoji
+}
+
+// Main npcPortraitPath: companion if has cls matching class list, else npc type
 function npcPortraitPath(cls, gender, npcType){
   const g = gender||'male';
-  if(npcType && NPC_PORTRAIT_TYPES.includes(npcType)){
-    return PORTRAIT_BASE + 'npc_' + npcType + '_' + g + '.jpeg';
-  }
-  const c = cls && PORTRAIT_CLASSES.includes(cls) ? cls : 'fighter';
-  return PORTRAIT_BASE + 'npc_' + c + '_' + g + '.jpeg';
+  if(npcType) return npcTypePath(npcType, g);
+  if(cls && PORTRAIT_CLASSES.includes(cls)) return companionPortraitPath(cls, g);
+  return portraitSrc('npc_merchant_' + g);
 }
 
-// Render a portrait <img> with emoji fallback, inside the given container element
-// size: 'xl'|'lg'|'md'|'sm'|'xs'
-function renderPortrait(container, src, fallbackEmoji, size='md'){
+// "Borrow" a player portrait for an NPC, matching race+gender correctly
+// Used for companions/npcs to recycle the rich player portrait set
+// playerPortrait that is NOT the current player's portrait
+function borrowedPlayerPortrait(cls, gender, race){
+  const g = gender||'male';
+  // Prefer matching race; if not available pick any matching gender
+  const r = (race && PORTRAIT_RACES.includes(race.replace(/[-\s]/g,''))) ? race.replace(/[-\s]/g,'') : 'human';
+  const c = (cls && PORTRAIT_CLASSES.includes(cls)) ? cls : 'fighter';
+  const filename = playerPortraitFilename(r, c, g);
+  // Don't return player's own portrait
+  const playerFilename = G ? playerPortraitFilename(G.player.race, G.player.cls, G.player.gender||'male') : '';
+  if(filename === playerFilename){
+    // Try a different race of same gender
+    const altRace = PORTRAIT_RACES.find(pr => pr !== r && pr !== 'human') || 'elf';
+    return playerPortraitPath(altRace, c, g);
+  }
+  return portraitSrc(filename);
+}
+
+// Render portrait into a container element with .jpg -> .jpeg -> emoji fallback
+function renderPortrait(container, filename, fallbackEmoji, size='md'){
   const sz = {xl:100, lg:80, md:56, sm:40, xs:28}[size]||56;
   const fs = {xl:'2.8rem', lg:'2.2rem', md:'1.6rem', sm:'1.1rem', xs:'0.8rem'}[size]||'1.6rem';
+  const jpgSrc  = PORTRAIT_BASE + filename + '.jpg';
+  const jpegSrc = PORTRAIT_BASE + filename + '.jpeg';
+  const fb = (fallbackEmoji||'🧑').replace(/'/g,'&apos;');
   const img = document.createElement('img');
-  img.src = src;
   img.width = sz; img.height = sz;
   img.style.cssText = `width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;object-position:top center;display:block;`;
+  img.src = jpgSrc;
   img.onerror = function(){
-    // Swap to emoji fallback span
-    const span = document.createElement('span');
-    span.textContent = fallbackEmoji || '🧑';
-    span.style.fontSize = fs;
-    container.replaceChild(span, img);
-    container.style.fontSize = fs;
+    if(img.src.endsWith('.jpg')){
+      img.src = jpegSrc; // try .jpeg
+    } else {
+      const span = document.createElement('span');
+      span.textContent = fallbackEmoji||'🧑';
+      span.style.fontSize = fs;
+      if(container.contains(img)) container.replaceChild(span, img);
+    }
   };
-  // Clear container and insert image
   container.innerHTML = '';
   container.appendChild(img);
 }
 
-// Return an HTML string for a portrait img with inline onerror fallback
-// Used where innerHTML is built as a string (party list, combat list, etc.)
-function portraitHTML(src, fallbackEmoji, size='md', extraStyle=''){
+// Returns HTML string for inline portrait with .jpg -> .jpeg -> emoji fallback
+function portraitHTML(filename, fallbackEmoji, size='md', extraStyle=''){
+  if(!filename) return `<span style="font-size:1.5rem;">${fallbackEmoji||'🧑'}</span>`;
   const sz = {xl:100, lg:80, md:56, sm:40, xs:28}[size]||56;
   const fs = {xl:'2.8rem', lg:'2.2rem', md:'1.6rem', sm:'1.1rem', xs:'0.8rem'}[size]||'1.6rem';
-  const safe = (fallbackEmoji||'🧑').replace(/'/g,'&apos;');
-  return `<img src="${src}" width="${sz}" height="${sz}"
+  const jpgSrc  = PORTRAIT_BASE + filename + '.jpg';
+  const jpegSrc = PORTRAIT_BASE + filename + '.jpeg';
+  const fb = (fallbackEmoji||'🧑').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+  // Inline onerror: try .jpeg, then emoji
+  return `<img src="${jpgSrc}" width="${sz}" height="${sz}"
     style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;object-position:top center;display:block;${extraStyle}"
-    onerror="this.outerHTML='<span style=\\'font-size:${fs};line-height:1;\\'>${safe}</span>'"
-    alt="portrait">`;
+    onerror="if(this.src.indexOf('.jpeg')<0){this.src='${jpegSrc}';}else{this.outerHTML='<span style=&quot;font-size:${fs};line-height:1;&quot;>${fb}</span>';}"
+    alt="">`;
 }
 
-// ====== GAME STATE ======
+// isPath helper for showDialog
+function isPortraitFilename(s){ return typeof s === 'string' && (s.startsWith('player_')||s.startsWith('companion_')||s.startsWith('npc_')||['dovahkiin','ancient_dragon','fallen_paladin','dark_sorcerer','bandit_leader','old_sage','beastmaster'].includes(s)); }
+
+
 let G = null; // Global game state
 let audioCtx = null;
 let soundEnabled = true;
@@ -3051,11 +3122,68 @@ function loadGame(){
     G = JSON.parse(data);
     G.revealedHexes = new Set(G.revealedHexes||[]);
     G.usedLocationNames = new Set(G.usedLocationNames||[]);
+    G.log = G.log || [];
+
+    // Restore combat if it was in progress
+    if(G._savedCombat && !G._savedCombat.over){
+      combatState = G._savedCombat;
+    } else {
+      combatState = null;
+    }
+    delete G._savedCombat;
     showScreen('game-screen');
     revealHexesAroundPlayer();
-  initGameUI();
-    addStory('El libro de tu aventura se abre de nuevo. Los recuerdos fluyen...', 'system');
-  }catch(e){ alert('Error al cargar la partida.'); }
+    initGameUI();
+
+    // Re-engage combat if it was saved mid-fight
+    if(combatState && !combatState.over){
+      document.getElementById('combat-banner')?.classList.add('active');
+      const hireBtn = document.getElementById('hire-btn');
+      if(hireBtn) hireBtn.disabled = true;
+      updateCombatUI();
+      const cur = combatState.combatants[combatState.currentTurn];
+      if(cur?.isPlayer) showCombatActions();
+      else if(cur?.isEnemy) setTimeout(()=>enemyTurn(cur), 1000);
+      else if(cur?.isParty) setTimeout(()=>partyMemberTurn(cur), 600);
+    }
+
+    // Restore story log from saved entries
+    const tab = document.getElementById('tab-story');
+    if(tab && G.log.length){
+      tab.innerHTML = '';
+      G.log.forEach(entry=>{
+        // Replay addStory visually without re-pushing to G.log
+        const el = document.createElement('div');
+        el.className = 'story-entry ' + (entry.type||'normal');
+        const clean = (entry.text||'').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+        el.innerHTML = `<div class="story-text">${clean}</div><div class="story-time">Día ${entry.day||1}, ${String(entry.hour||0).padStart(2,'0')}:00</div>`;
+        tab.appendChild(el);
+      });
+      tab.scrollTop = tab.scrollHeight;
+
+      // Rebuild recent log
+      const recent = document.getElementById('recent-log');
+      if(recent){
+        recent.innerHTML = '';
+        const typeIcons = {combat:'⚔️',reward:'✨',travel:'🚶',system:'⚙️',dialog:'💬',warning:'⚠️',normal:'•'};
+        G.log.slice(-10).reverse().forEach(entry=>{
+          const fullText = (entry.text||'').replace(/<[^>]+>/g,'').replace(/\*\*(.*?)\*\*/g,'$1');
+          const preview = fullText.slice(0,55)+(fullText.length>55?'…':'');
+          const icon = typeIcons[entry.type]||'•';
+          const line = document.createElement('div');
+          line.className = 'recent-log-entry';
+          line.textContent = icon+' '+preview;
+          line.dataset.full = fullText;
+          line.dataset.type = entry.type||'normal';
+          line.dataset.time = `Día ${entry.day||1}, hora ${entry.hour||0}:00`;
+          line.onclick = ()=>openLogDetail(line.dataset.full, line.dataset.type, line.dataset.time);
+          recent.appendChild(line);
+        });
+      }
+    }
+
+    addStory('📖 **Partida cargada.** Los recuerdos fluyen de nuevo...', 'system');
+  }catch(e){ console.error(e); alert('Error al cargar la partida.'); }
 }
 
 // ====== CHARACTER CREATION ======
@@ -3232,16 +3360,11 @@ function selectGender(g, el){
 function updatePortraitPreview(){
   const race = document.getElementById('c-race')?.value || 'human';
   const cls  = document.getElementById('c-class')?.value || 'fighter';
-  const src  = playerPortraitPath(race, cls, selectedGender);
+  const filename = playerPortraitFilename(race, cls, selectedGender);
   const wrap = document.getElementById('portrait-main-preview');
   if(!wrap) return;
-  const fb   = FALLBACK_EMOJI[selectedGender];
-  const img  = document.createElement('img');
-  img.src = src;
-  img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:top center;border-radius:50%;';
-  img.onerror = function(){ wrap.innerHTML = `<span style="font-size:2.2rem;">${fb}</span>`; };
-  wrap.innerHTML = '';
-  wrap.appendChild(img);
+  const fb = FALLBACK_EMOJI[selectedGender];
+  renderPortrait(wrap, filename, fb, 'lg');
 }
 
 function renderAvatarPicker(){ updatePortraitPreview(); }
@@ -3273,7 +3396,7 @@ function startGame(){
     player: {
       name, race, cls, background: bg, alignment: selectedAlignment,
       gender: selectedGender,
-      portrait: playerPortraitPath(race, cls, selectedGender),
+      portrait: playerPortraitFilename(race, cls, selectedGender),
       avatar: FALLBACK_EMOJI[selectedGender] || '👤', // emoji fallback for text logs
       level, xp: 0, xpNext: DND_XP_THRESHOLDS[1],
       stats: baseStats, skills: {},
@@ -3460,7 +3583,8 @@ function updateHUD(){
   // Left panel portrait
   const avatarEl = document.getElementById('player-avatar');
   if(avatarEl){
-    renderPortrait(avatarEl, p.portrait || playerPortraitPath(p.race, p.cls, p.gender||'male'), p.avatar||'👤', 'md');
+    const filename = p.portrait || playerPortraitFilename(p.race, p.cls, p.gender||'male');
+    renderPortrait(avatarEl, filename, p.avatar||'👤', 'md');
     avatarEl.style.margin = '0 auto 0.6rem';
   }
   document.getElementById('player-name-display').textContent = p.name;
@@ -3482,9 +3606,9 @@ function renderParty(){
     return;
   }
   list.innerHTML = G.party.map((m,i)=>{
-    const src = npcPortraitPath(m.cls, m.gender||'male');
+    const filename = m.portrait || companionPortraitFilename(m.cls, m.gender||'male');
     const fb  = FALLBACK_EMOJI[m.gender||'male'];
-    const img = portraitHTML(src, fb, 'sm');
+    const img = portraitHTML(filename, fb, 'sm');
     return `
     <div class="party-member" onclick="showNPCDetail(${i})">
       <div class="party-avatar">${img}</div>
@@ -3648,20 +3772,61 @@ function updateActions(context){
 // ====== TRAVEL ======
 function openTravel(){
   if(combatState){ notify('No puedes viajar en combate.','warning'); return; }
-  const known = G.discoveredLocations.filter(l=>l!==G.currentLocation);
-  const fresh = generateTravelDestinations();
-  const all = [
-    ...known.slice(0,3).map(l=>Object.assign({},l,{distance:rand(2,8)})),
-    ...fresh.slice(0, Math.max(2, 5-known.length))
+
+  const {q:pq, r:pr} = getPlayerHexCoords();
+
+  // 1. Adjacent revealed locations (1 hex away)
+  const adjacent = [];
+  HEX_DIRS.forEach(d=>{
+    const nq=pq+d.q, nr=pr+d.r;
+    const h=hexMap[nq+','+nr];
+    if(h?.location) adjacent.push(Object.assign({},h.location,{_dist:1,_adj:true}));
+  });
+
+  // 2. Known discovered locations (further away, already visited)
+  const known = G.discoveredLocations
+    .filter(l=>l.name!==G.locationName && !adjacent.find(a=>a.name===l.name))
+    .map(l=>Object.assign({},l,{_dist:rand(2,8),_adj:false}))
+    .slice(0,4);
+
+  // 3. Generate a couple of new unknown adjacent destinations if room
+  const newDests = [];
+  if(adjacent.length < 3){
+    const freeNeighbors = HEX_DIRS.map(d=>({q:pq+d.q,r:pr+d.r}))
+      .filter(n=>!hexMap[n.q+','+n.r]?.location);
+    for(let i=0;i<Math.min(2, freeNeighbors.length);i++){
+      const type = pick(['town','forest','mountain','plains','dungeon']);
+      const loc = generateLocation(type);
+      if(loc){ loc._dist=1; loc._adj=true; loc._new=true; newDests.push(loc); }
+    }
+  }
+
+  const all = [...adjacent, ...newDests, ...known];
+
+  if(!all.length){ addStory('No hay destinos disponibles. Explora primero los alrededores.','system'); return; }
+
+  // Separate into sections
+  const nearbyOptions = all.filter(d=>d._adj||d._new).map(d=>({
+    text: `${(LOCATIONS[d.type]||{}).ambiance||'🏘️'} ${d.name} — ${d.type} (1h, adyacente)`,
+    fn: (function(dest){ return function(){ closeModal('dialog-modal'); travelTo(dest); }; })(d)
+  }));
+  const farOptions = all.filter(d=>!d._adj&&!d._new).map(d=>({
+    text: `${(LOCATIONS[d.type]||{}).ambiance||'🏘️'} ${d.name} — ${d.type} (${d._dist}h)`,
+    fn: (function(dest){ return function(){ closeModal('dialog-modal'); travelTo(dest); }; })(d)
+  }));
+
+  const choices = [
+    ...nearbyOptions,
+    ...farOptions,
+    {text:'❌ Cancelar', fn:()=>closeModal('dialog-modal')}
   ];
-  if(!all.length){ addStory('No hay destinos disponibles. Explora el mapa primero.','system'); return; }
-  showDialog(
-    '🗺️ Destinos de Viaje','🧭',
-    'Los caminos de Kurghaimat se extienden ante ti. ¿Adónde te llama el destino?',
-    all.map(d=>({
-      text: (d.ambiance||'🏘️') + ' ' + d.name + ' — ' + d.type + ' (' + (d.distance||rand(2,8)) + 'h)',
-      fn: (function(dest){ return function(){ travelTo(dest); }; })(Object.assign({},d,{distance:d.distance||rand(2,8)}))
-    }))
+
+  showDialog('🗺️ Ponerse en camino', '🧭',
+    `**Destinos desde ${G.locationName}:**\n\n` +
+    (nearbyOptions.length ? `📍 Lugares adyacentes (${nearbyOptions.length})\n` : '') +
+    (farOptions.length   ? `📜 Lugares conocidos (${farOptions.length})\n`   : '') +
+    `\nElige a dónde quieres dirigirte.`,
+    choices
   );
 }
 
@@ -4044,15 +4209,21 @@ function updateCombatUI(){
   area.style.display = 'block';
   noC.style.display = 'none';
 
-  // Initiative track
   const track = document.getElementById('initiative-track');
   track.innerHTML = combatState.combatants.map((c,i)=>{
-    const src = c.isPlayer
-      ? (G.player.portrait || playerPortraitPath(G.player.race, G.player.cls, G.player.gender||'male'))
-      : c.isParty ? npcPortraitPath(c.cls, c.gender||'male')
-      : null;
-    const fb = c.isPlayer ? (G.player.avatar||'👤') : c.isParty ? (FALLBACK_EMOJI[c.gender||'male']) : (c.emoji||'👹');
-    const avatarHtml = src ? portraitHTML(src, fb, 'xs') : `<span style="font-size:1rem;">${fb}</span>`;
+    let avatarHtml;
+    if(c.isPlayer){
+      const fn = G.player.portrait || playerPortraitFilename(G.player.race, G.player.cls, G.player.gender||'male');
+      avatarHtml = portraitHTML(fn, G.player.avatar||'👤', 'xs');
+    } else if(c.isParty){
+      const fn = c.portrait || companionPortraitFilename(c.cls, c.gender||'male');
+      avatarHtml = portraitHTML(fn, FALLBACK_EMOJI[c.gender||'male'], 'xs');
+    } else {
+      // enemy
+      const enemyFn = enemyPortraitPath(c.name); // returns full URL or null
+      if(enemyFn){ avatarHtml = portraitHTML(enemyFn.replace(PORTRAIT_BASE,'').replace('.jpg',''), c.emoji||'👹', 'xs'); }
+      else avatarHtml = `<span style="font-size:1rem;">${c.emoji||'👹'}</span>`;
+    }
     return `
     <div class="init-token ${i===combatState.currentTurn?'current':''} ${c.isEnemy?'enemy':''}">
       <div class="i-avatar">${avatarHtml}</div>
@@ -4061,15 +4232,20 @@ function updateCombatUI(){
     </div>`;
   }).join('');
 
-  // Combatants list
   const list = document.getElementById('combatants-list');
   list.innerHTML = combatState.combatants.filter(c=>c.currentHP>0).map(c=>{
-    const src = c.isPlayer
-      ? (G.player.portrait || playerPortraitPath(G.player.race, G.player.cls, G.player.gender||'male'))
-      : c.isParty ? npcPortraitPath(c.cls, c.gender||'male')
-      : null;
-    const fb = c.isPlayer ? (G.player.avatar||'👤') : c.isParty ? (FALLBACK_EMOJI[c.gender||'male']) : (c.emoji||'👹');
-    const avatarHtml = src ? portraitHTML(src, fb, 'sm') : `<span style="font-size:1.5rem;">${fb}</span>`;
+    let avatarHtml;
+    if(c.isPlayer){
+      const fn = G.player.portrait || playerPortraitFilename(G.player.race, G.player.cls, G.player.gender||'male');
+      avatarHtml = portraitHTML(fn, G.player.avatar||'👤', 'sm');
+    } else if(c.isParty){
+      const fn = c.portrait || companionPortraitFilename(c.cls, c.gender||'male');
+      avatarHtml = portraitHTML(fn, FALLBACK_EMOJI[c.gender||'male'], 'sm');
+    } else {
+      const enemyFn = enemyPortraitPath(c.name);
+      if(enemyFn){ avatarHtml = portraitHTML(enemyFn.replace(PORTRAIT_BASE,'').replace('.jpg',''), c.emoji||'👹', 'sm'); }
+      else avatarHtml = `<span style="font-size:1.5rem;">${c.emoji||'👹'}</span>`;
+    }
     return `
     <div class="combatant-row">
       <div class="combatant-avatar">${avatarHtml}</div>
@@ -4533,7 +4709,7 @@ function generateNPC(){
   const types = ['merchant','innkeeper','guard','scholar','blacksmith','healer','farmer','noble','priest'];
   const npcTypeLabels = {merchant:'Comerciante',innkeeper:'Tabernero',guard:'Guardia',scholar:'Erudito',blacksmith:'Herrero',healer:'Curandero',farmer:'Aldeano',noble:'Noble',priest:'Sacerdote'};
   const npcType = pick(types);
-  const portrait = npcPortraitPath(null, gender, npcType);
+  const portrait = (NPC_SPECIAL_PORTRAITS[npcType] || ('npc_' + npcType + '_' + gender));
   return { name, gender, npcType, portrait, emoji: FALLBACK_EMOJI[gender], loyalty:rand(30,80) };
 }
 
@@ -4552,7 +4728,7 @@ function generateRescueQuest(npc){
 function showNPCDetail(idx){
   const m = G.party[idx];
   if(!m) return;
-  const portrait = npcPortraitPath(m.cls, m.gender||'male');
+  const portrait = m.portrait || companionPortraitFilename(m.cls, m.gender||'male');
   showDialog(
     m.name,
     portrait,
@@ -4603,9 +4779,9 @@ function openTavern(){
   desc.textContent = `En ${pick(tavernNames)}, varios aventureros descansan entre misiones. El olor a cerveza y carne asada llena el ambiente. ¿A quién contratarás?`;
 
   hires.innerHTML = G.tavernPool.map((npc,i)=>{
-    const src = npcPortraitPath(npc.cls, npc.gender||'male');
+    const fn  = npc.portrait || companionPortraitFilename(npc.cls, npc.gender||'male');
     const fb  = FALLBACK_EMOJI[npc.gender||'male'];
-    const img = portraitHTML(src, fb, 'md');
+    const img = portraitHTML(fn, fb, 'md');
     return `
     <div style="display:flex; align-items:center; gap:0.8rem; padding:0.7rem; background:var(--bg-card); border:1px solid var(--border-gold-dim); border-radius:var(--radius); margin-bottom:0.5rem;">
       <div style="width:56px;height:56px;border-radius:50%;overflow:hidden;border:1px solid var(--border-gold-dim);flex-shrink:0;">${img}</div>
@@ -4636,8 +4812,9 @@ function refreshTavernPool(){
     const maxHP = Math.max(1, hdMax + conBonus) * level;
     G.tavernPool.push({
       name: genName(gender),
-      cls, level,
-      avatar: CLASSES[cls].emoji,
+      cls, level, gender,
+      avatar: FALLBACK_EMOJI[gender],
+      portrait: companionPortraitFilename(cls, gender),
       hp: maxHP, maxHP,
       stats: {str:rand(8,16),dex:rand(8,16),con:rand(8,16),int:rand(8,16),wis:rand(8,16),cha:rand(8,16)},
       personality: pick(PERSONALITIES[cls]||['Un espíritu aventurero.']),
@@ -4731,7 +4908,7 @@ function visitHealer(){
   const healerGender = Math.random()<0.5?'male':'female';
   showDialog(
     '💚 Curandero Local',
-    npcPortraitPath(null, healerGender, 'healer'),
+    'old_sage',
     `"Tus heridas hablan de batallas duras, aventurero. Puedo restaurar tu salud por ${cost} monedas de oro. ¿Aceptas?"`,
     [
       {text:`Curar (${cost}🪙)`, fn:()=>{ 
@@ -5624,40 +5801,34 @@ function centerMap(){
 }
 
 function mapClick(e){
-  if(combatState){ notify('No puedes viajar en combate.','warning'); return; }
   const rect=mapCanvas.getBoundingClientRect();
   const cx=mapCanvas.width/2+mapOffset.x, cy=mapCanvas.height/2+mapOffset.y;
   const {q,r}=pixelToHex((e.clientX-rect.left-cx)/mapScale,(e.clientY-rect.top-cy)/mapScale);
   const h=hexMap[q+','+r];
   if(!h?.location) return;
   const loc=h.location;
-  if(loc===G.currentLocation||(loc.name===G.currentLocation?.name&&loc.type===G.currentLocation?.type)){
-    addStory('📍 Ya estás en **'+loc.name+'**.','system'); return;
-  }
-
-  // Check if hex is revealed — if not, must be adjacent (distance 1)
-  const key = q+','+r;
-  const isRevealed = G.revealedHexes && G.revealedHexes.has(key);
-
-  if(!isRevealed){
-    // Check adjacency to player
-    const {q:pq, r:pr} = getPlayerHexCoords();
-    const isAdjacent = HEX_DIRS.some(d => (pq+d.q)===q && (pr+d.r)===r);
-    if(!isAdjacent){
-      addStory('⚠️ **Terreno desconocido.** Solo puedes explorar casillas adyacentes a tu posición actual. Desplázate paso a paso para revelar el mapa.','warning');
-      notify('Explora casillas adyacentes primero','warning');
-      return;
-    }
-  }
-
-  showDialog('🗺️ '+loc.name,(LOCATIONS[loc.type]||{}).ambiance||'🏘️',
-    '**'+loc.name+'**\n'+(loc.desc||'').slice(0,150)+'...\n\nServicios: '+((loc.services||[]).join(', ')||'Ninguno'),
-    [{text:'🚶 Viajar aquí',fn:function(){closeModal('dialog-modal');travelTo(loc);}},
-     {text:'Cerrar',fn:function(){closeModal('dialog-modal');}}]);
+  const isHere = loc===G.currentLocation||(loc.name===G.currentLocation?.name&&loc.type===G.currentLocation?.type);
+  const isRevealed = G.revealedHexes && G.revealedHexes.has(q+','+r);
+  const typeLabel = {town:'Pueblo',city:'Ciudad',forest:'Bosque',mountain:'Montaña',plains:'Llanura',dungeon:'Mazmorra'}[loc.type]||loc.type;
+  const servStr = (loc.services||[]).join(', ')||'Ninguno';
+  const statusStr = isHere ? '📍 Estás aquí' : isRevealed ? '✅ Explorado' : '🔍 Sin explorar';
+  const ambIcon = (LOCATIONS[loc.type]||{}).ambiance||'🏘️';
+  showDialog(
+    ambIcon+' '+loc.name, ambIcon,
+    `**${loc.name}** · ${typeLabel}\n${statusStr}\n\n${(loc.desc||'').slice(0,200)}\n\nServicios: ${servStr}\n\n_Usa "Ponerse en camino" para viajar a este lugar._`,
+    [{text:'Cerrar', fn:()=>closeModal('dialog-modal')}]
+  );
 }
 
 // ====== TABS ======
 function switchTab(id){
+  // During combat, only story tab is freely accessible
+  // Inventory and spells accessible but combat cannot be bypassed
+  if(combatState && !combatState.over && id !== 'story' && id !== 'map'){
+    notify('Estás en combate — termina el combate primero.','warning');
+    id = 'story'; // force back to story
+  }
+
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+id)?.classList.add('active');
@@ -5712,14 +5883,18 @@ function showDialog(title, portraitSrcOrEmoji, text, choices){
   _dch = choices;
   document.getElementById('dialog-npc-name').textContent = title;
 
-  // Portrait: if it ends in .jpeg it's an image path, otherwise it's an emoji
+  // Portrait: if it's a portrait filename (not an emoji) render as image
   const portraitEl = document.getElementById('dialog-portrait');
-  const isPath = typeof portraitSrcOrEmoji === 'string' && portraitSrcOrEmoji.includes('.jpeg');
-  if(isPath){
+  if(isPortraitFilename(portraitSrcOrEmoji)){
     const img = document.createElement('img');
-    img.src = portraitSrcOrEmoji;
+    const jpgSrc  = PORTRAIT_BASE + portraitSrcOrEmoji + '.jpg';
+    const jpegSrc = PORTRAIT_BASE + portraitSrcOrEmoji + '.jpeg';
+    img.src = jpgSrc;
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:top center;border-radius:50%;';
-    img.onerror = function(){ portraitEl.innerHTML = `<span style="font-size:2.2rem;">🧑</span>`; };
+    img.onerror = function(){
+      if(img.src.endsWith('.jpg')){ img.src = jpegSrc; }
+      else { portraitEl.innerHTML = `<span style="font-size:2.2rem;">🧑</span>`; }
+    };
     portraitEl.innerHTML = '';
     portraitEl.appendChild(img);
   } else {
@@ -6081,7 +6256,8 @@ function saveGame(){
   try{
     const saveData = Object.assign({}, G, {
       revealedHexes: [...(G.revealedHexes||[])],
-      usedLocationNames: [...(G.usedLocationNames||[])]
+      usedLocationNames: [...(G.usedLocationNames||[])],
+      _savedCombat: combatState || null
     });
     localStorage.setItem('kurghaimat_save', JSON.stringify(saveData));
     const indicator = document.getElementById('save-indicator');
