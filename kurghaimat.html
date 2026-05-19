@@ -438,6 +438,389 @@ body {
   line-height: 1.3;
 }
 
+/* ===== CHARACTER CREATION WIZARD ===== */
+.wizard-screen { display: none; flex-direction: column; width: 100%; }
+.wizard-screen.wiz-active { display: flex; animation: fadeIn 0.3s ease; }
+
+/* Wizard progress bar */
+.wiz-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 1.2rem 1.5rem 0.5rem;
+  max-width: 560px;
+  margin: 0 auto;
+  width: 100%;
+}
+.wiz-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  position: relative;
+  flex: 1;
+}
+.wiz-step-dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border-gold-dim);
+  background: var(--bg-card);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  transition: all 0.35s ease;
+  position: relative;
+  z-index: 1;
+  cursor: default;
+}
+.wiz-step.done .wiz-step-dot {
+  background: rgba(200,146,42,0.2);
+  border-color: var(--border-gold);
+  color: var(--gold);
+}
+.wiz-step.active .wiz-step-dot {
+  background: linear-gradient(135deg, rgba(200,146,42,0.4), rgba(200,146,42,0.2));
+  border-color: var(--gold-light);
+  color: var(--gold-bright);
+  box-shadow: 0 0 12px rgba(200,146,42,0.5);
+}
+.wiz-step-label {
+  font-family: var(--font-display);
+  font-size: 0.52rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+  white-space: nowrap;
+  transition: color 0.3s;
+}
+.wiz-step.active .wiz-step-label { color: var(--gold-light); }
+.wiz-step.done .wiz-step-label { color: var(--text-secondary); }
+.wiz-connector {
+  flex: 1;
+  height: 1px;
+  background: var(--border-gold-dim);
+  margin-bottom: 1.1rem;
+  transition: background 0.4s;
+  max-width: 40px;
+}
+.wiz-connector.done { background: var(--border-gold); }
+
+/* Wizard panels */
+.wiz-panel {
+  width: min(600px, 98vw);
+  margin: 0 auto;
+  padding: 0.5rem 1rem 1.5rem;
+  flex: 1;
+}
+.wiz-title {
+  font-family: var(--font-title);
+  font-size: clamp(1.05rem, 3vw, 1.5rem);
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 20px rgba(232,184,75,0.3);
+}
+.wiz-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
+  margin-bottom: 1.4rem;
+  line-height: 1.5;
+}
+
+/* Preset-or-custom step */
+.wiz-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+@media (max-width: 420px) { .wiz-choice-grid { grid-template-columns: 1fr; } }
+.wiz-choice-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem 1rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(.34,1.56,.64,1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.wiz-choice-card:hover {
+  border-color: var(--border-gold);
+  background: rgba(200,146,42,0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.4), 0 0 20px rgba(200,146,42,0.2);
+}
+.wiz-choice-icon {
+  font-size: 2.4rem;
+  line-height: 1;
+  margin-bottom: 0.2rem;
+}
+.wiz-choice-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  color: var(--gold-light);
+  text-transform: uppercase;
+}
+.wiz-choice-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* Race / class visual cards */
+.wiz-race-grid, .wiz-class-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.55rem;
+}
+@media (min-width: 420px) {
+  .wiz-race-grid { grid-template-columns: repeat(3, 1fr); }
+  .wiz-class-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (min-width: 560px) {
+  .wiz-race-grid { grid-template-columns: repeat(5, 1fr); }
+}
+.wiz-option-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.3rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.wiz-option-card:hover {
+  border-color: var(--border-gold);
+  background: rgba(200,146,42,0.08);
+}
+.wiz-option-card.selected {
+  border-color: var(--gold-light);
+  background: rgba(200,146,42,0.18);
+  box-shadow: var(--glow-gold);
+}
+.wiz-option-icon { font-size: 1.5rem; line-height: 1; }
+.wiz-option-name {
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+  line-height: 1.2;
+}
+.wiz-option-card.selected .wiz-option-name { color: var(--gold-light); }
+
+/* Info box inside wizard */
+.wiz-info-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-left: 3px solid var(--border-gold);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.55;
+  margin-top: 0.6rem;
+  min-height: 2.5rem;
+  transition: all 0.2s;
+}
+
+/* Wizard navigation */
+.wiz-nav {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 1.2rem;
+}
+.wiz-nav .btn { flex: 1; }
+.wiz-nav .btn-primary { flex: 2; }
+
+/* Alignment grid — 3x3 */
+.wiz-align-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.wiz-align-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.wiz-align-card:hover { border-color: var(--border-gold); background: rgba(200,146,42,0.08); }
+.wiz-align-card.selected { border-color: var(--gold-light); background: rgba(200,146,42,0.18); box-shadow: var(--glow-gold); }
+.wiz-align-emoji { font-size: 1.1rem; }
+.wiz-align-name {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+  line-height: 1.2;
+}
+.wiz-align-card.selected .wiz-align-name { color: var(--gold-light); }
+
+/* Difficulty cards in wizard */
+.wiz-diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+.wiz-diff-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.9rem 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.wiz-diff-card:hover { border-color: var(--border-gold); background: rgba(200,146,42,0.08); }
+.wiz-diff-card.selected { border-color: var(--gold-light); background: rgba(200,146,42,0.18); box-shadow: var(--glow-gold); }
+.wiz-diff-icon { font-size: 1.6rem; }
+.wiz-diff-title { font-family: var(--font-display); font-size: 0.78rem; color: var(--gold-light); margin: 0.3rem 0 0.2rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.wiz-diff-desc { font-size: 0.72rem; color: var(--text-secondary); font-style: italic; line-height: 1.35; }
+.wiz-diff-card.selected .wiz-diff-title { color: var(--gold-bright); }
+
+/* Gender cards */
+.wiz-gender-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+.wiz-gender-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+}
+.wiz-gender-card:hover { border-color: var(--border-gold); background: rgba(200,146,42,0.08); }
+.wiz-gender-card.selected { border-color: var(--gold-light); background: rgba(200,146,42,0.18); box-shadow: var(--glow-gold); }
+.wiz-gender-icon { font-size: 2rem; }
+.wiz-gender-label { font-family: var(--font-display); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); }
+.wiz-gender-card.selected .wiz-gender-label { color: var(--gold-light); }
+
+/* Portrait reveal in final step */
+.wiz-portrait-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.8rem 0;
+}
+.wiz-portrait-ring {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  border: 3px solid var(--border-gold);
+  box-shadow: 0 0 24px rgba(200,146,42,0.4), inset 0 0 20px rgba(0,0,0,0.3);
+  overflow: hidden;
+  background: var(--bg-card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.8rem;
+}
+.wiz-portrait-ring img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.wiz-char-summary {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+.wiz-char-name-big {
+  font-family: var(--font-title);
+  font-size: clamp(1.1rem, 3vw, 1.6rem);
+  color: var(--gold-light);
+  text-shadow: 0 0 12px rgba(200,146,42,0.4);
+  margin-bottom: 0.2rem;
+}
+
+/* Preset grid in wizard */
+.wiz-preset-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.wiz-preset-card {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(.34,1.56,.64,1);
+}
+.wiz-preset-card:hover {
+  border-color: var(--border-gold);
+  background: rgba(200,146,42,0.1);
+  transform: translateX(3px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.wiz-preset-portrait {
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  border: 2px solid var(--border-gold-dim);
+  object-fit: cover; object-position: top center;
+  flex-shrink: 0;
+  background: var(--bg-panel);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+  overflow: hidden;
+}
+.wiz-preset-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: 50%; }
+.wiz-preset-info { flex: 1; min-width: 0; }
+.wiz-preset-name { font-family: var(--font-display); font-size: 0.88rem; color: var(--gold-light); margin-bottom: 0.1rem; }
+.wiz-preset-sub { font-size: 0.68rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+.wiz-preset-quote { font-size: 0.73rem; color: var(--text-dim); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wiz-preset-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem; }
+.wiz-preset-tag {
+  background: rgba(200,146,42,0.1);
+  border: 1px solid var(--border-gold-dim);
+  border-radius: 20px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.6rem;
+  color: var(--gold-light);
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}
+/* Section label in wizard */
+.wiz-section-label {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--border-gold);
+  margin-bottom: 0.6rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.wiz-section-label::after { content: ''; flex:1; height:1px; background: linear-gradient(to right, var(--border-gold-dim), transparent); }
+.wiz-section-label:first-child { margin-top: 0; }
+
 /* ===== MAIN GAME ===== */
 #game-screen {
   flex-direction: column;
@@ -465,12 +848,24 @@ body {
   grid-column: 1/-1;
   background: linear-gradient(to bottom, var(--bg-dark), var(--bg-mid));
   border-bottom: 1px solid var(--border-gold-dim);
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.75rem;
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.6rem;
   z-index: 10;
   flex-wrap: wrap;
+}
+
+/* On mobile, compress the top bar to two rows max */
+@media (max-width: 599px) {
+  .top-bar {
+    padding: 0.35rem 0.6rem;
+    gap: 0.4rem;
+    row-gap: 0.35rem;
+  }
+  .game-title-small { font-size: 0.75rem; }
+  .top-spacer { display: none; }
+  .top-buttons { margin-left: auto; }
 }
 
 .game-title-small {
@@ -482,9 +877,19 @@ body {
 
 .top-stats {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.45rem;
   flex-wrap: wrap;
   align-items: center;
+}
+
+/* On mobile hide labels for stat pills to save space */
+@media (max-width: 599px) {
+  .bar-track { width: 44px; }
+  .bar-val { font-size: 0.62rem; }
+  .stat-pill .label { display: none; }
+  .bar-label { display: none; }
+  .bar-container { gap: 0.25rem; padding: 0.2rem 0.45rem; }
+  .stat-pill { padding: 0.2rem 0.45rem; gap: 0.25rem; }
 }
 
 .stat-pill {
@@ -770,9 +1175,14 @@ body {
   border: 1px solid var(--border-gold-dim);
   border-left: 3px solid var(--border-gold-dim);
   border-radius: 0 var(--radius) var(--radius) 0;
-  font-size: 0.88rem;
-  line-height: 1.7;
+  font-size: 0.9rem;
+  line-height: 1.75;
   animation: fadeIn 0.4s ease;
+}
+
+@media (max-width: 599px) {
+  .story-entry { font-size: 0.85rem; padding: 0.65rem 0.8rem; line-height: 1.65; }
+  .tab { padding: 0.45rem 0.6rem; font-size: 0.6rem; letter-spacing: 0.06em; }
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -803,15 +1213,22 @@ body {
 .action-area {
   background: var(--bg-dark);
   border-top: 1px solid var(--border-gold-dim);
-  padding: 0.8rem;
+  padding: 0.7rem;
   flex-shrink: 0;
 }
 
 .action-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 0.4rem;
   max-width: 100%;
+}
+
+@media (max-width: 599px) {
+  .action-grid { grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
+  .action-area { padding: 0.5rem; }
+  .action-btn { padding: 0.5rem 0.2rem; font-size: 0.58rem; }
+  .action-btn .icon { font-size: 1rem; }
 }
 
 .action-btn {
@@ -1864,143 +2281,227 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
 </div>
 
 <div id="char-screen" class="screen">
-  <div class="char-container">
-    <div class="panel-title">✦ Forja Tu Destino ✦</div>
 
-    <!-- QUICK START PRESETS -->
-    <div class="section" style="border:1px solid var(--border-gold-dim);border-radius:var(--radius);padding:0.8rem;background:rgba(200,146,42,0.04);margin-bottom:0.5rem;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:0.8rem;">
-        <div>
-          <div style="font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.12em;color:var(--gold-light);text-transform:uppercase;">⚡ Inicio rápido</div>
-          <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.15rem;">Elige un personaje predefinido y empieza a jugar al instante.</div>
-        </div>
-        <button class="btn btn-primary" onclick="openPresets()" style="flex-shrink:0;white-space:nowrap;">Ver personajes</button>
+  <!-- Hidden inputs kept for compatibility with startGame() and other JS -->
+  <input type="hidden" id="c-name" value="">
+  <input type="hidden" id="c-race" value="human">
+  <input type="hidden" id="c-class" value="fighter">
+  <input type="hidden" id="c-background" value="soldier">
+  <div id="class-desc" style="display:none;"></div>
+  <div id="race-bonus-info" style="display:none;"></div>
+  <div id="personality-display" style="display:none;"></div>
+  <div id="stats-grid" style="display:none;"></div>
+  <div id="alignment-grid" style="display:none;"></div>
+  <div id="portrait-main-preview" style="display:none;"></div>
+  <div id="diff-easy" style="display:none;" class="selected"></div>
+  <div id="diff-normal" style="display:none;"></div>
+  <div id="gender-male" style="display:none;" class="selected"></div>
+  <div id="gender-female" style="display:none;"></div>
+
+  <!-- WIZARD PROGRESS -->
+  <div style="width:100%; position:sticky; top:0; background:linear-gradient(to bottom, var(--bg-darkest) 80%, transparent); z-index:10; padding-top:0.8rem;">
+    <div class="wiz-progress" id="wiz-progress">
+      <div class="wiz-step done" id="wstep-0">
+        <div class="wiz-step-dot">✦</div>
+        <div class="wiz-step-label">Inicio</div>
+      </div>
+      <div class="wiz-connector" id="wconn-0"></div>
+      <div class="wiz-step" id="wstep-1">
+        <div class="wiz-step-dot">1</div>
+        <div class="wiz-step-label">Identidad</div>
+      </div>
+      <div class="wiz-connector" id="wconn-1"></div>
+      <div class="wiz-step" id="wstep-2">
+        <div class="wiz-step-dot">2</div>
+        <div class="wiz-step-label">Stats</div>
+      </div>
+      <div class="wiz-connector" id="wconn-2"></div>
+      <div class="wiz-step" id="wstep-3">
+        <div class="wiz-step-dot">3</div>
+        <div class="wiz-step-label">Alma</div>
+      </div>
+      <div class="wiz-connector" id="wconn-3"></div>
+      <div class="wiz-step" id="wstep-4">
+        <div class="wiz-step-dot">4</div>
+        <div class="wiz-step-label">Aspecto</div>
       </div>
     </div>
-      <div class="section-title">Identidad</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Nombre</label>
-          <input type="text" id="c-name" placeholder="Tu nombre" maxlength="30">
-        </div>
-        <div class="form-group">
-          <label>Raza</label>
-          <select id="c-race" onchange="updateRaceBonus()">
-            <option value="human">Humano</option>
-            <option value="elf">Elfo</option>
-            <option value="dwarf">Enano</option>
-            <option value="halfling">Mediano</option>
-            <option value="dragonborn">Draconido</option>
-            <option value="tiefling">Tiefling</option>
-            <option value="gnome">Gnomo</option>
-            <option value="half-orc">Semiorco</option>
-            <option value="half-elf">Semielfo</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Clase</label>
-          <select id="c-class" onchange="updateClassInfo()">
-            <option value="fighter">Guerrero</option>
-            <option value="wizard">Mago</option>
-            <option value="rogue">Pícaro</option>
-            <option value="cleric">Clérigo</option>
-            <option value="ranger">Explorador</option>
-            <option value="paladin">Paladín</option>
-            <option value="barbarian">Bárbaro</option>
-            <option value="bard">Bardo</option>
-            <option value="druid">Druida</option>
-            <option value="warlock">Brujo</option>
-            <option value="sorcerer">Hechicero</option>
-            <option value="monk">Monje</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Trasfondo</label>
-          <select id="c-background">
-            <option value="soldier">Soldado</option>
-            <option value="criminal">Criminal</option>
-            <option value="sage">Erudito</option>
-            <option value="noble">Noble</option>
-            <option value="folk-hero">Héroe del Pueblo</option>
-            <option value="outlander">Forastero</option>
-            <option value="acolyte">Acólito</option>
-            <option value="charlatan">Charlatán</option>
-          </select>
-        </div>
-      </div>
-      <div id="class-desc" style="font-size:0.78rem; color:var(--text-secondary); font-style:italic; padding:0.5rem; background:var(--bg-card); border-radius:var(--radius); margin-top:0.3rem;"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Características</div>
-      <div class="stats-grid" id="stats-grid">
-        <!-- filled by JS -->
-      </div>
-      <button class="btn roll-btn" onclick="rollStats()">🎲 Lanzar Dados (4d6 eliminar el menor)</button>
-      <div id="race-bonus-info" style="margin-top:0.5rem; font-size:0.72rem; color:var(--border-gold); font-style:italic;"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">⚔️ Dificultad</div>
-      <div style="display:flex;gap:0.6rem;">
-        <div class="trait-card selected" id="diff-easy" onclick="selectDifficulty('easy',this)" style="flex:1">
-          <div class="trait-name">🌿 Fácil</div>
-          <div class="trait-desc">+50% daño infligido · −50% daño recibido. Para disfrutar la historia.</div>
-        </div>
-        <div class="trait-card" id="diff-normal" onclick="selectDifficulty('normal',this)" style="flex:1">
-          <div class="trait-name">⚔️ Normal</div>
-          <div class="trait-desc">D&D 5e estándar. El mundo es peligroso y exigente.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Alineamiento</div>
-      <div class="trait-grid" id="alignment-grid"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Rasgo de Personalidad</div>
-      <div id="personality-display" style="font-size:0.82rem; color:var(--text-secondary); font-style:italic; padding:0.5rem; background:var(--bg-card); border-radius:var(--radius);">
-        Elige una clase para ver los rasgos disponibles.
-      </div>
-      <button class="btn btn-small roll-btn" onclick="randomPersonality()" style="margin-top:0.5rem">🎲 Aleatorio</button>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Aspecto</div>
-      <div class="form-row" style="margin-bottom:0.6rem;">
-        <div class="form-group">
-          <label>Género del personaje</label>
-          <div style="display:flex;gap:0.5rem;margin-top:0.3rem;">
-            <div class="trait-card selected" id="gender-male" onclick="selectGender('male',this)" style="flex:1;text-align:center;padding:0.5rem;">
-              <div style="font-size:1.4rem;">👨</div>
-              <div style="font-size:0.7rem;margin-top:0.2rem;">Masculino</div>
-            </div>
-            <div class="trait-card" id="gender-female" onclick="selectGender('female',this)" style="flex:1;text-align:center;padding:0.5rem;">
-              <div style="font-size:1.4rem;">👩</div>
-              <div style="font-size:0.7rem;margin-top:0.2rem;">Femenino</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <label style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-secondary);">Retrato del personaje</label>
-        <div id="portrait-preview-wrap" style="margin-top:0.5rem;display:flex;align-items:center;gap:1rem;">
-          <div id="portrait-main-preview" style="width:80px;height:80px;border-radius:50%;border:2px solid var(--border-gold);overflow:hidden;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:2.2rem;flex-shrink:0;">👤</div>
-          <div style="font-size:0.78rem;color:var(--text-secondary);font-style:italic;line-height:1.6;">
-            Tu retrato se genera automáticamente según tu <strong style="color:var(--gold-light)">raza, clase y género</strong>.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-top:1rem;">
-      <button class="btn" onclick="showScreen('title-screen')" style="flex:1">← Atrás</button>
-      <button class="btn btn-primary" onclick="startGame()" style="flex:2">Comenzar la Aventura ⚔️</button>
-    </div>
-    <div style="height:2rem;"></div>
   </div>
+
+  <!-- STEP 0: PRESET OR CUSTOM -->
+  <div class="wizard-screen wiz-active" id="wiz-0">
+    <div class="wiz-panel">
+      <div class="wiz-title">✦ Forja Tu Destino ✦</div>
+      <div class="wiz-subtitle">¿Quieres elegir un personaje predefinido o crear el tuyo propio desde cero?</div>
+      <div class="wiz-choice-grid">
+        <div class="wiz-choice-card" onclick="wizChoosePreset()">
+          <div class="wiz-choice-icon">⚡</div>
+          <div class="wiz-choice-title">Inicio Rápido</div>
+          <div class="wiz-choice-desc">Elige entre seis aventureros ya configurados y empieza a jugar al instante.</div>
+        </div>
+        <div class="wiz-choice-card" onclick="wizGoTo(1)">
+          <div class="wiz-choice-icon">⚒️</div>
+          <div class="wiz-choice-title">Personalizado</div>
+          <div class="wiz-choice-desc">Diseña tu propio personaje, elige raza, clase, estadísticas y alineamiento.</div>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:0.5rem;">
+        <button class="btn btn-small" onclick="showScreen('title-screen')">← Volver al menú</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 0b: PRESET LIST -->
+  <div class="wizard-screen" id="wiz-0b">
+    <div class="wiz-panel">
+      <div class="wiz-title">⚡ Personajes Predefinidos</div>
+      <div class="wiz-subtitle">Elige un aventurero ya forjado. Puedes cambiar el nombre antes de comenzar.</div>
+      <div class="wiz-preset-grid" id="wiz-preset-grid"></div>
+      <div class="wiz-nav">
+        <button class="btn" onclick="wizGoTo(0)">← Atrás</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 0c: PRESET CONFIRM (after selecting preset) -->
+  <div class="wizard-screen" id="wiz-0c">
+    <div class="wiz-panel">
+      <div class="wiz-title">✦ Confirmar Personaje ✦</div>
+      <div class="wiz-subtitle">Revisa tu aventurero y dale un nombre antes de comenzar.</div>
+      <div class="wiz-portrait-center">
+        <div class="wiz-portrait-ring" id="wiz-preset-portrait-confirm">👤</div>
+        <div>
+          <div class="wiz-char-name-big" id="wiz-preset-name-display">—</div>
+          <div class="wiz-char-summary" id="wiz-preset-sub-display">—</div>
+        </div>
+      </div>
+      <div class="wiz-section-label">Nombre del personaje</div>
+      <div class="form-group" style="margin-bottom:0.7rem;">
+        <input type="text" id="wiz-preset-name-input" placeholder="Nombre del héroe" maxlength="30" style="font-size:1rem; text-align:center; padding:0.7rem;">
+      </div>
+      <div class="wiz-info-box" id="wiz-preset-desc-confirm" style="margin-bottom:0.5rem;"></div>
+      <div id="wiz-preset-tags-confirm" class="wiz-preset-tags" style="justify-content:center; margin-bottom:0.5rem;"></div>
+      <div class="wiz-nav">
+        <button class="btn" onclick="wizGoTo('0b')">← Cambiar</button>
+        <button class="btn btn-primary" onclick="wizStartFromPreset()">Comenzar la Aventura ⚔️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: IDENTITY -->
+  <div class="wizard-screen" id="wiz-1">
+    <div class="wiz-panel">
+      <div class="wiz-title">Identidad</div>
+      <div class="wiz-subtitle">¿Quién eres? Escoge tu raza, clase y trasfondo.</div>
+
+      <div class="wiz-section-label">Nombre</div>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <input type="text" id="wiz-name" placeholder="Nombre del héroe" maxlength="30" style="font-size:1rem; text-align:center; padding:0.7rem;"
+          oninput="this.dataset.isDefault='false'; wizSyncField('c-name', this.value);">
+      </div>
+
+      <div class="wiz-section-label">Raza</div>
+      <div class="wiz-race-grid" id="wiz-race-grid"></div>
+      <div class="wiz-info-box" id="wiz-race-info">Selecciona una raza para ver sus bonificaciones.</div>
+
+      <div class="wiz-section-label">Clase</div>
+      <div class="wiz-class-grid" id="wiz-class-grid"></div>
+      <div class="wiz-info-box" id="wiz-class-info">Selecciona una clase para ver su descripción.</div>
+
+      <div class="wiz-section-label">Trasfondo</div>
+      <div class="wiz-race-grid" id="wiz-bg-grid" style="grid-template-columns: repeat(4,1fr);"></div>
+
+      <div class="wiz-nav">
+        <button class="btn" onclick="wizGoTo(0)">← Atrás</button>
+        <button class="btn btn-primary" onclick="wizGoTo(2)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: STATS -->
+  <div class="wizard-screen" id="wiz-2">
+    <div class="wiz-panel">
+      <div class="wiz-title">Características</div>
+      <div class="wiz-subtitle">Lanza los dados para determinar tus atributos base. Los bonos de raza se aplican al inicio.</div>
+      <div class="stats-grid" id="wiz-stats-grid" style="margin-bottom:0.8rem;"></div>
+      <button class="btn roll-btn" onclick="wizRollStats()">🎲 Lanzar Dados (4d6 eliminar el menor)</button>
+      <div class="wiz-info-box" id="wiz-race-bonus-info" style="margin-top:0.6rem;"></div>
+      <div class="wiz-nav">
+        <button class="btn" onclick="wizGoTo(1)">← Atrás</button>
+        <button class="btn btn-primary" onclick="wizGoTo(3)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: SOUL (difficulty + alignment + personality) -->
+  <div class="wizard-screen" id="wiz-3">
+    <div class="wiz-panel">
+      <div class="wiz-title">Alma y Código</div>
+      <div class="wiz-subtitle">Define tu moralidad, dificultad y el rasgo que guía tus acciones.</div>
+
+      <div class="wiz-section-label">⚔️ Dificultad</div>
+      <div class="wiz-diff-grid">
+        <div class="wiz-diff-card selected" id="wiz-diff-easy" onclick="wizSelectDifficulty('easy',this)">
+          <div class="wiz-diff-icon">🌿</div>
+          <div class="wiz-diff-title">Fácil</div>
+          <div class="wiz-diff-desc">+50% daño infligido · −50% daño recibido. Para disfrutar la historia.</div>
+        </div>
+        <div class="wiz-diff-card" id="wiz-diff-normal" onclick="wizSelectDifficulty('normal',this)">
+          <div class="wiz-diff-icon">⚔️</div>
+          <div class="wiz-diff-title">Normal</div>
+          <div class="wiz-diff-desc">D&amp;D 5e estándar. El mundo es peligroso y exigente.</div>
+        </div>
+      </div>
+
+      <div class="wiz-section-label">Alineamiento</div>
+      <div class="wiz-align-grid" id="wiz-align-grid"></div>
+
+      <div class="wiz-section-label">Rasgo de Personalidad</div>
+      <div class="wiz-info-box" id="wiz-personality-display">Elige un alineamiento para ver rasgos.</div>
+      <button class="btn btn-small" onclick="wizRandomPersonality()" style="margin-top:0.5rem; width:100%;">🎲 Rasgo aleatorio</button>
+
+      <div class="wiz-nav">
+        <button class="btn" onclick="wizGoTo(2)">← Atrás</button>
+        <button class="btn btn-primary" onclick="wizGoTo(4)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: APPEARANCE -->
+  <div class="wizard-screen" id="wiz-4">
+    <div class="wiz-panel">
+      <div class="wiz-title">Aspecto</div>
+      <div class="wiz-subtitle">Elige el género de tu personaje y descubre tu retrato.</div>
+
+      <div class="wiz-section-label">Género</div>
+      <div class="wiz-gender-grid">
+        <div class="wiz-gender-card selected" id="wiz-gender-male" onclick="wizSelectGender('male',this)">
+          <div class="wiz-gender-icon">👨</div>
+          <div class="wiz-gender-label">Masculino</div>
+        </div>
+        <div class="wiz-gender-card" id="wiz-gender-female" onclick="wizSelectGender('female',this)">
+          <div class="wiz-gender-icon">👩</div>
+          <div class="wiz-gender-label">Femenino</div>
+        </div>
+      </div>
+
+      <div class="wiz-section-label">Tu Personaje</div>
+      <div class="wiz-portrait-center">
+        <div class="wiz-portrait-ring" id="wiz-portrait-ring">👤</div>
+        <div>
+          <div class="wiz-char-name-big" id="wiz-final-name">—</div>
+          <div class="wiz-char-summary" id="wiz-final-sub">—</div>
+        </div>
+      </div>
+
+      <div class="wiz-nav">
+        <button class="btn" onclick="wizGoTo(3)">← Atrás</button>
+        <button class="btn btn-primary" onclick="startGame()">Comenzar la Aventura ⚔️</button>
+      </div>
+      <div style="height:1.5rem;"></div>
+    </div>
+  </div>
+
 </div>
 
 <div id="game-screen" class="screen">
@@ -3571,8 +4072,8 @@ function showScreen(id){
 
 // ====== TITLE ======
 function newGame(){
+  if(typeof window._wizNewGame === 'function') { window._wizNewGame(); return; }
   showScreen('char-screen');
-  // Init char screen with safe defaults
   try{ renderStatsGrid(); } catch(e){}
   try{ renderAlignments(); } catch(e){}
   try{ renderAvatarPicker(); } catch(e){}
@@ -3901,6 +4402,408 @@ function updatePortraitPreview(){
 function renderAvatarPicker(){ updatePortraitPreview(); }
 function selectAvatar(e, el){} // kept for compatibility, no longer used
 
+// ====== CHARACTER CREATION WIZARD ======
+// Wizard state (mirrors form fields)
+let wizState = {
+  race: 'human',
+  cls: 'fighter',
+  background: 'soldier',
+  stats: {str:10, dex:10, con:10, int:10, wis:10, cha:10},
+  alignment: 'ng',
+  difficulty: 'easy',
+  gender: 'male',
+  name: '',
+  personality: ''
+};
+
+const BACKGROUNDS_WIZ = [
+  {id:'soldier',   name:'Soldado',        icon:'⚔️'},
+  {id:'criminal',  name:'Criminal',       icon:'🗡️'},
+  {id:'sage',      name:'Erudito',        icon:'📚'},
+  {id:'noble',     name:'Noble',          icon:'👑'},
+  {id:'folk-hero', name:'Héroe del Pueblo',icon:'🌟'},
+  {id:'outlander', name:'Forastero',      icon:'🌲'},
+  {id:'acolyte',   name:'Acólito',        icon:'⛪'},
+  {id:'charlatan', name:'Charlatán',      icon:'🎭'},
+];
+
+function wizGoTo(step){
+  document.querySelectorAll('.wizard-screen').forEach(s=>s.classList.remove('wiz-active'));
+  const id = typeof step === 'string' ? 'wiz-'+step : 'wiz-'+step;
+  const el = document.getElementById(id);
+  if(el) el.classList.add('wiz-active');
+  // Scroll to top
+  document.getElementById('char-screen').scrollTop = 0;
+  // Update progress bar
+  wizUpdateProgress(step);
+  // On entering each step, refresh its content
+  if(step === 1) wizInitStep1();
+  if(step === 2) wizInitStep2();
+  if(step === 3) wizInitStep3();
+  if(step === 4) wizInitStep4();
+}
+
+function wizUpdateProgress(step){
+  const numStep = typeof step === 'number' ? step : -1;
+  for(let i=0;i<=4;i++){
+    const dot = document.getElementById('wstep-'+i);
+    if(!dot) continue;
+    dot.classList.remove('done','active');
+    if(numStep < 0) continue; // preset flow
+    if(i < numStep) dot.classList.add('done');
+    else if(i === numStep) dot.classList.add('active');
+  }
+  for(let i=0;i<=3;i++){
+    const conn = document.getElementById('wconn-'+i);
+    if(!conn) continue;
+    conn.classList.toggle('done', numStep > 0 && i < numStep);
+  }
+}
+
+function wizSyncField(id, val){
+  const el = document.getElementById(id);
+  if(el) el.value = val;
+}
+
+function wizChoosePreset(){
+  const grid = document.getElementById('wiz-preset-grid');
+  const alignEmoji = {lg:'⚖️',ng:'💛',cg:'🌿',ln:'🔒',tn:'⚪',cn:'🌀',le:'👑',ne:'🖤',ce:'🔥'};
+  grid.innerHTML = PRESETS.map((p,i)=>{
+    const fn = playerPortraitFilename(p.race, p.cls, p.gender);
+    const jpgSrc = PORTRAIT_BASE + fn + '.jpg';
+    const jpegSrc = PORTRAIT_BASE + fn + '.jpeg';
+    const fb = FALLBACK_EMOJI[p.gender] || '🧑';
+    const alignName = ALIGNMENTS.find(a=>a.id===p.alignment)?.name || p.alignment;
+    return `<div class="wiz-preset-card" onclick="wizSelectPreset(${i})">
+      <div class="wiz-preset-portrait">
+        <img src="${jpgSrc}" onerror="if(this.src.endsWith('.jpg')){this.src='${jpegSrc}';}else{this.outerHTML='<span style=\\'font-size:1.6rem;\\'>${fb}</span>';}" alt="">
+      </div>
+      <div class="wiz-preset-info">
+        <div class="wiz-preset-name">${p.name}</div>
+        <div class="wiz-preset-sub">${RACES[p.race]?.name||p.race} · ${CLASSES[p.cls]?.name||p.cls} · ${p.gender==='female'?'♀ Mujer':'♂ Hombre'}</div>
+        <div class="wiz-preset-quote">${p.desc}</div>
+        <div class="wiz-preset-tags">
+          ${p.tags.map(t=>`<span class="wiz-preset-tag">${t}</span>`).join('')}
+          <span class="wiz-preset-tag">${alignEmoji[p.alignment]||''} ${alignName}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  wizGoTo('0b');
+  wizUpdateProgress(-1);
+}
+
+let wizSelectedPresetIdx = -1;
+function wizSelectPreset(idx){
+  wizSelectedPresetIdx = idx;
+  const p = PRESETS[idx];
+  // Portrait
+  const fn = playerPortraitFilename(p.race, p.cls, p.gender);
+  const jpgSrc = PORTRAIT_BASE + fn + '.jpg';
+  const jpegSrc = PORTRAIT_BASE + fn + '.jpeg';
+  const fb = FALLBACK_EMOJI[p.gender] || '🧑';
+  const ring = document.getElementById('wiz-preset-portrait-confirm');
+  ring.innerHTML = `<img src="${jpgSrc}" style="width:100%;height:100%;object-fit:cover;object-position:top center;"
+    onerror="if(this.src.endsWith('.jpg')){this.src='${jpegSrc}';}else{this.outerHTML='<span style=\\'font-size:2.8rem;\\'>${fb}</span>';}" alt="">`;
+
+  document.getElementById('wiz-preset-name-display').textContent = p.name;
+  document.getElementById('wiz-preset-sub-display').textContent =
+    `${RACES[p.race]?.name||p.race} · ${CLASSES[p.cls]?.name||p.cls} · ${p.gender==='female'?'Mujer':'Hombre'}`;
+  document.getElementById('wiz-preset-desc-confirm').textContent = p.personality;
+  const tags = document.getElementById('wiz-preset-tags-confirm');
+  const alignEmoji = {lg:'⚖️',ng:'💛',cg:'🌿',ln:'🔒',tn:'⚪',cn:'🌀',le:'👑',ne:'🖤',ce:'🔥'};
+  const alignName = ALIGNMENTS.find(a=>a.id===p.alignment)?.name || p.alignment;
+  tags.innerHTML = p.tags.map(t=>`<span class="wiz-preset-tag">${t}</span>`).join('') +
+    `<span class="wiz-preset-tag">${alignEmoji[p.alignment]||''} ${alignName}</span>`;
+  // Pre-fill name input
+  const ni = document.getElementById('wiz-preset-name-input');
+  ni.value = p.name;
+  document.getElementById('wiz-0b').classList.remove('wiz-active');
+  document.getElementById('wiz-0c').classList.add('wiz-active');
+  wizUpdateProgress(-1);
+}
+
+function wizStartFromPreset(){
+  const p = PRESETS[wizSelectedPresetIdx];
+  const nameInput = document.getElementById('wiz-preset-name-input').value.trim();
+  // Apply all preset values to the hidden legacy fields
+  document.getElementById('c-name').value = nameInput || p.name;
+  document.getElementById('c-race').value = p.race;
+  document.getElementById('c-class').value = p.cls;
+  document.getElementById('c-background').value = p.background;
+  selectedGender = p.gender;
+  selectedAlignment = p.alignment;
+  selectedDifficulty = p.difficulty || 'easy';
+  // Sync stats into legacy stat elements
+  const statIds = ['str','dex','con','int','wis','cha'];
+  wizInitStep2();
+  statIds.forEach(s=>{
+    const val = p.stats[s];
+    const wizEl = document.getElementById('wizstat-'+s);
+    const wizModEl = document.getElementById('wizstat-'+s+'-mod');
+    if(wizEl) wizEl.textContent = val;
+    if(wizModEl) wizModEl.textContent = '('+modStr(mod(val))+')';
+    const legEl = document.getElementById('stat-'+s);
+    const legModEl = document.getElementById('stat-'+s+'-mod');
+    if(legEl) legEl.textContent = val;
+    if(legModEl) legModEl.textContent = '('+modStr(mod(val))+')';
+  });
+  document.getElementById('personality-display').textContent = p.personality;
+  // Flag so startGame does NOT overwrite with wizState defaults
+  wizState._fromPreset = true;
+  updatePortraitPreview();
+  startGame();
+}
+
+function wizInitStep1(){
+  const raceGrid = document.getElementById('wiz-race-grid');
+  raceGrid.innerHTML = Object.entries(RACES).map(([id,r])=>`
+    <div class="wiz-option-card${wizState.race===id?' selected':''}" onclick="wizSelectRace('${id}',this)">
+      <div class="wiz-option-icon">${r.emoji}</div>
+      <div class="wiz-option-name">${r.name}</div>
+    </div>`).join('');
+  wizUpdateRaceInfo();
+
+  const classGrid = document.getElementById('wiz-class-grid');
+  classGrid.innerHTML = Object.entries(CLASSES).map(([id,c])=>`
+    <div class="wiz-option-card${wizState.cls===id?' selected':''}" onclick="wizSelectClass('${id}',this)">
+      <div class="wiz-option-icon">${c.emoji}</div>
+      <div class="wiz-option-name">${c.name}</div>
+    </div>`).join('');
+  wizUpdateClassInfo();
+
+  const bgGrid = document.getElementById('wiz-bg-grid');
+  bgGrid.innerHTML = BACKGROUNDS_WIZ.map(b=>`
+    <div class="wiz-option-card${wizState.background===b.id?' selected':''}" onclick="wizSelectBg('${b.id}',this)" style="padding:0.5rem 0.2rem;">
+      <div class="wiz-option-icon" style="font-size:1.2rem;">${b.icon}</div>
+      <div class="wiz-option-name">${b.name}</div>
+    </div>`).join('');
+
+  // Name field
+  const ni = document.getElementById('wiz-name');
+  if(ni && !ni.value){
+    ni.value = wizState.name || getDefaultName(wizState.race, wizState.cls, wizState.gender);
+    ni.dataset.isDefault = 'true';
+  }
+}
+
+function wizSelectRace(id, el){
+  wizState.race = id;
+  document.querySelectorAll('#wiz-race-grid .wiz-option-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  wizSyncField('c-race', id);
+  wizUpdateRaceInfo();
+  wizUpdateName();
+}
+function wizUpdateRaceInfo(){
+  const r = RACES[wizState.race];
+  if(!r) return;
+  const bonusList = Object.entries(r.bonuses).map(([k,v])=>`${k.toUpperCase()} +${v}`).join(', ');
+  const info = document.getElementById('wiz-race-info');
+  if(info) info.textContent = `${r.name}: ${bonusList} · Rasgo: ${r.trait} · Velocidad: ${r.speed} pies`;
+}
+
+function wizSelectClass(id, el){
+  wizState.cls = id;
+  document.querySelectorAll('#wiz-class-grid .wiz-option-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  wizSyncField('c-class', id);
+  wizUpdateClassInfo();
+  wizUpdateName();
+}
+function wizUpdateClassInfo(){
+  const c = CLASSES[wizState.cls];
+  if(!c) return;
+  const info = document.getElementById('wiz-class-info');
+  if(info) info.textContent = `${c.name} (${c.hd}) — ${c.desc}`;
+  document.getElementById('class-desc').textContent = c.desc;
+}
+
+function wizSelectBg(id, el){
+  wizState.background = id;
+  document.querySelectorAll('#wiz-bg-grid .wiz-option-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  wizSyncField('c-background', id);
+}
+
+function wizUpdateName(){
+  const ni = document.getElementById('wiz-name');
+  if(!ni || ni.dataset.isDefault === 'false') return;
+  const suggested = getDefaultName(wizState.race, wizState.cls, wizState.gender);
+  ni.value = suggested;
+  ni.dataset.isDefault = 'true';
+  ni.placeholder = suggested;
+}
+
+function wizInitStep2(){
+  const stats = ['str','dex','con','int','wis','cha'];
+  const names = {str:'Fuerza',dex:'Destreza',con:'Constitución',int:'Inteligencia',wis:'Sabiduría',cha:'Carisma'};
+  const grid = document.getElementById('wiz-stats-grid');
+  if(!grid) return;
+  grid.innerHTML = stats.map(s=>`
+    <div class="stat-box" title="${names[s]}">
+      <span class="stat-name">${s.toUpperCase()}</span>
+      <span class="stat-value" id="wizstat-${s}">${wizState.stats[s]||10}</span>
+      <span class="stat-mod" id="wizstat-${s}-mod">(${modStr(mod(wizState.stats[s]||10))})</span>
+    </div>`).join('');
+  // Also sync legacy IDs for startGame compatibility
+  stats.forEach(s=>{
+    const el = document.getElementById('stat-'+s);
+    if(el) el.textContent = wizState.stats[s]||10;
+    const modEl = document.getElementById('stat-'+s+'-mod');
+    if(modEl) modEl.textContent = '('+modStr(mod(wizState.stats[s]||10))+')';
+  });
+  wizUpdateRaceBonusInfo();
+}
+
+function wizRollStats(){
+  const stats = ['str','dex','con','int','wis','cha'];
+  stats.forEach(s=>{
+    const rolls = [rollDie(6),rollDie(6),rollDie(6),rollDie(6)];
+    rolls.sort((a,b)=>a-b);
+    const val = rolls.slice(1).reduce((a,b)=>a+b,0);
+    wizState.stats[s] = val;
+    const el = document.getElementById('wizstat-'+s);
+    const modEl = document.getElementById('wizstat-'+s+'-mod');
+    if(el) el.textContent = val;
+    if(modEl) modEl.textContent = '('+modStr(mod(val))+')';
+    // sync legacy
+    const el2 = document.getElementById('stat-'+s);
+    const modEl2 = document.getElementById('stat-'+s+'-mod');
+    if(el2) el2.textContent = val;
+    if(modEl2) modEl2.textContent = '('+modStr(mod(val))+')';
+  });
+  playSound('dice');
+  wizUpdateRaceBonusInfo();
+}
+
+function wizUpdateRaceBonusInfo(){
+  const r = RACES[wizState.race];
+  if(!r) return;
+  const bonusList = Object.entries(r.bonuses).map(([k,v])=>`${k.toUpperCase()} +${v}`).join(', ');
+  const info = document.getElementById('wiz-race-bonus-info');
+  if(info) info.textContent = `Bonificaciones de ${r.name}: ${bonusList} · Rasgo: ${r.trait}`;
+  // sync legacy
+  const legacy = document.getElementById('race-bonus-info');
+  if(legacy) legacy.textContent = `Bonificaciones de ${r.name}: ${bonusList} · Rasgo: ${r.trait}`;
+}
+
+function wizInitStep3(){
+  // Render alignment grid
+  const grid = document.getElementById('wiz-align-grid');
+  if(grid) grid.innerHTML = ALIGNMENTS.map(a=>`
+    <div class="wiz-align-card${wizState.alignment===a.id?' selected':''}" id="wizalign-${a.id}" onclick="wizSelectAlignment('${a.id}',this)">
+      <div class="wiz-align-emoji">${a.emoji}</div>
+      <div class="wiz-align-name">${a.name}</div>
+    </div>`).join('');
+  // Sync hidden alignment grid (for legacy selectAlignment)
+  renderAlignments();
+  selectAlignment(wizState.alignment);
+  wizRandomPersonality();
+}
+
+function wizSelectDifficulty(diff, el){
+  wizState.difficulty = diff;
+  selectedDifficulty = diff;
+  document.querySelectorAll('#wiz-diff-easy,#wiz-diff-normal').forEach(d=>d.classList.remove('selected'));
+  el.classList.add('selected');
+  // sync legacy
+  const legEasy = document.getElementById('diff-easy');
+  const legNorm = document.getElementById('diff-normal');
+  if(legEasy) legEasy.classList.toggle('selected', diff==='easy');
+  if(legNorm) legNorm.classList.toggle('selected', diff==='normal');
+}
+
+function wizSelectAlignment(id, el){
+  wizState.alignment = id;
+  selectedAlignment = id;
+  document.querySelectorAll('#wiz-align-grid .wiz-align-card').forEach(c=>c.classList.remove('selected'));
+  if(el) el.classList.add('selected');
+  else {
+    const card = document.getElementById('wizalign-'+id);
+    if(card) card.classList.add('selected');
+  }
+  selectAlignment(id); // sync legacy
+  wizRandomPersonality();
+}
+
+function wizRandomPersonality(){
+  const cls = wizState.cls;
+  const classTraits = PERSONALITIES[cls] || ['Un espíritu libre que sigue su propio camino.'];
+  const alignTraits = PERSONALITY_BY_ALIGNMENT[wizState.alignment] || [];
+  let result;
+  if(alignTraits.length && Math.random() < 0.45) result = pick(alignTraits);
+  else result = pick(classTraits);
+  wizState.personality = result;
+  const el = document.getElementById('wiz-personality-display');
+  if(el) el.textContent = result;
+  const legEl = document.getElementById('personality-display');
+  if(legEl) legEl.textContent = result;
+}
+
+function wizInitStep4(){
+  wizUpdateGenderCards();
+  wizUpdateFinalPortrait();
+}
+
+function wizSelectGender(g, el){
+  wizState.gender = g;
+  selectedGender = g;
+  wizUpdateGenderCards();
+  wizUpdateFinalPortrait();
+  wizUpdateName();
+  // sync legacy
+  document.querySelectorAll('#gender-male,#gender-female').forEach(d=>d.classList.remove('selected'));
+  const legGender = document.getElementById('gender-'+g);
+  if(legGender) legGender.classList.add('selected');
+}
+
+function wizUpdateGenderCards(){
+  document.querySelectorAll('#wiz-gender-male,#wiz-gender-female').forEach(c=>c.classList.remove('selected'));
+  const card = document.getElementById('wiz-gender-'+wizState.gender);
+  if(card) card.classList.add('selected');
+}
+
+function wizUpdateFinalPortrait(){
+  const race = wizState.race;
+  const cls = wizState.cls;
+  const gender = wizState.gender;
+  const filename = playerPortraitFilename(race, cls, gender);
+  const ring = document.getElementById('wiz-portrait-ring');
+  if(!ring) return;
+  const fb = FALLBACK_EMOJI[gender] || '🧑';
+  renderPortrait(ring, filename, fb, 'xl');
+
+  // Name display
+  const nameEl = document.getElementById('wiz-final-name');
+  const subEl = document.getElementById('wiz-final-sub');
+  const nameInput = document.getElementById('wiz-name');
+  const name = (nameInput && nameInput.value.trim()) || getDefaultName(race, cls, gender);
+  if(nameEl) nameEl.textContent = name;
+  if(subEl) subEl.textContent = `${RACES[race]?.name||race} · ${CLASSES[cls]?.name||cls} · ${gender==='female'?'Mujer':'Hombre'}`;
+
+  // Also sync legacy portrait preview
+  updatePortraitPreview();
+}
+
+// Replace newGame after all function declarations are parsed
+window._wizNewGame = function(){
+  showScreen('char-screen');
+  wizState = { race:'human', cls:'fighter', background:'soldier',
+    stats:{str:10,dex:10,con:10,int:10,wis:10,cha:10},
+    alignment:'ng', difficulty:'easy', gender:'male', name:'', personality:'' };
+  try{ renderStatsGrid(); } catch(e){}
+  try{ renderAlignments(); } catch(e){}
+  try{ renderAvatarPicker(); } catch(e){}
+  document.querySelectorAll('.wizard-screen').forEach(s=>s.classList.remove('wiz-active'));
+  document.getElementById('wiz-0').classList.add('wiz-active');
+  wizUpdateProgress(0);
+  document.getElementById('wstep-0').classList.remove('done');
+  document.getElementById('wstep-0').classList.add('active');
+};
+
+// startGame is defined later; wizard syncs into legacy fields before calling it
+
 // ====== PRESET CHARACTERS ======
 const PRESETS = [
   {
@@ -4017,6 +4920,30 @@ function applyPreset(idx){
 
 
 function startGame(){
+  // Only sync wizState into hidden fields when coming from the step-by-step flow.
+  // When coming from a preset, wizStartFromPreset already set the fields correctly.
+  if(typeof wizState !== 'undefined' && !wizState._fromPreset){
+    if(wizState.race) document.getElementById('c-race').value = wizState.race;
+    if(wizState.cls) document.getElementById('c-class').value = wizState.cls;
+    if(wizState.background) document.getElementById('c-background').value = wizState.background;
+    if(wizState.alignment) selectedAlignment = wizState.alignment;
+    if(wizState.difficulty) selectedDifficulty = wizState.difficulty;
+    if(wizState.gender) selectedGender = wizState.gender;
+    const wizNameEl = document.getElementById('wiz-name');
+    const wizNameVal = wizNameEl ? wizNameEl.value.trim() : '';
+    if(wizNameVal) document.getElementById('c-name').value = wizNameVal;
+    ['str','dex','con','int','wis','cha'].forEach(s=>{
+      const wizEl = document.getElementById('wizstat-'+s);
+      const legEl = document.getElementById('stat-'+s);
+      if(wizEl && legEl) legEl.textContent = wizEl.textContent;
+    });
+    const wizPers = document.getElementById('wiz-personality-display');
+    const legPers = document.getElementById('personality-display');
+    if(wizPers && legPers && wizPers.textContent) legPers.textContent = wizPers.textContent;
+  }
+  // Reset flag for next use
+  if(typeof wizState !== 'undefined') wizState._fromPreset = false;
+
   const race = document.getElementById('c-race').value;
   const cls  = document.getElementById('c-class').value;
   const bg   = document.getElementById('c-background').value;
