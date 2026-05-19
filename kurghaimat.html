@@ -4116,6 +4116,12 @@ function loadGame(){
     G.revealedHexes = new Set(G.revealedHexes||[]);
     G.usedLocationNames = new Set(G.usedLocationNames||[]);
     G.log = G.log || [];
+    G.kills = G.kills || 0;
+    G.questsCompleted = G.questsCompleted || 0;
+    // Restore global state from save
+    if(G.difficulty) selectedDifficulty = G.difficulty;
+    if(G.player?.alignment) selectedAlignment = G.player.alignment;
+    if(G.player?.gender) selectedGender = G.player.gender;
 
     // Restore combat if it was in progress
     if(G._savedCombat && !G._savedCombat.over){
@@ -4444,19 +4450,20 @@ function wizGoTo(step){
 }
 
 function wizUpdateProgress(step){
-  const numStep = typeof step === 'number' ? step : -1;
+  // For string steps (0b, 0c) treat as "step 0" visually
+  const numStep = typeof step === 'number' ? step : 0;
   for(let i=0;i<=4;i++){
     const dot = document.getElementById('wstep-'+i);
     if(!dot) continue;
     dot.classList.remove('done','active');
-    if(numStep < 0) continue; // preset flow
+    if(step === -1) continue; // preset flow — no progress highlight
     if(i < numStep) dot.classList.add('done');
     else if(i === numStep) dot.classList.add('active');
   }
   for(let i=0;i<=3;i++){
     const conn = document.getElementById('wconn-'+i);
     if(!conn) continue;
-    conn.classList.toggle('done', numStep > 0 && i < numStep);
+    conn.classList.toggle('done', step !== -1 && numStep > 0 && i < numStep);
   }
 }
 
@@ -4980,7 +4987,8 @@ function startGame(){
       equipped: { body:null, mainhand:null, offhand:null, neck:null, ring:null, back:null, feet:null },
       spells: [], spellSlots:{}, spellSlotsMax:{},
       conditions: [], deathSaves:{success:0,failure:0},
-      personality: pick(PERSONALITIES[cls]||['Un espíritu independiente.']),
+      personality: document.getElementById('personality-display')?.textContent?.trim() ||
+                   pick(PERSONALITIES[cls]||['Un espíritu independiente.']),
     },
     party: [],
     quests: [],
@@ -5000,6 +5008,7 @@ function startGame(){
     mapSeed: Math.floor(Math.random()*99999),
     revealedHexes: new Set(),
     difficulty: selectedDifficulty,
+    _difficulty: selectedDifficulty, // alias for safety
     usedLocationNames: new Set(), // track all names ever used
   };
 
@@ -6143,7 +6152,7 @@ function combatAttack(){
 function combatDodge(){
   addStory(`🛡️ **${G.player.name}** toma la acción Esquivar. Los ataques en su contra tienen desventaja.`, 'combat');
   G.player.conditions = G.player.conditions||[];
-  G.player.conditions.push('dodge');
+  if(!G.player.conditions.includes('dodge')) G.player.conditions.push('dodge');
   nextTurn();
 }
 
@@ -6207,27 +6216,60 @@ function executeSpell(spell){
 }
 
 function combatUsePotion(){
-  const potIdx = G.player.inventory.findIndex(i=>i.id==='healpotion'||i.id==='greatpotion');
-  if(potIdx<0){ addStory('No tienes pociones.', 'system'); return; }
+  const potTypes = ['healpotion','greatpotion','superiorpotion','manapotion'];
+  const pots = G.player.inventory
+    .map((i,idx)=>({...i,idx}))
+    .filter(i=>potTypes.includes(i.id));
 
-  const pot = G.player.inventory[potIdx];
-  const heal = parseDice(pot.id==='greatpotion'?'4d4+4':'2d4+2');
-  G.player.hp = Math.min(G.player.maxHP, G.player.hp + heal);
-  removeItem(potIdx);
+  if(!pots.length){ addStory('No tienes pociones.', 'system'); return; }
 
+  // If only one type, use it directly
+  if(pots.length === 1 || new Set(pots.map(p=>p.id)).size === 1){
+    _applyPotion(pots[0]);
+    return;
+  }
+
+  // Multiple options — show selection
+  showDialog('🧪 Usar Poción', '🧪', 'Elige una poción:',
+    pots.map(p=>({
+      text: `${ITEMS[p.id]?.icon||'🧪'} ${ITEMS[p.id]?.name||p.id}`,
+      fn: ()=>{ closeModal('dialog-modal'); _applyPotion(p); }
+    }))
+  );
+}
+
+function _applyPotion(potItem){
+  if(!combatState || combatState.over) return;
+  const id = potItem.id;
+  const item = ITEMS[id] || {};
+
+  if(id === 'manapotion'){
+    const manaGain = 2;
+    G.player.mp = Math.min(G.player.maxMP, G.player.mp + manaGain);
+    addStory(`💙 **${G.player.name}** bebe ${item.name||'Poción de Maná'} y recupera ${manaGain} espacios de conjuro.`, 'combat');
+  } else {
+    const diceMap = {healpotion:'2d4+2', greatpotion:'4d4+4', superiorpotion:'8d4+8'};
+    const heal = parseDice(diceMap[id]||'2d4+2');
+    G.player.hp = Math.min(G.player.maxHP, G.player.hp + heal);
+    addStory(`🧪 **${G.player.name}** bebe ${item.name||'una poción'} y recupera **${heal} PG**. HP: ${G.player.hp}/${G.player.maxHP}.`, 'combat');
+  }
+
+  removeItem(potItem.idx);
   playSound('heal');
-  addStory(`🧪 **${G.player.name}** bebe ${ITEMS[pot.id]?.name||'una poción'} y recupera **${heal} PG**. HP: ${G.player.hp}/${G.player.maxHP}.`, 'combat');
   updateHUD();
+  renderInventory();
   nextTurn();
 }
 
 function combatFlee(){
   const roll = rollDie(20) + mod(G.player.stats.dex);
+  addStory(`🏃 **${G.player.name}** intenta huir. Tirada de Destreza: **${roll}** (necesita ≥12).`, 'combat');
   if(roll >= 12){
-    addStory(`🏃 **${G.player.name}** escapa del combate!`, 'combat');
+    addStory(`✅ ¡Escape exitoso!`, 'combat');
+    G.player.conditions = (G.player.conditions||[]).filter(c=>c!=='dodge');
     endCombat(false);
   } else {
-    addStory(`¡Fallo al huir! El camino está bloqueado.`, 'combat');
+    addStory(`❌ ¡Fallo al huir! El camino está bloqueado.`, 'combat');
     nextTurn();
   }
 }
@@ -6268,29 +6310,34 @@ function nextTurn(){
   const grid = document.getElementById('action-grid');
   if(grid) grid.innerHTML = '<div style="color:var(--text-dim);font-style:italic;font-size:0.75rem;padding:0.4rem;">Esperando turno...</div>';
 
+  const prevTurn = combatState.currentTurn;
   combatState.currentTurn = (combatState.currentTurn+1) % combatState.combatants.length;
 
   // Skip dead combatants
   let safety = 0;
-  while(combatState.combatants[combatState.currentTurn]?.currentHP <= 0 && safety<20){
+  while(combatState.combatants[combatState.currentTurn]?.currentHP <= 0 && safety < combatState.combatants.length + 1){
     combatState.currentTurn = (combatState.currentTurn+1) % combatState.combatants.length;
     safety++;
   }
 
-  // New round when we wrap back to 0
-  if(combatState.currentTurn === 0) combatState.round++;
+  // New round when we wrap back past index 0
+  if(combatState.currentTurn <= prevTurn && combatState.currentTurn !== prevTurn){
+    combatState.round++;
+  }
 
   const current = combatState.combatants[combatState.currentTurn];
-  if(!current) { endCombat(false); return; }
+  if(!current || safety >= combatState.combatants.length) { endCombat(false); return; }
 
   updateCombatUI();
 
   if(current.isEnemy){
+    // Clear player's dodge condition when enemies act (dodge lasts until next player turn)
     setTimeout(()=>enemyTurn(current), 900);
   } else if(current.isParty){
     setTimeout(()=>partyMemberTurn(current), 600);
   } else {
-    // It's the player's turn
+    // It's the player's turn — clear dodge from previous round
+    G.player.conditions = (G.player.conditions||[]).filter(c=>c!=='dodge');
     showCombatActions();
   }
 }
@@ -6304,14 +6351,17 @@ function enemyTurn(enemy){
   const target = pick(targets);
   const attack = pick(enemy.attacks);
   const roll = rollDie(20);
-  const totalHit = roll + (attack.hit||3);
-  const targetAC = target.isPlayer ? (G.player.ac + (G.player.equipped.offhand?2:0)) : (target.ac||10);
+  // Apply Dodge disadvantage: roll twice, take lower
+  const isDodging = target.isPlayer && (G.player.conditions||[]).includes('dodge');
+  const actualRoll = isDodging ? Math.min(roll, rollDie(20)) : roll;
+  const totalHit = actualRoll + (attack.hit||3);
+  const targetAC = target.isPlayer ? (G.player.ac + (G.player.equipped?.offhand ? 2 : 0)) : (target.ac||10);
 
-  addStory(`${enemy.emoji} **${enemy.name}** usa ${attack.name} contra ${target.avatar||'⚔️'} ${target.name}. Ataque: ${totalHit} vs AC ${targetAC}.`, 'combat');
+  addStory(`${enemy.emoji} **${enemy.name}** usa ${attack.name} contra ${target.avatar||'⚔️'} ${target.name}. Ataque: ${actualRoll}+${attack.hit||3} = **${totalHit}** vs AC ${targetAC}${isDodging?' (con desventaja)':''}.`, 'combat');
 
-  if(roll===20 || totalHit >= targetAC){
+  if(actualRoll===20 || totalHit >= targetAC){
     let dmg = parseDice(attack.dmg);
-    if(roll===20) dmg *= 2;
+    if(actualRoll===20){ dmg *= 2; addStory(`✨ **¡GOLPE CRÍTICO!** del ${enemy.name}!`, 'combat'); }
     // Difficulty: easy = -50% damage received
     if(G.difficulty === 'easy' && target.isPlayer) dmg = Math.max(1, Math.floor(dmg * 0.5));
 
@@ -6397,12 +6447,12 @@ function partyMemberTurn(member){
       dmg = parseDice('1d6') + mod(member.stats?.cha||10);
       actionName = 'insulto vicious';
       break;
-    case 'monk':
-      dmg = parseDice('1d6') + dexMod + profB;
+    case 'monk': {
       const ki = parseDice('1d4');
-      dmg += ki;
+      dmg = parseDice('1d6') + dexMod + profB + ki;
       actionName = `golpe de ki (+${ki})`;
       break;
+    }
     default:
       dmg = parseDice('1d6') + strMod;
       actionName = 'ataque';
@@ -6431,6 +6481,9 @@ function endCombat(victory){
 
   combatState = null;
 
+  // Clear any lingering combat conditions
+  if(G?.player) G.player.conditions = (G.player.conditions||[]).filter(c=>c!=='dodge');
+
   if(victory){
     addStory(`⚔️ **¡Victoria!** Todos los enemigos han sido derrotados.`, 'reward');
     playSound('success');
@@ -6452,8 +6505,14 @@ function playerDeath(){
   G.player.hp = 0;
   addStory(`☠️ **${G.player.name}** cae al suelo. Todo se vuelve oscuro...`, 'combat');
 
-  // Death saves
+  // Clean up combat state
+  if(combatState) combatState.over = true;
+  document.getElementById('combat-banner')?.classList.remove('active');
+  const hireBtn = document.getElementById('hire-btn');
+  if(hireBtn) hireBtn.disabled = false;
+
   setTimeout(()=>{
+    combatState = null;
     addStory('💀 **PERMADEATH** — La aventura ha terminado.', 'system');
     const msg = document.getElementById('death-msg');
     msg.textContent = `${G.player.name} cayó en ${G.locationName} tras ${G.day} días de aventura. ${G.kills} enemigos derrotados, ${G.questsCompleted} misiones completadas.`;
@@ -6781,11 +6840,6 @@ function generateQuest(giver=null, forceType=null){
   // Don't auto-accept — player must commit via questboard
   return quest;
 }
-
-function checkQuestProgressInternal(){
-  // Now handled below — stub for compatibility
-}
-
 
 function openQuestBoard(){
   while(G.quests.filter(q=>!q.completed).length<4) generateQuest();
@@ -7196,7 +7250,7 @@ function levelUp(){
 function addItem(id, qty=1, silent=false){
   const existing = G.player.inventory.find(i=>i.id===id);
   if(existing){ existing.qty = (existing.qty||1)+qty; }
-  else { G.player.inventory.push({id, qty:1}); }
+  else { G.player.inventory.push({id, qty}); }
   if(!silent && ITEMS[id]){
     // Auto-equip if slot is empty
     const item = ITEMS[id];
@@ -8311,6 +8365,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   checkSave();
   buildTitleD20();
   buildDie('d20', 20, 1);
+  loadSavedTheme();
 });
 
 
