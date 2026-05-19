@@ -725,45 +725,107 @@
   }
 
   /* ---------- Mobile ---------- */
-  @media (max-width: 760px) {
-    .top-bar {
-      gap: 10px;
-      padding: 8px 10px 8px 8px;
-      top: 10px;
-      max-width: calc(100vw - 16px);
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .brand-sub { display: none; }
-    .brand-title { font-size: 18px; }
-    .presets { gap: 4px; }
-    .preset { font-size: 11px; padding: 6px 9px; }
-    .left-panel {
-      left: 8px; right: 8px;
-      width: auto;
-      top: auto;
-      bottom: 124px;
-      transform: none;
-      max-height: 42vh;
-      padding: 12px 12px;
-    }
-    .bottom-bar {
-      bottom: 14px;
-      gap: 8px;
-      flex-direction: row;
-    }
-    .roll-btn { font-size: 22px; padding: 12px 24px; }
-    .notation-bubble { min-width: 100px; padding: 6px 10px; }
-    .notation { font-size: 14px; }
-    .results-panel {
-      right: 8px;
-      top: 88px;
-      transform: none;
-      width: 200px;
-      padding: 12px 14px;
-    }
-    .results-total { font-size: 36px; }
+ @media (max-width: 760px) {
+  .top-bar {
+    gap: 10px;
+    padding: 8px 10px 8px 8px;
+    top: 10px;
+    max-width: calc(100vw - 16px);
+    flex-wrap: wrap;
+    justify-content: center;
   }
+  .brand-sub { display: none; }
+  .brand-title { font-size: 18px; }
+  .presets { gap: 4px; }
+  .preset { font-size: 11px; padding: 6px 9px; }
+
+  /* Panel oculto por defecto en móvil */
+  .left-panel {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    transform: translateY(100%);
+    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: var(--radius) var(--radius) 0 0;
+    max-height: 75vh;
+    padding: 16px 16px 32px;
+    z-index: 60;
+  }
+  .left-panel.open {
+    transform: translateY(0);
+  }
+
+  /* Handle visual en la parte superior del panel */
+  .left-panel::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+    margin: 0 auto 16px;
+  }
+
+  /* Overlay oscuro detrás del panel */
+  .panel-overlay {
+    display: block;
+  }
+
+  .bottom-bar {
+    bottom: 14px;
+    gap: 8px;
+    flex-direction: row;
+  }
+  .roll-btn { font-size: 22px; padding: 12px 24px; }
+  .notation-bubble { min-width: 100px; padding: 6px 10px; }
+  .notation { font-size: 14px; }
+  .results-panel {
+    right: 8px;
+    top: 88px;
+    transform: none;
+    width: 200px;
+    padding: 12px 14px;
+  }
+  .results-total { font-size: 36px; }
+}
+  /* Overlay — solo visible en móvil cuando el panel está abierto */
+.panel-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 55;
+}
+
+/* Botón flotante para abrir el panel en móvil */
+.dice-fab {
+  display: none;
+  position: fixed;
+  left: 18px;
+  bottom: 26px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  font-size: 22px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  z-index: 20;
+  transition: border-color 140ms, background 140ms;
+}
+.dice-fab:hover { border-color: var(--accent); background: rgba(232,177,74,0.10); }
+
+@media (max-width: 760px) {
+  .dice-fab { display: flex; }
+}
 </style>
 </head>
 <body>
@@ -789,5 +851,30 @@
   <!-- Tweaks panel and React app -->
   <script type="text/babel" src="/dados/tweaks-panel.jsx"></script>
   <script type="text/babel" src="/dados/app.jsx"></script>
+  <!-- Overlay y FAB para móvil -->
+<div class="panel-overlay" id="panel-overlay"></div>
+<button class="dice-fab" id="dice-fab" aria-label="Configurar dados">⚄</button>
+  <script>
+  const fab = document.getElementById('dice-fab');
+  const overlay = document.getElementById('panel-overlay');
+
+  function getPanels() {
+    return document.querySelectorAll('.left-panel');
+  }
+  function openPanel() {
+    getPanels().forEach(p => p.classList.add('open'));
+    overlay.style.display = 'block';
+  }
+  function closePanel() {
+    getPanels().forEach(p => p.classList.remove('open'));
+    overlay.style.display = 'none';
+  }
+
+  fab.addEventListener('click', () => {
+    const isOpen = document.querySelector('.left-panel.open');
+    isOpen ? closePanel() : openPanel();
+  });
+  overlay.addEventListener('click', closePanel);
+</script>
 </body>
 </html>
