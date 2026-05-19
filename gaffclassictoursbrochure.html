@@ -6,7 +6,7 @@
 <title>Gaff Classic Tours — Booking Docs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -40,6 +40,33 @@ body{background:var(--navy);color:#fff;font-family:var(--sans);font-weight:300;m
 .btn-generate span{position:relative;z-index:1}
 .btn-generate:hover::after,.btn-generate:active::after{transform:translateX(0)}
 .btn-generate:disabled{opacity:.5;pointer-events:none}
+.btn-share{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;padding:.62rem 1.1rem;background:transparent;color:var(--gold);border:1px solid rgba(193,154,107,.4);cursor:pointer;transition:all .3s var(--ease);white-space:nowrap;touch-action:manipulation}
+.btn-share:hover,.btn-share:active{background:rgba(193,154,107,.1);border-color:var(--gold)}
+
+/* Share / Calendar sheet */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;opacity:0;pointer-events:none;transition:opacity .3s}
+.sheet-overlay.open{opacity:1;pointer-events:all}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--navy2);border-top:1px solid rgba(193,154,107,.2);border-radius:16px 16px 0 0;padding:1.4rem 1.6rem 2.5rem;z-index:501;transform:translateY(100%);transition:transform .38s var(--ease);max-width:560px;margin:0 auto}
+.sheet.open{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 1.2rem}
+.sheet-title{font-family:var(--display);font-size:.72rem;letter-spacing:.18em;color:var(--gold);margin-bottom:.3rem}
+.sheet-sub{font-size:.68rem;color:rgba(255,255,255,.35);margin-bottom:1.4rem;line-height:1.5}
+.sheet-actions{display:flex;flex-direction:column;gap:.6rem}
+.sheet-btn{display:flex;align-items:center;gap:.9rem;padding:.9rem 1.1rem;background:rgba(255,255,255,.04);border:1px solid rgba(193,154,107,.14);color:#fff;font-family:var(--sans);font-size:.82rem;cursor:pointer;transition:all .25s;text-align:left;touch-action:manipulation;width:100%}
+.sheet-btn:hover,.sheet-btn:active{background:rgba(193,154,107,.09);border-color:rgba(193,154,107,.35)}
+.sheet-btn-icon{font-size:1.35rem;flex-shrink:0;width:32px;text-align:center}
+.sheet-btn-text{flex:1}
+.sheet-btn-title{display:block;font-size:.8rem;color:#fff;margin-bottom:.12rem}
+.sheet-btn-desc{display:block;font-size:.62rem;color:rgba(255,255,255,.35)}
+.sheet-cancel{margin-top:.8rem;width:100%;padding:.75rem;background:none;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.35);font-family:var(--sans);font-size:.75rem;cursor:pointer;transition:all .25s;touch-action:manipulation}
+.sheet-cancel:hover{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.6)}
+
+/* Generating overlay */
+.gen-overlay{position:fixed;inset:0;background:rgba(7,17,31,.88);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;opacity:0;pointer-events:none;transition:opacity .3s}
+.gen-overlay.show{opacity:1;pointer-events:all}
+.gen-spinner{width:36px;height:36px;border:2px solid rgba(193,154,107,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-text{font-family:var(--display);font-size:.65rem;letter-spacing:.2em;color:var(--gold)}
 
 /* ── MOBILE TABS ── */
 .mob-tabs{display:none;background:var(--navy3);border-bottom:1px solid rgba(193,154,107,.1)}
@@ -130,7 +157,7 @@ input[type="date"].field-input{color-scheme:dark}
 .preview{background:var(--cream2);display:flex;flex-direction:column;align-items:center;padding:1.8rem 1.5rem 3rem;overflow-y:auto;max-height:calc(100vh - 58px)}
 @media(max-width:860px){.preview{padding:1.4rem 1rem 4rem}}
 .preview-label{font-size:.46rem;letter-spacing:.38em;text-transform:uppercase;color:var(--text-mid);margin-bottom:1rem}
-.pdf-preview{width:100%;max-width:480px;background:#fff;box-shadow:0 16px 60px rgba(0,0,0,.16);font-family:var(--sans)}
+.pdf-preview{width:100%;max-width:480px;background:#fff;box-shadow:0 16px 60px rgba(0,0,0,.16);font-family:var(--sans);overflow:hidden}
 
 /* ── PDF VISUAL STYLES ── */
 .pdf-header{background:var(--navy);padding:2.2rem 2.2rem 1.6rem;position:relative;overflow:hidden}
@@ -214,8 +241,11 @@ input[type="date"].field-input{color-scheme:dark}
       <button class="lang-btn active" id="lbES" onclick="setLang('es')">ES</button>
       <button class="lang-btn" id="lbEN" onclick="setLang('en')">EN</button>
     </div>
-    <button class="btn-generate" id="btnGenerate" onclick="generatePDF()">
-      <span id="btnLabel">⬇ PDF</span>
+    <button class="btn-share" id="btnShare" onclick="openShareSheet()">
+      <span id="btnShareLabel">📤 <span data-es>Enviar</span><span data-en style="display:none">Share</span></span>
+    </button>
+    <button class="btn-generate" id="btnGenerate" onclick="generateImage()">
+      <span id="btnLabel">⬇ <span data-es>Imagen</span><span data-en style="display:none">Image</span></span>
     </button>
   </div>
 </header>
@@ -525,9 +555,9 @@ let lang = 'es';
 
 const T = {
   es: {
-    btn: '⬇ PDF',
+    btn: '⬇',
     generating: 'Generando...',
-    toastOk: '✓ PDF generado',
+    toastOk: '✓ Imagen guardada',
     // PDF labels
     eyebrow: 'Gaff Classic Tours · Mallorca',
     bandLabel: 'CONFIRMACIÓN DE RESERVA',
@@ -614,9 +644,9 @@ const T = {
     priceBy: { barco:'barco', persona:'persona', grupo:'grupo' },
   },
   en: {
-    btn: '⬇ PDF',
+    btn: '⬇',
     generating: 'Generating...',
-    toastOk: '✓ PDF generated',
+    toastOk: '✓ Image saved',
     eyebrow: 'Gaff Classic Tours · Mallorca',
     bandLabel: 'BOOKING CONFIRMATION',
     bookedLabel: 'BOOKED IN THE NAME OF',
@@ -927,7 +957,7 @@ function formatDate(dateStr){
 // ════════════════════════════════════════
 // UPDATE PREVIEW
 // ════════════════════════════════════════
-function updatePreview(){
+function updatePreview(){ _cachedBlob = null;
   const g=id=>document.getElementById(id);
   const v=id=>g(id)?.value?.trim()||'';
 
@@ -1015,164 +1045,283 @@ function updatePreview(){
 // ════════════════════════════════════════
 // GENERATE PDF
 // ════════════════════════════════════════
-async function generatePDF(){
-  const btn=document.getElementById('btnGenerate');
-  btn.disabled=true; document.getElementById('btnLabel').textContent=t('generating');
+// ════════════════════════════════════════
+// IMAGE GENERATION
+// ════════════════════════════════════════
 
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const W=210,H=297;
-  const gold=[193,154,107],navy=[7,17,31];
-  const cream=[250,247,242],textDark=[28,37,51],textMid=[90,100,116];
+let _cachedBlob = null; // reuse across share actions within same session
 
-  const g=id=>document.getElementById(id);
-  const v=id=>g(id)?.value?.trim()||'';
-  const name=v('tourName')||'Tour',sub=v('tourSub'),desc=v('tourDesc');
-  const price=v('price'),currency=v('currency')||'€',priceNote=v('priceNote');
-  const priceByRaw=v('priceBy');
-  const priceByDisplay=T[lang].priceBy[priceByRaw]||priceByRaw;
-  const depTime=v('depTime'),retTime=v('retTime'),duration=v('duration'),capacity=v('capacity'),meetPoint=v('meetPoint');
-  const notes=v('notes'),phone=v('phone'),email=v('email'),website=v('website');
-  const bookingDate=v('bookingDate'),clientName=v('clientName'),clientPax=v('clientPax');
-  const dateStr=formatDate(bookingDate);
-
-  // HEADER
-  doc.setFillColor(...navy); doc.rect(0,0,W,72,'F');
-  doc.setFillColor(...gold); doc.rect(0,71,W,0.55,'F');
-  doc.setDrawColor(...gold); doc.setLineWidth(0.17); doc.circle(196,14,26,'S');
-  doc.setLineWidth(0.11); doc.circle(196,14,17,'S');
-  doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(...gold); doc.setCharSpace(2.2);
-  doc.text(t('eyebrow').toUpperCase().replace('·','·'),14,17); doc.setCharSpace(0);
-  doc.setDrawColor(...gold); doc.setLineWidth(0.32); doc.line(14,19,54,19);
-  doc.setFontSize(23); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setCharSpace(1);
-  const nameLines=doc.splitTextToSize(name.toUpperCase(),162);
-  doc.text(nameLines,14,31); doc.setCharSpace(0);
-  let hy=31+(nameLines.length*8.2);
-  if(sub){ doc.setFontSize(9.5);doc.setFont('helvetica','italic');doc.setTextColor(155,145,130);doc.text(sub,14,hy+3);hy+=9; }
-  if(price){
-    hy=Math.max(hy,50);
-    doc.setFillColor(193,154,107,22); doc.setDrawColor(...gold); doc.setLineWidth(0.26); doc.rect(14,hy,54,13,'FD');
-    doc.setFontSize(17); doc.setFont('helvetica','bold'); doc.setTextColor(...gold); doc.text(currency+price,17,hy+9);
-    const pw=doc.getStringUnitWidth(currency+price)*17*0.352;
-    doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(155,145,130); doc.text('/'+priceByDisplay,17+pw+1.5,hy+9);
-    if(priceNote){ doc.setFontSize(6.5);doc.setFont('helvetica','italic');doc.setTextColor(120,112,100);doc.text(priceNote,14,hy+15.5); }
-  }
-
-  // BOOKING BAND
-  let bodyY=80;
-  if(bookingDate||clientName||clientPax){
-    const bY=74;
-    doc.setFillColor(193,154,107,18); doc.rect(0,bY,W,14,'F');
-    doc.setDrawColor(...gold); doc.setLineWidth(0.18); doc.line(0,bY+14,W,bY+14);
-    doc.setFontSize(4.8); doc.setFont('helvetica','normal'); doc.setTextColor(...gold); doc.setCharSpace(1.7);
-    doc.text(t('bandLabel'),14,bY+5.5); doc.setCharSpace(0);
-    if(dateStr){ doc.setFontSize(10);doc.setFont('helvetica','italic');doc.setTextColor(...textDark);doc.text(dateStr,14,bY+11.5); }
-    if(clientName){ const cw=doc.getStringUnitWidth(clientName)*8.5*0.352;doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(...textDark);doc.text(clientName,W-14-cw,bY+11.5); }
-    if(clientPax){ const pw2=doc.getStringUnitWidth(clientPax)*6.5*0.352;doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(...textMid);doc.text(clientPax,W-14-pw2,bY+6.5); }
-    bodyY=74+14+7;
-  }
-
-  doc.setFillColor(...cream); doc.rect(0,bodyY-4,W,H-bodyY+4-20,'F');
-
-  function sHead(label,yy){
-    doc.setFontSize(5.8);doc.setFont('helvetica','normal');doc.setTextColor(...gold);doc.setCharSpace(1.9);
-    doc.text(label.toUpperCase(),14,yy);doc.setCharSpace(0);
-    const lw=doc.getStringUnitWidth(label.toUpperCase())*5.8*0.352;
-    doc.setDrawColor(...gold);doc.setLineWidth(0.16);doc.line(14+lw+3,yy-0.5,W-14,yy-0.5);
-    return yy+5.5;
-  }
-  function tBlock(text,x,yy,maxW,size,style,color){
-    doc.setFontSize(size);doc.setFont('helvetica',style);doc.setTextColor(...color);
-    const lines=doc.splitTextToSize(text,maxW);doc.text(lines,x,yy);
-    return yy+lines.length*(size*0.41)+2;
-  }
-
-  let y=bodyY;
-  if(desc){ y=sHead(t('descHead'),y); y=tBlock(desc,14,y,W-28,9,'italic',textMid); y+=3; }
-
-  const infoItems=[
-    dateStr?{label:t('dateLabel'),val:dateStr,hi:true}:null,
-    depTime?{label:t('depLabel'),val:depTime}:null,
-    retTime?{label:t('retLabel'),val:retTime}:null,
-    duration?{label:t('durLabel'),val:duration}:null,
-    (clientPax||capacity)?{label:t('paxLabel'),val:clientPax||capacity}:null,
-    meetPoint?{label:t('meetLabel'),val:meetPoint}:null,
-  ].filter(Boolean);
-
-  if(infoItems.length){
-    y=sHead(t('infoHead'),y);
-    const cW=(W-28-4)/2,rows=Math.ceil(infoItems.length/2);
-    infoItems.forEach((item,i)=>{
-      const col=i%2,row=Math.floor(i/2),cx=14+col*(cW+4),cy=y+row*15;
-      if(item.hi){doc.setFillColor(193,154,107,20);doc.setDrawColor(193,154,107,85);}
-      else{doc.setFillColor(193,154,107,10);doc.setDrawColor(193,154,107,48);}
-      doc.setLineWidth(0.2);doc.rect(cx,cy,cW,12,'FD');
-      doc.setFontSize(5);doc.setFont('helvetica','normal');doc.setTextColor(...gold);doc.setCharSpace(1.2);
-      doc.text(item.label.toUpperCase(),cx+2.5,cy+4.5);doc.setCharSpace(0);
-      doc.setFontSize(item.hi?9:8);doc.setFont('helvetica',item.hi?'italic':'bold');doc.setTextColor(...textDark);
-      doc.text(doc.splitTextToSize(item.val,cW-5),cx+2.5,cy+10);
-    });
-    y+=rows*15+4;
-  }
-
-  const checked=state.checkItems.filter(c=>c.checked);
-  if(checked.length){
-    y=sHead(t('checkHead'),y);
-    const half=Math.ceil(checked.length/2),cW2=(W-28-8)/2;
-    checked.forEach((item,i)=>{
-      const col=i>=half?1:0,row=i>=half?i-half:i,cx=14+col*(cW2+8),cy=y+row*6.8;
-      doc.setFillColor(...gold);doc.rect(cx,cy-3,4,4,'F');
-      doc.setFontSize(3.8);doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.text('v',cx+0.7,cy-0.3);
-      doc.setFontSize(7.8);doc.setFont('helvetica','normal');doc.setTextColor(...textDark);
-      doc.text(doc.splitTextToSize(item.text,cW2-7),cx+5.5,cy);
-    });
-    y+=Math.ceil(checked.length/2)*6.8+4;
-  }
-
-  if(state.inclItems.length||state.exclItems.length){
-    y=sHead(t('ieHead'),y);
-    const cW3=(W-28-5)/2;
-    const iH=Math.max(state.inclItems.length*5.5+12,18),eH=Math.max(state.exclItems.length*5.5+12,18),bH=Math.max(iH,eH);
-    doc.setFillColor(248,245,238);doc.setDrawColor(193,154,107,50);doc.setLineWidth(0.18);
-    doc.rect(14,y,cW3,bH,'FD');doc.rect(14+cW3+5,y,cW3,bH,'FD');
-    doc.setFontSize(5.8);doc.setFont('helvetica','bold');doc.setTextColor(...gold);doc.setCharSpace(0.7);
-    doc.text(t('inclHead').toUpperCase(),17,y+5.5);doc.setTextColor(155,65,65);doc.text(t('exclHead').toUpperCase(),14+cW3+8,y+5.5);doc.setCharSpace(0);
-    state.inclItems.forEach((txt,i)=>{doc.setFillColor(...gold);doc.circle(17.5,y+11+i*5.5,0.85,'F');doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...textMid);doc.text(doc.splitTextToSize(txt,cW3-8),20,y+11.3+i*5.5);});
-    state.exclItems.forEach((txt,i)=>{doc.setFillColor(155,65,65);doc.circle(14+cW3+10,y+11+i*5.5,0.85,'F');doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...textMid);doc.text(doc.splitTextToSize(txt,cW3-8),14+cW3+13,y+11.3+i*5.5);});
-    y+=bH+5;
-  }
-
-  if(notes){
-    y=sHead(t('notesHead'),y);
-    const nLines=doc.splitTextToSize(notes,W-30),nH=nLines.length*4.2+8;
-    doc.setFillColor(250,247,238);doc.rect(14,y-2,W-28,nH,'F');
-    doc.setFillColor(...gold);doc.rect(14,y-2,1.7,nH,'F');
-    doc.setFontSize(7);doc.setFont('helvetica','italic');doc.setTextColor(...textMid);doc.text(nLines,18,y+3);
-    y+=nH+4;
-  }
-
-  // FOOTER
-  doc.setFillColor(...navy);doc.rect(0,H-20,W,20,'F');
-  doc.setDrawColor(...gold);doc.setLineWidth(0.32);doc.line(0,H-20,W,H-20);
-  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);doc.setCharSpace(1.2);
-  doc.text('GAFF CLASSIC TOURS',14,H-13);doc.setCharSpace(0);
-  doc.setFontSize(5.5);doc.setFont('helvetica','normal');doc.setTextColor(...gold);doc.text('Mallorca  ·  Mediterraneo',14,H-8);
-  const cParts=[phone,email,website].filter(Boolean);
-  cParts.forEach((c,i)=>{doc.setFontSize(6);doc.setFont('helvetica','normal');doc.setTextColor(175,160,140);const cw=doc.getStringUnitWidth(c)*6*0.352;doc.text(c,W-14-cw,H-7+(i-cParts.length+1)*4.7);});
-  doc.setFontSize(4.8);doc.setFont('helvetica','normal');doc.setTextColor(65,58,50);doc.setCharSpace(1.1);
-  doc.text(t('footerCenter'),W/2,H-2.5,{align:'center'});doc.setCharSpace(0);
-
-  const safeName=(name.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')||'tour').toLowerCase();
-  const dateTag=bookingDate?`_${bookingDate}`:'';
-  const clientTag=clientName?`_${clientName.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'').substring(0,20)}`:'';
-  doc.save(`gaff_${safeName}${dateTag}${clientTag}.pdf`);
-
-  btn.disabled=false; document.getElementById('btnLabel').textContent=t('btn');
-  const toast=document.getElementById('toast');
-  toast.textContent=t('toastOk'); toast.classList.add('show');
-  setTimeout(()=>toast.classList.remove('show'),3000);
+function getFileName(){
+  const name = (document.getElementById('tourName')?.value?.trim() || 'gaff').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase();
+  const date = document.getElementById('bookingDate')?.value || '';
+  return `gaff_${name}${date?'_'+date:''}.jpg`;
 }
 
+async function capturePreview(){
+  const el = document.querySelector('.pdf-preview');
+  // Temporarily fix width for consistent render
+  const prev = el.style.cssText;
+  el.style.width = '700px';
+  el.style.maxWidth = '700px';
+  await new Promise(r => setTimeout(r, 120)); // let fonts settle
+
+  const canvas = await html2canvas(el, {
+    scale: 2.5,
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: '#ffffff',
+    logging: false,
+    imageTimeout: 8000,
+    onclone: (doc) => {
+      // Ensure fonts render in clone
+      const style = doc.createElement('style');
+      style.textContent = '@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600&family=Jost:wght@200;300;400;500&display=swap");';
+      doc.head.appendChild(style);
+    }
+  });
+
+  el.style.cssText = prev;
+
+  return new Promise(resolve => {
+    canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.94);
+  });
+}
+
+async function generateImage(){
+  showGenOverlay(lang==='es'?'Generando imagen…':'Generating image…');
+  try {
+    // Switch to preview tab on mobile if needed
+    if(window.innerWidth <= 860){
+      document.getElementById('previewPanel').removeAttribute('data-hidden');
+      document.getElementById('editorPanel').setAttribute('data-hidden','');
+      await new Promise(r => setTimeout(r, 200));
+    }
+    const blob = await capturePreview();
+    _cachedBlob = blob;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = getFileName();
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    hideGenOverlay();
+    showToast(t('toastOk'));
+  } catch(e) {
+    hideGenOverlay();
+    showToast('Error al generar imagen');
+    console.error(e);
+  }
+}
+
+function showGenOverlay(msg){
+  document.getElementById('genOverlay').classList.add('show');
+  document.getElementById('genText').textContent = msg || '';
+}
+function hideGenOverlay(){
+  document.getElementById('genOverlay').classList.remove('show');
+}
+
+// ════════════════════════════════════════
+// SHARE SHEET
+// ════════════════════════════════════════
+
+function openShareSheet(){
+  updateSheetLabels();
+  document.getElementById('sheetOverlay').classList.add('open');
+  document.getElementById('shareSheet').classList.add('open');
+}
+function closeShareSheet(){
+  document.getElementById('sheetOverlay').classList.remove('open');
+  document.getElementById('shareSheet').classList.remove('open');
+}
+
+function updateSheetLabels(){
+  const v = id => document.getElementById(id)?.value?.trim() || '';
+  const client = v('clientName');
+  const date = formatDate(v('bookingDate'));
+  const tour = v('tourName');
+  const meet = v('meetPoint');
+  const dep = v('depTime');
+
+  const isEs = lang === 'es';
+  document.getElementById('sheetTitle').textContent = isEs ? 'Enviar al cliente' : 'Send to client';
+  
+  let sub = '';
+  if(client) sub += isEs ? `Cliente: ${client}` : `Client: ${client}`;
+  if(date) sub += (sub?'  ·  ':'') + date;
+  if(dep) sub += (sub?'  ·  ':'') + dep;
+  document.getElementById('sheetSub').textContent = sub;
+
+  document.getElementById('shareSystemTitle').textContent = isEs ? 'Compartir imagen' : 'Share image';
+  document.getElementById('shareSystemDesc').textContent = isEs ? 'WhatsApp, Email, Telegram…' : 'WhatsApp, Email, Telegram…';
+  document.getElementById('downloadTitle').textContent = isEs ? 'Descargar imagen' : 'Download image';
+  document.getElementById('downloadDesc').textContent = isEs ? 'Guardar en el dispositivo' : 'Save to device';
+  document.getElementById('calTitle').textContent = isEs ? 'Añadir al calendario' : 'Add to calendar';
+  document.getElementById('calDesc').textContent = isEs ? 'Abre la app de calendario' : 'Opens calendar app';
+  document.getElementById('waTitle').textContent = isEs ? 'Mensaje de texto (WhatsApp)' : 'Text message (WhatsApp)';
+  document.getElementById('waDesc').textContent = isEs ? 'Texto con los datos de la reserva' : 'Text with booking details';
+  document.getElementById('sheetCancel').textContent = isEs ? 'Cancelar' : 'Cancel';
+}
+
+async function getBlobForShare(){
+  if(_cachedBlob) return _cachedBlob;
+  showGenOverlay(lang==='es'?'Preparando…':'Preparing…');
+  if(window.innerWidth <= 860){
+    document.getElementById('previewPanel').removeAttribute('data-hidden');
+    document.getElementById('editorPanel').setAttribute('data-hidden','');
+    await new Promise(r => setTimeout(r, 200));
+  }
+  const blob = await capturePreview();
+  _cachedBlob = blob;
+  hideGenOverlay();
+  return blob;
+}
+
+async function shareViaSystem(){
+  closeShareSheet();
+  try {
+    const blob = await getBlobForShare();
+    const file = new File([blob], getFileName(), {type:'image/jpeg'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({ files:[file], title: document.getElementById('tourName')?.value || 'Gaff Classic Tours' });
+      showToast(lang==='es'?'✓ Compartido':'✓ Shared');
+    } else {
+      // Fallback: download
+      await downloadImage();
+    }
+  } catch(e) {
+    if(e.name !== 'AbortError') showToast('Error al compartir');
+  }
+}
+
+async function downloadImage(){
+  closeShareSheet();
+  const overlay = lang==='es'?'Generando imagen…':'Generating image…';
+  showGenOverlay(overlay);
+  try {
+    const blob = await getBlobForShare();
+    hideGenOverlay();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = getFileName();
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast(t('toastOk'));
+  } catch(e) {
+    hideGenOverlay();
+    showToast('Error');
+  }
+}
+
+function addToCalendar(){
+  closeShareSheet();
+  const v = id => document.getElementById(id)?.value?.trim() || '';
+  const tourName = v('tourName') || 'Gaff Classic Tours';
+  const dateStr = v('bookingDate');
+  const depTime = v('depTime').replace(/[^0-9:]/g,'') || '1000';
+  const retTime = v('retTime').replace(/[^0-9:]/g,'') || '1500';
+  const meet = v('meetPoint') || 'Club de Mar, Amarre 1007, Palma';
+  const clientName = v('clientName');
+  const pax = v('clientPax');
+  const notes2 = v('notes');
+
+  if(!dateStr){
+    showToast(lang==='es'?'Pon una fecha primero':'Set a date first');
+    return;
+  }
+
+  // Build ICS
+  const [y,m,d] = dateStr.split('-');
+  const depH = depTime.includes(':') ? depTime.replace(':','') : depTime.padStart(4,'0');
+  const retH = retTime.includes(':') ? retTime.replace(':','') : retTime.padStart(4,'0');
+  const dtStart = `${y}${m.padStart(2,'0')}${d.padStart(2,'0')}T${depH.padStart(4,'0')}00`;
+  const dtEnd   = `${y}${m.padStart(2,'0')}${d.padStart(2,'0')}T${retH.padStart(4,'0')}00`;
+
+  let desc = tourName;
+  if(clientName) desc += `\nCliente: ${clientName}`;
+  if(pax) desc += ` · ${pax}`;
+  if(notes2) desc += `\n${notes2}`;
+  desc += `\n\nGaff Classic Tours · +34 680 193 006`;
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//GaffClassicTours//BookingDoc//EN',
+    'BEGIN:VEVENT',
+    `DTSTART:${dtStart}`,
+    `DTEND:${dtEnd}`,
+    `SUMMARY:${tourName}${clientName?' — '+clientName:''}`,
+    `LOCATION:${meet}`,
+    `DESCRIPTION:${desc}`,
+    'STATUS:CONFIRMED',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gaff_${(tourName).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()}_${dateStr}.ics`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  showToast(lang==='es'?'📅 Abriendo calendario…':'📅 Opening calendar…');
+}
+
+function shareWhatsApp(){
+  closeShareSheet();
+  const v = id => document.getElementById(id)?.value?.trim() || '';
+  const isEs = lang === 'es';
+  const tour = v('tourName');
+  const client = v('clientName');
+  const date = formatDate(v('bookingDate'));
+  const dep = v('depTime');
+  const ret = v('retTime');
+  const dur = v('duration');
+  const meet = v('meetPoint');
+  const pax = v('clientPax');
+  const price = v('price');
+  const currency = v('currency') || '€';
+  const priceBy = T[lang].priceBy[v('priceBy')] || v('priceBy');
+  const phone2 = v('phone');
+
+  let msg = isEs
+    ? `*✨ Confirmación de Reserva — Gaff Classic Tours*\n\n`
+    : `*✨ Booking Confirmation — Gaff Classic Tours*\n\n`;
+
+  if(tour) msg += `🛥 *${tour}*\n`;
+  if(date) msg += (isEs?`📅 Fecha: `:  `📅 Date: `) + `${date}\n`;
+  if(dep)  msg += (isEs?`🕐 Salida: `: `🕐 Departure: `) + `${dep}`;
+  if(ret)  msg += (isEs?` · Regreso: `: ` · Return: `) + `${ret}`;
+  if(dep||ret) msg += '\n';
+  if(dur)  msg += (isEs?`⏱ Duración: `:`⏱ Duration: `) + `${dur}\n`;
+  if(pax)  msg += (isEs?`👥 Personas: `:`👥 Guests: `) + `${pax}\n`;
+  if(meet) msg += (isEs?`⚓ Punto de encuentro: `:`⚓ Meeting point: `) + `${meet}\n`;
+  if(price) msg += (isEs?`\n💰 Precio: `:`\n💰 Price: `) + `${currency}${price} / ${priceBy}\n`;
+
+  const checked = state.checkItems.filter(x=>x.checked);
+  if(checked.length){
+    msg += isEs ? '\n*Servicios incluidos:*\n' : '\n*Included services:*\n';
+    checked.forEach(x => msg += `✅ ${x.text}\n`);
+  }
+
+  msg += `\n${isEs?'Hasta pronto':'See you soon'} 🌊\n`;
+  if(phone2) msg += `📞 ${phone2}`;
+
+  const encoded = encodeURIComponent(msg);
+  window.open(`https://wa.me/?text=${encoded}`, '_blank');
+}
+
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg; toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ════════════════════════════════════════
+// INIT
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
@@ -1193,5 +1342,51 @@ async function generatePDF(){
   updatePreview();
 })();
 </script>
+
+<!-- SHARE SHEET -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeShareSheet()"></div>
+<div class="sheet" id="shareSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="sheetTitle">Enviar al cliente</div>
+  <div class="sheet-sub" id="sheetSub"></div>
+  <div class="sheet-actions">
+    <button class="sheet-btn" onclick="shareViaSystem()">
+      <span class="sheet-btn-icon">📤</span>
+      <span class="sheet-btn-text">
+        <span class="sheet-btn-title" id="shareSystemTitle">Compartir imagen</span>
+        <span class="sheet-btn-desc" id="shareSystemDesc">WhatsApp, Email, Telegram…</span>
+      </span>
+    </button>
+    <button class="sheet-btn" onclick="downloadImage()">
+      <span class="sheet-btn-icon">⬇</span>
+      <span class="sheet-btn-text">
+        <span class="sheet-btn-title" id="downloadTitle">Descargar imagen</span>
+        <span class="sheet-btn-desc" id="downloadDesc">Guardar en el dispositivo</span>
+      </span>
+    </button>
+    <button class="sheet-btn" onclick="addToCalendar()">
+      <span class="sheet-btn-icon">📅</span>
+      <span class="sheet-btn-text">
+        <span class="sheet-btn-title" id="calTitle">Añadir al calendario</span>
+        <span class="sheet-btn-desc" id="calDesc">Abre la app de calendario</span>
+      </span>
+    </button>
+    <button class="sheet-btn" onclick="shareWhatsApp()">
+      <span class="sheet-btn-icon">💬</span>
+      <span class="sheet-btn-text">
+        <span class="sheet-btn-title" id="waTitle">Mensaje de WhatsApp</span>
+        <span class="sheet-btn-desc" id="waDesc">Texto con los datos de la reserva</span>
+      </span>
+    </button>
+  </div>
+  <button class="sheet-cancel" id="sheetCancel" onclick="closeShareSheet()">Cancelar</button>
+</div>
+
+<!-- GENERATING OVERLAY -->
+<div class="gen-overlay" id="genOverlay">
+  <div class="gen-spinner"></div>
+  <div class="gen-text" id="genText">Generando imagen…</div>
+</div>
+
 </body>
 </html>
