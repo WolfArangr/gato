@@ -1532,6 +1532,17 @@ body {
 }
 
 
+/* Preset character cards */
+.preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; }
+@media(max-width:500px){ .preset-grid { grid-template-columns:1fr; } }
+.preset-card { background:var(--bg-card); border:1px solid var(--border-gold-dim); border-radius:var(--radius); padding:0.8rem; cursor:pointer; transition:all 0.2s; }
+.preset-card:hover { border-color:var(--border-gold); background:rgba(200,146,42,0.06); transform:translateY(-1px); }
+.preset-card .pc-name { font-family:var(--font-title); font-size:1rem; color:var(--gold-bright); }
+.preset-card .pc-sub  { font-size:0.68rem; color:var(--text-secondary); margin:0.15rem 0 0.3rem; }
+.preset-card .pc-desc { font-size:0.72rem; color:var(--text-dim); font-style:italic; line-height:1.5; }
+.preset-card .pc-tags { display:flex; flex-wrap:wrap; gap:0.2rem; margin-top:0.4rem; }
+.preset-card .pc-tag  { background:rgba(200,146,42,0.1); border:1px solid var(--border-gold-dim); border-radius:20px; padding:0.1rem 0.4rem; font-size:0.58rem; color:var(--gold-light); }
+
 #travel-overlay {
   display: none;
   position: fixed;
@@ -1855,8 +1866,17 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
 <div id="char-screen" class="screen">
   <div class="char-container">
     <div class="panel-title">✦ Forja Tu Destino ✦</div>
-    
-    <div class="section">
+
+    <!-- QUICK START PRESETS -->
+    <div class="section" style="border:1px solid var(--border-gold-dim);border-radius:var(--radius);padding:0.8rem;background:rgba(200,146,42,0.04);margin-bottom:0.5rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:0.8rem;">
+        <div>
+          <div style="font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.12em;color:var(--gold-light);text-transform:uppercase;">⚡ Inicio rápido</div>
+          <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.15rem;">Elige un personaje predefinido y empieza a jugar al instante.</div>
+        </div>
+        <button class="btn btn-primary" onclick="openPresets()" style="flex-shrink:0;white-space:nowrap;">Ver personajes</button>
+      </div>
+    </div>
       <div class="section-title">Identidad</div>
       <div class="form-row">
         <div class="form-group">
@@ -2234,6 +2254,20 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
 <!-- PORTRAIT ZOOM OVERLAY -->
 <div id="portrait-zoom-overlay" onclick="closePortraitZoom()">
   <img id="portrait-zoom-img" src="" alt="Retrato">
+</div>
+
+<!-- PRESET CHARACTERS MODAL -->
+<div class="modal-overlay" id="preset-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title">⚡ Personajes Predefinidos</div>
+      <button class="modal-close" onclick="closeModal('preset-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.8rem;font-style:italic;">Elige un personaje ya configurado y empieza a jugar de inmediato. Puedes modificar el nombre antes de empezar.</p>
+      <div class="preset-grid" id="preset-grid"></div>
+    </div>
+  </div>
 </div>
 
 <!-- LOG DETAIL MODAL -->
@@ -3293,6 +3327,77 @@ function companionPortraitFilename(cls, gender){
   return 'companion_' + (cls||'fighter') + '_' + (gender||'male');
 }
 
+// Pick the best available player_ portrait for a companion/NPC.
+// Tries: 1) companion_{cls}_{gender}, 2) player_{race}_{cls}_{gender} (not player's own),
+// 3) player_{anyrace}_{cls}_{gender}, 4) player_{anyrace}_{anyclass}_{gender}
+// Returns a filename (no extension) to use with portraitHTML.
+function companionBestPortrait(cls, gender, race){
+  const g = gender||'male';
+  const c = (cls && PORTRAIT_CLASSES.includes(cls)) ? cls : 'fighter';
+
+  // Prefer companion_ prefix first
+  const companionFn = 'companion_' + c + '_' + g;
+  // We can't test existence at runtime without fetch, so we chain via onerror.
+  // Return an ordered list of filenames; portraitHTMLChain will try them in order.
+
+  // Build candidate list
+  const playerOwn = G ? playerPortraitFilename(G.player.race, G.player.cls, G.player.gender||'male') : '__own__';
+  const candidates = [];
+
+  // Race-matched player portrait for this class
+  if(race && PORTRAIT_RACES.includes(race.replace(/[-\s]/g,''))){
+    const r = race.replace(/[-\s]/g,'');
+    const fn = playerPortraitFilename(r, c, g);
+    if(fn !== playerOwn) candidates.push(fn);
+  }
+  // All races for this class+gender (excluding player)
+  for(const r of PORTRAIT_RACES){
+    const fn = playerPortraitFilename(r, c, g);
+    if(fn !== playerOwn && !candidates.includes(fn)) candidates.push(fn);
+  }
+  // Fallback: any race any class, same gender (excluding player)
+  for(const r of PORTRAIT_RACES){
+    for(const cl of PORTRAIT_CLASSES){
+      const fn = playerPortraitFilename(r, cl, g);
+      if(fn !== playerOwn && !candidates.includes(fn)) candidates.push(fn);
+    }
+  }
+
+  // Return companion filename as first try, then player pool
+  return {primary: companionFn, fallbacks: candidates};
+}
+
+// Portrait HTML with chained fallbacks: tries primary, then each fallback, then emoji
+function portraitHTMLChained(portraitResult, fallbackEmoji, size='md', extraStyle=''){
+  if(typeof portraitResult === 'string'){
+    return portraitHTML(portraitResult, fallbackEmoji, size, extraStyle);
+  }
+  // portraitResult = {primary, fallbacks:[...]}
+  const sz = {xl:100, lg:80, md:56, sm:40, xs:28}[size]||56;
+  const fs = {xl:'2.8rem', lg:'2.2rem', md:'1.6rem', sm:'1.1rem', xs:'0.8rem'}[size]||'1.6rem';
+  const fb = (fallbackEmoji||'🧑').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+  const {primary, fallbacks} = portraitResult;
+
+  // Build onerror chain: each image, on error, tries next filename then finally emoji
+  // We store the chain in a data attribute and a small inline handler
+  const allTries = [primary, ...fallbacks.slice(0,8)]; // cap at 9 total attempts
+  const jpgTries = allTries.map(fn => PORTRAIT_BASE + fn + '.jpg');
+  const jpegTries = allTries.map(fn => PORTRAIT_BASE + fn + '.jpeg');
+  // Interleave: jpg0, jpeg0, jpg1, jpeg1, ...
+  const allSrcs = [];
+  allTries.forEach(fn=>{
+    allSrcs.push(PORTRAIT_BASE + fn + '.jpg');
+    allSrcs.push(PORTRAIT_BASE + fn + '.jpeg');
+  });
+
+  const srcsJson = JSON.stringify(allSrcs).replace(/"/g,'&quot;');
+  return `<img src="${allSrcs[0]}" width="${sz}" height="${sz}"
+    style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;object-position:top center;display:block;${extraStyle}"
+    data-srcs="${srcsJson}" data-idx="0"
+    onerror="(function(img){var srcs=JSON.parse(img.dataset.srcs.replace(/&quot;/g,'&quot;'));var idx=parseInt(img.dataset.idx)+1;if(idx<srcs.length){img.dataset.idx=idx;img.src=srcs[idx];}else{img.outerHTML='<span style=&quot;font-size:${fs};line-height:1;&quot;>${fb}</span>';}})(this)"
+    alt="">`;
+}
+
 // NPC generic type: npc_{type}_{gender}
 function npcTypePath(npcType, gender){
   const special = NPC_SPECIAL_PORTRAITS[npcType];
@@ -3575,12 +3680,50 @@ function loadGame(){
 }
 
 // ====== CHARACTER CREATION ======
+// Default names by race, class, gender — shown as placeholder and pre-filled if blank
+const DEFAULT_NAMES = {
+  human:      { fighter:{male:'Aldric',female:'Sera'}, wizard:{male:'Edwyn',female:'Lyra'}, rogue:{male:'Daven',female:'Nessa'}, cleric:{male:'Brennan',female:'Caelia'}, ranger:{male:'Gareth',female:'Wren'}, paladin:{male:'Oswin',female:'Isolde'}, barbarian:{male:'Brand',female:'Thyra'}, bard:{male:'Corin',female:'Remy'}, druid:{male:'Cael',female:'Briar'}, warlock:{male:'Soren',female:'Vesper'}, sorcerer:{male:'Kiran',female:'Elara'}, monk:{male:'Tomas',female:'Faye'} },
+  elf:        { fighter:{male:'Aerion',female:'Sylvara'}, wizard:{male:'Eladrin',female:'Aethril'}, rogue:{male:'Faelen',female:'Lirien'}, cleric:{male:'Solmyr',female:'Elaris'}, ranger:{male:'Vaelas',female:'Nimara'}, paladin:{male:'Caelum',female:'Ianeth'}, barbarian:{male:'Rhovar',female:'Shalai'}, bard:{male:'Melaniel',female:'Tiriel'}, druid:{male:'Thalion',female:'Galara'}, warlock:{male:'Zephyr',female:'Aedrin'}, sorcerer:{male:'Ilphas',female:'Selarai'}, monk:{male:'Raen',female:'Naeris'} },
+  dwarf:      { fighter:{male:'Bofri',female:'Hilda'}, wizard:{male:'Dolgrin',female:'Marta'}, rogue:{male:'Snorri',female:'Birna'}, cleric:{male:'Durgin',female:'Helka'}, ranger:{male:'Brundir',female:'Sigrid'}, paladin:{male:'Thorvald',female:'Gudrun'}, barbarian:{male:'Bródr',female:'Ragna'}, bard:{male:'Gimrik',female:'Tova'}, druid:{male:'Baldur',female:'Astrid'}, warlock:{male:'Ulfin',female:'Valdis'}, sorcerer:{male:'Helvig',female:'Freyja'}, monk:{male:'Grimr',female:'Ingrid'} },
+  halfling:   { fighter:{male:'Tobias',female:'Rosie'}, wizard:{male:'Merlo',female:'Pippa'}, rogue:{male:'Cob',female:'Mira'}, cleric:{male:'Aldous',female:'Lily'}, ranger:{male:'Finn',female:'Bree'}, paladin:{male:'Wendell',female:'Calla'}, barbarian:{male:'Tuck',female:'Nora'}, bard:{male:'Perry',female:'Daisy'}, druid:{male:'Moss',female:'Fern'}, warlock:{male:'Silas',female:'Willa'}, sorcerer:{male:'Bram',female:'Hally'}, monk:{male:'Reed',female:'Clover'} },
+  dragonborn: { fighter:{male:'Balasar',female:'Akra'}, wizard:{male:'Arjhan',female:'Kava'}, rogue:{male:'Donaar',female:'Jheri'}, cleric:{male:'Ghesh',female:'Nala'}, ranger:{male:'Heskan',female:'Perra'}, paladin:{male:'Kriv',female:'Raiann'}, barbarian:{male:'Medrash',female:'Sora'}, bard:{male:'Mehen',female:'Surina'}, druid:{male:'Nadarr',female:'Thava'}, warlock:{male:'Pandjed',female:'Uadjit'}, sorcerer:{male:'Patrin',female:'Vishva'}, monk:{male:'Rhogar',female:'Zyre'} },
+  tiefling:   { fighter:{male:'Akmenos',female:'Anamnesis'}, wizard:{male:'Amnizu',female:'Bryseis'}, rogue:{male:'Damakos',female:'Criella'}, cleric:{male:'Ekemon',female:'Flavivia'}, ranger:{male:'Iados',female:'Kallista'}, paladin:{male:'Kairon',female:'Lerissa'}, barbarian:{male:'Leucis',female:'Makaria'}, bard:{male:'Melech',female:'Nemeia'}, druid:{male:'Mordai',female:'Orianna'}, warlock:{male:'Morthos',female:'Phelaia'}, sorcerer:{male:'Pelaios',female:'Rieta'}, monk:{male:'Skamos',female:'Talitha'} },
+  gnome:      { fighter:{male:'Alston',female:'Bimpnottin'}, wizard:{male:'Brocc',female:'Breena'}, rogue:{male:'Burgell',female:'Caramip'}, cleric:{male:'Dimble',female:'Duvamil'}, ranger:{male:'Eldon',female:'Ella'}, paladin:{male:'Erky',female:'Ellyjobell'}, barbarian:{male:'Fonkin',female:'Loopmottin'}, bard:{male:'Frug',female:'Lorilla'}, druid:{male:'Gerbo',female:'Mardnab'}, warlock:{male:'Gimble',female:'Nissa'}, sorcerer:{male:'Glim',female:'Orla'}, monk:{male:'Jebeddo',female:'Roywyn'} },
+  'half-orc': { fighter:{male:'Dench',female:'Baggi'}, wizard:{male:'Feng',female:'Emen'}, rogue:{male:'Gell',female:'Engong'}, cleric:{male:'Henk',female:'Kansif'}, ranger:{male:'Holg',female:'Myev'}, paladin:{male:'Imsh',female:'Neega'}, barbarian:{male:'Keth',female:'Ovak'}, bard:{male:'Krusk',female:'Ownka'}, druid:{male:'Mhurren',female:'Shautha'}, warlock:{male:'Ront',female:'Sutha'}, sorcerer:{male:'Shump',female:'Vola'}, monk:{male:'Thokk',female:'Volen'} },
+  'half-elf': { fighter:{male:'Azalar',female:'Aeyni'}, wizard:{male:'Delros',female:'Caelys'}, rogue:{male:'Eryn',female:'Daraei'}, cleric:{male:'Faelthas',female:'Ilnara'}, ranger:{male:'Gaerlan',female:'Lyris'}, paladin:{male:'Haemar',female:'Miral'}, barbarian:{male:'Jaelen',female:'Naerae'}, bard:{male:'Kaelan',female:'Pharel'}, druid:{male:'Lyriel',female:'Rindel'}, warlock:{male:'Mirael',female:'Shaera'}, sorcerer:{male:'Naeris',female:'Sylri'}, monk:{male:'Rhovel',female:'Thiala'} },
+};
+
+function getDefaultName(race, cls, gender){
+  const r = race || 'human';
+  const c = cls  || 'fighter';
+  const g = gender || 'male';
+  return DEFAULT_NAMES[r]?.[c]?.[g] || DEFAULT_NAMES.human?.[c]?.[g] || 'Aventurero';
+}
+
+function suggestDefaultName(){
+  const nameInput = document.getElementById('c-name');
+  if(!nameInput) return;
+  const race   = document.getElementById('c-race')?.value  || 'human';
+  const cls    = document.getElementById('c-class')?.value || 'fighter';
+  const gender = selectedGender || 'male';
+  const suggested = getDefaultName(race, cls, gender);
+  // Only overwrite if the field is empty or still contains a previously suggested default
+  if(!nameInput.value || nameInput.dataset.isDefault === 'true'){
+    nameInput.value = suggested;
+    nameInput.dataset.isDefault = 'true';
+  }
+  nameInput.placeholder = suggested;
+}
+
 function initCharScreen(){
   renderStatsGrid();
   renderAlignments();
   updateClassInfo();
   renderAvatarPicker();
   rollStats();
+  suggestDefaultName();
+  const nameInput = document.getElementById('c-name');
+  if(nameInput) nameInput.addEventListener('input', ()=>{ nameInput.dataset.isDefault = 'false'; });
 }
 
 function renderStatsGrid(){
@@ -3616,6 +3759,7 @@ function updateRaceBonus(){
   const bonusList = Object.entries(r.bonuses).map(([k,v])=>`${k.toUpperCase()} +${v}`).join(', ');
   info.textContent = `Bonificaciones de ${r.name}: ${bonusList} · Rasgo: ${r.trait}`;
   updatePortraitPreview();
+  suggestDefaultName();
 }
 
 function updateClassInfo(){
@@ -3624,6 +3768,7 @@ function updateClassInfo(){
   document.getElementById('class-desc').textContent = c.desc;
   randomPersonality();
   updatePortraitPreview();
+  suggestDefaultName();
 }
 
 function renderAlignments(){
@@ -3741,6 +3886,7 @@ function selectGender(g, el){
   document.querySelectorAll('#gender-male,#gender-female').forEach(d=>d.classList.remove('selected'));
   el.classList.add('selected');
   updatePortraitPreview();
+  suggestDefaultName();
 }
 
 function updatePortraitPreview(){
@@ -3756,12 +3902,127 @@ function updatePortraitPreview(){
 function renderAvatarPicker(){ updatePortraitPreview(); }
 function selectAvatar(e, el){} // kept for compatibility, no longer used
 
-// ====== GAME START ======
+// ====== PRESET CHARACTERS ======
+const PRESETS = [
+  {
+    name:'Azura', race:'human', cls:'paladin', gender:'female', alignment:'lg', background:'noble',
+    stats:{str:16, dex:10, con:13, int:14, wis:14, cha:12},
+    desc:'"La justicia no es negociable. Ni para enemigos, ni para aliados, ni para mí misma."',
+    tags:['Fuerza 16','Inteligencia 14','Sabiduría 14','Noble'],
+    personality:'Los inocentes deben ser protegidos a cualquier costo. He jurado. Y un juramento no se rompe.',
+  },
+  {
+    name:'Nubelina', race:'elf', cls:'druid', gender:'female', alignment:'cn', background:'outlander',
+    stats:{str:11, dex:13, con:12, int:12, wis:14, cha:11},
+    desc:'"El bosque no tiene dueños. El equilibrio no tiene bandos. Yo tampoco."',
+    tags:['Balanceada','Sabiduría 14','Forastera'],
+    personality:'Cambio como las estaciones. La naturaleza tiene sabiduría que los civilizados han olvidado.',
+  },
+  {
+    name:'Sarah', race:'human', cls:'bard', gender:'female', alignment:'le', background:'charlatan',
+    stats:{str:9, dex:14, con:11, int:13, wis:10, cha:18},
+    desc:'"Las palabras son más poderosas que las espadas. Las mías, especialmente."',
+    tags:['Carisma 18','Charlatana','Bardesa'],
+    personality:'Un buen bardo nunca dice la verdad completa, ni miente del todo. El poder es la única meta real.',
+  },
+  {
+    name:'Ymir', race:'human', cls:'fighter', gender:'male', alignment:'cg', background:'folk-hero',
+    stats:{str:18, dex:8, con:17, int:8, wis:9, cha:9},
+    desc:'"No necesito estrategia. Necesito velocidad y fuerza. Y las tengo de sobra."',
+    tags:['Fuerza 18','Constitución 17','Héroe del Pueblo'],
+    personality:'Me río ante el peligro. Las grandes hazañas merecen grandes fiestas. Hago el bien aunque vaya contra las normas.',
+  },
+  {
+    name:'Alayen', race:'human', cls:'warlock', gender:'male', alignment:'ce', background:'criminal',
+    stats:{str:9, dex:16, con:11, int:13, wis:17, cha:11},
+    desc:'"Mi patrón y yo tenemos un acuerdo. Que ninguno de los dos está cumpliendo del todo."',
+    tags:['Sabiduría 17','Destreza 16','Criminal'],
+    personality:'No tengo cadenas. Ni reglas. Ni lealtades. El poder tiene un precio. Estoy dispuesto a pagarlo.',
+  },
+  {
+    name:'Ignoto el Amnente', race:'human', cls:'rogue', gender:'male', alignment:'tn', background:'sage',
+    stats:{str:10, dex:10, con:10, int:10, wis:10, cha:10},
+    desc:'"No sé quién soy. Pero sé lo que hago. Y lo hago bien."',
+    tags:['10 en todo','Erudito','El Desconocido'],
+    personality:'Me mantengo al margen de los grandes conflictos de ideales. La supervivencia no tiene alineamiento político.',
+  },
+];
+
+function openPresets(){
+  const grid = document.getElementById('preset-grid');
+  const alignEmoji = {lg:'⚖️',ng:'💛',cg:'🌿',ln:'🔒',tn:'⚪',cn:'🌀',le:'👑',ne:'🖤',ce:'🔥'};
+  grid.innerHTML = PRESETS.map((p,i)=>{
+    const fn       = playerPortraitFilename(p.race, p.cls, p.gender);
+    const jpgSrc   = PORTRAIT_BASE + fn + '.jpg';
+    const jpegSrc  = PORTRAIT_BASE + fn + '.jpeg';
+    const fb       = FALLBACK_EMOJI[p.gender] || '🧑';
+    const portraitTag = `<img src="${jpgSrc}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;object-position:top center;border:2px solid var(--border-gold);flex-shrink:0;"
+      onerror="if(this.src.endsWith('.jpg')){this.src='${jpegSrc}';}else{this.outerHTML='<span style=\\'font-size:2rem;line-height:56px;\\'>${fb}</span>';}" alt="">`;
+    const alignName = ALIGNMENTS.find(a=>a.id===p.alignment)?.name || p.alignment;
+    return `
+    <div class="preset-card" onclick="applyPreset(${i})" style="display:flex;gap:0.7rem;align-items:flex-start;">
+      <div style="flex-shrink:0;">${portraitTag}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="pc-name">${p.name}</div>
+        <div class="pc-sub">${RACES[p.race]?.name||p.race} · ${CLASSES[p.cls]?.name||p.cls} · ${p.gender==='female'?'♀ Mujer':'♂ Hombre'}</div>
+        <div class="pc-desc">${p.desc}</div>
+        <div class="pc-tags">
+          ${p.tags.map(t=>`<span class="pc-tag">${t}</span>`).join('')}
+          <span class="pc-tag">${alignEmoji[p.alignment]||''} ${alignName}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  openModal('preset-modal');
+}
+
+function applyPreset(idx){
+  const p = PRESETS[idx];
+  closeModal('preset-modal');
+
+  // Apply to form fields
+  document.getElementById('c-name').value = p.name;
+  document.getElementById('c-name').dataset.isDefault = 'false';
+  document.getElementById('c-race').value  = p.race;
+  document.getElementById('c-class').value = p.cls;
+  document.getElementById('c-background').value = p.background;
+
+  // Gender
+  selectedGender = p.gender;
+  document.querySelectorAll('#gender-male,#gender-female').forEach(d=>d.classList.remove('selected'));
+  document.getElementById('gender-' + p.gender)?.classList.add('selected');
+
+  // Alignment
+  selectAlignment(p.alignment);
+
+  // Stats — set directly
+  const statIds = ['str','dex','con','int','wis','cha'];
+  statIds.forEach(s=>{
+    const el = document.getElementById('stat-'+s);
+    const modEl = document.getElementById('stat-'+s+'-mod');
+    if(el) el.textContent = p.stats[s];
+    if(modEl) modEl.textContent = '(' + modStr(mod(p.stats[s])) + ')';
+  });
+
+  // Personality
+  const persEl = document.getElementById('personality-display');
+  if(persEl) persEl.textContent = p.personality;
+
+  // Refresh UI
+  updateRaceBonus();
+  updateClassInfo();
+  updatePortraitPreview();
+
+  notify(`Personaje cargado: ${p.name}`, 'quest');
+}
+
+
 function startGame(){
-  const name = document.getElementById('c-name').value.trim() || 'Aventurero';
   const race = document.getElementById('c-race').value;
-  const cls = document.getElementById('c-class').value;
-  const bg = document.getElementById('c-background').value;
+  const cls  = document.getElementById('c-class').value;
+  const bg   = document.getElementById('c-background').value;
+  const name = document.getElementById('c-name').value.trim() ||
+               getDefaultName(race, cls, selectedGender);
   const r = RACES[race];
   const c = CLASSES[cls];
 
@@ -3992,9 +4253,9 @@ function renderParty(){
     return;
   }
   list.innerHTML = G.party.map((m,i)=>{
-    const filename = m.portrait || companionPortraitFilename(m.cls, m.gender||'male');
+    const portrait = companionBestPortrait(m.cls, m.gender||'male', m.race);
     const fb  = FALLBACK_EMOJI[m.gender||'male'];
-    const img = portraitHTML(filename, fb, 'sm');
+    const img = portraitHTMLChained(portrait, fb, 'sm');
     return `
     <div class="party-member" onclick="showNPCDetail(${i})">
       <div class="party-avatar">${img}</div>
@@ -4295,8 +4556,10 @@ function openTravel(){
   if(combatState){ notify('No puedes viajar en combate.','warning'); return; }
 
   const {q:pq, r:pr} = getPlayerHexCoords();
+  const locType = G.currentLocation?.type || 'plains';
+  const inSettlement = (locType === 'town' || locType === 'city');
 
-  // 1. Adjacent revealed locations (1 hex away)
+  // 1. Adjacent revealed locations (1 hex away) — always available
   const adjacent = [];
   HEX_DIRS.forEach(d=>{
     const nq=pq+d.q, nr=pr+d.r;
@@ -4304,13 +4567,7 @@ function openTravel(){
     if(h?.location) adjacent.push(Object.assign({},h.location,{_dist:1,_adj:true}));
   });
 
-  // 2. Known discovered locations (further away, already visited)
-  const known = G.discoveredLocations
-    .filter(l=>l.name!==G.locationName && !adjacent.find(a=>a.name===l.name))
-    .map(l=>Object.assign({},l,{_dist:rand(2,8),_adj:false}))
-    .slice(0,4);
-
-  // 3. Generate a couple of new unknown adjacent destinations if room
+  // 2. Generate new unknown adjacent hexes if room — always available
   const newDests = [];
   if(adjacent.length < 3){
     const freeNeighbors = HEX_DIRS.map(d=>({q:pq+d.q,r:pr+d.r}))
@@ -4322,33 +4579,57 @@ function openTravel(){
     }
   }
 
-  const all = [...adjacent, ...newDests, ...known];
+  // 3. Far known settlements (towns/cities) — only from a settlement, requires carriage
+  const partySize = 1 + (G.party?.length || 0);
+  const farOptions = [];
+  if(inSettlement){
+    const knownSettlements = G.discoveredLocations
+      .filter(l=>(l.type==='town'||l.type==='city') && l.name!==G.locationName && !adjacent.find(a=>a.name===l.name))
+      .slice(0, 5);
+    knownSettlements.forEach(l=>{
+      const dist = rand(3,10);
+      const fare = Math.floor((25 + dist * 5) * partySize);
+      farOptions.push(Object.assign({},l,{_dist:dist,_adj:false,_fare:fare}));
+    });
+  }
 
-  if(!all.length){ addStory('No hay destinos disponibles. Explora primero los alrededores.','system'); return; }
+  const all = [...adjacent, ...newDests];
+  if(!all.length && !farOptions.length){
+    addStory('No hay destinos disponibles. Explora primero los alrededores.','system'); return;
+  }
 
-  // Separate into sections
-  const nearbyOptions = all.filter(d=>d._adj||d._new).map(d=>({
-    text: `${(LOCATIONS[d.type]||{}).ambiance||'🏘️'} ${d.name} — ${d.type} (1h, adyacente)`,
+  // Build choices
+  const nearbyChoices = [...adjacent, ...newDests].map(d=>({
+    text: `${(LOCATIONS[d.type]||{}).ambiance||'🏘️'} ${d.name} (${d.type}, 1h · a pie)`,
     fn: (function(dest){ return function(){ closeModal('dialog-modal'); travelTo(dest); }; })(d)
   }));
-  const farOptions = all.filter(d=>!d._adj&&!d._new).map(d=>({
-    text: `${(LOCATIONS[d.type]||{}).ambiance||'🏘️'} ${d.name} — ${d.type} (${d._dist}h)`,
-    fn: (function(dest){ return function(){ closeModal('dialog-modal'); travelTo(dest); }; })(d)
+
+  const carriageChoices = farOptions.map(d=>({
+    text: `${(LOCATIONS[d.type]||{}).ambiance||'🏘️'} ${d.name} (${d._dist}h · 🪙${d._fare} carruaje×${partySize})`,
+    fn: (function(dest){ return function(){
+      closeModal('dialog-modal');
+      if(G.player.gold < dest._fare){
+        addStory(`❌ No tienes suficiente oro para el carruaje a **${dest.name}**. Necesitas 🪙${dest._fare}.`, 'warning');
+        notify(`Sin oro suficiente (🪙${dest._fare} necesarios)`,'warning');
+        return;
+      }
+      G.player.gold -= dest._fare;
+      addStory(`🪙 Pagas **${dest._fare} monedas de oro** al cochero. El carruaje parte hacia **${dest.name}**.`, 'travel');
+      updateHUD();
+      travelTo(dest);
+    }; })(d)
   }));
 
-  const choices = [
-    ...nearbyOptions,
-    ...farOptions,
+  let bodyText = `**Destinos desde ${G.locationName}:**\n\n`;
+  if(nearbyChoices.length) bodyText += `🚶 A pie — casillas adyacentes\n`;
+  if(carriageChoices.length) bodyText += `🪙 Carruaje — pueblos y ciudades conocidos (solo desde asentamiento)\n`;
+  else if(!inSettlement && farOptions.length === 0) bodyText += `\n_Para viajar lejos, dirígete a un pueblo o ciudad donde contratar carruaje._`;
+
+  showDialog('🗺️ Ponerse en camino', '🧭', bodyText, [
+    ...nearbyChoices,
+    ...carriageChoices,
     {text:'❌ Cancelar', fn:()=>closeModal('dialog-modal')}
-  ];
-
-  showDialog('🗺️ Ponerse en camino', '🧭',
-    `**Destinos desde ${G.locationName}:**\n\n` +
-    (nearbyOptions.length ? `📍 Lugares adyacentes (${nearbyOptions.length})\n` : '') +
-    (farOptions.length   ? `📜 Lugares conocidos (${farOptions.length})\n`   : '') +
-    `\nElige a dónde quieres dirigirte.`,
-    choices
-  );
+  ]);
 }
 
 
@@ -4472,8 +4753,8 @@ function travelTo(dest){
     updateHUD();
     updateActions(dest.type||'town');
     renderQuests(); renderLocation(); renderLore();
-    // Center map on new location
-    if(typeof centerMap==='function') setTimeout(()=>centerMap(), 80);
+    // Full map reload: resize canvas to current dimensions then center on new position
+    setTimeout(()=>{ resizeMap(); centerMap(); }, 120);
     if(dest.type==='dungeon') addStory('⚠️ Esta zona parece peligrosa. Prepárate.','warning');
     checkDovahkiinRaid();
   }, travelDuration);
@@ -4795,8 +5076,8 @@ function updateCombatUI(){
       const fn = G.player.portrait || playerPortraitFilename(G.player.race, G.player.cls, G.player.gender||'male');
       avatarHtml = portraitHTML(fn, G.player.avatar||'👤', 'xs');
     } else if(c.isParty){
-      const fn = c.portrait || companionPortraitFilename(c.cls, c.gender||'male');
-      avatarHtml = portraitHTML(fn, FALLBACK_EMOJI[c.gender||'male'], 'xs');
+      const portrait = companionBestPortrait(c.cls, c.gender||'male', c.race);
+      avatarHtml = portraitHTMLChained(portrait, FALLBACK_EMOJI[c.gender||'male'], 'xs');
     } else {
       // enemy
       const enemyFn = enemyPortraitPath(c.name); // returns full URL or null
@@ -4818,8 +5099,8 @@ function updateCombatUI(){
       const fn = G.player.portrait || playerPortraitFilename(G.player.race, G.player.cls, G.player.gender||'male');
       avatarHtml = portraitHTML(fn, G.player.avatar||'👤', 'sm');
     } else if(c.isParty){
-      const fn = c.portrait || companionPortraitFilename(c.cls, c.gender||'male');
-      avatarHtml = portraitHTML(fn, FALLBACK_EMOJI[c.gender||'male'], 'sm');
+      const portrait = companionBestPortrait(c.cls, c.gender||'male', c.race);
+      avatarHtml = portraitHTMLChained(portrait, FALLBACK_EMOJI[c.gender||'male'], 'sm');
     } else {
       const enemyFn = enemyPortraitPath(c.name);
       if(enemyFn){ avatarHtml = portraitHTML(enemyFn.replace(PORTRAIT_BASE,'').replace('.jpg',''), c.emoji||'👹', 'sm'); }
@@ -5278,8 +5559,11 @@ function talkToNPC(){
     ]},
   ];
 
+  const npcPortrait = npc.npcType
+    ? (NPC_SPECIAL_PORTRAITS[npc.npcType] || ('npc_' + npc.npcType + '_' + (npc.gender||'male')))
+    : companionBestPortrait(null, npc.gender||'male');
   const chosen = pick(dialogues);
-  showDialog(npc.name, npc.portrait || npc.emoji, chosen.text, chosen.choices);
+  showDialog(npc.name, npcPortrait, chosen.text, chosen.choices);
 }
 
 function generateNPC(){
@@ -5307,7 +5591,7 @@ function generateRescueQuest(npc){
 function showNPCDetail(idx){
   const m = G.party[idx];
   if(!m) return;
-  const portrait = m.portrait || companionPortraitFilename(m.cls, m.gender||'male');
+  const portrait = companionBestPortrait(m.cls, m.gender||'male', m.race);
   showDialog(
     m.name,
     portrait,
@@ -5358,9 +5642,9 @@ function openTavern(){
   desc.textContent = `En ${pick(tavernNames)}, varios aventureros descansan entre misiones. El olor a cerveza y carne asada llena el ambiente. ¿A quién contratarás?`;
 
   hires.innerHTML = G.tavernPool.map((npc,i)=>{
-    const fn  = npc.portrait || companionPortraitFilename(npc.cls, npc.gender||'male');
+    const portrait = companionBestPortrait(npc.cls, npc.gender||'male');
     const fb  = FALLBACK_EMOJI[npc.gender||'male'];
-    const img = portraitHTML(fn, fb, 'md');
+    const img = portraitHTMLChained(portrait, fb, 'md');
     return `
     <div style="display:flex; align-items:center; gap:0.8rem; padding:0.7rem; background:var(--bg-card); border:1px solid var(--border-gold-dim); border-radius:var(--radius); margin-bottom:0.5rem;">
       <div style="width:56px;height:56px;border-radius:50%;overflow:hidden;border:1px solid var(--border-gold-dim);flex-shrink:0;">${img}</div>
@@ -5786,9 +6070,9 @@ function completeQuest(idx){
     giveClue();
   }
 
-  // Remove from active
-  G.activeQuest = G.quests.findIndex(q=>!q.completed);
-  if(G.activeQuest<0) G.activeQuest=null;
+  // Remove from active — only auto-switch to another accepted quest
+  const nextIdx = G.quests.findIndex((q,i)=>!q.completed && q.accepted && i !== G.activeQuest);
+  G.activeQuest = nextIdx >= 0 ? nextIdx : null;
 
   // Generate new quest to replace
   setTimeout(()=>generateQuest(), 1000);
@@ -6295,7 +6579,10 @@ function initMap(){
     if(!wasDrag) mapClick(e);
   });
   mapCanvas.addEventListener('mouseleave', ()=>{ mapDragging=false; });
-  mapCanvas.addEventListener('wheel', e=>{ e.preventDefault(); mapZoom(e.deltaY<0?1.1:0.9); },{passive:false});
+  mapCanvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    mapZoom(e.deltaY < 0 ? 1.1 : 0.9);
+  }, {passive:false});
   let touchMoved=false;
   mapCanvas.addEventListener('touchstart', e=>{ touchMoved=false; let t=e.touches[0]; mapDragging=true; mapDragStart={x:t.clientX-mapOffset.x,y:t.clientY-mapOffset.y}; },{passive:true});
   mapCanvas.addEventListener('touchmove', e=>{ e.preventDefault(); touchMoved=true; let t=e.touches[0]; if(!mapDragging)return; mapOffset.x=t.clientX-mapDragStart.x; mapOffset.y=t.clientY-mapDragStart.y; drawMap(); },{passive:false});
@@ -6419,8 +6706,8 @@ function drawMap(){
     }
   }
 
-  // After drawing all hexes: quest marker overlay — visible even on fog
-  const aq = G?.activeQuest!==null && G?.quests?.[G.activeQuest];
+  // Quest marker overlay — only for the actively tracked AND accepted quest
+  const aq = (G?.activeQuest !== null && G?.activeQuest !== undefined) ? G?.quests?.[G.activeQuest] : null;
   if(aq && !aq.completed && aq.accepted && aq.zone){
     const zoneLower = aq.zone.toLowerCase().split(' ')[0];
     let questX=null, questY=null, questFound=false;
@@ -6535,9 +6822,10 @@ function drawHex(ctx,cx,cy,size,hex,isPlayer){
     }
   }
 
-  // Quest marker: show ! on hex that matches active quest zone
-  if(G?.activeQuest!==null && G?.activeQuest!==undefined){
-    const aq = G?.quests?.[G.activeQuest];
+  // Quest marker: only show ! for the actively tracked AND accepted quest
+  const aqIdx = G?.activeQuest;
+  if(aqIdx !== null && aqIdx !== undefined){
+    const aq = G?.quests?.[aqIdx];
     if(aq && !aq.completed && aq.accepted && hex.location && aq.zone){
       const zoneLower = aq.zone.toLowerCase();
       const locLower  = hex.location.name.toLowerCase();
@@ -6556,7 +6844,27 @@ function drawHex(ctx,cx,cy,size,hex,isPlayer){
   }
 }
 
-function mapZoom(f){ mapScale=Math.max(0.3,Math.min(4,mapScale*f)); drawMap(); }
+// Zoom always toward the canvas center, regardless of cursor position.
+function mapZoom(f){
+  if(!mapCanvas) return;
+  const oldScale = mapScale;
+  const newScale = Math.max(0.3, Math.min(4, oldScale * f));
+  if(newScale === oldScale) return;
+
+  // Pivot = exact center of the canvas at the moment of zoom
+  const pivotX = mapCanvas.width  / 2;
+  const pivotY = mapCanvas.height / 2;
+
+  // Keep the world point that is currently under the pivot fixed after scaling
+  const worldX = (pivotX - mapOffset.x) / oldScale;
+  const worldY = (pivotY - mapOffset.y) / oldScale;
+
+  mapScale = newScale;
+  mapOffset.x = pivotX - worldX * newScale;
+  mapOffset.y = pivotY - worldY * newScale;
+
+  drawMap();
+}
 
 function centerMap(){
   // Center on player position
@@ -6658,9 +6966,12 @@ function showDialog(title, portraitSrcOrEmoji, text, choices){
   _dch = choices;
   document.getElementById('dialog-npc-name').textContent = title;
 
-  // Portrait: if it's a portrait filename (not an emoji) render as image
+  // Portrait: filename string, chained object {primary,fallbacks}, or emoji
   const portraitEl = document.getElementById('dialog-portrait');
-  if(isPortraitFilename(portraitSrcOrEmoji)){
+  if(portraitSrcOrEmoji && typeof portraitSrcOrEmoji === 'object' && portraitSrcOrEmoji.primary){
+    // Chained portrait object
+    portraitEl.innerHTML = portraitHTMLChained(portraitSrcOrEmoji, '🧑', 'lg');
+  } else if(isPortraitFilename(portraitSrcOrEmoji)){
     const img = document.createElement('img');
     const jpgSrc  = PORTRAIT_BASE + portraitSrcOrEmoji + '.jpg';
     const jpegSrc = PORTRAIT_BASE + portraitSrcOrEmoji + '.jpeg';
