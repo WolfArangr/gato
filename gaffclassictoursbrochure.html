@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Gaff Classic Tours — Booking Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#07111f;--navy2:#0c1b30;--navy3:#112240;
+  --gold:#c19a6b;--gold2:#d4aa7d;--gold3:#e8c99a;
+  --cream:#f5f0e8;--cream2:#faf7f2;
+  --text-dark:#1c2533;--text-mid:#5a6474;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --display:'Cinzel',serif;
+  --sans:'Jost',system-ui,sans-serif;
+  --ease:cubic-bezier(0.22,1,0.36,1);
+  --r:6px;
+}
+html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent}
+body{background:var(--navy);color:#fff;font-family:var(--sans);font-weight:300;min-height:100vh;overflow-x:hidden}
+
+/* ── HEADER ── */
+.header{background:var(--navy2);border-bottom:1px solid rgba(193,154,107,.15);padding:.9rem 4%;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:.6rem}
+.header-brand{display:flex;align-items:center;gap:.7rem;min-width:0}
+.header-logo-text{font-family:var(--display);font-size:.68rem;letter-spacing:.2em;color:#fff;white-space:nowrap}
+.header-logo-sub{font-family:var(--sans);font-size:.42rem;letter-spacing:.45em;color:var(--gold);display:block;margin-top:.18rem}
+.header-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+
+/* Language toggle */
+.lang-toggle{display:flex;border:1px solid rgba(193,154,107,.22);overflow:hidden}
+.lang-btn{font-family:var(--display);font-size:.5rem;letter-spacing:.15em;padding:.4rem .7rem;background:transparent;color:rgba(255,255,255,.38);border:none;cursor:pointer;transition:all .25s}
+.lang-btn.active{background:var(--gold);color:var(--navy)}
+
+.btn-generate{font-family:var(--display);font-size:.56rem;letter-spacing:.16em;padding:.62rem 1.3rem;background:var(--gold);color:var(--navy);border:none;cursor:pointer;transition:all .3s var(--ease);position:relative;overflow:hidden;white-space:nowrap;touch-action:manipulation}
+.btn-generate::after{content:'';position:absolute;inset:0;background:var(--gold2);transform:translateX(-101%);transition:transform .38s var(--ease)}
+.btn-generate span{position:relative;z-index:1}
+.btn-generate:hover::after,.btn-generate:active::after{transform:translateX(0)}
+.btn-generate:disabled{opacity:.5;pointer-events:none}
+
+/* ── MOBILE TABS ── */
+.mob-tabs{display:none;background:var(--navy3);border-bottom:1px solid rgba(193,154,107,.1)}
+.mob-tab{flex:1;font-family:var(--display);font-size:.5rem;letter-spacing:.14em;padding:.75rem;background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;border-bottom:2px solid transparent;transition:all .25s;touch-action:manipulation}
+.mob-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+@media(max-width:860px){.mob-tabs{display:flex}}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 58px)}
+@media(max-width:860px){
+  .app{grid-template-columns:1fr;height:auto}
+  .editor,.preview{max-height:none;height:auto}
+  .editor[data-hidden],.preview[data-hidden]{display:none}
+}
+
+/* ── EDITOR ── */
+.editor{background:var(--navy2);border-right:1px solid rgba(193,154,107,.1);padding:1.6rem 1.8rem 3rem;overflow-y:auto;max-height:calc(100vh - 58px)}
+@media(max-width:860px){.editor{padding:1.4rem 1.2rem 5rem;overflow-y:visible}}
+
+/* Section title */
+.sec-title{font-size:.5rem;letter-spacing:.38em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;display:flex;align-items:center;gap:.6rem}
+.sec-title::after{content:'';flex:1;height:1px;background:rgba(193,154,107,.12)}
+.field-group{margin-bottom:1.6rem}
+.field-label{font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:.4rem;display:block}
+
+/* Inputs - bigger touch targets on mobile */
+.field-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(193,154,107,.12);color:#fff;font-family:var(--sans);font-size:.88rem;padding:.7rem .95rem;transition:border-color .25s;outline:none;resize:vertical;-webkit-appearance:none;border-radius:0}
+.field-input::placeholder{color:rgba(255,255,255,.15)}
+.field-input:focus{border-color:rgba(193,154,107,.42);background:rgba(193,154,107,.03)}
+textarea.field-input{min-height:72px;line-height:1.7}
+select.field-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(193,154,107,.5)'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .9rem center;padding-right:2rem;-webkit-appearance:none}
+option{background:var(--navy2)}
+input[type="date"].field-input{color-scheme:dark}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.65rem}
+@media(max-width:400px){.grid-3{grid-template-columns:1fr 1fr}}
+
+/* Preset pills (tour) */
+.preset-strip{display:flex;gap:.38rem;margin-bottom:1.6rem;flex-wrap:wrap}
+.preset-pill{font-family:var(--sans);font-size:.7rem;padding:.48rem 1rem;background:transparent;border:1px solid rgba(193,154,107,.18);color:rgba(255,255,255,.4);cursor:pointer;transition:all .25s;border-radius:2px;touch-action:manipulation}
+.preset-pill:hover,.preset-pill:active{border-color:rgba(193,154,107,.5);color:var(--gold);background:rgba(193,154,107,.06)}
+.preset-pill.active{border-color:var(--gold);color:var(--gold);background:rgba(193,154,107,.09)}
+.preset-strip-label{font-size:.44rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.18);margin-bottom:.45rem;display:block}
+
+/* Booking box */
+.booking-box{background:rgba(193,154,107,.06);border:1px solid rgba(193,154,107,.22);padding:1.1rem 1.2rem;margin-bottom:1.6rem;position:relative}
+.booking-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--gold)}
+.booking-box-label{font-size:.46rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem;display:block}
+
+/* Checklist */
+.checklist-wrap{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.55rem}
+.check-item{display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.025);border:1px solid rgba(193,154,107,.09);padding:.58rem .8rem;transition:all .2s;cursor:pointer;touch-action:manipulation}
+.check-item:active{background:rgba(193,154,107,.06)}
+.check-item.unchecked{opacity:.5;border-style:dashed}
+.check-item.unchecked:hover,.check-item.unchecked:active{opacity:.75}
+.check-checkbox{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
+.check-text{font-size:.78rem;color:rgba(255,255,255,.62);flex:1;line-height:1.35}
+.check-remove{background:none;border:none;color:rgba(255,255,255,.15);cursor:pointer;font-size:1rem;padding:.15rem .3rem;line-height:1;transition:color .2s;flex-shrink:0}
+.check-remove:hover,.check-remove:active{color:rgba(193,154,107,.8)}
+
+/* Sub-preset chips */
+.chip-row{display:flex;gap:.32rem;flex-wrap:wrap;margin-bottom:.6rem}
+.chip{font-size:.62rem;padding:.32rem .7rem;background:rgba(255,255,255,.04);border:1px solid rgba(193,154,107,.14);color:rgba(255,255,255,.35);cursor:pointer;transition:all .22s;border-radius:20px;touch-action:manipulation;white-space:nowrap}
+.chip:hover,.chip:active{background:rgba(193,154,107,.1);border-color:rgba(193,154,107,.4);color:var(--gold)}
+.chip-label{font-size:.43rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.18);margin-bottom:.38rem;display:block}
+
+/* Add row */
+.add-row{display:flex;gap:.38rem}
+.add-input{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(193,154,107,.1);color:#fff;font-family:var(--sans);font-size:.8rem;padding:.55rem .8rem;outline:none;transition:border-color .25s;border-radius:0;-webkit-appearance:none}
+.add-input:focus{border-color:rgba(193,154,107,.35)}
+.add-input::placeholder{color:rgba(255,255,255,.15)}
+.btn-add{background:rgba(193,154,107,.12);border:1px solid rgba(193,154,107,.22);color:var(--gold);font-family:var(--sans);font-size:.7rem;padding:.55rem .95rem;cursor:pointer;transition:all .25s;white-space:nowrap;touch-action:manipulation}
+.btn-add:hover,.btn-add:active{background:rgba(193,154,107,.22)}
+
+/* Incl/Excl tags */
+.ie-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.ie-col-label{font-size:.44rem;letter-spacing:.24em;text-transform:uppercase;margin-bottom:.3rem;display:block}
+.ie-col-label.i{color:rgba(193,154,107,.7)}.ie-col-label.e{color:rgba(180,78,78,.7)}
+.tag-list{display:flex;flex-direction:column;gap:.25rem;min-height:20px;margin-bottom:.4rem}
+.tag-row{display:flex;align-items:center;gap:.38rem;padding:.25rem .35rem;font-size:.7rem}
+.tag-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.tag-dot.i{background:var(--gold)}.tag-dot.e{background:rgba(180,78,78,.8)}
+.tag-text{color:rgba(255,255,255,.55);flex:1}
+.tag-rm{background:none;border:none;color:rgba(255,255,255,.12);cursor:pointer;font-size:.8rem;line-height:1;transition:color .2s}
+.tag-rm:hover,.tag-rm:active{color:rgba(255,255,255,.45)}
+
+/* ── PREVIEW ── */
+.preview{background:var(--cream2);display:flex;flex-direction:column;align-items:center;padding:1.8rem 1.5rem 3rem;overflow-y:auto;max-height:calc(100vh - 58px)}
+@media(max-width:860px){.preview{padding:1.4rem 1rem 4rem}}
+.preview-label{font-size:.46rem;letter-spacing:.38em;text-transform:uppercase;color:var(--text-mid);margin-bottom:1rem}
+.pdf-preview{width:100%;max-width:480px;background:#fff;box-shadow:0 16px 60px rgba(0,0,0,.16);font-family:var(--sans)}
+
+/* ── PDF VISUAL STYLES ── */
+.pdf-header{background:var(--navy);padding:2.2rem 2.2rem 1.6rem;position:relative;overflow:hidden}
+.pdf-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.pdf-deco{position:absolute;top:-22px;right:-22px;width:130px;height:130px;border:1px solid rgba(193,154,107,.07);border-radius:50%}
+.pdf-deco2{position:absolute;top:-11px;right:-11px;width:82px;height:82px;border:1px solid rgba(193,154,107,.05);border-radius:50%}
+.pdf-eyebrow{font-size:.4rem;letter-spacing:.48em;text-transform:uppercase;color:var(--gold);margin-bottom:.85rem;display:flex;align-items:center;gap:.55rem}
+.pdf-eyebrow::before{content:'';width:16px;height:1px;background:var(--gold);flex-shrink:0}
+.pdf-tour-name{font-family:var(--display);font-size:1.5rem;line-height:1.08;letter-spacing:.04em;color:#fff;margin-bottom:.3rem}
+.pdf-tour-sub{font-family:var(--serif);font-style:italic;font-size:.85rem;color:rgba(255,255,255,.38);margin-bottom:1.1rem}
+.pdf-price-pill{display:inline-flex;align-items:baseline;gap:.32rem;background:rgba(193,154,107,.1);border:1px solid rgba(193,154,107,.24);padding:.4rem .9rem}
+.pdf-price-amount{font-family:var(--serif);font-size:1.65rem;color:var(--gold);font-weight:300;line-height:1}
+.pdf-price-label{font-size:.43rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.3)}
+.pdf-price-note{font-size:.55rem;color:rgba(255,255,255,.26);font-style:italic;margin-top:.26rem}
+
+.pdf-booking-band{background:rgba(193,154,107,.1);border-bottom:1px solid rgba(193,154,107,.18);padding:.7rem 2.2rem;display:flex;align-items:center;justify-content:space-between}
+.pdf-band-label{font-size:.38rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:.2rem}
+.pdf-booking-date{font-family:var(--serif);font-size:1rem;color:var(--text-dark);font-style:italic}
+.pdf-client-name{font-family:var(--display);font-size:.68rem;color:var(--text-dark);letter-spacing:.05em}
+.pdf-client-pax{font-size:.62rem;color:var(--text-mid);margin-top:.08rem}
+
+.pdf-body{padding:1.4rem 2.2rem}
+.pdf-sec{margin-bottom:1.35rem}
+.pdf-sec-head{font-size:.42rem;letter-spacing:.36em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem;display:flex;align-items:center;gap:.45rem}
+.pdf-sec-head::after{content:'';flex:1;height:1px;background:rgba(193,154,107,.12)}
+
+.pdf-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+.pdf-info-item{background:rgba(193,154,107,.04);border:1px solid rgba(193,154,107,.09);padding:.55rem .8rem}
+.pdf-info-item.hi{background:rgba(193,154,107,.09);border-color:rgba(193,154,107,.24)}
+.pdf-info-icon{font-size:.72rem;display:block;margin-bottom:.2rem}
+.pdf-info-label{font-size:.35rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:.1rem}
+.pdf-info-value{font-size:.68rem;color:var(--text-dark);line-height:1.3;font-weight:400}
+.pdf-info-item.hi .pdf-info-value{font-family:var(--serif);font-style:italic;font-size:.8rem}
+
+.pdf-checklist{display:flex;flex-direction:column;gap:.26rem}
+.pdf-check-item{display:flex;align-items:flex-start;gap:.55rem;padding:.26rem 0;border-bottom:1px solid rgba(193,154,107,.06)}
+.pdf-check-item:last-child{border-bottom:none}
+.pdf-check-icon{width:11px;height:11px;background:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem}
+.pdf-check-icon svg{width:7px;height:7px;fill:none;stroke:#07111f;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pdf-check-text{font-size:.68rem;color:var(--text-dark);line-height:1.38}
+
+.pdf-ie{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.pdf-ie-col{background:rgba(0,0,0,.015);border:1px solid rgba(193,154,107,.1);padding:.65rem .85rem}
+.pdf-ie-head-i{font-size:.36rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(193,154,107,.8);margin-bottom:.42rem;display:block;font-weight:500}
+.pdf-ie-head-e{font-size:.36rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(180,78,78,.7);margin-bottom:.42rem;display:block;font-weight:500}
+.pdf-tag{display:flex;align-items:flex-start;gap:.4rem;font-size:.62rem;color:var(--text-mid);padding:.17rem 0;line-height:1.38}
+.pdf-tag-dot{width:3.5px;height:3.5px;border-radius:50%;margin-top:.32rem;flex-shrink:0}
+.pdf-tag-dot.i{background:var(--gold)}.pdf-tag-dot.e{background:rgba(180,78,78,.7)}
+
+.pdf-desc{font-family:var(--serif);font-style:italic;font-size:.76rem;line-height:1.88;color:var(--text-mid)}
+.pdf-notes-box{background:rgba(193,154,107,.04);border-left:2px solid var(--gold);padding:.75rem .92rem}
+.pdf-notes-text{font-size:.66rem;color:var(--text-mid);line-height:1.72}
+
+.pdf-footer{background:var(--navy);padding:1rem 2.2rem;display:flex;justify-content:space-between;align-items:center}
+.pdf-footer-brand{font-family:var(--display);font-size:.48rem;letter-spacing:.2em;color:#fff}
+.pdf-footer-brand span{display:block;font-family:var(--sans);font-size:.37rem;letter-spacing:.25em;color:var(--gold);margin-top:.15rem;font-weight:300}
+.pdf-footer-contact{text-align:right;font-size:.48rem;color:rgba(255,255,255,.3);line-height:1.7}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy2);border:1px solid rgba(193,154,107,.28);color:var(--gold);font-family:var(--display);font-size:.56rem;letter-spacing:.13em;padding:.8rem 1.6rem;z-index:9999;opacity:0;transition:all .4s var(--ease);white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── SCROLLBARS ── */
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--navy)}::-webkit-scrollbar-thumb{background:rgba(193,154,107,.3)}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-brand">
+    <div>
+      <span class="header-logo-text">GAFF CLASSIC TOURS</span>
+      <span class="header-logo-sub">Mallorca · Mediterráneo</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="lbES" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" id="lbEN" onclick="setLang('en')">EN</button>
+    </div>
+    <button class="btn-generate" id="btnGenerate" onclick="generatePDF()">
+      <span id="btnLabel">⬇ PDF</span>
+    </button>
+  </div>
+</header>
+
+<!-- MOBILE TABS -->
+<div class="mob-tabs">
+  <button class="mob-tab active" id="tabEdit" onclick="showTab('edit')" data-es>✏ Editar</button>
+  <button class="mob-tab active" id="tabEdit2" onclick="showTab('edit')" data-en style="display:none">✏ Edit</button>
+  <button class="mob-tab" id="tabPrev" onclick="showTab('prev')" data-es>👁 Vista previa</button>
+  <button class="mob-tab" id="tabPrev2" onclick="showTab('prev')" data-en style="display:none">👁 Preview</button>
+</div>
+
+<div class="app">
+
+<!-- ════════════════ EDITOR ════════════════ -->
+<div class="editor" id="editorPanel">
+
+  <!-- TOUR PRESETS -->
+  <div class="field-group">
+    <span class="preset-strip-label" data-es>Experiencia</span>
+    <span class="preset-strip-label" data-en style="display:none">Experience</span>
+    <div class="preset-strip">
+      <button class="preset-pill" onclick="loadPreset('morning')">☀ Morning Sail</button>
+      <button class="preset-pill active" onclick="loadPreset('sunset')">🌅 Sunset Private</button>
+      <button class="preset-pill" onclick="loadPreset('essential')">⚓ Essential</button>
+      <button class="preset-pill" onclick="loadPreset('custom')"><span data-es>✦ Personalizado</span><span data-en style="display:none">✦ Custom</span></button>
+    </div>
+  </div>
+
+  <!-- BOOKING DATA -->
+  <div class="booking-box">
+    <span class="booking-box-label" data-es>Datos de la reserva</span>
+    <span class="booking-box-label" data-en style="display:none">Booking details</span>
+    <div class="grid-2" style="margin-bottom:.8rem">
+      <div>
+        <label class="field-label" data-es>Nombre del cliente</label>
+        <label class="field-label" data-en style="display:none">Client name</label>
+        <input class="field-input" id="clientName" type="text" oninput="updatePreview()">
+      </div>
+      <div>
+        <label class="field-label" data-es>Personas</label>
+        <label class="field-label" data-en style="display:none">Guests</label>
+        <input class="field-input" id="clientPax" type="text" oninput="updatePreview()">
+      </div>
+    </div>
+    <div>
+      <label class="field-label" data-es>Fecha de la salida</label>
+      <label class="field-label" data-en style="display:none">Departure date</label>
+      <input class="field-input" id="bookingDate" type="date" onchange="updatePreview()">
+    </div>
+  </div>
+
+  <!-- EXPERIENCE INFO -->
+  <div class="field-group">
+    <span class="sec-title" data-es>Información del tour</span>
+    <span class="sec-title" data-en style="display:none">Tour information</span>
+    <div class="field-group">
+      <label class="field-label" data-es>Nombre</label>
+      <label class="field-label" data-en style="display:none">Name</label>
+      <input class="field-input" id="tourName" type="text" oninput="updatePreview()">
+    </div>
+    <div class="field-group">
+      <label class="field-label" data-es>Subtítulo</label>
+      <label class="field-label" data-en style="display:none">Subtitle</label>
+      <input class="field-input" id="tourSub" type="text" oninput="updatePreview()">
+    </div>
+    <div class="field-group" style="margin-bottom:0">
+      <label class="field-label" data-es>Descripción</label>
+      <label class="field-label" data-en style="display:none">Description</label>
+      <textarea class="field-input" id="tourDesc" oninput="updatePreview()"></textarea>
+    </div>
+  </div>
+
+  <!-- PRICE -->
+  <div class="field-group">
+    <span class="sec-title" data-es>Precio</span>
+    <span class="sec-title" data-en style="display:none">Price</span>
+    <div class="grid-3" style="margin-bottom:.8rem">
+      <div>
+        <label class="field-label" data-es>Importe</label>
+        <label class="field-label" data-en style="display:none">Amount</label>
+        <input class="field-input" id="price" type="text" oninput="updatePreview()">
+      </div>
+      <div>
+        <label class="field-label" data-es>Divisa</label>
+        <label class="field-label" data-en style="display:none">Currency</label>
+        <select class="field-input" id="currency" onchange="updatePreview()">
+          <option value="€">€ EUR</option>
+          <option value="$">$ USD</option>
+          <option value="£">£ GBP</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label" data-es>Por</label>
+        <label class="field-label" data-en style="display:none">Per</label>
+        <select class="field-input" id="priceBy" onchange="updatePreview()">
+          <option value-es="barco" value-en="boat" value="barco" data-es>barco</option>
+          <option value-es="persona" value-en="person" value="persona" data-es>persona</option>
+          <option value-es="grupo" value-en="group" value="grupo" data-es>grupo</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="field-label" data-es>Nota de precio</label>
+      <label class="field-label" data-en style="display:none">Price note</label>
+      <input class="field-input" id="priceNote" type="text" oninput="updatePreview()">
+    </div>
+  </div>
+
+  <!-- LOGISTICS -->
+  <div class="field-group">
+    <span class="sec-title" data-es>Detalles logísticos</span>
+    <span class="sec-title" data-en style="display:none">Logistics</span>
+    <div class="grid-2">
+      <div>
+        <label class="field-label" data-es>Hora de salida</label>
+        <label class="field-label" data-en style="display:none">Departure time</label>
+        <input class="field-input" id="depTime" type="text" oninput="updatePreview()">
+      </div>
+      <div>
+        <label class="field-label" data-es>Hora de regreso</label>
+        <label class="field-label" data-en style="display:none">Return time</label>
+        <input class="field-input" id="retTime" type="text" oninput="updatePreview()">
+      </div>
+      <div>
+        <label class="field-label" data-es>Duración</label>
+        <label class="field-label" data-en style="display:none">Duration</label>
+        <input class="field-input" id="duration" type="text" oninput="updatePreview()">
+      </div>
+      <div>
+        <label class="field-label" data-es>Aforo máx.</label>
+        <label class="field-label" data-en style="display:none">Max. guests</label>
+        <input class="field-input" id="capacity" type="text" oninput="updatePreview()">
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="field-label" data-es>Punto de encuentro</label>
+        <label class="field-label" data-en style="display:none">Meeting point</label>
+        <input class="field-input" id="meetPoint" type="text" oninput="updatePreview()">
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICES CHECKLIST -->
+  <div class="field-group">
+    <span class="sec-title" data-es>Servicios incluidos</span>
+    <span class="sec-title" data-en style="display:none">Included services</span>
+    <span class="chip-label" data-es>Presets rápidos</span>
+    <span class="chip-label" data-en style="display:none">Quick presets</span>
+    <div class="chip-row">
+      <button class="chip" onclick="loadSvcPreset('standard')">⚓ <span data-es>Estándar</span><span data-en style="display:none">Standard</span></button>
+      <button class="chip" onclick="loadSvcPreset('sublue')">🤿 Sublue</button>
+      <button class="chip" onclick="loadSvcPreset('comida')">🍽 <span data-es>Comida</span><span data-en style="display:none">Meal</span></button>
+      <button class="chip" onclick="loadSvcPreset('sunset_svc')">🌅 Sunset</button>
+      <button class="chip" onclick="loadSvcPreset('familias')">👨‍👩‍👧 <span data-es>Familias</span><span data-en style="display:none">Families</span></button>
+      <button class="chip" onclick="loadSvcPreset('completo')">★ <span data-es>Completo</span><span data-en style="display:none">Full</span></button>
+    </div>
+    <div class="checklist-wrap" id="checklistWrap"></div>
+    <div class="add-row">
+      <input class="add-input" id="newCheck" type="text" oninput="" onkeydown="if(event.key==='Enter'){addCheck();event.preventDefault()}">
+      <button class="btn-add" onclick="addCheck()">+</button>
+    </div>
+  </div>
+
+  <!-- INCL / EXCL -->
+  <div class="field-group">
+    <span class="sec-title" data-es>Incluido / No incluido</span>
+    <span class="sec-title" data-en style="display:none">Included / Not included</span>
+    <span class="chip-label" data-es>Presets rápidos</span>
+    <span class="chip-label" data-en style="display:none">Quick presets</span>
+    <div class="chip-row">
+      <button class="chip" onclick="loadIEPreset('standard')">⚓ <span data-es>Estándar</span><span data-en style="display:none">Standard</span></button>
+      <button class="chip" onclick="loadIEPreset('sublue')">🤿 Sublue</button>
+      <button class="chip" onclick="loadIEPreset('comida')">🍽 <span data-es>Comida</span><span data-en style="display:none">Meal</span></button>
+      <button class="chip" onclick="loadIEPreset('familias')">👨‍👩‍👧 <span data-es>Familias</span><span data-en style="display:none">Families</span></button>
+    </div>
+    <div class="ie-grid">
+      <div>
+        <span class="ie-col-label i" data-es>✓ Incluido</span>
+        <span class="ie-col-label i" data-en style="display:none">✓ Included</span>
+        <div class="tag-list" id="inclWrap"></div>
+        <div class="add-row">
+          <input class="add-input" id="newIncl" type="text" onkeydown="if(event.key==='Enter'){addIncl();event.preventDefault()}">
+          <button class="btn-add" onclick="addIncl()">+</button>
+        </div>
+      </div>
+      <div>
+        <span class="ie-col-label e" data-es>✗ No incluido</span>
+        <span class="ie-col-label e" data-en style="display:none">✗ Not included</span>
+        <div class="tag-list" id="exclWrap"></div>
+        <div class="add-row">
+          <input class="add-input" id="newExcl" type="text" onkeydown="if(event.key==='Enter'){addExcl();event.preventDefault()}">
+          <button class="btn-add" onclick="addExcl()">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTES / CONDITIONS -->
+  <div class="field-group">
+    <span class="sec-title" data-es>Notas / Condiciones</span>
+    <span class="sec-title" data-en style="display:none">Notes / Conditions</span>
+    <span class="chip-label" data-es>Presets rápidos</span>
+    <span class="chip-label" data-en style="display:none">Quick presets</span>
+    <div class="chip-row">
+      <button class="chip" onclick="loadNotesPreset('cancel48')">⏱ <span data-es>Cancelación 48h</span><span data-en style="display:none">48h cancellation</span></button>
+      <button class="chip" onclick="loadNotesPreset('cancel24')">⏱ <span data-es>Cancelación 24h</span><span data-en style="display:none">24h cancellation</span></button>
+      <button class="chip" onclick="loadNotesPreset('tiempo')">⛈ <span data-es>Mal tiempo</span><span data-en style="display:none">Bad weather</span></button>
+      <button class="chip" onclick="loadNotesPreset('sunset_note')">🌅 Sunset</button>
+    </div>
+    <textarea class="field-input" id="notes" rows="3" oninput="updatePreview()"></textarea>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="field-group">
+    <span class="sec-title" data-es>Contacto</span>
+    <span class="sec-title" data-en style="display:none">Contact</span>
+    <div class="grid-2" style="margin-bottom:.8rem">
+      <div>
+        <label class="field-label">WhatsApp</label>
+        <input class="field-input" id="phone" type="tel" oninput="updatePreview()">
+      </div>
+      <div>
+        <label class="field-label">Email</label>
+        <input class="field-input" id="email" type="email" oninput="updatePreview()">
+      </div>
+    </div>
+    <div>
+      <label class="field-label">Web</label>
+      <input class="field-input" id="website" type="text" oninput="updatePreview()">
+    </div>
+  </div>
+
+</div><!-- /editor -->
+
+<!-- ════════════════ PREVIEW ════════════════ -->
+<div class="preview" id="previewPanel">
+  <span class="preview-label" data-es>Vista previa</span>
+  <span class="preview-label" data-en style="display:none">Preview</span>
+  <div class="pdf-preview">
+
+    <div class="pdf-header">
+      <div class="pdf-deco"></div><div class="pdf-deco2"></div>
+      <div class="pdf-eyebrow" id="prev-eyebrow">Gaff Classic Tours · Mallorca</div>
+      <div class="pdf-tour-name" id="prev-name">—</div>
+      <div class="pdf-tour-sub" id="prev-sub"></div>
+      <div id="prev-price-wrap" style="display:none">
+        <div class="pdf-price-pill">
+          <span class="pdf-price-amount" id="prev-price"></span>
+          <span class="pdf-price-label" id="prev-price-by"></span>
+        </div>
+        <div class="pdf-price-note" id="prev-price-note" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="pdf-booking-band" id="prev-band" style="display:none">
+      <div>
+        <span class="pdf-band-label" id="prev-band-label">CONFIRMACIÓN DE RESERVA</span>
+        <div class="pdf-booking-date" id="prev-date"></div>
+      </div>
+      <div id="prev-client-wrap" style="display:none;text-align:right">
+        <span class="pdf-band-label" id="prev-booked-label">RESERVADO A NOMBRE DE</span>
+        <div class="pdf-client-name" id="prev-cname"></div>
+        <div class="pdf-client-pax" id="prev-cpax"></div>
+      </div>
+    </div>
+
+    <div class="pdf-body">
+      <div class="pdf-sec" id="prev-desc-sec" style="display:none">
+        <div class="pdf-sec-head" id="prev-desc-head">Descripción</div>
+        <p class="pdf-desc" id="prev-desc"></p>
+      </div>
+      <div class="pdf-sec" id="prev-info-sec" style="display:none">
+        <div class="pdf-sec-head" id="prev-info-head">Detalles de tu Salida</div>
+        <div class="pdf-info-grid" id="prev-info-grid"></div>
+      </div>
+      <div class="pdf-sec" id="prev-check-sec" style="display:none">
+        <div class="pdf-sec-head" id="prev-check-head">Servicios Incluidos</div>
+        <div class="pdf-checklist" id="prev-checklist"></div>
+      </div>
+      <div class="pdf-sec" id="prev-ie-sec" style="display:none">
+        <div class="pdf-sec-head" id="prev-ie-head">Qué Incluye</div>
+        <div class="pdf-ie">
+          <div class="pdf-ie-col"><span class="pdf-ie-head-i" id="prev-incl-head">Incluido</span><div id="prev-incl-list"></div></div>
+          <div class="pdf-ie-col"><span class="pdf-ie-head-e" id="prev-excl-head">No incluido</span><div id="prev-excl-list"></div></div>
+        </div>
+      </div>
+      <div class="pdf-sec" id="prev-notes-sec" style="display:none">
+        <div class="pdf-sec-head" id="prev-notes-head">Notas e Información</div>
+        <div class="pdf-notes-box"><p class="pdf-notes-text" id="prev-notes"></p></div>
+      </div>
+    </div>
+
+    <div class="pdf-footer">
+      <div class="pdf-footer-brand">GAFF CLASSIC TOURS<span>Mallorca · Mediterráneo</span></div>
+      <div class="pdf-footer-contact" id="prev-contact"></div>
+    </div>
+
+  </div>
+</div><!-- /preview -->
+</div><!-- /app -->
+
+<script>
+// ════════════════════════════════════════
+// LANGUAGE
+// ════════════════════════════════════════
+let lang = 'es';
+
+const T = {
+  es: {
+    btn: '⬇ PDF',
+    generating: 'Generando...',
+    toastOk: '✓ PDF generado',
+    // PDF labels
+    eyebrow: 'Gaff Classic Tours · Mallorca',
+    bandLabel: 'CONFIRMACIÓN DE RESERVA',
+    bookedLabel: 'RESERVADO A NOMBRE DE',
+    descHead: 'Descripción',
+    infoHead: 'Detalles de tu Salida',
+    checkHead: 'Servicios Incluidos',
+    ieHead: 'Qué Incluye',
+    inclHead: 'Incluido',
+    exclHead: 'No incluido',
+    notesHead: 'Notas e Información',
+    // Info labels
+    dateLabel: 'Fecha de salida',
+    depLabel: 'Hora de salida',
+    retLabel: 'Hora de regreso',
+    durLabel: 'Duración',
+    paxLabel: 'Personas',
+    meetLabel: 'Punto de encuentro',
+    // Presets
+    priceNote: '4 personas · Niños hasta 10 años gratis',
+    tourSubs: {
+      morning: 'Tour matutino · Velero clásico · 5 horas',
+      sunset:  'Tour al atardecer · Velero clásico · 5 horas',
+      essential: 'Tour esencial · Velero clásico · 3 horas',
+    },
+    tourDescs: {
+      morning: 'Una mañana única a bordo de nuestro velero clásico de gaff. Navegamos desde el Club de Mar hacia las calas más espectaculares de la costa sur de Mallorca. Solo vuestro grupo a bordo, en absoluta privacidad.',
+      sunset: 'La experiencia más demandada de Gaff Classic Tours. Navega durante las horas doradas del Mediterráneo, ancla en una cala virgen, y contempla la puesta de sol desde cubierta con una copa de cava en mano.',
+      essential: 'La forma perfecta de descubrir la navegación clásica en Mallorca. Tres horas de pura navegación a vela con parada en una cala, snorkel y los aperitivos de rigor. Ideal para familias y primeras experiencias.',
+    },
+    depTimes: { morning:'10:00 h', sunset:'16:00 h', essential:'A acordar' },
+    retTimes: { morning:'15:00 h', sunset:'21:00 h', essential:'3 h después' },
+    durations: { morning:'5 horas', sunset:'5 horas', essential:'3 horas' },
+    // Services
+    svc: {
+      captain: 'Patrón titulado y certificado',
+      fuel: 'Gasoil incluido',
+      paddle: 'Paddle Surf y Snorkel',
+      drinks: 'Aperitivos, agua, refrescos, vino o cava',
+      coves12: 'Parada en 1 o 2 calas',
+      cove1: 'Parada en 1 cala',
+      sunset_coves: 'Parada en 1 o 2 calas al atardecer',
+      sublue: 'Sublue (scooter submarino)',
+      meal: 'Comida a bordo incluida',
+      dinner: 'Cena a bordo incluida',
+      towels: 'Toallas de barco',
+      kayak: 'Kayak a bordo',
+      surfboard: 'Tabla de surf',
+      champagne: 'Champagne de bienvenida',
+      deco: 'Decoración especial (cumpleaños / aniversario)',
+      photo: 'Fotografía profesional a bordo',
+      transfer: 'Traslado al puerto incluido',
+      lifejacket: 'Chaleco salvavidas infantil',
+      music: 'Música a bordo (altavoz Bluetooth)',
+      snack_meal: 'Posibilidad de comida a bordo (consultar)',
+      snack_dinner: 'Posibilidad de cena a bordo (consultar)',
+    },
+    // Incl/excl
+    ie: {
+      captain: 'Capitán y tripulación',
+      fuel: 'Gasoil',
+      snorkel: 'Equipo de snorkel',
+      paddle: 'Paddle surf',
+      drinks: 'Aperitivos y bebidas',
+      insurance: 'Seguro de navegación',
+      sublue: 'Sublue incluido',
+      meal: 'Comida a bordo',
+      lifejacket: 'Chaleco salvavidas infantil',
+      transfer_no: 'Traslados al puerto',
+      drinks_extra: 'Bebidas adicionales premium',
+      sublue_opt: 'Sublue (opcional +150€)',
+      meal_no: 'Comida a bordo',
+      kids_extra: 'Niños mayores de 10 años: +50€',
+    },
+    // Notes
+    notes: {
+      cancel48: 'Cancelación gratuita hasta 48 horas antes de la salida. En caso de condiciones meteorológicas adversas se ofrecerá fecha alternativa o reembolso completo.',
+      cancel24: 'Cancelación gratuita hasta 24 horas antes de la salida. En caso de condiciones meteorológicas adversas se ofrecerá fecha alternativa o reembolso completo.',
+      tiempo: 'En caso de mal tiempo o condiciones meteorológicas adversas, el capitán se reserva el derecho a modificar la ruta. Se ofrecerá siempre una fecha alternativa o reembolso completo.',
+      sunset_note: 'El horario de salida se ajusta según la puesta de sol de cada fecha. Cancelación gratuita hasta 48 horas antes. En caso de mal tiempo se ofrece fecha alternativa o reembolso completo.',
+    },
+    // PDF page footer
+    footerCenter: 'CLUB DE MAR  ·  AMARRE 1007  ·  PALMA DE MALLORCA',
+    priceBy: { barco:'barco', persona:'persona', grupo:'grupo' },
+  },
+  en: {
+    btn: '⬇ PDF',
+    generating: 'Generating...',
+    toastOk: '✓ PDF generated',
+    eyebrow: 'Gaff Classic Tours · Mallorca',
+    bandLabel: 'BOOKING CONFIRMATION',
+    bookedLabel: 'BOOKED IN THE NAME OF',
+    descHead: 'Description',
+    infoHead: 'Your Trip Details',
+    checkHead: 'Included Services',
+    ieHead: 'What\'s Included',
+    inclHead: 'Included',
+    exclHead: 'Not included',
+    notesHead: 'Notes & Information',
+    dateLabel: 'Departure date',
+    depLabel: 'Departure time',
+    retLabel: 'Return time',
+    durLabel: 'Duration',
+    paxLabel: 'Guests',
+    meetLabel: 'Meeting point',
+    priceNote: '4 guests · Children under 10 free',
+    tourSubs: {
+      morning: 'Morning tour · Classic sailboat · 5 hours',
+      sunset:  'Sunset tour · Classic sailboat · 5 hours',
+      essential: 'Essential tour · Classic sailboat · 3 hours',
+    },
+    tourDescs: {
+      morning: 'A unique morning aboard our classic gaff sailboat. We sail from Club de Mar to the most spectacular coves on the southern coast of Mallorca. Just your group on board, in complete privacy.',
+      sunset: 'The most sought-after experience at Gaff Classic Tours. Sail during the golden hours of the Mediterranean, anchor in a secluded cove, and watch the sunset from the deck with a glass of cava in hand.',
+      essential: 'The perfect way to discover classic sailing in Mallorca. Three hours of pure sailing with a stop at a cove, snorkelling, and refreshments. Ideal for families and first-time experiences.',
+    },
+    depTimes: { morning:'10:00 h', sunset:'16:00 h', essential:'To be agreed' },
+    retTimes: { morning:'15:00 h', sunset:'21:00 h', essential:'3 h later' },
+    durations: { morning:'5 hours', sunset:'5 hours', essential:'3 hours' },
+    svc: {
+      captain: 'Licensed and certified skipper',
+      fuel: 'Fuel included',
+      paddle: 'Paddle surf & Snorkel',
+      drinks: 'Snacks, water, soft drinks, wine or cava',
+      coves12: 'Stop at 1 or 2 coves',
+      cove1: 'Stop at 1 cove',
+      sunset_coves: 'Stop at 1 or 2 coves at sunset',
+      sublue: 'Sublue (underwater scooter)',
+      meal: 'On-board meal included',
+      dinner: 'On-board dinner included',
+      towels: 'Boat towels',
+      kayak: 'Kayak on board',
+      surfboard: 'Surfboard',
+      champagne: 'Welcome champagne',
+      deco: 'Special decoration (birthday / anniversary)',
+      photo: 'Professional photography on board',
+      transfer: 'Transfer to the port included',
+      lifejacket: 'Children\'s life jacket',
+      music: 'Music on board (Bluetooth speaker)',
+      snack_meal: 'On-board meal available on request',
+      snack_dinner: 'On-board dinner available on request',
+    },
+    ie: {
+      captain: 'Skipper & crew',
+      fuel: 'Fuel',
+      snorkel: 'Snorkel equipment',
+      paddle: 'Paddle surf',
+      drinks: 'Snacks & drinks',
+      insurance: 'Sailing insurance',
+      sublue: 'Sublue included',
+      meal: 'On-board meal',
+      lifejacket: 'Children\'s life jacket',
+      transfer_no: 'Transfers to the port',
+      drinks_extra: 'Premium extra drinks',
+      sublue_opt: 'Sublue (optional +€150)',
+      meal_no: 'On-board meal',
+      kids_extra: 'Children over 10 years: +€50',
+    },
+    notes: {
+      cancel48: 'Free cancellation up to 48 hours before departure. In the event of adverse weather conditions, an alternative date or full refund will be offered.',
+      cancel24: 'Free cancellation up to 24 hours before departure. In the event of adverse weather conditions, an alternative date or full refund will be offered.',
+      tiempo: 'In the event of bad weather or adverse conditions, the skipper reserves the right to modify the route. An alternative date or full refund will always be offered.',
+      sunset_note: 'Departure time is adjusted according to the sunset on each date. Free cancellation up to 48 hours before. In the event of bad weather, an alternative date or full refund will be offered.',
+    },
+    footerCenter: 'CLUB DE MAR  ·  BERTH 1007  ·  PALMA DE MALLORCA',
+    priceBy: { barco:'boat', persona:'person', grupo:'group' },
+  },
+};
+
+function t(key){ return T[lang][key] || T['es'][key] || key; }
+
+function setLang(l){
+  lang = l;
+  document.getElementById('lbES').classList.toggle('active', l==='es');
+  document.getElementById('lbEN').classList.toggle('active', l==='en');
+  // Show/hide data-es / data-en elements
+  document.querySelectorAll('[data-es]').forEach(el => el.style.display = l==='es' ? '' : 'none');
+  document.querySelectorAll('[data-en]').forEach(el => el.style.display = l==='en' ? '' : 'none');
+  // Update all labels in preview
+  updatePreviewLabels();
+  // Reload current preset texts
+  const activeKey = document.querySelector('.preset-pill.active')?.dataset.key || 'sunset';
+  loadPreset(activeKey, true); // true = keep client data
+}
+
+function updatePreviewLabels(){
+  const ids = ['prev-band-label','prev-booked-label','prev-desc-head','prev-info-head','prev-check-head','prev-ie-head','prev-notes-head'];
+  const keys = ['bandLabel','bookedLabel','descHead','infoHead','checkHead','ieHead','notesHead'];
+  ids.forEach((id,i) => { const el = document.getElementById(id); if(el) el.textContent = t(keys[i]); });
+  const inclH = document.getElementById('prev-incl-head');
+  const exclH = document.getElementById('prev-excl-head');
+  if(inclH) inclH.textContent = t('inclHead');
+  if(exclH) exclH.textContent = t('exclHead');
+  document.getElementById('prev-eyebrow').textContent = t('eyebrow');
+  // Update button label
+  document.getElementById('btnLabel').textContent = t('btn');
+  // Mobile tabs
+  document.getElementById('tabEdit').textContent = lang==='es' ? '✏ Editar' : '✏ Edit';
+  document.getElementById('tabPrev').textContent = lang==='es' ? '👁 Vista previa' : '👁 Preview';
+}
+
+// ════════════════════════════════════════
+// MOBILE TABS
+// ════════════════════════════════════════
+function showTab(tab){
+  const editor = document.getElementById('editorPanel');
+  const preview = document.getElementById('previewPanel');
+  const tE = document.getElementById('tabEdit');
+  const tP = document.getElementById('tabPrev');
+  if(tab==='edit'){
+    editor.removeAttribute('data-hidden'); preview.setAttribute('data-hidden','');
+    tE.classList.add('active'); tP.classList.remove('active');
+  } else {
+    preview.removeAttribute('data-hidden'); editor.setAttribute('data-hidden','');
+    tP.classList.add('active'); tE.classList.remove('active');
+    preview.scrollIntoView({behavior:'smooth'});
+  }
+}
+
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+const state = { checkItems:[], inclItems:[], exclItems:[] };
+
+// ════════════════════════════════════════
+// TOUR PRESETS
+// ════════════════════════════════════════
+const PRESET_KEYS = ['morning','sunset','essential','custom'];
+
+function loadPreset(key, keepClient=false){
+  PRESET_KEYS.forEach(k => {
+    document.querySelectorAll('.preset-pill').forEach((b,i) => {
+      if(PRESET_KEYS[i]===key) { b.classList.add('active'); b.dataset.key=key; }
+      else b.classList.remove('active');
+    });
+  });
+  document.querySelectorAll('.preset-pill').forEach((b,i)=>{
+    b.dataset.key = PRESET_KEYS[i];
+    b.classList.toggle('active', PRESET_KEYS[i]===key);
+  });
+
+  const l = T[lang];
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
+
+  if(key==='custom'){
+    if(!keepClient){ set('clientName',''); set('clientPax',''); }
+    set('tourName',''); set('tourSub',''); set('tourDesc','');
+    set('price',''); set('priceNote',''); set('depTime',''); set('retTime','');
+    set('duration',''); set('capacity',''); 
+    set('meetPoint','Club de Mar, Amarre 1007, Palma');
+    set('notes','');
+    state.checkItems=[]; state.inclItems=[]; state.exclItems=[];
+    set('phone','+34 680 193 006'); set('email','bookings@gaffchartermallorca.com'); set('website','www.gaffchartermallorca.com');
+    renderAll(); updatePreview(); return;
+  }
+
+  const prices = { morning:'600', sunset:'600', essential:'400' };
+  if(!keepClient){ set('clientPax', lang==='es'?'4 personas':'4 guests'); }
+  set('tourName', key==='morning'?'Morning Sail Experience': key==='sunset'?'Sunset Private Experience':'Essential Experience');
+  set('tourSub', l.tourSubs[key]);
+  set('tourDesc', l.tourDescs[key]);
+  set('price', prices[key]);
+  set('priceNote', l.priceNote);
+  set('depTime', l.depTimes[key]);
+  set('retTime', l.retTimes[key]);
+  set('duration', l.durations[key]);
+  set('capacity', lang==='es'?'8 personas':'8 guests');
+  set('meetPoint', 'Club de Mar, Amarre 1007, Palma');
+  set('notes', key==='sunset' ? l.notes.sunset_note : l.notes.cancel48);
+  set('phone','+34 680 193 006'); set('email','bookings@gaffchartermallorca.com'); set('website','www.gaffchartermallorca.com');
+
+  // Load matching service preset
+  loadSvcPreset(key==='morning'?'standard': key==='sunset'?'sunset_svc':'essential_svc', true);
+  loadIEPreset('standard', true);
+  renderAll(); updatePreview();
+}
+
+// ════════════════════════════════════════
+// SERVICE CHECKLIST PRESETS
+// ════════════════════════════════════════
+function svcItems(keys){ return keys.map(k => ({text: T[lang].svc[k], checked:true})); }
+
+const SVC_PRESET_KEYS = {
+  standard:    ['captain','fuel','paddle','drinks','coves12'],
+  sunset_svc:  ['captain','fuel','paddle','drinks','sunset_coves','snack_dinner'],
+  essential_svc:['captain','fuel','paddle','drinks','cove1'],
+  sublue:      ['captain','fuel','paddle','drinks','coves12','sublue'],
+  comida:      ['captain','fuel','paddle','drinks','meal','coves12'],
+  sunset:      ['captain','fuel','paddle','drinks','sunset_coves','dinner'],
+  familias:    ['captain','fuel','paddle','drinks','cove1','lifejacket'],
+  completo:    ['captain','fuel','paddle','drinks','meal','sublue','coves12','towels','champagne'],
+};
+
+// All possible extras that appear unchecked
+const ALL_SVC_KEYS = ['captain','fuel','paddle','drinks','coves12','cove1','sunset_coves','sublue','meal','dinner','towels','kayak','surfboard','champagne','deco','photo','transfer','lifejacket','music','snack_meal','snack_dinner'];
+
+function loadSvcPreset(key, silent=false){
+  const baseKeys = SVC_PRESET_KEYS[key] || SVC_PRESET_KEYS['standard'];
+  const baseSet = new Set(baseKeys);
+  const base = baseKeys.map(k => ({key:k, text:T[lang].svc[k], checked:true}));
+  const extras = ALL_SVC_KEYS.filter(k => !baseSet.has(k)).map(k => ({key:k, text:T[lang].svc[k], checked:false}));
+  state.checkItems = [...base, ...extras];
+  if(!silent){ renderAll(); updatePreview(); }
+}
+
+// ════════════════════════════════════════
+// INCL/EXCL PRESETS
+// ════════════════════════════════════════
+const IE_PRESETS = {
+  standard: {
+    incl:['captain','fuel','snorkel','paddle','drinks','insurance'],
+    excl:['transfer_no','drinks_extra','sublue_opt'],
+  },
+  sublue: {
+    incl:['captain','fuel','snorkel','paddle','drinks','sublue','insurance'],
+    excl:['transfer_no','drinks_extra'],
+  },
+  comida: {
+    incl:['captain','fuel','snorkel','paddle','drinks','meal','insurance'],
+    excl:['transfer_no','drinks_extra','sublue_opt'],
+  },
+  familias: {
+    incl:['captain','fuel','snorkel','paddle','drinks','lifejacket','insurance'],
+    excl:['transfer_no','drinks_extra','kids_extra'],
+  },
+};
+
+function loadIEPreset(key, silent=false){
+  const p = IE_PRESETS[key] || IE_PRESETS['standard'];
+  state.inclItems = p.incl.map(k => T[lang].ie[k]);
+  state.exclItems = p.excl.map(k => T[lang].ie[k]);
+  if(!silent){ renderAll(); updatePreview(); }
+}
+
+// ════════════════════════════════════════
+// NOTES PRESETS
+// ════════════════════════════════════════
+function loadNotesPreset(key){
+  const el = document.getElementById('notes');
+  if(el){ el.value = T[lang].notes[key] || ''; updatePreview(); }
+}
+
+// ════════════════════════════════════════
+// RENDER EDITOR
+// ════════════════════════════════════════
+function renderAll(){ renderChecklist(); renderIE(); }
+
+function renderChecklist(){
+  document.getElementById('checklistWrap').innerHTML = state.checkItems.map((item,i) => `
+    <div class="check-item${item.checked?'':' unchecked'}">
+      <input type="checkbox" class="check-checkbox" ${item.checked?'checked':''} onchange="toggleCheck(${i},this.checked)">
+      <span class="check-text" contenteditable="true" onblur="editCheck(${i},this.textContent)">${item.text}</span>
+      <button class="check-remove" onclick="removeCheck(${i})">×</button>
+    </div>`).join('');
+}
+
+function addCheck(){
+  const inp=document.getElementById('newCheck'), v=inp.value.trim();
+  if(!v) return;
+  state.checkItems.unshift({text:v, checked:true}); inp.value='';
+  renderChecklist(); updatePreview();
+}
+function removeCheck(i){ state.checkItems.splice(i,1); renderChecklist(); updatePreview(); }
+function toggleCheck(i,v){ state.checkItems[i].checked=v; renderChecklist(); updatePreview(); }
+function editCheck(i,v){ state.checkItems[i].text=v.trim(); updatePreview(); }
+
+function renderIE(){
+  document.getElementById('inclWrap').innerHTML = state.inclItems.map((t,i)=>`
+    <div class="tag-row"><span class="tag-dot i"></span><span class="tag-text">${t}</span><button class="tag-rm" onclick="removeIncl(${i})">×</button></div>`).join('');
+  document.getElementById('exclWrap').innerHTML = state.exclItems.map((t,i)=>`
+    <div class="tag-row"><span class="tag-dot e"></span><span class="tag-text">${t}</span><button class="tag-rm" onclick="removeExcl(${i})">×</button></div>`).join('');
+}
+function addIncl(){ const inp=document.getElementById('newIncl'),v=inp.value.trim(); if(!v)return; state.inclItems.push(v); inp.value=''; renderIE(); updatePreview(); }
+function addExcl(){ const inp=document.getElementById('newExcl'),v=inp.value.trim(); if(!v)return; state.exclItems.push(v); inp.value=''; renderIE(); updatePreview(); }
+function removeIncl(i){ state.inclItems.splice(i,1); renderIE(); updatePreview(); }
+function removeExcl(i){ state.exclItems.splice(i,1); renderIE(); updatePreview(); }
+
+// ════════════════════════════════════════
+// DATE FORMAT
+// ════════════════════════════════════════
+function formatDate(dateStr){
+  if(!dateStr) return '';
+  const [y,m,d] = dateStr.split('-');
+  if(lang==='en'){
+    const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const dt=new Date(+y,+m-1,+d);
+    return `${days[dt.getDay()]}, ${months[+m-1]} ${+d}, ${y}`;
+  } else {
+    const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const days=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    const dt=new Date(+y,+m-1,+d);
+    return `${days[dt.getDay()]}, ${+d} de ${months[+m-1]} de ${y}`;
+  }
+}
+
+// ════════════════════════════════════════
+// UPDATE PREVIEW
+// ════════════════════════════════════════
+function updatePreview(){
+  const g=id=>document.getElementById(id);
+  const v=id=>g(id)?.value?.trim()||'';
+
+  const name=v('tourName')||'—', sub=v('tourSub'), desc=v('tourDesc');
+  const price=v('price'), currency=v('currency')||'€', priceNote=v('priceNote');
+  const priceByRaw=v('priceBy');
+  const priceByDisplay = T[lang].priceBy[priceByRaw] || priceByRaw;
+  const depTime=v('depTime'),retTime=v('retTime'),duration=v('duration'),capacity=v('capacity'),meetPoint=v('meetPoint');
+  const notes=v('notes'),phone=v('phone'),email=v('email'),website=v('website');
+  const bookingDate=v('bookingDate'),clientName=v('clientName'),clientPax=v('clientPax');
+
+  g('prev-name').textContent=name;
+  g('prev-sub').textContent=sub;
+
+  if(price){
+    g('prev-price-wrap').style.display='block';
+    g('prev-price').textContent=currency+price;
+    g('prev-price-by').textContent='/'+priceByDisplay;
+    g('prev-price-note').textContent=priceNote;
+    g('prev-price-note').style.display=priceNote?'block':'none';
+  } else g('prev-price-wrap').style.display='none';
+
+  const hasBand=bookingDate||clientName||clientPax;
+  g('prev-band').style.display=hasBand?'flex':'none';
+  g('prev-date').textContent=formatDate(bookingDate);
+  g('prev-band-label').textContent=t('bandLabel');
+  if(clientName||clientPax){
+    g('prev-client-wrap').style.display='block';
+    g('prev-booked-label').textContent=t('bookedLabel');
+    g('prev-cname').textContent=clientName;
+    g('prev-cpax').textContent=clientPax;
+  } else g('prev-client-wrap').style.display='none';
+
+  g('prev-desc-head').textContent=t('descHead');
+  if(desc){g('prev-desc-sec').style.display='block';g('prev-desc').textContent=desc;}
+  else g('prev-desc-sec').style.display='none';
+
+  const infoFields=[
+    {icon:'📅', label:t('dateLabel'), val:formatDate(bookingDate), hi:true},
+    {icon:'🕐', label:t('depLabel'), val:depTime},
+    {icon:'🏁', label:t('retLabel'), val:retTime},
+    {icon:'⏱',  label:t('durLabel'), val:duration},
+    {icon:'👥', label:t('paxLabel'), val:clientPax||capacity},
+    {icon:'⚓', label:t('meetLabel'), val:meetPoint},
+  ].filter(f=>f.val);
+
+  g('prev-info-head').textContent=t('infoHead');
+  if(infoFields.length){
+    g('prev-info-sec').style.display='block';
+    g('prev-info-grid').innerHTML=infoFields.map(f=>`
+      <div class="pdf-info-item${f.hi?' hi':''}">
+        <span class="pdf-info-icon">${f.icon}</span>
+        <span class="pdf-info-label">${f.label}</span>
+        <span class="pdf-info-value">${f.val}</span>
+      </div>`).join('');
+  } else g('prev-info-sec').style.display='none';
+
+  const checked=state.checkItems.filter(c=>c.checked);
+  g('prev-check-head').textContent=t('checkHead');
+  if(checked.length){
+    g('prev-check-sec').style.display='block';
+    g('prev-checklist').innerHTML=checked.map(c=>`
+      <div class="pdf-check-item">
+        <div class="pdf-check-icon"><svg viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1"/></svg></div>
+        <span class="pdf-check-text">${c.text}</span>
+      </div>`).join('');
+  } else g('prev-check-sec').style.display='none';
+
+  g('prev-ie-head').textContent=t('ieHead');
+  g('prev-incl-head').textContent=t('inclHead');
+  g('prev-excl-head').textContent=t('exclHead');
+  if(state.inclItems.length||state.exclItems.length){
+    g('prev-ie-sec').style.display='block';
+    g('prev-incl-list').innerHTML=state.inclItems.map(t2=>`<div class="pdf-tag"><span class="pdf-tag-dot i"></span>${t2}</div>`).join('');
+    g('prev-excl-list').innerHTML=state.exclItems.map(t2=>`<div class="pdf-tag"><span class="pdf-tag-dot e"></span>${t2}</div>`).join('');
+  } else g('prev-ie-sec').style.display='none';
+
+  g('prev-notes-head').textContent=t('notesHead');
+  if(notes){g('prev-notes-sec').style.display='block';g('prev-notes').textContent=notes;}
+  else g('prev-notes-sec').style.display='none';
+
+  g('prev-contact').innerHTML=[phone,email,website].filter(Boolean).join('<br>');
+}
+
+// ════════════════════════════════════════
+// GENERATE PDF
+// ════════════════════════════════════════
+async function generatePDF(){
+  const btn=document.getElementById('btnGenerate');
+  btn.disabled=true; document.getElementById('btnLabel').textContent=t('generating');
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,H=297;
+  const gold=[193,154,107],navy=[7,17,31];
+  const cream=[250,247,242],textDark=[28,37,51],textMid=[90,100,116];
+
+  const g=id=>document.getElementById(id);
+  const v=id=>g(id)?.value?.trim()||'';
+  const name=v('tourName')||'Tour',sub=v('tourSub'),desc=v('tourDesc');
+  const price=v('price'),currency=v('currency')||'€',priceNote=v('priceNote');
+  const priceByRaw=v('priceBy');
+  const priceByDisplay=T[lang].priceBy[priceByRaw]||priceByRaw;
+  const depTime=v('depTime'),retTime=v('retTime'),duration=v('duration'),capacity=v('capacity'),meetPoint=v('meetPoint');
+  const notes=v('notes'),phone=v('phone'),email=v('email'),website=v('website');
+  const bookingDate=v('bookingDate'),clientName=v('clientName'),clientPax=v('clientPax');
+  const dateStr=formatDate(bookingDate);
+
+  // HEADER
+  doc.setFillColor(...navy); doc.rect(0,0,W,72,'F');
+  doc.setFillColor(...gold); doc.rect(0,71,W,0.55,'F');
+  doc.setDrawColor(...gold); doc.setLineWidth(0.17); doc.circle(196,14,26,'S');
+  doc.setLineWidth(0.11); doc.circle(196,14,17,'S');
+  doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(...gold); doc.setCharSpace(2.2);
+  doc.text(t('eyebrow').toUpperCase().replace('·','·'),14,17); doc.setCharSpace(0);
+  doc.setDrawColor(...gold); doc.setLineWidth(0.32); doc.line(14,19,54,19);
+  doc.setFontSize(23); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255); doc.setCharSpace(1);
+  const nameLines=doc.splitTextToSize(name.toUpperCase(),162);
+  doc.text(nameLines,14,31); doc.setCharSpace(0);
+  let hy=31+(nameLines.length*8.2);
+  if(sub){ doc.setFontSize(9.5);doc.setFont('helvetica','italic');doc.setTextColor(155,145,130);doc.text(sub,14,hy+3);hy+=9; }
+  if(price){
+    hy=Math.max(hy,50);
+    doc.setFillColor(193,154,107,22); doc.setDrawColor(...gold); doc.setLineWidth(0.26); doc.rect(14,hy,54,13,'FD');
+    doc.setFontSize(17); doc.setFont('helvetica','bold'); doc.setTextColor(...gold); doc.text(currency+price,17,hy+9);
+    const pw=doc.getStringUnitWidth(currency+price)*17*0.352;
+    doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(155,145,130); doc.text('/'+priceByDisplay,17+pw+1.5,hy+9);
+    if(priceNote){ doc.setFontSize(6.5);doc.setFont('helvetica','italic');doc.setTextColor(120,112,100);doc.text(priceNote,14,hy+15.5); }
+  }
+
+  // BOOKING BAND
+  let bodyY=80;
+  if(bookingDate||clientName||clientPax){
+    const bY=74;
+    doc.setFillColor(193,154,107,18); doc.rect(0,bY,W,14,'F');
+    doc.setDrawColor(...gold); doc.setLineWidth(0.18); doc.line(0,bY+14,W,bY+14);
+    doc.setFontSize(4.8); doc.setFont('helvetica','normal'); doc.setTextColor(...gold); doc.setCharSpace(1.7);
+    doc.text(t('bandLabel'),14,bY+5.5); doc.setCharSpace(0);
+    if(dateStr){ doc.setFontSize(10);doc.setFont('helvetica','italic');doc.setTextColor(...textDark);doc.text(dateStr,14,bY+11.5); }
+    if(clientName){ const cw=doc.getStringUnitWidth(clientName)*8.5*0.352;doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(...textDark);doc.text(clientName,W-14-cw,bY+11.5); }
+    if(clientPax){ const pw2=doc.getStringUnitWidth(clientPax)*6.5*0.352;doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(...textMid);doc.text(clientPax,W-14-pw2,bY+6.5); }
+    bodyY=74+14+7;
+  }
+
+  doc.setFillColor(...cream); doc.rect(0,bodyY-4,W,H-bodyY+4-20,'F');
+
+  function sHead(label,yy){
+    doc.setFontSize(5.8);doc.setFont('helvetica','normal');doc.setTextColor(...gold);doc.setCharSpace(1.9);
+    doc.text(label.toUpperCase(),14,yy);doc.setCharSpace(0);
+    const lw=doc.getStringUnitWidth(label.toUpperCase())*5.8*0.352;
+    doc.setDrawColor(...gold);doc.setLineWidth(0.16);doc.line(14+lw+3,yy-0.5,W-14,yy-0.5);
+    return yy+5.5;
+  }
+  function tBlock(text,x,yy,maxW,size,style,color){
+    doc.setFontSize(size);doc.setFont('helvetica',style);doc.setTextColor(...color);
+    const lines=doc.splitTextToSize(text,maxW);doc.text(lines,x,yy);
+    return yy+lines.length*(size*0.41)+2;
+  }
+
+  let y=bodyY;
+  if(desc){ y=sHead(t('descHead'),y); y=tBlock(desc,14,y,W-28,9,'italic',textMid); y+=3; }
+
+  const infoItems=[
+    dateStr?{label:t('dateLabel'),val:dateStr,hi:true}:null,
+    depTime?{label:t('depLabel'),val:depTime}:null,
+    retTime?{label:t('retLabel'),val:retTime}:null,
+    duration?{label:t('durLabel'),val:duration}:null,
+    (clientPax||capacity)?{label:t('paxLabel'),val:clientPax||capacity}:null,
+    meetPoint?{label:t('meetLabel'),val:meetPoint}:null,
+  ].filter(Boolean);
+
+  if(infoItems.length){
+    y=sHead(t('infoHead'),y);
+    const cW=(W-28-4)/2,rows=Math.ceil(infoItems.length/2);
+    infoItems.forEach((item,i)=>{
+      const col=i%2,row=Math.floor(i/2),cx=14+col*(cW+4),cy=y+row*15;
+      if(item.hi){doc.setFillColor(193,154,107,20);doc.setDrawColor(193,154,107,85);}
+      else{doc.setFillColor(193,154,107,10);doc.setDrawColor(193,154,107,48);}
+      doc.setLineWidth(0.2);doc.rect(cx,cy,cW,12,'FD');
+      doc.setFontSize(5);doc.setFont('helvetica','normal');doc.setTextColor(...gold);doc.setCharSpace(1.2);
+      doc.text(item.label.toUpperCase(),cx+2.5,cy+4.5);doc.setCharSpace(0);
+      doc.setFontSize(item.hi?9:8);doc.setFont('helvetica',item.hi?'italic':'bold');doc.setTextColor(...textDark);
+      doc.text(doc.splitTextToSize(item.val,cW-5),cx+2.5,cy+10);
+    });
+    y+=rows*15+4;
+  }
+
+  const checked=state.checkItems.filter(c=>c.checked);
+  if(checked.length){
+    y=sHead(t('checkHead'),y);
+    const half=Math.ceil(checked.length/2),cW2=(W-28-8)/2;
+    checked.forEach((item,i)=>{
+      const col=i>=half?1:0,row=i>=half?i-half:i,cx=14+col*(cW2+8),cy=y+row*6.8;
+      doc.setFillColor(...gold);doc.rect(cx,cy-3,4,4,'F');
+      doc.setFontSize(3.8);doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.text('v',cx+0.7,cy-0.3);
+      doc.setFontSize(7.8);doc.setFont('helvetica','normal');doc.setTextColor(...textDark);
+      doc.text(doc.splitTextToSize(item.text,cW2-7),cx+5.5,cy);
+    });
+    y+=Math.ceil(checked.length/2)*6.8+4;
+  }
+
+  if(state.inclItems.length||state.exclItems.length){
+    y=sHead(t('ieHead'),y);
+    const cW3=(W-28-5)/2;
+    const iH=Math.max(state.inclItems.length*5.5+12,18),eH=Math.max(state.exclItems.length*5.5+12,18),bH=Math.max(iH,eH);
+    doc.setFillColor(248,245,238);doc.setDrawColor(193,154,107,50);doc.setLineWidth(0.18);
+    doc.rect(14,y,cW3,bH,'FD');doc.rect(14+cW3+5,y,cW3,bH,'FD');
+    doc.setFontSize(5.8);doc.setFont('helvetica','bold');doc.setTextColor(...gold);doc.setCharSpace(0.7);
+    doc.text(t('inclHead').toUpperCase(),17,y+5.5);doc.setTextColor(155,65,65);doc.text(t('exclHead').toUpperCase(),14+cW3+8,y+5.5);doc.setCharSpace(0);
+    state.inclItems.forEach((txt,i)=>{doc.setFillColor(...gold);doc.circle(17.5,y+11+i*5.5,0.85,'F');doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...textMid);doc.text(doc.splitTextToSize(txt,cW3-8),20,y+11.3+i*5.5);});
+    state.exclItems.forEach((txt,i)=>{doc.setFillColor(155,65,65);doc.circle(14+cW3+10,y+11+i*5.5,0.85,'F');doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...textMid);doc.text(doc.splitTextToSize(txt,cW3-8),14+cW3+13,y+11.3+i*5.5);});
+    y+=bH+5;
+  }
+
+  if(notes){
+    y=sHead(t('notesHead'),y);
+    const nLines=doc.splitTextToSize(notes,W-30),nH=nLines.length*4.2+8;
+    doc.setFillColor(250,247,238);doc.rect(14,y-2,W-28,nH,'F');
+    doc.setFillColor(...gold);doc.rect(14,y-2,1.7,nH,'F');
+    doc.setFontSize(7);doc.setFont('helvetica','italic');doc.setTextColor(...textMid);doc.text(nLines,18,y+3);
+    y+=nH+4;
+  }
+
+  // FOOTER
+  doc.setFillColor(...navy);doc.rect(0,H-20,W,20,'F');
+  doc.setDrawColor(...gold);doc.setLineWidth(0.32);doc.line(0,H-20,W,H-20);
+  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);doc.setCharSpace(1.2);
+  doc.text('GAFF CLASSIC TOURS',14,H-13);doc.setCharSpace(0);
+  doc.setFontSize(5.5);doc.setFont('helvetica','normal');doc.setTextColor(...gold);doc.text('Mallorca  ·  Mediterraneo',14,H-8);
+  const cParts=[phone,email,website].filter(Boolean);
+  cParts.forEach((c,i)=>{doc.setFontSize(6);doc.setFont('helvetica','normal');doc.setTextColor(175,160,140);const cw=doc.getStringUnitWidth(c)*6*0.352;doc.text(c,W-14-cw,H-7+(i-cParts.length+1)*4.7);});
+  doc.setFontSize(4.8);doc.setFont('helvetica','normal');doc.setTextColor(65,58,50);doc.setCharSpace(1.1);
+  doc.text(t('footerCenter'),W/2,H-2.5,{align:'center'});doc.setCharSpace(0);
+
+  const safeName=(name.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')||'tour').toLowerCase();
+  const dateTag=bookingDate?`_${bookingDate}`:'';
+  const clientTag=clientName?`_${clientName.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'').substring(0,20)}`:'';
+  doc.save(`gaff_${safeName}${dateTag}${clientTag}.pdf`);
+
+  btn.disabled=false; document.getElementById('btnLabel').textContent=t('btn');
+  const toast=document.getElementById('toast');
+  toast.textContent=t('toastOk'); toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),3000);
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+(function init(){
+  // Set today as default booking date
+  const today=new Date(), pad=n=>String(n).padStart(2,'0');
+  document.getElementById('bookingDate').value=`${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+
+  // Initialize data-es/data-en visibility
+  document.querySelectorAll('[data-es]').forEach(el => el.style.display = '');
+  document.querySelectorAll('[data-en]').forEach(el => el.style.display = 'none');
+
+  // Load sunset preset
+  loadPreset('sunset');
+
+  // Set default client pax
+  document.getElementById('clientPax').value = '4 personas';
+  updatePreview();
+})();
+</script>
+</body>
+</html>
