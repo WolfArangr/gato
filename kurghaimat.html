@@ -2081,6 +2081,7 @@ body.theme-ice     { --border-gold:#2a8ac8;--gold:#4bcce8;--gold-light:#7ae8f5;-
           <div class="legend-item"><div class="legend-dot" style="background:#c8922a"></div>Ciudad</div>
           <div class="legend-item"><div class="legend-dot" style="background:#8a7a5a"></div>Pueblo</div>
           <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div>Tú</div>
+          <div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:#f39c12;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:bold;color:white;flex-shrink:0;">!</div>Misión</div>
         </div>
         <div style="position:absolute;bottom:0.5rem;left:50%;transform:translateX(-50%);display:flex;gap:0.3rem;">
           <button class="btn btn-small" onclick="mapZoom(1.2)">+</button>
@@ -2731,48 +2732,190 @@ const SPELLS_BY_CLASS = {
 };
 
 const ITEMS = {
-  // Weapons
-  shortsword:   {name:'Espada Corta',      type:'weapon', slot:'mainhand', icon:'🗡️', rarity:'common',    damage:'1d6',  dmgType:'cortante', price:10,   weight:2, desc:'Arma ligera ágil. Perfecta para duelistas.'},
-  longsword:    {name:'Espada Larga',       type:'weapon', slot:'mainhand', icon:'⚔️', rarity:'common',    damage:'1d8',  dmgType:'cortante', price:15,   weight:3, desc:'La espada estándar del caballero.'},
-  greataxe:     {name:'Hacha Enorme',       type:'weapon', slot:'mainhand', icon:'🪓', rarity:'common',    damage:'1d12', dmgType:'cortante', price:30,   weight:7, desc:'Arma pesada de dos manos devastadora.'},
-  bow:          {name:'Arco Largo',         type:'weapon', slot:'mainhand', icon:'🏹', rarity:'common',    damage:'1d8',  dmgType:'perforant', price:50,  weight:2, desc:'Arco de largo alcance.'},
-  dagger:       {name:'Daga',              type:'weapon', slot:'mainhand', icon:'🔪', rarity:'common',    damage:'1d4',  dmgType:'perforant', price:2,   weight:1, desc:'Arma ligera y arrojadiza.'},
-  staff:        {name:'Báculo Arcano',     type:'weapon', slot:'mainhand', icon:'🪄', rarity:'common',    damage:'1d6',  dmgType:'contund.',  price:5,   weight:4, desc:'Canalizador de energía mágica.'},
-  rapier:       {name:'Estoque',           type:'weapon', slot:'mainhand', icon:'🤺', rarity:'uncommon',  damage:'1d8',  dmgType:'perforant', price:25,  weight:2, desc:'Hoja elegante y mortal para duelistas finos.'},
-  warhammer:    {name:'Mazo de Guerra',    type:'weapon', slot:'mainhand', icon:'🔨', rarity:'common',    damage:'1d8',  dmgType:'contund.',  price:15,  weight:5, desc:'Mazo pesado de combate sagrado.'},
-  scimitar:     {name:'Cimitarra',         type:'weapon', slot:'mainhand', icon:'🌙', rarity:'uncommon',  damage:'1d6',  dmgType:'cortante',  price:25,  weight:3, desc:'Hoja curva veloz y elegante.'},
-  flametonge:   {name:'Lengua de Llamas', type:'weapon', slot:'mainhand', icon:'🔥', rarity:'rare',      damage:'1d8+2d6', dmgType:'fuego', price:0,  weight:3, desc:'Espada legendaria envuelta en llamas eternas. +2d6 de daño de fuego.'},
-  frostbite:    {name:'Mordida de Escarcha',type:'weapon',slot:'mainhand', icon:'❄️', rarity:'epic',      damage:'1d10+1d8', dmgType:'frío', price:0, weight:3, desc:'Hoja de hielo encantado. +1d8 daño frío y ralentiza al objetivo.'},
-  // Armor  
-  leather:      {name:'Armadura de Cuero',  type:'armor', slot:'body',    icon:'🥋', rarity:'common',    ac:11, price:10,  weight:10, desc:'Ligera protección de cuero curtido.'},
-  chain:        {name:'Cota de Malla',      type:'armor', slot:'body',    icon:'🛡️', rarity:'common',    ac:13, price:75,  weight:55, desc:'Anillos de metal entrelazados.'},
-  plate:        {name:'Armadura de Placas', type:'armor', slot:'body',    icon:'⚔️', rarity:'uncommon',  ac:18, price:1500,weight:65, desc:'La armadura más protectora del mercado.'},
-  robe:         {name:'Túnica de Mago',     type:'armor', slot:'body',    icon:'🧙', rarity:'common',    ac:10, price:5,   weight:4,  desc:'Vestes arcanas. No protege mucho.'},
-  shield:       {name:'Escudo',             type:'armor', slot:'offhand', icon:'🛡️', rarity:'common',    ac:2,  price:10,  weight:6,  desc:'+2 CA al equipar.'},
-  dragonscale:  {name:'Escamas de Dragón', type:'armor', slot:'body',    icon:'🐲', rarity:'legendary', ac:20, price:0,   weight:40, desc:'Armadura forjada de escamas de un dragón anciano. AC 20 y resistencia al fuego.'},
-  // Consumables
-  healpotion:   {name:'Poción de Curación', type:'consumable',icon:'🧪', rarity:'common',   heal:8,   price:50,  weight:0.5, desc:'Restaura 2d4+2 puntos de golpe al beber.'},
-  greatpotion:  {name:'Poción Mayor',       type:'consumable',icon:'💊', rarity:'uncommon', heal:20,  price:150, weight:0.5, desc:'Restaura 4d4+4 puntos de golpe.'},
-  manapotion:   {name:'Poción de Maná',     type:'consumable',icon:'💙', rarity:'uncommon', mana:2,   price:100, weight:0.5, desc:'Recupera 1 nivel de conjuro.'},
-  antidote:     {name:'Antídoto',           type:'consumable',icon:'💚', rarity:'common',   price:50,  weight:0.1, desc:'Cura estados de envenenamiento.'},
-  rations:      {name:'Raciones',           type:'consumable',icon:'🍖', rarity:'common',   price:1,   weight:2,   desc:'Comida para 1 día de viaje.'},
-  // Accessories
-  amulet:       {name:'Amuleto de Salud',   type:'accessory',slot:'neck', icon:'📿', rarity:'uncommon', bonus:{maxhp:5}, price:200, weight:0, desc:'+5 a los puntos de golpe máximos.'},
-  ring:         {name:'Anillo de Protección',type:'accessory',slot:'ring',icon:'💍', rarity:'rare',     bonus:{ac:1}, price:500, weight:0, desc:'+1 AC y +1 a todas las tiradas de salvación.'},
-  boots:        {name:'Botas del Viento',   type:'accessory',slot:'feet', icon:'👢', rarity:'rare',     bonus:{speed:10}, price:300, weight:2, desc:'+10 pies de velocidad de movimiento.'},
-  cloak:        {name:'Capa de Sombras',    type:'accessory',slot:'back', icon:'🦇', rarity:'epic',     bonus:{stealth:5}, price:0, weight:1, desc:'+5 a sigilo. Puede desaparecer en sombras 1/día.'},
-  // Tools
-  thieves_tools:{name:"Herramientas de Ladrón",type:'tool',icon:'🔑', rarity:'common', price:25, weight:1, desc:'Necesarias para forzar cerraduras y desactivar trampas.'},
-  herbalism:    {name:'Kit de Herbalismo',  type:'tool', icon:'🌿', rarity:'common', price:5, weight:3, desc:'Permite crear pociones y antídotos básicos.'},
-  rope:         {name:'Soga (15m)',          type:'tool', icon:'🪢', rarity:'common', price:1, weight:10, desc:'Soga resistente de 50 pies de longitud.'},
-  torch:        {name:'Antorcha',           type:'tool', icon:'🔦', rarity:'common', price:0, weight:1, qty:3, desc:'Ilumina 6m durante 1 hora.'},
-  // Clues
-  clue1:{name:'Mapa Rúnico',     type:'clue', icon:'🗺️', rarity:'legendary', price:0, weight:0, desc:'Un fragmento de mapa que muestra marcas rúnicas del norte. "Las montañas grises esconden la verdad..."'},
-  clue2:{name:'Escama de Dragón',type:'clue', icon:'🐉', rarity:'legendary', price:0, weight:0, desc:'Una escama carmesí del propio Dovahkiin. El herrero dice que proviene de las Cimas Ardientes.'},
-  clue3:{name:'Diario del Explorador',type:'clue',icon:'📓',rarity:'legendary',price:0,weight:0,desc:'"Tercer día... la cueva humea sin cesar. Criaturas extrañas patrullan el perímetro. No sobreviviré..."'},
-  clue4:{name:'Sello del Culto', type:'clue', icon:'🔴', rarity:'legendary', price:0, weight:0, desc:'El sello de quienes sirven a Dovahkiin. Tres garras sobre un mundo ardiente.'},
-  clue5:{name:'Visión de la Oráculo',type:'clue',icon:'🔮',rarity:'legendary',price:0,weight:0,desc:'La vidente murmuró: "Al este del Lago Oscuro, donde las tres cumbres convergen... allí espera el fin del mundo."'},
+  // ===== WEAPONS — SIMPLE MELEE =====
+  dagger:       {name:'Daga',              type:'weapon', slot:'mainhand', icon:'🔪', rarity:'common',   damage:'1d4',  dmgType:'perforant',  props:['ligera','arrojadiza'],   price:2,   weight:1,   upgrade:0, desc:'Arma ligera y arrojadiza. Muy versátil.'},
+  handaxe:      {name:'Hacha de Mano',     type:'weapon', slot:'mainhand', icon:'🪓', rarity:'common',   damage:'1d6',  dmgType:'cortante',   props:['ligera','arrojadiza'],   price:5,   weight:2,   upgrade:0, desc:'Hacha ligera que puede arrojarse.'},
+  quarterstaff: {name:'Bastón',            type:'weapon', slot:'mainhand', icon:'🥢', rarity:'common',   damage:'1d6',  dmgType:'contund.',   props:['versátil(1d8)'],         price:2,   weight:4,   upgrade:0, desc:'Versátil: 1d6 a una mano, 1d8 a dos.'},
+  club:         {name:'Garrote',           type:'weapon', slot:'mainhand', icon:'🏑', rarity:'common',   damage:'1d4',  dmgType:'contund.',   props:['ligera'],                 price:1,   weight:2,   upgrade:0, desc:'Arma simple de madera.'},
+  javelin:      {name:'Jabalina',          type:'weapon', slot:'mainhand', icon:'🎣', rarity:'common',   damage:'1d6',  dmgType:'perforant',  props:['arrojadiza'],            price:5,   weight:2,   upgrade:0, desc:'Lanza ligera arrojadiza.'},
+  mace:         {name:'Maza',              type:'weapon', slot:'mainhand', icon:'🔱', rarity:'common',   damage:'1d6',  dmgType:'contund.',   props:[],                        price:5,   weight:4,   upgrade:0, desc:'Maza de cabeza pesada, buena vs. armaduras.'},
+  // ===== WEAPONS — SIMPLE RANGED =====
+  sling:        {name:'Honda',             type:'weapon', slot:'mainhand', icon:'🪃', rarity:'common',   damage:'1d4',  dmgType:'contund.',   props:['munición','a distancia'], price:1,  weight:0,   upgrade:0, desc:'Tira piedras a distancia.'},
+  // ===== WEAPONS — MARTIAL MELEE =====
+  shortsword:   {name:'Espada Corta',      type:'weapon', slot:'mainhand', icon:'🗡️', rarity:'common',   damage:'1d6',  dmgType:'perforant',  props:['ligera','sutil'],        price:10,  weight:2,   upgrade:0, desc:'Arma ligera y ágil. Perfecta para pícaros.'},
+  longsword:    {name:'Espada Larga',      type:'weapon', slot:'mainhand', icon:'⚔️', rarity:'common',   damage:'1d8',  dmgType:'cortante',   props:['versátil(1d10)'],        price:15,  weight:3,   upgrade:0, desc:'La espada estándar del caballero. Versátil.'},
+  rapier:       {name:'Estoque',           type:'weapon', slot:'mainhand', icon:'🤺', rarity:'common',   damage:'1d8',  dmgType:'perforant',  props:['sutil','finesse'],       price:25,  weight:2,   upgrade:0, desc:'Hoja elegante. Usa DES o FUE para atacar.'},
+  warhammer:    {name:'Mazo de Guerra',    type:'weapon', slot:'mainhand', icon:'🔨', rarity:'common',   damage:'1d8',  dmgType:'contund.',   props:['versátil(1d10)'],        price:15,  weight:5,   upgrade:0, desc:'Mazo pesado. Sagrado para clérigos.'},
+  battleaxe:    {name:'Hacha de Batalla',  type:'weapon', slot:'mainhand', icon:'🪓', rarity:'common',   damage:'1d8',  dmgType:'cortante',   props:['versátil(1d10)'],        price:10,  weight:4,   upgrade:0, desc:'Hacha marcial de una o dos manos.'},
+  flail:        {name:'Flagelo',           type:'weapon', slot:'mainhand', icon:'⛓️', rarity:'common',   damage:'1d8',  dmgType:'contund.',   props:[],                        price:10,  weight:2,   upgrade:0, desc:'Cadena con bola de acero. Ignora escudos.'},
+  morningstar:  {name:'Estrella de la Mañana',type:'weapon',slot:'mainhand',icon:'🌟',rarity:'uncommon', damage:'1d8',  dmgType:'perforant',  props:[],                        price:15,  weight:4,   upgrade:0, desc:'Porra con puntas. Daño perforante y contundente.'},
+  scimitar:     {name:'Cimitarra',         type:'weapon', slot:'mainhand', icon:'🌙', rarity:'common',   damage:'1d6',  dmgType:'cortante',   props:['ligera','sutil'],        price:25,  weight:3,   upgrade:0, desc:'Hoja curva. Ligera y elegante.'},
+  trident:      {name:'Tridente',          type:'weapon', slot:'mainhand', icon:'🔱', rarity:'common',   damage:'1d6',  dmgType:'perforant',  props:['arrojadiza','versátil(1d8)'],price:5,weight:4, upgrade:0, desc:'Tres puntas. Versátil y arrojadizo.'},
+  // ===== WEAPONS — MARTIAL HEAVY =====
+  greatsword:   {name:'Espadón',           type:'weapon', slot:'mainhand', icon:'🗡️', rarity:'common',   damage:'2d6',  dmgType:'cortante',   props:['a dos manos','pesada'],  price:50,  weight:6,   upgrade:0, desc:'La espada de dos manos definitiva.'},
+  greataxe:     {name:'Hacha Enorme',      type:'weapon', slot:'mainhand', icon:'🪓', rarity:'common',   damage:'1d12', dmgType:'cortante',   props:['a dos manos','pesada'],  price:30,  weight:7,   upgrade:0, desc:'Devastadora. Favorita de los bárbaros.'},
+  maul:         {name:'Mazo Enorme',       type:'weapon', slot:'mainhand', icon:'🔨', rarity:'common',   damage:'2d6',  dmgType:'contund.',   props:['a dos manos','pesada'],  price:10,  weight:10,  upgrade:0, desc:'Martillo gigante. Aplasta armaduras.'},
+  halberd:      {name:'Alabarda',          type:'weapon', slot:'mainhand', icon:'⚔️', rarity:'uncommon', damage:'1d10', dmgType:'cortante',   props:['a dos manos','pesada','alcance'],price:20,weight:6,upgrade:0,desc:'Hacha con lanza. Alcance de 3m.'},
+  pike:         {name:'Pica',              type:'weapon', slot:'mainhand', icon:'🎣', rarity:'common',   damage:'1d10', dmgType:'perforant',  props:['a dos manos','pesada','alcance'],price:5,weight:18,upgrade:0,desc:'Lanza larga de infantería. Alcance 3m.'},
+  glaive:       {name:'Glaive',            type:'weapon', slot:'mainhand', icon:'🗡️', rarity:'uncommon', damage:'1d10', dmgType:'cortante',   props:['a dos manos','pesada','alcance'],price:20,weight:6,upgrade:0,desc:'Hoja curva en asta larga. Alcance 3m.'},
+  // ===== WEAPONS — RANGED =====
+  bow:          {name:'Arco Largo',        type:'weapon', slot:'mainhand', icon:'🏹', rarity:'common',   damage:'1d8',  dmgType:'perforant',  props:['a dos manos','munición'], price:50, weight:2,   upgrade:0, desc:'Largo alcance. Favorito de exploradores.'},
+  shortbow:     {name:'Arco Corto',        type:'weapon', slot:'mainhand', icon:'🏹', rarity:'common',   damage:'1d6',  dmgType:'perforant',  props:['a dos manos','munición'], price:25, weight:2,   upgrade:0, desc:'Más manejable. Alcance menor.'},
+  crossbow:     {name:'Ballesta',          type:'weapon', slot:'mainhand', icon:'⚔️', rarity:'common',   damage:'1d8',  dmgType:'perforant',  props:['a dos manos','munición'], price:75, weight:18,  upgrade:0, desc:'Mecánica y potente. Sin necesidad de fuerza.'},
+  staff:        {name:'Báculo Arcano',     type:'weapon', slot:'mainhand', icon:'🪄', rarity:'common',   damage:'1d6',  dmgType:'contund.',   props:['versátil(1d8)'],         price:5,   weight:4,   upgrade:0, desc:'Canalizador mágico. Versátil.'},
+  // ===== MAGICAL WEAPONS =====
+  flametonge:   {name:'Lengua de Llamas',  type:'weapon', slot:'mainhand', icon:'🔥', rarity:'rare',     damage:'1d8+2d6',dmgType:'fuego',  props:['mágica'],               price:0,   weight:3,   upgrade:0, desc:'+2d6 de daño de fuego. Puede encenderse a voluntad.'},
+  frostbite:    {name:'Mordida de Escarcha',type:'weapon',slot:'mainhand', icon:'❄️', rarity:'epic',     damage:'1d10+1d8',dmgType:'frío', props:['mágica','ralentizar'],   price:0,   weight:3,   upgrade:0, desc:'+1d8 daño frío. Objetivo debe superar CD 14 CON o ralentiza.'},
+  thunderstrike:{name:'Golpe del Trueno',  type:'weapon', slot:'mainhand', icon:'⚡', rarity:'rare',     damage:'1d8+1d6',dmgType:'rayo',  props:['mágica'],               price:0,   weight:3,   upgrade:0, desc:'+1d6 de daño de rayo. Los enemigos adyacentes reciben 1d4.'},
+  // ===== ARMOR — LIGHT =====
+  padded:       {name:'Armadura Acolchada',type:'armor',  slot:'body',    icon:'🧥', rarity:'common',   ac:11, acBonus:'+DES', price:5,   weight:8,   upgrade:0, desc:'Tela reforzada. No penaliza sigilo.'},
+  leather:      {name:'Armadura de Cuero', type:'armor',  slot:'body',    icon:'🥋', rarity:'common',   ac:11, acBonus:'+DES', price:10,  weight:10,  upgrade:0, desc:'Cuero curtido endurecido. Ligera y flexible.'},
+  studdedleather:{name:'Cuero Tachonado',  type:'armor',  slot:'body',    icon:'🥋', rarity:'common',   ac:12, acBonus:'+DES', price:45,  weight:13,  upgrade:0, desc:'Cuero con tachuelas de metal. AC 12+DES.'},
+  // ===== ARMOR — MEDIUM =====
+  hide:         {name:'Armadura de Pieles',type:'armor',  slot:'body',    icon:'🦺', rarity:'common',   ac:12, acBonus:'+DES(max2)', price:10, weight:12, upgrade:0, desc:'Pieles gruesas. AC 12+DES (máx +2).'},
+  chainshirt:   {name:'Camisote de Malla', type:'armor',  slot:'body',    icon:'🛡️', rarity:'common',   ac:13, acBonus:'+DES(max2)', price:50, weight:20, upgrade:0, desc:'Cota ligera. AC 13+DES (máx +2).'},
+  scalemail:    {name:'Cota de Escamas',   type:'armor',  slot:'body',    icon:'🐉', rarity:'common',   ac:14, acBonus:'+DES(max2)', price:50, weight:45, upgrade:0, desc:'Escamas metálicas superpuestas. AC 14.'},
+  breastplate:  {name:'Coraza',            type:'armor',  slot:'body',    icon:'⚔️', rarity:'uncommon', ac:14, acBonus:'+DES(max2)', price:400,weight:20, upgrade:0, desc:'Peto y espaldar. Ligero pero protector.'},
+  halfplate:    {name:'Media Armadura',    type:'armor',  slot:'body',    icon:'🛡️', rarity:'uncommon', ac:15, acBonus:'+DES(max2)', price:750,weight:40, upgrade:0, desc:'Armadura de placas parcial. Versátil.'},
+  // ===== ARMOR — HEAVY =====
+  ringmail:     {name:'Cota de Anillos',   type:'armor',  slot:'body',    icon:'⛓️', rarity:'common',   ac:14, acBonus:'',           price:30,  weight:40, upgrade:0, desc:'Anillos metálicos cosidos a cuero. AC 14.'},
+  chain:        {name:'Cota de Malla',     type:'armor',  slot:'body',    icon:'🛡️', rarity:'common',   ac:16, acBonus:'',           price:75,  weight:55, upgrade:0, desc:'Anillos de metal entrelazados. AC 16.'},
+  splint:       {name:'Armadura de Laminillas',type:'armor',slot:'body',  icon:'🛡️', rarity:'uncommon', ac:17, acBonus:'',           price:200, weight:60, upgrade:0, desc:'Tiras verticales de metal. AC 17.'},
+  plate:        {name:'Armadura de Placas',type:'armor',  slot:'body',    icon:'⚔️', rarity:'uncommon', ac:18, acBonus:'',           price:1500,weight:65, upgrade:0, desc:'La mejor armadura no mágica. AC 18.'},
+  // ===== ARMOR — MAGICAL =====
+  robe:         {name:'Túnica de Mago',    type:'armor',  slot:'body',    icon:'🧙', rarity:'common',   ac:10, acBonus:'+DES',       price:5,   weight:4,  upgrade:0, desc:'Vestes arcanas con bolsillos para componentes.'},
+  magearmor:    {name:'Túnica Arcana',     type:'armor',  slot:'body',    icon:'✨', rarity:'rare',     ac:13, acBonus:'+DES',       price:0,   weight:4,  upgrade:0, desc:'Túnica encantada. Equivale al hechizo Armadura de Mago.'},
+  dragonscale:  {name:'Escamas de Dragón', type:'armor',  slot:'body',    icon:'🐲', rarity:'legendary',ac:20, acBonus:'',           price:0,   weight:40, upgrade:0, desc:'Forjada de escamas de un dragón anciano. AC 20. Resistencia al fuego.'},
+  // ===== SHIELDS =====
+  shield:       {name:'Escudo',            type:'armor',  slot:'offhand', icon:'🛡️', rarity:'common',   ac:2,                      price:10,  weight:6,  upgrade:0, desc:'+2 CA. Requiere una mano libre.'},
+  towershield:  {name:'Escudo Torre',      type:'armor',  slot:'offhand', icon:'🛡️', rarity:'uncommon', ac:3,                      price:50,  weight:15, upgrade:0, desc:'+3 CA. Pesado pero máxima cobertura.'},
+  // ===== CONSUMABLES =====
+  healpotion:   {name:'Poción de Curación',type:'consumable',icon:'🧪',  rarity:'common',   heal:8,   price:50,  weight:0.5, desc:'Restaura 2d4+2 puntos de golpe.'},
+  greatpotion:  {name:'Poción Mayor',      type:'consumable',icon:'💊',  rarity:'uncommon', heal:20,  price:150, weight:0.5, desc:'Restaura 4d4+4 puntos de golpe.'},
+  superiorpotion:{name:'Poción Superior',  type:'consumable',icon:'💎',  rarity:'rare',     heal:35,  price:500, weight:0.5, desc:'Restaura 8d4+8 puntos de golpe.'},
+  manapotion:   {name:'Poción de Maná',    type:'consumable',icon:'💙',  rarity:'uncommon', mana:2,   price:100, weight:0.5, desc:'Recupera 1 nivel de conjuro.'},
+  antidote:     {name:'Antídoto',          type:'consumable',icon:'💚',  rarity:'common',   price:50,  weight:0.1, desc:'Cura veneno y estados tóxicos.'},
+  rations:      {name:'Raciones',          type:'consumable',icon:'🍖',  rarity:'common',   price:1,   weight:2,   desc:'Comida para 1 día de viaje.'},
+  elixir:       {name:'Elixir de Fuerza',  type:'consumable',icon:'🔴',  rarity:'rare',     tempBonus:{str:4,rounds:10}, price:300, weight:0.5, desc:'+4 FUE durante 1 minuto (10 rondas).'},
+  // ===== ACCESSORIES =====
+  amulet:       {name:'Amuleto de Salud',  type:'accessory',slot:'neck', icon:'📿', rarity:'uncommon', bonus:{maxhp:10}, price:200, weight:0, upgrade:0, desc:'+10 a los puntos de golpe máximos.'},
+  ring:         {name:'Anillo de Protección',type:'accessory',slot:'ring',icon:'💍',rarity:'rare',     bonus:{ac:1},    price:500, weight:0, upgrade:0, desc:'+1 AC y +1 a tiradas de salvación.'},
+  ringresist:   {name:'Anillo de Resistencia',type:'accessory',slot:'ring',icon:'💍',rarity:'epic',   bonus:{resist:1},price:1200,weight:0, upgrade:0, desc:'Resistencia a un tipo de daño elegido al equipar.'},
+  boots:        {name:'Botas del Viento',  type:'accessory',slot:'feet', icon:'👢', rarity:'rare',     bonus:{speed:10},price:300, weight:2, upgrade:0, desc:'+10 pies de velocidad.'},
+  cloakprotect: {name:'Capa de Protección',type:'accessory',slot:'back', icon:'🦺', rarity:'uncommon', bonus:{ac:1},    price:250, weight:1, upgrade:0, desc:'+1 AC cuando no llevas armadura o escudo.'},
+  cloak:        {name:'Capa de Sombras',   type:'accessory',slot:'back', icon:'🦇', rarity:'epic',     bonus:{stealth:5},price:0,  weight:1, upgrade:0, desc:'+5 a sigilo. 1/día: desaparece en sombras.'},
+  glovesog:     {name:'Guantes de Potencia',type:'accessory',slot:'neck',icon:'🧤', rarity:'uncommon', bonus:{str:2},   price:400, weight:0, upgrade:0, desc:'+2 FUE (no supera el máximo de 20).'},
+  headbandint:  {name:'Venda del Intelecto',type:'accessory',slot:'neck',icon:'🎀', rarity:'rare',     bonus:{int:2},   price:400, weight:0, upgrade:0, desc:'+2 INT.'},
+  // ===== TOOLS =====
+  thieves_tools:{name:'Herramientas de Ladrón',type:'tool',icon:'🔑', rarity:'common', price:25, weight:1, desc:'Necesarias para forzar cerraduras y desactivar trampas.'},
+  herbalism:    {name:'Kit de Herbalismo',    type:'tool',icon:'🌿', rarity:'common', price:5,  weight:3, desc:'Permite crear pociones y antídotos básicos.'},
+  rope:         {name:'Soga (15m)',           type:'tool',icon:'🪢', rarity:'common', price:1,  weight:10,desc:'Soga resistente de 50 pies.'},
+  torch:        {name:'Antorcha',             type:'tool',icon:'🔦', rarity:'common', price:0,  weight:1, qty:3, desc:'Ilumina 6m durante 1 hora.'},
+  forgingkit:   {name:'Kit de Forja',         type:'tool',icon:'⚒️', rarity:'uncommon',price:50,weight:5, desc:'Permite mejorar armas y armaduras en una fragua.'},
+  // ===== UPGRADE MATERIALS =====
+  ironingot:    {name:'Lingote de Hierro',    type:'material',icon:'🔩', rarity:'common',   price:5,  weight:3, desc:'Material básico de forja. Necesario para mejoras nivel 1.'},
+  steelingot:   {name:'Lingote de Acero',     type:'material',icon:'⚙️', rarity:'uncommon', price:25, weight:3, desc:'Acero templado. Necesario para mejoras nivel 2.'},
+  mithralingot: {name:'Lingote de Mithril',   type:'material',icon:'✨', rarity:'rare',     price:250,weight:1, desc:'Metal mágico liviano. Necesario para mejoras nivel 3.'},
+  adamantingot: {name:'Lingote de Adamantita',type:'material',icon:'💎', rarity:'epic',     price:1000,weight:2,desc:'El metal más duro conocido. Necesario para mejoras nivel 4.'},
+  dragonbone:   {name:'Hueso de Dragón',      type:'material',icon:'🦴', rarity:'legendary',price:0,  weight:2, desc:'Solo de dragones derrotados. Necesario para mejoras nivel 5.'},
+  // ===== CLUES =====
+  clue1:{name:'Mapa Rúnico',           type:'clue',icon:'🗺️',rarity:'legendary',price:0,weight:0,desc:'"Las montañas grises esconden la verdad..."'},
+  clue2:{name:'Escama de Dragón',      type:'clue',icon:'🐉',rarity:'legendary',price:0,weight:0,desc:'Escama carmesí del propio Dovahkiin. Proviene de las Cimas Ardientes.'},
+  clue3:{name:'Diario del Explorador', type:'clue',icon:'📓',rarity:'legendary',price:0,weight:0,desc:'"Tercer día... la cueva humea. No sobreviviré..."'},
+  clue4:{name:'Sello del Culto',       type:'clue',icon:'🔴',rarity:'legendary',price:0,weight:0,desc:'Tres garras sobre un mundo ardiente. Signo de los servidores del Destructor.'},
+  clue5:{name:'Visión de la Oráculo',  type:'clue',icon:'🔮',rarity:'legendary',price:0,weight:0,desc:'"Al este del Lago Oscuro, donde las tres cumbres convergen..."'},
 };
+
+// ===== UPGRADE SYSTEM =====
+const UPGRADE_COSTS = {
+  // [upgrade level to reach]: {material, qty, gold, smithingDC}
+  1: {material:'ironingot',    qty:2,  gold:50,  dc:10, label:'+1', acBonus:1, dmgBonus:'+1'},
+  2: {material:'steelingot',   qty:2,  gold:200, dc:14, label:'+2', acBonus:2, dmgBonus:'+2'},
+  3: {material:'mithralingot', qty:2,  gold:500, dc:18, label:'+3', acBonus:3, dmgBonus:'+3'},
+  4: {material:'adamantingot', qty:1,  gold:1500,dc:22, label:'+4', acBonus:4, dmgBonus:'+4'},
+  5: {material:'dragonbone',   qty:1,  gold:5000,dc:26, label:'+5', acBonus:5, dmgBonus:'+5'},
+};
+
+function openUpgradeModal(){
+  const upgradeable = Object.entries(G.player.equipped)
+    .filter(([slot,id])=>id && ITEMS[id] && (ITEMS[id].type==='weapon'||ITEMS[id].type==='armor') && ITEMS[id].upgrade<5)
+    .map(([slot,id])=>({slot,id,item:ITEMS[id]}));
+
+  if(!upgradeable.length){
+    notify('No tienes equipo equipado para mejorar.','warning'); return;
+  }
+
+  // Check for forgingkit
+  const hasKit = G.player.inventory?.some(i=>i===('forgingkit')||i?.id==='forgingkit');
+  const atSmith = G.currentLocation?.services?.includes('blacksmith');
+  if(!hasKit && !atSmith){
+    notify('Necesitas un Kit de Forja o estar en un herrero.','warning'); return;
+  }
+
+  let html = '<div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:0.8rem;">Mejora tu equipo equipado. Cada mejora aumenta +1 al daño o CA.</div>';
+  upgradeable.forEach(({slot,id,item})=>{
+    const nextLvl = (item.upgrade||0)+1;
+    const cost = UPGRADE_COSTS[nextLvl];
+    const matItem = ITEMS[cost.material];
+    const hasMat = G.player.inventory?.filter(i=>i===cost.material||i?.id===cost.material).length >= cost.qty;
+    const hasGold = G.player.gold >= cost.gold;
+    const canUpgrade = hasMat && hasGold;
+    html += `<div style="background:var(--bg-card);border:1px solid var(--border-gold-dim);border-radius:var(--radius);padding:0.7rem;margin-bottom:0.5rem;">`;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;">`;
+    html += `<span style="font-family:var(--font-display);font-size:0.82rem;">${item.icon} ${item.name} <span style="color:var(--gold);">[+${item.upgrade||0}]</span></span>`;
+    html += `<span style="font-size:0.68rem;color:var(--text-dim);">${slot}</span></div>`;
+    html += `<div style="font-size:0.7rem;color:var(--text-secondary);margin:0.3rem 0;">Siguiente mejora: <strong style="color:var(--gold);">+${nextLvl}</strong> — Costo: ${matItem?.icon||'📦'} ${cost.qty}x ${matItem?.name||cost.material} + 🪙${cost.gold}</div>`;
+    html += `<div style="font-size:0.65rem;margin-bottom:0.4rem;color:${hasMat?'var(--green)':'var(--red)'};">${hasMat?'✓':'✗'} Material &nbsp; <span style="color:${hasGold?'var(--green)':'var(--red)'};">${hasGold?'✓':'✗'} Oro</span></div>`;
+    const btnLabel = canUpgrade ? ('⚒️ Mejorar a +'+nextLvl) : 'Sin recursos';
+    html += `<button class="btn btn-small ${canUpgrade?'btn-primary':''}" onclick="upgradeItem('${id}','${slot}',${nextLvl})" ${canUpgrade?'':'disabled'}>${btnLabel}</button>`;
+    html += `</div>`;
+  });
+
+  showDialog('⚒️ Mejorar Equipo', '⚒️', '**Forja de mejoras**\nMejorar equipo requiere materiales y monedas de oro.', [{text:'Cerrar',fn:()=>closeModal('dialog-modal')}]);
+  // Replace dialog body with our html
+  setTimeout(()=>{
+    const db = document.getElementById('dialog-text');
+    if(db) db.innerHTML = html;
+  }, 50);
+}
+
+function upgradeItem(itemId, slot, newLevel){
+  const item = ITEMS[itemId];
+  if(!item) return;
+  const cost = UPGRADE_COSTS[newLevel];
+  if(!cost) return;
+
+  // Deduct material
+  const matIdx = G.player.inventory.findIndex(i=>i===cost.material||i?.id===cost.material);
+  if(matIdx<0){ notify('Sin materiales.','warning'); return; }
+  G.player.inventory.splice(matIdx,1);
+  // Deduct gold
+  if(G.player.gold < cost.gold){ notify('Sin oro suficiente.','warning'); return; }
+  G.player.gold -= cost.gold;
+
+  // Apply upgrade
+  item.upgrade = newLevel;
+  if(item.type === 'weapon'){
+    // Add +X to damage display
+    const base = item.baseDamage || item.damage;
+    item.baseDamage = base;
+    item.damage = base + '+' + newLevel;
+    item.name = (item.baseName||item.name.replace(/\s\+\d$/,'')) + ' +' + newLevel;
+    item.baseName = item.baseName || item.name.replace(/ \+\d$/,'');
+  } else if(item.type === 'armor'){
+    item.ac = (item.baseAC || item.ac) + newLevel;
+    item.baseAC = item.baseAC || item.ac;
+    item.name = (item.baseName||item.name.replace(/ \+\d$/,'')) + ' +' + newLevel;
+    item.baseName = item.baseName || item.name.replace(/ \+\d$/,'');
+  }
+
+  recalcAC();
+  renderInventory();
+  addStory(`⚒️ **¡Mejora exitosa!** ${item.name} ha sido mejorada a **+${newLevel}**.`, 'reward');
+  notify(`${item.name} mejorada!`, 'reward');
+  closeModal('dialog-modal');
+  updateHUD();
+}
 
 const NPC_NAMES = {
   male:   ['Aldric','Theron','Gareth','Corin','Brennan','Oswin','Leofric','Hadwin','Edric','Caelan','Draven','Soren','Kiran','Vael','Tomas','Rolfir','Ulric','Brand','Eiric','Caius'],
@@ -3581,13 +3724,11 @@ function randomPersonality(){
   const classTraits = PERSONALITIES[cls] || ['Un espíritu libre que sigue su propio camino.'];
   const alignTraits = PERSONALITY_BY_ALIGNMENT[selectedAlignment] || [];
 
-  // 60% chance class trait, 40% alignment trait — or combine both
+  // Never concatenate — always pick exactly one trait from one source
+  // Weight: 55% class, 45% alignment (if available)
   let result;
-  if(alignTraits.length && Math.random() < 0.4){
+  if(alignTraits.length && Math.random() < 0.45){
     result = pick(alignTraits);
-  } else if(alignTraits.length && Math.random() < 0.3){
-    // Combine class + alignment into one compound trait
-    result = pick(classTraits) + ' ' + pick(alignTraits).charAt(0).toLowerCase() + pick(alignTraits).slice(1);
   } else {
     result = pick(classTraits);
   }
@@ -3869,22 +4010,30 @@ function renderParty(){
 
 function renderQuests(){
   const list = document.getElementById('quest-list');
-  if(!G||!G.quests.length){
-    list.innerHTML = '<div style="font-size:0.72rem;color:var(--text-dim);font-style:italic;padding:0.3rem;">Sin misiones activas.</div>';
+  const acceptedQuests = G?.quests?.filter((q,i)=>q.accepted&&!q.completed) || [];
+  if(!G || !acceptedQuests.length){
+    list.innerHTML = '<div style="font-size:0.72rem;color:var(--text-dim);font-style:italic;padding:0.3rem;">Sin misiones aceptadas. Visita un tablón.</div>';
+    const detail = document.getElementById('active-quest-detail');
+    if(detail) detail.innerHTML = 'Ninguna misión activa.';
     return;
   }
-  list.innerHTML = G.quests.map((q,i)=>`
-    <div class="quest-item ${G.activeQuest===i?'active-quest':''}" onclick="showQuestDetail(${i})">
-      <div class="quest-name">${q.name}</div>
-      <div class="quest-giver">Por: ${q.giver}</div>
-      <div class="quest-type">${q.typeEmoji}</div>
-    </div>
-  `).join('');
+  list.innerHTML = acceptedQuests.map(q=>{
+    const idx = G.quests.indexOf(q);
+    const isAct = idx === G.activeQuest;
+    return `<div class="quest-item ${isAct?'active-quest':''}" onclick="showQuestDetail(${idx})">
+      <div class="quest-name">${isAct?'⭐ ':''}${q.name}</div>
+      <div class="quest-giver">${q.zone?`📍 ${q.zone} · `:''}${q.typeEmoji} ${q.giver}</div>
+    </div>`;
+  }).join('');
 
   const detail = document.getElementById('active-quest-detail');
   if(G.activeQuest!==null && G.quests[G.activeQuest]){
     const q = G.quests[G.activeQuest];
-    detail.innerHTML = `<strong style="color:var(--gold);">${q.name}</strong><br>${q.desc}<br><br>Recompensa: 🪙${q.reward.gold} · ✨${q.reward.xp} XP`;
+    const step = q.steps?.[q.currentStep||0] || q.objective;
+    detail.innerHTML = `<strong style="color:var(--gold);">${q.name}</strong><br>
+      ${q.zone?`<span style="color:var(--cyan);font-size:0.7rem;">📍 ${q.zone}</span><br>`:''}
+      <span style="font-size:0.72rem;">${step}</span><br>
+      <span style="font-size:0.65rem;color:var(--text-dim);">🪙${q.reward.gold} · ✨${q.reward.xp} XP</span>`;
   } else {
     detail.innerHTML = 'Ninguna misión seleccionada como activa.';
   }
@@ -4119,7 +4268,10 @@ function updateActions(context){
     actions.push({icon:'📋', label:'Tablón de misiones', fn:'openQuestBoard()', always:false});
     actions.push({icon:'🗣️', label:'Hablar con alguien', fn:'talkToNPC()', always:false});
     if(G?.currentLocation?.services?.includes('healer')) actions.push({icon:'💚', label:'Visitar al curandero', fn:'visitHealer()', always:false});
-    if(G?.currentLocation?.services?.includes('blacksmith')) actions.push({icon:'⚒️', label:'Visitar al herrero', fn:'openBlacksmith()', always:false});
+    if(G?.currentLocation?.services?.includes('blacksmith')){
+      actions.push({icon:'⚒️', label:'Visitar al herrero', fn:'openBlacksmith()', always:false});
+      actions.push({icon:'🔧', label:'Mejorar equipo', fn:'openUpgradeModal()', always:false});
+    }
   }
 
   if(inWild || inDungeon){
@@ -4314,6 +4466,7 @@ function travelTo(dest){
 
     addStory(`**Bienvenido a ${dest.name}**\n${(dest.desc||'').slice(0,160)}`, 'travel');
     if(Math.random()<0.45) generateQuest();
+    questAdvanceOnTravel(dest.name);
 
     revealHexesAroundPlayer();
     updateHUD();
@@ -4329,11 +4482,39 @@ function travelTo(dest){
 function addHexToMap(){ drawMap(); }
 
 
+// Enemies tagged by their natural habitat
+const ENEMY_HABITATS = {
+  // name: array of location types where they appear
+  'Goblin':        ['forest','plains','dungeon','mountain'],
+  'Scheletor':     ['dungeon'],
+  'Kobold':        ['dungeon','mountain'],
+  'Bandido':       ['plains','forest','road'],
+  'Orco':          ['forest','mountain','plains'],
+  'Gnoll':         ['plains','forest'],
+  'Troll':         ['mountain','dungeon','forest'],
+  'Vampiro Menor': ['dungeon'],
+  'Minotauro':     ['dungeon'],
+  'Dragón Joven':  ['mountain','dungeon'],
+};
+
+function getEncounterPool(locationType){
+  const lvl = G.player.level;
+  return ENEMIES.filter(e=>{
+    if(e.isBoss) return false;
+    if(e.level > lvl+1) return false;
+    const habitats = ENEMY_HABITATS[e.name];
+    if(!habitats) return true; // untagged = anywhere
+    const type = locationType || G.currentLocation?.type || 'plains';
+    // Town/city: no combat encounters via this pool (handled separately)
+    if(type === 'town' || type === 'city') return habitats.includes('plains') || habitats.includes('road');
+    return habitats.includes(type);
+  });
+}
+
 function handleTravelEncounter(){
-  // Only spawn enemies at or below player level (max +1)
-  const eligibleEnemies = ENEMIES.filter(e=>!e.isBoss && e.level <= G.player.level+1);
-  if(!eligibleEnemies.length) return;
-  const enemy = pick(eligibleEnemies);
+  const pool = getEncounterPool(G.currentLocation?.type);
+  if(!pool.length) return;
+  const enemy = pick(pool);
   addStory(`💀 **¡Emboscada!** Un ${enemy.emoji} ${enemy.name} surge del camino.`, 'combat');
   setTimeout(()=>startCombat([enemy]), 500);
 }
@@ -4394,18 +4575,47 @@ function explore(){
 function searchArea(){
   addStory(`🔍 Buscas cuidadosamente en la zona...`, 'normal');
   const roll = rollDie(20) + mod(G.player.stats.int);
+  addStory(`Tirada de Investigación: **${roll}**.`, 'system');
 
-  if(roll >= 15){
-    const items = ['healpotion','dagger','rations','rope','torch','antidote'];
-    const found = pick(items);
-    addItem(found,1);
-    addStory(`Encuentras: ${ITEMS[found].icon} ${ITEMS[found].name}!`, 'reward');
-  } else {
-    addStory(`No encuentras nada de valor.`, 'normal');
-    // Random event from dungeon events
-    if(G.currentLocation?.type==='dungeon'){
-      addStory(pick(DUNGEON_EVENTS), 'normal');
-      if(Math.random()<0.4) handleTravelEncounter();
+  // Check if there's an active fetch quest whose zone matches current location
+  let questItemFound = false;
+  if(G.activeQuest !== null){
+    const aq = G.quests[G.activeQuest];
+    if(aq && !aq.completed && aq.accepted && aq.type === 'fetch' && aq.questItem && !aq.itemFound){
+      // Is the player in the right zone?
+      const locName = G.locationName || '';
+      const zone    = aq.zone || '';
+      const inZone  = locName.toLowerCase().includes(zone.toLowerCase().split(' ')[0]) ||
+                      zone.toLowerCase().includes(locName.toLowerCase().split(' ')[0]) ||
+                      G.currentLocation?.type === 'dungeon'; // dungeons always count
+      if(inZone && roll >= 10){
+        aq.itemFound = true;
+        addItem(aq.questItem, 1);
+        const itemData = ITEMS[aq.questItem] || {name: aq.questItemName||aq.questItem, icon:'📦'};
+        addStory(`✨ **¡Objeto encontrado!** ${itemData.icon} **${itemData.name}** — ${aq.questItemName||itemData.name}.\nLlevalo de vuelta a **${aq.giver}**.`, 'reward');
+        advanceQuestStep(G.activeQuest);
+        questItemFound = true;
+        notify(`¡Encontraste ${aq.questItemName||itemData.name}!`, 'quest');
+        renderQuests();
+      } else if(inZone){
+        addStory(`Buscas entre los escombros... algo está aquí, pero no logras encontrarlo. (Necesitas ≥10, obtuviste ${roll})`, 'normal');
+        questItemFound = true; // suppress generic loot
+      }
+    }
+  }
+
+  if(!questItemFound){
+    if(roll >= 15){
+      const items = ['healpotion','dagger','rations','rope','torch','antidote'];
+      const found = pick(items);
+      addItem(found, 1);
+      addStory(`Encuentras: ${ITEMS[found].icon} ${ITEMS[found].name}!`, 'reward');
+    } else if(roll >= 8){
+      addStory(`No encuentras nada de especial valor.`, 'normal');
+      if(G.currentLocation?.type==='dungeon') addStory(pick(DUNGEON_EVENTS), 'normal');
+    } else {
+      addStory(`Tu exploración atrae atención no deseada.`, 'warning');
+      if(G.currentLocation?.type==='dungeon' && Math.random()<0.6) handleTravelEncounter();
     }
   }
   advanceTime(1);
@@ -4417,8 +4627,8 @@ function advanceDungeon(){
   addStory(pick(DUNGEON_EVENTS), 'normal');
 
   if(Math.random()<0.7){
-    // Combat encounter - scale to player level (max +1)
-    const eligible = ENEMIES.filter(e=>!e.isBoss && e.level <= G.player.level+1);
+    // Combat encounter - dungeon-appropriate enemies
+    const eligible = getEncounterPool('dungeon');
     if(eligible.length){ const enemy = pick(eligible); startCombat([enemy]); }
   } else if(Math.random()<0.5){
     // Treasure
@@ -5343,27 +5553,27 @@ function generateQuest(giver=null, forceType=null){
     currentStep: 0,
     reward: {gold:rand(reward.gold[0],reward.gold[1]), xp:rand(reward.xp[0],reward.xp[1])},
     completed: false,
+    accepted: false,
     progress: 0,
     target: steps.length,
+    zone: zone,
+    killsNeeded: count||1,
+    killCount: 0,
+    // Fetch quest fields
+    questItemName: item || null,          // human-readable item name from template
+    questItem: 'quest_item_'+Date.now(),  // inventory key
+    itemFound: false,
+    deliverTo: giverName,
+    deliverCity: city,
   };
 
   G.quests.push(quest);
-  if(G.activeQuest===null) G.activeQuest=G.quests.length-1;
+  // Don't auto-accept — player must commit via questboard
   return quest;
 }
 
 function checkQuestProgressInternal(){
-  if(G.activeQuest===null) return;
-  const q = G.quests[G.activeQuest];
-  if(!q||q.completed) return;
-  q.progress=(q.progress||0)+1;
-  if(q.progress>=q.target){
-    completeQuest(G.activeQuest);
-  } else {
-    q.currentStep=Math.min(q.progress,q.steps.length-1);
-    addStory('📋 **' + q.name + '**\n✓ Paso completado\n→ Siguiente: ' + q.steps[q.currentStep],'system');
-    renderQuests();
-  }
+  // Now handled below — stub for compatibility
 }
 
 
@@ -5371,33 +5581,51 @@ function openQuestBoard(){
   while(G.quests.filter(q=>!q.completed).length<4) generateQuest();
   const qs = G.quests.filter(q=>!q.completed);
   const body = document.getElementById('quest-modal-body');
-  let html = '<p style="font-style:italic;font-size:0.82rem;color:var(--text-secondary);margin-bottom:1rem;">Hay ' + qs.length + ' encargos en el tablón. ¿Cuál te llama?</p>';
+  let html = '<p style="font-style:italic;font-size:0.82rem;color:var(--text-secondary);margin-bottom:1rem;">Hay ' + qs.length + ' encargos disponibles. Las misiones aceptadas aparecen en tu registro.</p>';
   qs.forEach(q=>{
-    const idx=G.quests.indexOf(q), isAct=(idx===G.activeQuest);
-    const pct=q.target>0?Math.round((q.progress||0)/q.target*100):0;
-    html+='<div style="background:var(--bg-card);border:1px solid '+(isAct?'var(--gold)':'var(--border-gold-dim)')+';border-radius:var(--radius);padding:0.85rem;margin-bottom:0.65rem;">';
-    html+='<div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;">';
-    html+='<span style="font-family:var(--font-display);font-size:0.85rem;color:var(--gold-light);">'+q.typeEmoji+' '+q.name+'</span>';
-    html+='<span style="font-size:0.62rem;color:var(--text-dim);">De: '+q.giver+'</span></div>';
-    html+='<div style="font-size:0.8rem;color:var(--text-secondary);font-style:italic;margin-bottom:0.5rem;">'+q.objective+'</div>';
-    if(q.steps&&q.steps.length){
-      html+='<div style="font-size:0.7rem;margin-bottom:0.45rem;">';
+    const idx     = G.quests.indexOf(q);
+    const isAct   = (idx === G.activeQuest);
+    const accepted = q.accepted;
+    const pct     = q.target>0 ? Math.round((q.currentStep||0)/q.target*100) : 0;
+    const borderColor = isAct ? 'var(--gold)' : accepted ? 'var(--cyan)' : 'var(--border-gold-dim)';
+    html += `<div style="background:var(--bg-card);border:1px solid ${borderColor};border-radius:var(--radius);padding:0.85rem;margin-bottom:0.65rem;">`;
+    // Header row
+    html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.3rem;">`;
+    html += `<span style="font-family:var(--font-display);font-size:0.85rem;color:var(--gold-light);">${q.typeEmoji} ${q.name}</span>`;
+    html += `<span style="font-size:0.62rem;color:var(--text-dim);">De: ${q.giver}</span></div>`;
+    // Status badge
+    if(isAct)      html += `<div style="font-size:0.62rem;color:var(--gold);margin-bottom:0.3rem;">⭐ MISIÓN ACTIVA</div>`;
+    else if(accepted) html += `<div style="font-size:0.62rem;color:var(--cyan);margin-bottom:0.3rem;">✅ Aceptada</div>`;
+    // Objective
+    html += `<div style="font-size:0.8rem;color:var(--text-secondary);font-style:italic;margin-bottom:0.5rem;">${q.objective}</div>`;
+    // Steps
+    if(q.steps && q.steps.length){
+      html += `<div style="font-size:0.7rem;margin-bottom:0.45rem;">`;
       q.steps.forEach((s,i)=>{
-        const done=i<(q.currentStep||0),curr=i===(q.currentStep||0);
-        html+='<div style="padding:0.15rem 0;color:'+(done?'var(--green-bright)':curr?'var(--gold)':'var(--text-dim)')+';">'+(done?'✓ ':curr?'→ ':'○ ')+s+'</div>';
+        const done = i < (q.currentStep||0), curr = i === (q.currentStep||0);
+        const col  = done?'var(--green-bright)':curr&&accepted?'var(--gold)':'var(--text-dim)';
+        html += `<div style="padding:0.15rem 0;color:${col};">${done?'✓ ':curr&&accepted?'→ ':'○ '}${s}</div>`;
       });
-      html+='</div>';
-      html+='<div style="height:3px;background:rgba(0,0,0,.4);border-radius:2px;margin-bottom:0.45rem;overflow:hidden;"><div style="height:100%;background:var(--gold);width:'+pct+'%"></div></div>';
+      html += `</div>`;
+      if(accepted) html += `<div style="height:3px;background:rgba(0,0,0,.4);border-radius:2px;margin-bottom:0.45rem;overflow:hidden;"><div style="height:100%;background:var(--gold);width:${pct}%"></div></div>`;
     }
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;">';
-    html+='<span style="font-size:0.72rem;">🪙'+q.reward.gold+' · ✨'+q.reward.xp+' XP</span>';
-    html+='<div style="display:flex;gap:0.3rem;">';
-    if(!isAct) html+='<button class="btn btn-small" onclick="setActiveQuest('+idx+');renderQuests();closeModal(\"quest-modal\");">Seguir esta misión</button>';
-    html+='<button class="btn btn-small btn-primary" onclick="acceptAndTrackQuest('+idx+')">Comprometerse</button>';
-    html+='</div></div></div>';
+    // Zone hint
+    if(q.zone) html += `<div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:0.4rem;">📍 Zona: ${q.zone}</div>`;
+    // Reward
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;">`;
+    html += `<span style="font-size:0.72rem;">🪙${q.reward.gold} · ✨${q.reward.xp} XP</span>`;
+    html += `<div style="display:flex;gap:0.3rem;">`;
+    if(!accepted && !isAct){
+      html += `<button class="btn btn-small btn-primary" onclick="acceptAndTrackQuest(${idx})">✋ Aceptar misión</button>`;
+    } else if(accepted && !isAct){
+      html += `<button class="btn btn-small" onclick="setActiveQuestAndRedraw(${idx})">⭐ Seguir esta</button>`;
+    } else {
+      html += `<button class="btn btn-small" style="opacity:0.5;cursor:default;">⭐ En curso</button>`;
+    }
+    html += `</div></div></div>`;
   });
-  html+='<button class="btn" style="width:100%;margin-top:0.5rem;" onclick="generateQuest();openQuestBoard();">🌍 Buscar nuevas oportunidades</button>';
-  body.innerHTML=html;
+  html += `<button class="btn" style="width:100%;margin-top:0.5rem;" onclick="generateQuest();openQuestBoard();">🌍 Buscar nuevas oportunidades</button>`;
+  body.innerHTML = html;
   openModal('quest-modal');
 }
 
@@ -5412,17 +5640,38 @@ function setActiveQuest(idx){
 function acceptAndTrackQuest(idx){
   const q = G.quests[idx];
   if(!q) return;
-  const alreadyActive = G.activeQuest === idx;
+  if(!q.accepted){
+    q.accepted = true;
+    // Register fetch quest item in ITEMS so inventory can display it
+    if(q.type === 'fetch' && q.questItem && q.questItemName){
+      ITEMS[q.questItem] = {
+        name: q.questItemName,
+        type: 'quest',
+        icon: '📦',
+        rarity: 'uncommon',
+        price: 0,
+        weight: 1,
+        desc: `Objeto de misión para "${q.name}". Devuélvelo a ${q.giver} en ${q.deliverCity}.`
+      };
+    }
+    addStory(`📋 **Encargo aceptado:** "${q.name}"\n${q.objective}\n\nRecompensa: 🪙${q.reward.gold} · ✨${q.reward.xp} XP`, 'system');
+    if(q.steps && q.steps.length) addStory(`→ Primer paso: ${q.steps[0]}`, 'system');
+    if(q.zone) addStory(`📍 Zona objetivo: **${q.zone}** — búscala en el mapa.`, 'system');
+  }
   G.activeQuest = idx;
   renderQuests();
-  if(!alreadyActive){
-    addStory('📋 **Encargo aceptado:** "' + q.name + '"\n' + q.objective + '\n\nRecompensa: 🪙' + q.reward.gold + ' · ✨' + q.reward.xp + ' XP', 'system');
-    if(q.steps && q.steps.length) addStory('→ Primer paso: ' + q.steps[0], 'system');
-  } else {
-    addStory('📋 Ya estás siguiendo este encargo.', 'system');
-  }
   closeModal('quest-modal');
   switchTab('story');
+  drawMap(); // refresh quest marker
+}
+
+function setActiveQuestAndRedraw(idx){
+  G.activeQuest = idx;
+  const q = G.quests[idx];
+  if(q) addStory(`📋 Siguiendo: **${q.name}**\n→ ${q.steps?.[q.currentStep||0]||q.objective}`, 'system');
+  renderQuests();
+  closeModal('quest-modal');
+  drawMap();
 }
 
 function showQuestDetail(idx){
@@ -5430,21 +5679,93 @@ function showQuestDetail(idx){
   openQuestBoard();
 }
 
-function checkQuestProgress(){
-  checkQuestProgressInternal();
-}
+// Quest progress is now MANUAL — steps advance only when player takes relevant actions.
+// Steps are tagged with a type: 'travel'|'kill'|'deliver'|'find'|'talk'|'arrive'
+// We check on relevant game events.
 
-function checkQuestProgressInternal(){
+function questAdvanceOnKill(){
   if(G.activeQuest===null) return;
   const q = G.quests[G.activeQuest];
   if(!q||q.completed) return;
-
-  q.progress++;
-  if(q.progress >= q.target){
-    completeQuest(G.activeQuest);
+  if(q.type !== 'kill') return;
+  q.killCount = (q.killCount||0)+1;
+  if(q.killCount >= (q.killsNeeded||1)){
+    advanceQuestStep(G.activeQuest);
   } else {
-    addStory(`✅ Progreso en "${q.name}": ${q.progress}/${q.target}`, 'system');
+    addStory(`⚔️ Progreso en "${q.name}": ${q.killCount}/${q.killsNeeded||1} enemigos.`, 'system');
+    renderQuests();
   }
+}
+
+function questAdvanceOnTravel(locationName){
+  if(G.activeQuest===null) return;
+  const q = G.quests[G.activeQuest];
+  if(!q||q.completed||!q.accepted) return;
+
+  const loc = locationName.toLowerCase();
+
+  if(q.type === 'fetch'){
+    // Step 1: reaching the zone to find the item
+    if(!q.itemFound && q.zone){
+      const zone = q.zone.toLowerCase();
+      if(loc.includes(zone.split(' ')[0]) || zone.includes(loc.split(' ')[0])){
+        addStory(`📍 Has llegado a la zona de la misión: **${locationName}**. Usa "Buscar en el área" para encontrar ${q.questItemName||'el objeto'}.`, 'system');
+        advanceQuestStep(G.activeQuest);
+      }
+    }
+    // Step 2: returning with the item to the giver's city
+    else if(q.itemFound){
+      const city = (q.deliverCity||'').toLowerCase();
+      const giverMatch = loc.includes(city.split(' ')[0]) || city.includes(loc.split(' ')[0]);
+      // Also check if player has the item in inventory
+      const hasItem = G.player.inventory && G.player.inventory.some(i=>i.id===q.questItem||i===q.questItem);
+      if(giverMatch && hasItem){
+        // Remove quest item from inventory
+        const idx = G.player.inventory.findIndex(i=>i.id===q.questItem||i===q.questItem);
+        if(idx>=0) G.player.inventory.splice(idx,1);
+        addStory(`📦 Entregas **${q.questItemName||'el objeto'}** a **${q.giver}**.`, 'system');
+        advanceQuestStep(G.activeQuest);
+      } else if(giverMatch && !hasItem){
+        addStory(`⚠️ Has vuelto a ${locationName} pero aún no tienes ${q.questItemName||'el objeto'}. Encuéntralo primero.`, 'warning');
+      }
+    }
+  } else if(q.type === 'deliver' || q.type === 'escort'){
+    // Check destination match
+    const dest = (q.zone||'').toLowerCase();
+    if(loc.includes(dest.split(' ')[0]) || dest.includes(loc.split(' ')[0])){
+      advanceQuestStep(G.activeQuest);
+    }
+  } else if(q.type === 'kill'){
+    // Just mark "arrived at zone"
+    if(q.zone){
+      const zone = q.zone.toLowerCase();
+      if(loc.includes(zone.split(' ')[0]) || zone.includes(loc.split(' ')[0])){
+        if(q.currentStep === 0) advanceQuestStep(G.activeQuest);
+      }
+    }
+  }
+}
+
+function advanceQuestStep(idx){
+  const q = G.quests[idx];
+  if(!q||q.completed) return;
+  q.currentStep = (q.currentStep||0) + 1;
+  if(q.currentStep >= q.steps.length){
+    completeQuest(idx);
+  } else {
+    addStory(`📋 **${q.name}** — Paso completado.\n→ Siguiente: ${q.steps[q.currentStep]}`, 'system');
+    renderQuests();
+  }
+}
+
+function checkQuestProgressInternal(){
+  // Called on kill — only for kill quests
+  questAdvanceOnKill();
+}
+
+// Remove duplicate
+function checkQuestProgress(){
+  questAdvanceOnKill();
 }
 
 function completeQuest(idx){
@@ -6092,10 +6413,75 @@ function drawMap(){
     const isRevealed=!revealed||revealed.has(key);
 
     if(!isRevealed){
-      // Draw fog — dark hex with no details
       drawFogHex(ctx,x,y,sz);
     } else {
       drawHex(ctx,x,y,sz,hex,isPlayer);
+    }
+  }
+
+  // After drawing all hexes: quest marker overlay — visible even on fog
+  const aq = G?.activeQuest!==null && G?.quests?.[G.activeQuest];
+  if(aq && !aq.completed && aq.accepted && aq.zone){
+    const zoneLower = aq.zone.toLowerCase().split(' ')[0];
+    let questX=null, questY=null, questFound=false;
+
+    // Find hex that matches zone
+    for(const [key,hex] of Object.entries(hexMap)){
+      if(hex.location){
+        const locLower = hex.location.name.toLowerCase();
+        if(locLower.includes(zoneLower) || zoneLower.includes(locLower.split(' ')[0])){
+          const pp=hexToPixel(hex.q,hex.r);
+          questX=cx+pp.x*mapScale; questY=cy+pp.y*mapScale;
+          questFound=true;
+          break;
+        }
+      }
+    }
+
+    if(questFound && questX!==null){
+      const isRevealed = (() => {
+        for(const [key,hex] of Object.entries(hexMap)){
+          if(hex.location){
+            const ll=hex.location.name.toLowerCase();
+            if(ll.includes(zoneLower)||zoneLower.includes(ll.split(' ')[0])) return G.revealedHexes?.has(key);
+          }
+        }
+        return false;
+      })();
+
+      if(!isRevealed){
+        // Draw direction arrow from player toward quest zone (clamped to canvas edge)
+        const plPx = hexToPixel(plq,plr);
+        const px=cx+plPx.x*mapScale, py=cy+plPx.y*mapScale;
+        const dx=questX-px, dy=questY-py, dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist>10){
+          // Clamp to canvas with margin
+          const margin=30;
+          const ratio=Math.min((W/2-margin)/Math.abs(dx||1),(H/2-margin)/Math.abs(dy||1),1);
+          const arrowX=px+dx*ratio, arrowY=py+dy*ratio;
+          // Pulsing circle at arrow tip
+          ctx.save();
+          ctx.globalAlpha=0.85;
+          ctx.beginPath(); ctx.arc(arrowX,arrowY,11,0,Math.PI*2);
+          ctx.fillStyle='#f39c12'; ctx.fill();
+          ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+          ctx.font='bold 11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillStyle='white'; ctx.fillText('!',arrowX,arrowY);
+          // Draw dashed line from player
+          ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(243,156,18,0.5)';
+          ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(arrowX,arrowY); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+        }
+      }
+      // If revealed, the ! is drawn in drawHex — but draw a subtle pulse ring too
+      else if(questX>0&&questY>0&&questX<W&&questY<H){
+        ctx.save();
+        ctx.globalAlpha=0.35;
+        ctx.beginPath(); ctx.arc(questX,questY,sz*0.65,0,Math.PI*2);
+        ctx.strokeStyle='#f39c12'; ctx.lineWidth=2.5; ctx.stroke();
+        ctx.restore();
+      }
     }
   }
 }
@@ -6148,6 +6534,26 @@ function drawHex(ctx,cx,cy,size,hex,isPlayer){
       ctx.fillStyle='white'; ctx.fillText(G?.player?.avatar||'⚔',cx,cy);
     }
   }
+
+  // Quest marker: show ! on hex that matches active quest zone
+  if(G?.activeQuest!==null && G?.activeQuest!==undefined){
+    const aq = G?.quests?.[G.activeQuest];
+    if(aq && !aq.completed && aq.accepted && hex.location && aq.zone){
+      const zoneLower = aq.zone.toLowerCase();
+      const locLower  = hex.location.name.toLowerCase();
+      if(locLower.includes(zoneLower.split(' ')[0]) || zoneLower.includes(locLower.split(' ')[0])){
+        const mr = Math.max(size*.18, 5);
+        ctx.beginPath(); ctx.arc(cx+size*.3, cy-size*.3, mr, 0, Math.PI*2);
+        ctx.fillStyle='#f39c12'; ctx.fill();
+        ctx.strokeStyle='#fff'; ctx.lineWidth=1.2; ctx.stroke();
+        if(size>18){
+          ctx.font=`bold ${Math.min(size*.22,11)}px sans-serif`;
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillStyle='white'; ctx.fillText('!', cx+size*.3, cy-size*.3);
+        }
+      }
+    }
+  }
 }
 
 function mapZoom(f){ mapScale=Math.max(0.3,Math.min(4,mapScale*f)); drawMap(); }
@@ -6184,7 +6590,7 @@ function mapClick(e){
   const ambIcon = (LOCATIONS[loc.type]||{}).ambiance||'🏘️';
   showDialog(
     ambIcon+' '+loc.name, ambIcon,
-    `**${loc.name}** · ${typeLabel}\n${statusStr}\n\n${(loc.desc||'').slice(0,200)}\n\nServicios: ${servStr}\n\n_Usa "Ponerse en camino" para viajar a este lugar._`,
+    `**${loc.name}** · ${typeLabel}\n${statusStr}\n\n${(loc.desc||'').slice(0,200)}\n\nServicios: ${servStr}`,
     [{text:'Cerrar', fn:()=>closeModal('dialog-modal')}]
   );
 }
