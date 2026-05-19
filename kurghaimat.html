@@ -3658,7 +3658,7 @@ const LOCATIONS = {
 const ENEMIES = [
   // Low level
   {name:'Goblin',         level:1, hp:7,  ac:15, xp:50,  gold:[0,5],  emoji:'👺', attacks:[{name:'Cimitarra',dmg:'1d6',hit:4}], loot:['dagger','healpotion']},
-  {name:'Scheletor',      level:1, hp:13, ac:13, xp:50,  gold:[0,8],  emoji:'💀', attacks:[{name:'Espada',dmg:'1d6+2',hit:4}], loot:['shortsword']},
+  {name:'Esqueleto',      level:1, hp:13, ac:13, xp:50,  gold:[0,8],  emoji:'💀', attacks:[{name:'Espada',dmg:'1d6+2',hit:4}], loot:['shortsword']},
   {name:'Kobold',         level:1, hp:5,  ac:12, xp:25,  gold:[0,3],  emoji:'🦎', attacks:[{name:'Daga',dmg:'1d4+2',hit:4}], loot:['dagger']},
   {name:'Bandido',        level:2, hp:11, ac:12, xp:100, gold:[2,15], emoji:'🥷', attacks:[{name:'Espada',dmg:'1d8+1',hit:3}], loot:['shortsword','healpotion']},
   // Mid level
@@ -5034,7 +5034,14 @@ function startGame(){
   G.player.gold = bgGold[bg]||100;
 
   const gear = startGear[cls]||['shortsword','leather','healpotion','rations'];
+  // Silent add first, then equip weapons/armor
   gear.forEach(itemId=>{ addItem(itemId,1,true); });
+  // Auto-equip weapons and armor from starting gear
+  gear.forEach(itemId=>{
+    const item = ITEMS[itemId];
+    if(item?.slot && !G.player.equipped[item.slot]) G.player.equipped[item.slot] = itemId;
+  });
+  recalcAC();
 
   // Spells and spell slots (D&D 5e)
   if((c.spellcasting || cls === 'warlock') && SPELLS_BY_CLASS[cls]){
@@ -5119,6 +5126,8 @@ function startGame(){
 
 // ====== UI INITIALIZATION ======
 function initGameUI(){
+  // Ensure AC is correct from equipped items (especially on load)
+  if(G?.player) recalcAC();
   updateHUD();
   renderParty();
   renderQuests();
@@ -5702,7 +5711,7 @@ function addHexToMap(){ drawMap(); }
 const ENEMY_HABITATS = {
   // name: array of location types where they appear
   'Goblin':        ['forest','plains','dungeon','mountain'],
-  'Scheletor':     ['dungeon'],
+  'Esqueleto':     ['dungeon'],
   'Kobold':        ['dungeon','mountain'],
   'Bandido':       ['plains','forest','road'],
   'Orco':          ['forest','mountain','plains'],
@@ -6607,10 +6616,11 @@ function partyMemberDialog(m, idx){
 
 function dismissPartyMember(idx){
   const m = G.party[idx];
-  const cost = Math.floor(m.hireGold*0.5);
-  if(G.player.gold<cost){ notify('Oro insuficiente','warning'); return; }
-  G.player.gold -= cost;
-  addStory(`${m.avatar} **${m.name}** abandona el grupo. Le pagas ${cost}🪙 como liquidación.`, 'system');
+  if(!m) return;
+  // Return 25% of hire gold as "severance pay received"
+  const refund = Math.floor((m.hireGold||0)*0.25);
+  if(refund > 0) G.player.gold += refund;
+  addStory(`${m.avatar} **${m.name}** abandona el grupo.${refund>0?` Recibes ${refund}🪙 de vuelta.`:''} ¡Buena suerte en el camino!`, 'system');
   G.party.splice(idx,1);
   renderParty();
   updateHUD();
@@ -6677,15 +6687,20 @@ function refreshTavernPool(){
 function hireAdventurer(idx){
   if(G.party.length>=4){ notify('Grupo lleno (máx. 4)','warning'); return; }
   const npc = G.tavernPool[idx];
+  if(!npc){ notify('Aventurero no disponible.','warning'); return; }
   if(G.player.gold < npc.hireGold){ notify('Oro insuficiente','warning'); return; }
 
   G.player.gold -= npc.hireGold;
   G.party.push({...npc});
+  // Remove from pool so they can't be hired again
+  G.tavernPool.splice(idx, 1);
+
   addStory(`🤝 **${npc.avatar} ${npc.name}** se une a tu grupo! (${CLASSES[npc.cls]?.name} Nv.${npc.level})`, 'system');
   notify(`${npc.name} se unió al grupo!`,'quest');
   renderParty();
   updateHUD();
   closeModal('tavern-modal');
+  // Reopen with updated pool (don't regenerate)
   openTavern();
 }
 
@@ -6738,28 +6753,43 @@ function buyItem(id){
 function sellItem(id){
   const item = ITEMS[id];
   if(!item) return;
+  if(item.price <= 0 || item.rarity === 'legendary'){
+    notify(`${item.name} no tiene precio de venta.`, 'warning'); return;
+  }
   const idx = G.player.inventory.findIndex(i=>i.id===id);
   if(idx<0) return;
-  const sellPrice = Math.floor(item.price*0.5);
+  // Unequip first if equipped
+  const equippedSlot = Object.entries(G.player.equipped).find(([,v])=>v===id)?.[0];
+  if(equippedSlot) unequipItem(equippedSlot);
+
+  const sellPrice = Math.max(1, Math.floor(item.price*0.5));
   G.player.gold += sellPrice;
-  removeItem(idx);
+  const newIdx = G.player.inventory.findIndex(i=>i.id===id);
+  if(newIdx>=0) removeItem(newIdx);
   notify(`Vendiste ${item.name} por 🪙${sellPrice}`,'reward');
   playSound('gold');
-  document.getElementById('market-gold').textContent = G.player.gold;
+  const mg = document.getElementById('market-gold');
+  if(mg) mg.textContent = G.player.gold;
   updateHUD();
   openMarket();
 }
 
 // ====== HEALER ======
 function visitHealer(){
-  const cost = (G.player.maxHP - G.player.hp) * 2;
-  const healerGender = Math.random()<0.5?'male':'female';
+  if(G.player.hp >= G.player.maxHP && G.party.every(m=>m.hp>=m.maxHP)){
+    showDialog('💚 Curandero Local','old_sage',
+      `"Tus heridas ya están cerradas, aventurero. No hay nada que curar. Vuelve cuando lo necesites."`,
+      [{text:'Gracias.', fn:()=>closeModal('dialog-modal')}]);
+    return;
+  }
+  const cost = Math.max(1, (G.player.maxHP - G.player.hp) * 2 +
+    G.party.reduce((sum,m)=>sum + Math.max(0,(m.maxHP-m.hp)), 0));
   showDialog(
     '💚 Curandero Local',
     'old_sage',
-    `"Tus heridas hablan de batallas duras, aventurero. Puedo restaurar tu salud por ${cost} monedas de oro. ¿Aceptas?"`,
+    `"Tus heridas hablan de batallas duras, aventurero. Puedo restaurar tu salud${G.party.length?' y la de tus compañeros':''} por **${cost}** monedas de oro. ¿Aceptas?"`,
     [
-      {text:`Curar (${cost}🪙)`, fn:()=>{ 
+      {text:`Curar todo (${cost}🪙)`, fn:()=>{
         if(G.player.gold<cost){ closeModal('dialog-modal'); notify('Oro insuficiente','warning'); return; }
         G.player.gold -= cost;
         G.player.hp = G.player.maxHP;
@@ -6780,7 +6810,8 @@ function generateQuest(giver=null, forceType=null){
   const tplGroup = forceType ? QUEST_TEMPLATES.find(t=>t.type===forceType) : pick(QUEST_TEMPLATES);
   if(!tplGroup) return null;
   const tpl = pick(tplGroup.templates);
-  const giverName = giver||genName('male');
+  const giverGender = Math.random()<0.5?'male':'female';
+  const giverName = giver||genName(giverGender);
   const city = pick([...LOCATIONS.town.names,...LOCATIONS.city.names]);
   const enemy  = tpl.enemies  ? pick(tpl.enemies)  : null;
   const count  = tpl.counts   ? pick(tpl.counts)   : 1;
@@ -7093,7 +7124,11 @@ function startFinalQuest(){
         closeModal('dialog-modal');
         addStory(`🔥 **EL DESAFÍO FINAL COMIENZA.**\nEntras en la caverna. El calor es insoportable. Escamas del tamaño de escudos decoran las paredes. Y entonces... lo ves.`, 'combat');
         addStory(`🐉 El suelo tiembla. Dovahkiin, el Dragón Eterno, abre sus ojos carmesí. "Pequeña criatura... ¿Cómo osaste venir a mi guarida?"`, 'combat');
-        setTimeout(()=>startCombat([ENEMIES[ENEMIES.length-1]]), 1000);
+        setTimeout(()=>{
+          const dovahkiin = ENEMIES.find(e=>e.name==='DOVAHKIIN');
+          if(!dovahkiin){ addStory('⚠️ Error: no se encontró a DOVAHKIIN.','warning'); return; }
+          startCombat([dovahkiin]);
+        }, 1000);
       }},
       {text:'Todavía no estoy listo.', fn:()=>closeModal('dialog-modal')},
     ]
@@ -7274,35 +7309,70 @@ function equipItem(id, silent=false){
   const item = ITEMS[id];
   if(!item||!item.slot) return;
 
-  const prev = G.player.equipped[item.slot];
+  // If something already in this slot, unequip it cleanly first
+  const prevId = G.player.equipped[item.slot];
+  if(prevId && prevId !== id){
+    _applyItemBonus(prevId, -1); // remove old bonus
+  }
+
   G.player.equipped[item.slot] = id;
+  _applyItemBonus(id, 1); // apply new bonus
 
-  if(!silent) addStory(`🎒 Equipado: ${item.icon} **${item.name}**.`, 'system');
+  if(!silent) addStory(`🎒 Equipado: ${item.icon} **${item.name}**.${item.bonus?` (${Object.entries(item.bonus).map(([k,v])=>`+${v} ${k}`).join(', ')})`:''} `, 'system');
 
-  // Apply AC
   recalcAC();
   updateHUD();
   renderInventory();
 }
 
 function unequipItem(slot){
+  const prevId = G.player.equipped[slot];
+  if(prevId) _applyItemBonus(prevId, -1);
   G.player.equipped[slot] = null;
   recalcAC();
   updateHUD();
   renderInventory();
 }
 
+function _applyItemBonus(id, sign){
+  const item = ITEMS[id];
+  if(!item?.bonus) return;
+  const p = G.player;
+  if(item.bonus.maxhp){ p.maxHP += sign * item.bonus.maxhp; p.hp = Math.min(p.hp, p.maxHP); }
+  if(item.bonus.str)   p.stats.str = Math.min(20, Math.max(1, p.stats.str + sign * item.bonus.str));
+  if(item.bonus.dex)   p.stats.dex = Math.min(20, Math.max(1, p.stats.dex + sign * item.bonus.dex));
+  if(item.bonus.con)   p.stats.con = Math.min(20, Math.max(1, p.stats.con + sign * item.bonus.con));
+  if(item.bonus.int)   p.stats.int = Math.min(20, Math.max(1, p.stats.int + sign * item.bonus.int));
+  if(item.bonus.wis)   p.stats.wis = Math.min(20, Math.max(1, p.stats.wis + sign * item.bonus.wis));
+  if(item.bonus.cha)   p.stats.cha = Math.min(20, Math.max(1, p.stats.cha + sign * item.bonus.cha));
+  // speed handled via recalcAC / separate systems
+}
+
 function recalcAC(){
-  let ac = 10 + mod(G.player.stats.dex);
-  const body = G.player.equipped.body ? ITEMS[G.player.equipped.body] : null;
-  const offhand = G.player.equipped.offhand ? ITEMS[G.player.equipped.offhand] : null;
-  const ring = G.player.equipped.ring ? ITEMS[G.player.equipped.ring] : null;
+  const p = G.player;
+  const body    = p.equipped.body    ? ITEMS[p.equipped.body]    : null;
+  const offhand = p.equipped.offhand ? ITEMS[p.equipped.offhand] : null;
+  const ring    = p.equipped.ring    ? ITEMS[p.equipped.ring]    : null;
+  const back    = p.equipped.back    ? ITEMS[p.equipped.back]    : null;
+  const neck    = p.equipped.neck    ? ITEMS[p.equipped.neck]    : null;
 
-  if(body?.ac) ac = body.ac + (body.ac<13 ? mod(G.player.stats.dex) : 0);
+  let ac = 10 + mod(p.stats.dex);
+
+  if(body?.ac){
+    // Light armor: base + full DEX; medium: base + DEX max 2; heavy: just base
+    const acBonus = body.acBonus || '';
+    if(acBonus.includes('max2')) ac = body.ac + Math.min(2, mod(p.stats.dex));
+    else if(acBonus.includes('DES')) ac = body.ac + mod(p.stats.dex);
+    else ac = body.ac;
+  }
+
   if(offhand?.ac) ac += offhand.ac;
-  if(ring?.bonus?.ac) ac += ring.bonus.ac;
+  if(ring?.bonus?.ac)  ac += ring.bonus.ac;
+  if(back?.bonus?.ac)  ac += back.bonus.ac;
+  // Neck accessories with AC bonus (e.g. cloakprotect has slot:'back' but check anyway)
+  if(neck?.bonus?.ac)  ac += neck.bonus.ac;
 
-  G.player.ac = ac;
+  p.ac = Math.max(1, ac);
 }
 
 function renderInventory(){
@@ -7354,27 +7424,51 @@ function showItemModal(id, equipped, slot, idx){
 
   document.getElementById('item-modal-title').textContent = `${item.icon} ${item.name}`;
 
+  // Find equipped slot if not passed explicitly
+  if(!slot && !equipped){
+    const found = Object.entries(G.player.equipped).find(([,v])=>v===id);
+    if(found){ equipped=true; slot=found[0]; }
+  }
+
   let actions = '';
   if(equipped && slot){
     actions = `<button class="btn btn-small" onclick="unequipItem('${slot}'); closeModal('item-modal');">Desequipar</button>`;
-  } else if(item.slot){
+  } else if(item.slot && item.type !== 'tool'){
     actions = `<button class="btn btn-small btn-primary" onclick="equipItem('${id}'); closeModal('item-modal');">Equipar</button>`;
   } else if(item.type==='consumable'){
     actions = `<button class="btn btn-small btn-primary" onclick="useConsumable('${id}',${idx}); closeModal('item-modal');">Usar</button>`;
   }
 
-  if(idx!==undefined) actions += `<button class="btn btn-small btn-danger" onclick="removeItem(${idx}); closeModal('item-modal');">Soltar</button>`;
+  // Don't allow dropping equipped items or legendary/quest items
+  const isEquipped = equipped || Object.values(G.player.equipped).includes(id);
+  const isProtected = item.rarity==='legendary' || item.type==='clue';
+  if(idx!==undefined && !isEquipped && !isProtected){
+    actions += `<button class="btn btn-small btn-danger" onclick="removeItem(${idx}); closeModal('item-modal');">Soltar</button>`;
+  }
+
+  // Bonus display
+  let bonusHtml = '';
+  if(item.bonus){
+    const bonusLines = Object.entries(item.bonus).map(([k,v])=>`<span style="color:var(--green-bright);">+${v} ${k.toUpperCase()}</span>`).join(' · ');
+    bonusHtml = `<div style="margin-top:0.3rem;">${bonusLines}</div>`;
+  }
+
+  const sellVal = item.price > 0 ? Math.floor(item.price*0.5) : null;
 
   document.getElementById('item-modal-body').innerHTML = `
     <div style="display:flex; gap:0.8rem; align-items:flex-start; margin-bottom:1rem;">
-      <div style="font-size:3rem;">${item.icon}</div>
-      <div>
-        <div class="rarity-${item.rarity}" style="font-family:var(--font-display); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em;">${item.rarity}</div>
-        <div style="font-style:italic; margin:0.3rem 0; font-size:0.85rem;">${item.desc}</div>
-        ${item.damage?`<div>Daño: <strong style="color:var(--gold);">${item.damage} ${item.dmgType||''}</strong></div>`:''}
-        ${item.ac?`<div>CA: <strong style="color:var(--blue);">+${item.ac}</strong></div>`:''}
-        ${item.heal?`<div>Curación: <strong style="color:var(--green);">2d4+2</strong></div>`:''}
-        ${item.price?`<div>Valor: <strong>🪙${item.price}</strong></div>`:''}
+      <div style="font-size:3rem; flex-shrink:0;">${item.icon}</div>
+      <div style="flex:1;">
+        <div class="rarity-${item.rarity}" style="font-family:var(--font-display); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em;">${item.rarity?.charAt(0).toUpperCase()+item.rarity?.slice(1)||''}</div>
+        <div style="font-style:italic; margin:0.3rem 0; font-size:0.85rem; color:var(--text-secondary);">${item.desc}</div>
+        ${item.damage?`<div style="font-size:0.8rem;">Daño: <strong style="color:var(--gold);">${item.damage}${item.dmgType?' '+item.dmgType:''}</strong></div>`:''}
+        ${item.ac?`<div style="font-size:0.8rem;">CA: <strong style="color:var(--blue-bright);">+${item.ac}</strong></div>`:''}
+        ${item.type==='consumable'&&item.heal?`<div style="font-size:0.8rem;">Curación: <strong style="color:var(--green-bright);">2d4+2 PG</strong></div>`:''}
+        ${bonusHtml}
+        <div style="font-size:0.75rem; color:var(--text-dim); margin-top:0.3rem;">
+          ${item.price>0?`Valor: 🪙${item.price}${sellVal?` · Venta: 🪙${sellVal}`:''}`:item.rarity==='legendary'?'📜 Objeto legendario — no vendible':''}
+          ${item.weight?` · Peso: ${item.weight}kg`:''}
+        </div>
       </div>
     </div>
     <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">${actions}</div>
@@ -7383,21 +7477,44 @@ function showItemModal(id, equipped, slot, idx){
 }
 
 function useConsumable(id, idx){
+  if(combatState && !combatState.over){
+    addStory('Usa la acción de combate "Poción" durante el combate.', 'system'); return;
+  }
   const item = ITEMS[id];
   if(!item) return;
 
-  if(item.heal){
-    const heal = parseDice('2d4+2');
+  if(item.heal !== undefined || ['healpotion','greatpotion','superiorpotion'].includes(id)){
+    const diceMap = {healpotion:'2d4+2', greatpotion:'4d4+4', superiorpotion:'8d4+8'};
+    const heal = parseDice(diceMap[id]||'2d4+2');
     G.player.hp = Math.min(G.player.maxHP, G.player.hp+heal);
-    addStory(`🧪 Usas ${item.icon} **${item.name}** y recuperas **${heal} PG**.`, 'system');
+    addStory(`🧪 Usas ${item.icon} **${item.name}** y recuperas **${heal} PG**. (${G.player.hp}/${G.player.maxHP})`, 'system');
     playSound('heal');
-  } else if(item.mana){
-    G.player.mp = Math.min(G.player.maxMP, G.player.mp+item.mana);
-    addStory(`💙 Usas **${item.name}**. Recuperas espacios de conjuro.`, 'system');
+  } else if(id === 'manapotion' || item.mana){
+    const slots = getSpellSlotsForLevel(G.player.cls, G.player.level);
+    let restored = false;
+    for(const lvl of Object.keys(slots).sort()){
+      if((G.player.spellSlots[lvl]||0) < (G.player.spellSlotsMax[lvl]||0)){
+        G.player.spellSlots[lvl] = (G.player.spellSlots[lvl]||0) + 1;
+        addStory(`💙 Usas **${item.name}**. Recuperas 1 espacio de conjuro nivel ${lvl}.`, 'system');
+        restored = true; break;
+      }
+    }
+    if(!restored) addStory(`💙 Ya tienes todos tus espacios de conjuro.`, 'system');
+  } else if(item.tempBonus){
+    if(item.tempBonus.str){ G.player.stats.str = Math.min(20, G.player.stats.str+item.tempBonus.str); }
+    addStory(`🔴 Usas **${item.name}**. ¡${item.desc}!`, 'system');
+    recalcAC();
+  } else if(id === 'antidote'){
+    G.player.conditions = (G.player.conditions||[]).filter(c=>c!=='poisoned'&&c!=='diseased');
+    addStory(`💚 Usas **${item.name}**. Veneno y enfermedades curados.`, 'system');
+  } else {
+    addStory(`Usas ${item.icon} **${item.name}**. ${item.desc}`, 'system');
   }
 
   removeItem(idx);
   updateHUD();
+  renderInventory();
+  renderSpells();
 }
 
 // ====== SPELLS ======
