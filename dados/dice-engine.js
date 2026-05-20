@@ -528,6 +528,7 @@
       ring.rotation.x = -Math.PI / 2;
       ring.position.y = 0.002;
       this.scene.add(ring);
+      this._ring = ring;
 
       // Physics
       this.bounds = 8.5;
@@ -546,17 +547,18 @@
       this.world.addBody(ground);
 
       // Octagonal walls — invisible
+      this._walls = [];
       for (let i = 0; i < 12; i++) {
         const a = (i / 12) * Math.PI * 2;
         const wall = new CANNON.Body({ mass: 0 });
         const plane = new CANNON.Plane();
         wall.addShape(plane);
-        // Plane default normal = +z. We want normal to point inward = (-cos a, 0, -sin a).
         const q = new CANNON.Quaternion();
         q.setFromVectors(new CANNON.Vec3(0, 0, 1), new CANNON.Vec3(-Math.cos(a), 0, -Math.sin(a)));
         wall.quaternion.copy(q);
         wall.position.set(Math.cos(a) * this.bounds, 0, Math.sin(a) * this.bounds);
         this.world.addBody(wall);
+        this._walls.push({ body: wall, angle: a });
       }
 
       // Resize
@@ -668,6 +670,32 @@
       canvas.addEventListener('touchend',   onUp);
       canvas.addEventListener('wheel',      onWheel, { passive: false });
       canvas.addEventListener('dblclick',   onDblClick);
+    }
+
+    setTableSize(radius) {
+      // Clamp between 5 and 14
+      radius = Math.max(5, Math.min(14, radius));
+      this.bounds = radius;
+      // Move walls
+      for (const w of this._walls) {
+        w.body.position.set(Math.cos(w.angle) * radius, 0, Math.sin(w.angle) * radius);
+      }
+      // Resize visual table and ring
+      const s = radius / 12; // 12 was the original radius
+      this.table.scale.set(s, s, s);
+      if (this._ring) this._ring.scale.set(s, s, s);
+    }
+
+    // Tilt gravity to simulate device tilt (ax, az in m/s², base gravity magnitude)
+    setGravityTilt(ax, az) {
+      const g = this.opts.gravity;
+      // ax/az from accelerometer: when device tilts right, ax goes positive → push dice left
+      this.world.gravity.set(-ax * 2.2, -g, az * 2.2);
+      for (const d of this.dice) d.body.wakeUp();
+    }
+
+    resetGravity() {
+      this.world.gravity.set(0, -this.opts.gravity, 0);
     }
 
     setOptions(opts) {

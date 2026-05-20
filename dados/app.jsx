@@ -157,6 +157,7 @@ function App() {
   const [numFont, setNumFont] = useState('mono');
   const [numColor, setNumColor] = useState('auto');
   const [diceSet, setDiceSet] = useState({ d4: 0, d6: 0, d8: 0, d10: 0, d12: 0, d20: 1, d100: 0 });
+  const [tableSize, setTableSize] = useState(8.5);
   const [results, setResults] = useState(null);
   const [rolling, setRolling] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -218,6 +219,12 @@ function App() {
     engineRef.current.setOptions({ tableColor: tab.color, accentLight: tab.accent });
   }, [tweaks.table]);
 
+  // Table size
+  useEffect(() => {
+    if (!engineRef.current) return;
+    engineRef.current.setTableSize(tableSize);
+  }, [tableSize]);
+
   // Roll
   const roll = useCallback(() => {
     if (!engineRef.current) return;
@@ -228,28 +235,33 @@ function App() {
     engineRef.current.roll(THROW_STRENGTH);
   }, [diceSet]);
 
-  // Shake detection (acelerómetro móvil)
+  // Acelerómetro: inclinar gravedad según orientación del móvil
   useEffect(() => {
     if (!tweaks.shakeToRoll || !shakeArmed) return;
-    let last = { x: 0, y: 0, z: 0, t: 0 };
-    let cooldown = 0;
+    let settleTimeout = null;
+
     function onMotion(e) {
-      const a = e.accelerationIncludingGravity || e.acceleration;
-      if (!a) return;
-      const now = performance.now();
-      const dt = now - last.t;
-      if (dt < 30) return;
-      const dx = a.x - last.x, dy = a.y - last.y, dz = a.z - last.z;
-      last = { x: a.x, y: a.y, z: a.z, t: now };
-      const speed = Math.hypot(dx, dy, dz) / dt * 1000;
-      if (speed > 70 && now - cooldown > 1200 && !rolling) {
-        cooldown = now;
-        roll();
-      }
+      const a = e.accelerationIncludingGravity;
+      if (!a || !engineRef.current) return;
+      // ax: inclinación lateral, az: inclinación frontal
+      engineRef.current.setGravityTilt(a.x || 0, a.z || 0);
+      // Cancelar timer de settle anterior y reprogramar
+      if (settleTimeout) clearTimeout(settleTimeout);
+      // Activar modo rolling para que el settle detecte resultados
+      setRolling(true);
+      settleTimeout = setTimeout(() => {
+        if (engineRef.current) engineRef.current.resetGravity();
+        // El settle del engine se encarga de leer resultados cuando los dados paren
+      }, 1200);
     }
+
     window.addEventListener('devicemotion', onMotion);
-    return () => window.removeEventListener('devicemotion', onMotion);
-  }, [tweaks.shakeToRoll, shakeArmed, roll, rolling]);
+    return () => {
+      window.removeEventListener('devicemotion', onMotion);
+      if (settleTimeout) clearTimeout(settleTimeout);
+      if (engineRef.current) engineRef.current.resetGravity();
+    };
+  }, [tweaks.shakeToRoll, shakeArmed]);
 
   // Espacio para lanzar
   useEffect(() => {
@@ -496,6 +508,16 @@ function App() {
                 </button>
               ))}
             </div>
+            <div className="num-row size" style={{ marginTop: 12 }}>
+              <span className="num-label">Tamaño</span>
+              <input
+                type="range" min="5" max="14" step="0.5"
+                value={tableSize}
+                onChange={e => setTableSize(Number(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <span className="num-value">{tableSize.toFixed(1)}</span>
+            </div>
           </div>
         </div>
       )}
@@ -515,7 +537,10 @@ function App() {
           <span className="roll-hint"></span>
         </button>
         {tweaks.shakeToRoll && isTouch && !shakeArmed && (
-          <button className="shake-arm" onClick={enableShake}>Acelerómetro</button>
+          <button className="shake-arm" onClick={enableShake}>Activar inclinación</button>
+        )}
+        {tweaks.shakeToRoll && isTouch && shakeArmed && (
+          <div className="shake-active">↕ Inclinación activa</div>
         )}
       </div>
 
@@ -580,7 +605,7 @@ function App() {
       <TweaksPanel title="Ajustes">
         <TweakSection label="Reglas">
           <TweakToggle label="Emparejar d100+d10 como porcentaje" value={tweaks.linkPercentile} onChange={v => setTweak('linkPercentile', v)} />
-          <TweakToggle label="Agitar para lanzar" value={tweaks.shakeToRoll} onChange={v => setTweak('shakeToRoll', v)} />
+          <TweakToggle label="Inclinar mesa con el acelerómetro" value={tweaks.shakeToRoll} onChange={v => setTweak('shakeToRoll', v)} />
         </TweakSection>
       </TweaksPanel>
     </React.Fragment>
