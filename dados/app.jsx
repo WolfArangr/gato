@@ -240,20 +240,29 @@ function App() {
     if (!tweaks.shakeToRoll || !shakeArmed) return;
     let settleTimeout = null;
 
-    function onMotion(e) {
-      const a = e.accelerationIncludingGravity;
-      if (!a || !engineRef.current) return;
-      // ax: inclinación lateral, az: inclinación frontal
-      engineRef.current.setGravityTilt(a.x || 0, a.z || 0);
-      // Cancelar timer de settle anterior y reprogramar
-      if (settleTimeout) clearTimeout(settleTimeout);
-      // Activar modo rolling para que el settle detecte resultados
-      setRolling(true);
-      settleTimeout = setTimeout(() => {
-        if (engineRef.current) engineRef.current.resetGravity();
-        // El settle del engine se encarga de leer resultados cuando los dados paren
-      }, 1200);
-    }
+function onMotion(e) {
+  const a = e.accelerationIncludingGravity;
+  if (!a || !engineRef.current) return;
+
+  // Cuando el móvil está plano en la mesa → x e y ≈ 0
+  // Usamos x (lateral) e y (frontal) como inclinaciones
+  let tiltX = a.x || 0;   // inclinación izquierda/derecha
+  let tiltY = a.y || 0;   // inclinación hacia ti / alejándose
+
+  // Opcional: suavizar un poco el ruido
+  tiltX = Math.round(tiltX * 10) / 10;
+  tiltY = Math.round(tiltY * 10) / 10;
+
+  engineRef.current.setGravityTilt(tiltX, tiltY);
+
+  // El resto lo dejas igual
+  if (settleTimeout) clearTimeout(settleTimeout);
+  
+  setRolling(true);
+  settleTimeout = setTimeout(() => {
+    if (engineRef.current) engineRef.current.resetGravity();
+  }, 1200);
+}
 
     window.addEventListener('devicemotion', onMotion);
     return () => {
