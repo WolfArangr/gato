@@ -533,14 +533,14 @@ function App() {
           onClick={roll}
           disabled={rolling || totalDice === 0}
         >
-          <span className="roll-label">{rolling ? 'Lanzando…' : 'Lanzar'}</span>
+          <span className="roll-label">{rolling ? '¡Suerte!' : 'Lanzar'}</span>
           <span className="roll-hint"></span>
         </button>
         {tweaks.shakeToRoll && isTouch && !shakeArmed && (
-          <button className="shake-arm" onClick={enableShake}>Activar inclinación</button>
+          <button className="shake-arm" onClick={enableShake}>Acelerómetro</button>
         )}
         {tweaks.shakeToRoll && isTouch && shakeArmed && (
-          <div className="shake-active">↕ Inclinación activa</div>
+          <div className="shake-active">↕ Acelerómetro</div>
         )}
       </div>
 
