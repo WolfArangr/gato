@@ -373,6 +373,30 @@ function App() {
       {menuOpen && (
         <div className="menu-dropdown" ref={menuRef}>
           <div className="menu-section">
+            <div className="menu-title">Dados</div>
+            <div className="dice-grid-menu">
+              {DICE_TYPES.map(t => {
+                const count = diceSet[t.key];
+                return (
+                  <div key={t.key} className={`die-row-menu ${count > 0 ? 'active' : ''}`}>
+                    <div className="die-info-menu">
+                      <DieIcon type={t.key} size={20} stroke={count > 0 ? '#e8b14a' : '#7e7669'} />
+                      <span className="die-label-menu">{t.key}</span>
+                    </div>
+                    <div className="die-counter">
+                      <button className="cbtn" onClick={() => adjust(t.key, -1)} disabled={count === 0}>−</button>
+                      <div className="count">{count}</div>
+                      <button className="cbtn" onClick={() => adjust(t.key, +1)}>+</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="menu-divider" />
+
+          <div className="menu-section">
             <div className="menu-title">Color de los dados</div>
             <div className="swatch-grid">
               {COLOR_OPTIONS.map(c => (
@@ -475,32 +499,6 @@ function App() {
           </div>
         </div>
       )}
-
-      {/* Columna izquierda: selector de dados */}
-      <div className="left-panel">
-        <div className="panel-title">Dados</div>
-        <div className="dice-grid">
-          {DICE_TYPES.map(t => {
-            const count = diceSet[t.key];
-            return (
-              <div key={t.key} className={`die-row ${count > 0 ? 'active' : ''}`}>
-                <div className="die-info">
-                  <DieIcon type={t.key} size={26} stroke={count > 0 ? '#e8b14a' : '#7e7669'} />
-                  <div className="die-meta">
-                    <div className="die-label">{t.key}</div>
-                    <div className="die-sides">{t.subtitle}</div>
-                  </div>
-                </div>
-                <div className="die-counter">
-                  <button className="cbtn" onClick={() => adjust(t.key, -1)} disabled={count === 0}>−</button>
-                  <div className="count">{count}</div>
-                  <button className="cbtn" onClick={() => adjust(t.key, +1)}>+</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Barra inferior: notación + botón lanzar */}
       <div className="bottom-bar">
