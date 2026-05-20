@@ -724,22 +724,8 @@
     cursor: pointer;
   }
 
-  /* ---------- Mobile ---------- */
- @media (max-width: 760px) {
-  .top-bar {
-    gap: 10px;
-    padding: 8px 10px 8px 8px;
-    top: 10px;
-    max-width: calc(100vw - 16px);
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .brand-sub { display: none; }
-  .brand-title { font-size: 18px; }
-  .presets { gap: 4px; }
-  .preset { font-size: 11px; padding: 6px 9px; }
-
-  /* Panel oculto por defecto en móvil */
+  /* ==================== MOBILE DICE PANEL (Bottom Sheet) ==================== */
+@media (max-width: 760px) {
   .left-panel {
     left: 0;
     right: 0;
@@ -747,79 +733,69 @@
     top: auto;
     width: 100%;
     transform: translateY(100%);
-    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 320ms cubic-bezier(0.32, 0.72, 0, 1);
     border-radius: var(--radius) var(--radius) 0 0;
-    max-height: 75vh;
-    padding: 16px 16px 32px;
-    z-index: 60;
+    max-height: 78vh;
+    padding: 16px 16px 40px;
+    z-index: 70;
+    background: var(--surface-2);           /* más opaco para que se vea bien */
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 -10px 30px -10px rgba(0,0,0,0.6);
   }
+
   .left-panel.open {
     transform: translateY(0);
   }
 
-  /* Handle visual en la parte superior del panel */
+  /* Handle (la rayita de arriba) */
   .left-panel::before {
     content: '';
     display: block;
-    width: 36px;
+    width: 40px;
     height: 4px;
     border-radius: 2px;
     background: var(--line-strong);
-    margin: 0 auto 16px;
+    margin: 0 auto 18px;
   }
 
-  /* Overlay oscuro detrás del panel */
-  .panel-overlay {
-    display: block;
-  }
-
-  .bottom-bar {
-    bottom: 14px;
-    gap: 8px;
-    flex-direction: row;
-  }
-  .roll-btn { font-size: 22px; padding: 12px 24px; }
-  .notation-bubble { min-width: 100px; padding: 6px 10px; }
-  .notation { font-size: 14px; }
-  .results-panel {
-    right: 8px;
-    top: 88px;
-    transform: none;
-    width: 200px;
-    padding: 12px 14px;
-  }
-  .results-total { font-size: 36px; }
+  .bottom-bar { bottom: 14px; }
 }
-  /* Overlay — solo visible en móvil cuando el panel está abierto */
+
+/* Overlay oscuro */
 .panel-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 55;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 60;
+  /* Quitamos el blur fuerte que estaba causando problemas */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
-/* Botón flotante para abrir el panel en móvil */
+/* FAB */
 .dice-fab {
   display: none;
   position: fixed;
   left: 18px;
   bottom: 26px;
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--surface-2);
   border: 1px solid var(--line-strong);
   color: var(--ink);
-  font-size: 22px;
+  font-size: 24px;
   cursor: pointer;
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-lg);
-  z-index: 20;
-  transition: border-color 140ms, background 140ms;
+  z-index: 50;
 }
-.dice-fab:hover { border-color: var(--accent); background: rgba(232,177,74,0.10); }
+.dice-fab:hover {
+  border-color: var(--accent);
+  background: rgba(232,177,74,0.12);
+}
 
 @media (max-width: 760px) {
   .dice-fab { display: flex; }
@@ -859,20 +835,34 @@
   function getPanels() {
     return document.querySelectorAll('.left-panel');
   }
+
   function openPanel() {
     getPanels().forEach(p => p.classList.add('open'));
     overlay.style.display = 'block';
   }
+
   function closePanel() {
     getPanels().forEach(p => p.classList.remove('open'));
     overlay.style.display = 'none';
   }
 
-  fab.addEventListener('click', () => {
+  fab.addEventListener('click', (e) => {
+    e.stopPropagation();
     const isOpen = document.querySelector('.left-panel.open');
     isOpen ? closePanel() : openPanel();
   });
+
   overlay.addEventListener('click', closePanel);
+
+  // Cerrar al tocar fuera del panel (pero no dentro)
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth > 760) return; // solo en móvil
+
+    const panel = document.querySelector('.left-panel.open');
+    if (panel && !panel.contains(e.target) && e.target.id !== 'dice-fab') {
+      closePanel();
+    }
+  });
 </script>
 </body>
 </html>
