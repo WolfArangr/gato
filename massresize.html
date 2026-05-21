@@ -12,17 +12,30 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
 
-  :root {
-    --bg: #0a0a0f;
-    --surface: #111118;
-    --surface2: #1a1a24;
-    --accent: #e8ff47;
-    --accent2: #ff4757;
-    --text: #f0f0f0;
-    --muted: #878794;
-    --border: #2a2a3a;
-    --radius: 4px;
-  }
+  /* ── DARK MODE (default) ── */
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #1a1a24;
+  --accent: #e8ff47;
+  --accent2: #ff4757;
+  --text: #f0f0f0;
+  --muted: #9a9aa8; 
+  --border: #2a2a3a;
+  --radius: 4px;
+}
+
+/* ── LIGHT MODE ── */
+:root.light {
+  --bg: #f2f2f0;
+  --surface: #ffffff;
+  --surface2: #e8e8e4;
+  --accent: #d4b500;
+  --accent2: #d63031;
+  --text: #111118;
+  --muted: #52525f;
+  --border: #cccccc;
+}
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -32,6 +45,7 @@
     font-family: 'Syne', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background 0.25s, color 0.25s;
   }
 
   body::before {
@@ -44,6 +58,13 @@
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
+    transition: opacity 0.25s;
+  }
+
+  :root.light body::before {
+    background-image:
+      linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
   }
 
   .container {
@@ -76,6 +97,28 @@
     flex: 1;
   }
 
+  /* ── Theme toggle button ── */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 14px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-toggle .theme-icon { font-size: 13px; line-height: 1; }
+
   .lang-toggle {
     display: flex;
     border: 1px solid var(--border);
@@ -99,6 +142,7 @@
   }
 
   .lang-btn.active { background: rgba(232,255,71,0.12); color: var(--accent); }
+  :root.light .lang-btn.active { background: rgba(26,122,0,0.1); color: var(--accent); }
   .lang-btn:not(:last-child) { border-right: 1px solid var(--border); }
 
   .step-label {
@@ -114,10 +158,11 @@
   }
   .step-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 24px; }
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 24px; transition: background 0.25s, border-color 0.25s; }
 
   .dropzone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 60px 40px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
   .dropzone:hover, .dropzone.drag-over { border-color: var(--accent); background: rgba(232,255,71,0.04); }
+  :root.light .dropzone:hover, :root.light .dropzone.drag-over { background: rgba(26,122,0,0.04); }
   .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 
   .drop-icon { font-size: 40px; margin-bottom: 16px; display: block; }
@@ -136,12 +181,14 @@
   .preset-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; cursor: pointer; transition: all 0.2s; position: relative; }
   .preset-card:hover { border-color: var(--accent); background: rgba(232,255,71,0.05); }
   .preset-card.active { border-color: var(--accent); background: rgba(232,255,71,0.08); }
+  :root.light .preset-card:hover, :root.light .preset-card.active { background: rgba(26,122,0,0.06); }
   .preset-card.last-used { border-style: dashed; }
 
   .preset-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; color: var(--accent); }
   .preset-desc { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); line-height: 1.5; }
 
   .preset-badge { position: absolute; top: 10px; right: 10px; font-family: 'Space Mono', monospace; font-size: 9px; background: rgba(232,255,71,0.15); color: var(--accent); border-radius: 20px; padding: 2px 8px; text-transform: uppercase; letter-spacing: 1px; }
+  :root.light .preset-badge { background: rgba(26,122,0,0.12); }
   .preset-badge.saved { background: rgba(255,71,87,0.15); color: var(--accent2); }
 
   .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -176,10 +223,14 @@
 
   .pos-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--muted); padding: 10px 6px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; transition: all 0.15s; text-align: center; }
   .pos-btn.active { background: rgba(232,255,71,0.12); border-color: var(--accent); color: var(--accent); }
+  :root.light .pos-btn.active { background: rgba(26,122,0,0.1); }
   .pos-btn.center-btn.active { background: rgba(232,255,71,0.18); font-weight: 700; }
+  :root.light .pos-btn.center-btn.active { background: rgba(26,122,0,0.15); }
 
   .btn-process { width: 100%; padding: 18px; background: var(--accent); color: #0a0a0f; border: none; border-radius: var(--radius); font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; }
+  :root.light .btn-process { color: #ffffff; }
   .btn-process:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(232,255,71,0.3); }
+  :root.light .btn-process:hover { box-shadow: 0 8px 30px rgba(26,122,0,0.25); }
   .btn-process:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; transform: none; box-shadow: none; }
 
   #progress-section { display: none; }
@@ -198,11 +249,13 @@
 
   .btn-dl-ind { width: 100%; padding: 6px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; transition: all 0.15s; border-radius: 0 0 var(--radius) var(--radius); }
   .btn-dl-ind:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.06); }
+  :root.light .btn-dl-ind:hover { background: rgba(26,122,0,0.06); }
 
   .dl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .btn-dl { padding: 16px; border-radius: var(--radius); font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; border: none; }
   .btn-dl-zip { background: var(--surface2); border: 1px solid var(--accent); color: var(--accent); }
   .btn-dl-zip:hover { background: rgba(232,255,71,0.1); }
+  :root.light .btn-dl-zip:hover { background: rgba(26,122,0,0.08); }
   .btn-dl-all { background: var(--accent2); color: white; }
   .btn-dl-all:hover { background: #ff3040; transform: translateY(-1px); }
 
@@ -218,11 +271,13 @@
   .color-hex:focus { border-color: var(--accent); }
 
   .tag-pill { display: inline-block; font-family: 'Space Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 20px; background: rgba(232,255,71,0.1); color: var(--accent); text-transform: uppercase; letter-spacing: 1px; vertical-align: middle; margin-left: 6px; }
+  :root.light .tag-pill { background: rgba(26,122,0,0.1); }
 
   select option { background: var(--surface2); }
   .format-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
   .format-tab { padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 1px; }
   .format-tab.active { border-color: var(--accent); background: rgba(232,255,71,0.1); color: var(--accent); }
+  :root.light .format-tab.active { background: rgba(26,122,0,0.08); }
 
   input[type="text"] { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 12px 14px; font-family: 'Space Mono', monospace; font-size: 13px; width: 100%; outline: none; transition: border-color 0.2s; }
   input[type="text"]:focus { border-color: var(--accent); }
@@ -235,6 +290,7 @@
   .preview-bar { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
   .preview-toggle-btn { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; padding: 8px 14px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; }
   .preview-toggle-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.08); }
+  :root.light .preview-toggle-btn.active { background: rgba(26,122,0,0.06); }
   .preview-toggle-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background 0.2s; }
   .preview-toggle-btn.active .dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
   .preview-note { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); }
@@ -246,6 +302,7 @@
   .preview-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .preview-box-label { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 1px; }
   .preview-box img { width: 100%; display: block; max-height: 360px; object-fit: contain; background: repeating-conic-gradient(#1a1a24 0% 25%, #111118 0% 50%) 0 0 / 16px 16px; }
+  :root.light .preview-box img { background: repeating-conic-gradient(#e0e0dc 0% 25%, #f0f0ec 0% 50%) 0 0 / 16px 16px; }
   .preview-loading { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); padding: 40px; text-align: center; }
 
   /* ── PDF Modal ── */
@@ -257,6 +314,7 @@
   .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
   .modal-btn { padding: 16px; border-radius: var(--radius); font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--text); transition: all 0.2s; text-align: center; }
   .modal-btn:hover { border-color: var(--accent); background: rgba(232,255,71,0.07); }
+  :root.light .modal-btn:hover { background: rgba(26,122,0,0.05); }
   .modal-btn .modal-btn-title { font-size: 15px; color: var(--accent); display: block; margin-bottom: 4px; }
   .modal-btn .modal-btn-desc { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); line-height: 1.5; }
   .modal-cancel { display: block; text-align: center; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); cursor: pointer; margin-top: 8px; padding: 8px; }
@@ -278,11 +336,13 @@
   .tour-bubble h3 { font-size: 15px; font-weight: 800; margin-bottom: 8px; color: var(--text); }
   .tour-bubble p { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
   .tour-bubble-tip { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--accent); background: rgba(232,255,71,0.07); border-radius: 3px; padding: 6px 10px; margin-bottom: 14px; line-height: 1.5; }
+  :root.light .tour-bubble-tip { background: rgba(26,122,0,0.07); }
   .tour-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .tour-counter { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); }
   .tour-nav-btns { display: flex; gap: 8px; }
   .tour-btn { font-family: 'Space Mono', monospace; font-size: 11px; padding: 8px 14px; border-radius: var(--radius); cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); transition: all 0.15s; }
   .tour-btn.primary { border-color: var(--accent); background: var(--accent); color: #0a0a0f; font-weight: 700; }
+  :root.light .tour-btn.primary { color: #ffffff; }
   .tour-btn:hover:not(.primary) { border-color: var(--accent); color: var(--accent); }
   .tour-btn-start { display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; padding: 8px 14px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
   .tour-btn-start:hover { border-color: var(--accent); color: var(--accent); }
@@ -296,6 +356,10 @@
     <div class="tagline" id="tagline"></div>
     <button class="tour-btn-start" id="tourStartBtn" onclick="startTour()">
       <span>?</span> <span id="tour-btn-label">Tour</span>
+    </button>
+    <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle light/dark mode">
+      <span class="theme-icon" id="themeIcon">☀</span>
+      <span id="themeLabel">Light</span>
     </button>
     <div class="lang-toggle">
       <button class="lang-btn" id="btn-es" onclick="setLang('es')">ES</button>
@@ -688,6 +752,34 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 // ═══════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════
+let isLightMode = false;
+
+function initTheme() {
+  const saved = getCookie('massresize_theme');
+  if (saved === 'light') {
+    isLightMode = true;
+    document.documentElement.classList.add('light');
+    updateThemeBtn();
+  }
+}
+
+function toggleTheme() {
+  isLightMode = !isLightMode;
+  document.documentElement.classList.toggle('light', isLightMode);
+  setCookie('massresize_theme', isLightMode ? 'light' : 'dark', 365);
+  updateThemeBtn();
+}
+
+function updateThemeBtn() {
+  const icon = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
+  if (icon) icon.textContent = isLightMode ? '☽' : '☀';
+  if (label) label.textContent = isLightMode ? (currentLang === 'es' ? 'Oscuro' : 'Dark') : (currentLang === 'es' ? 'Claro' : 'Light');
+}
+
+// ═══════════════════════════════════════
 // TRANSLATIONS
 // ═══════════════════════════════════════
 const LANGS = {
@@ -767,6 +859,8 @@ const LANGS = {
     tourPrev: '← Atrás',
     tourNext: 'Siguiente →',
     tourFinish: '✓ Listo',
+    themeLabelLight: 'Claro',
+    themeLabelDark: 'Oscuro',
   },
   en: {
     tagline: '// Bulk image resizer',
@@ -844,6 +938,8 @@ const LANGS = {
     tourPrev: '← Back',
     tourNext: 'Next →',
     tourFinish: '✓ Done',
+    themeLabelLight: 'Light',
+    themeLabelDark: 'Dark',
   }
 };
 
@@ -863,6 +959,7 @@ function setLang(lang) {
   currentLang = lang;
   setCookie('massresize_lang', lang, 365);
   applyLang(lang);
+  updateThemeBtn();
 }
 
 function T(key) { return LANGS[currentLang][key] || key; }
@@ -1085,7 +1182,6 @@ function applyConfig(cfg) {
 
 function updateLastPresetDesc(cfg) {
   if (!cfg) return;
-  const t = LANGS[currentLang];
   const el = document.getElementById('lastPresetDesc');
   const parts = [];
   if (cfg.maxSide) parts.push((currentLang === 'es' ? 'Lado máx: ' : 'Max side: ') + cfg.maxSide + 'px');
@@ -1262,17 +1358,14 @@ async function renderPreview() {
   const srcFile = originalFiles[0] || files[0];
   const t = LANGS[currentLang];
 
-  // Show original
   const origImg = document.getElementById('previewOrigImg');
   const origUrl = URL.createObjectURL(srcFile);
   origImg.src = origUrl;
   origImg.onload = () => URL.revokeObjectURL(origUrl);
 
-  // Show loading
   const resultEl = document.getElementById('previewResult');
   resultEl.innerHTML = `<div class="preview-loading" id="previewLoadingText">${t.previewLoading}</div>`;
 
-  // Read current settings
   const maxSide  = parseInt(document.getElementById('maxSideInput').value) || null;
   const scalePct = parseFloat(document.getElementById('scalePercent').value) || null;
   const fixedW   = parseInt(document.getElementById('fixedWidth').value) || null;
@@ -1306,7 +1399,6 @@ async function renderPreview() {
   }
 }
 
-// Hook all settings controls to trigger preview update
 function hookPreviewListeners() {
   const ids = ['maxSideInput','scalePercent','fixedWidth','fixedHeight','qualityRange','sharpRange',
     'brightnessRange','contrastRange','saturationRange','hueRange','blurRange',
@@ -1319,7 +1411,6 @@ function hookPreviewListeners() {
       el.addEventListener('change', schedulePreview);
     }
   });
-  // format tabs, rotation, flip buttons
   document.querySelectorAll('.format-tab[data-fmt], [data-rot], [data-flip], .pos-btn').forEach(el => {
     el.addEventListener('click', schedulePreview);
   });
@@ -1557,7 +1648,6 @@ async function processPdf(level) {
       const ctx = canvas.getContext('2d');
       await page.render({ canvasContext: ctx, viewport }).promise;
 
-      // Resize if needed
       const ow = canvas.width, oh = canvas.height;
       const lng = Math.max(ow, oh);
       if (lng > maxSide) {
@@ -1579,8 +1669,6 @@ async function processPdf(level) {
     fillEl.style.width = '100%';
     textEl.textContent = t.pdfDone;
 
-    // Build PDF from images using jsPDF-like approach via canvas data URLs
-    // We'll create a minimal PDF manually
     await buildPdfFromBlobs(pageBlobs, currentPdfFile.name.replace('.pdf','') + '_compressed.pdf');
     setTimeout(closePdfModal, 800);
   } catch(err) {
@@ -1591,7 +1679,6 @@ async function processPdf(level) {
 }
 
 async function buildPdfFromBlobs(blobs, filename) {
-  // Build a valid PDF with each image as a full page
   const pages = await Promise.all(blobs.map(blob => new Promise(res => {
     const reader = new FileReader();
     reader.onload = e => {
@@ -1602,43 +1689,14 @@ async function buildPdfFromBlobs(blobs, filename) {
     reader.readAsDataURL(blob);
   })));
 
-  // Minimal PDF builder
-  const objects = [];
-  let oid = 1;
-  const obj = (content) => { const id = oid++; objects.push({ id, content }); return id; };
-
-  const pageIds = [];
-  const contentIds = [];
-  const imgIds = [];
-
-  for (let i = 0; i < pages.length; i++) {
-    const { dataUrl, w, h } = pages[i];
-    const b64 = dataUrl.split(',')[1];
-    const imgId = obj(`<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${atob(b64).length} >>\nstream\n`);
-    imgIds.push({ id: imgId, b64, w, h });
-
-    const contentStr = `q ${w} 0 0 ${h} 0 0 cm /Im${i+1} Do Q`;
-    const contentId = obj(`<< /Length ${contentStr.length} >>\nstream\n${contentStr}\nendstream`);
-    contentIds.push(contentId);
-
-    const pageId = obj(`<< /Type /Page /Parent 0 /MediaBox [0 0 ${w} ${h}] /Contents ${contentId} 0 R /Resources << /XObject << /Im${i+1} ${imgId} 0 R >> >> >>`);
-    pageIds.push(pageId);
-  }
-
-  // Simple approach: use a Blob with proper PDF structure via canvas
-  // Actually let's use a simpler working approach: stitch images into a proper PDF
-  // Using the approach of encoding each JPEG page into a real PDF
   const pdfParts = [];
   const enc = new TextEncoder();
 
-  // PDF header
   pdfParts.push(enc.encode('%PDF-1.4\n'));
 
   const offsets = [];
   let pos = pdfParts[0].byteLength;
 
-  // Write each page as PDF image object
-  const pageObjectIds = { catalog: 1, pages: 2 };
   let nextId = 3;
   const pageInfos = [];
 
@@ -1646,7 +1704,6 @@ async function buildPdfFromBlobs(blobs, filename) {
     const { dataUrl, w, h } = pages[i];
     const jpegBytes = Uint8Array.from(atob(dataUrl.split(',')[1]), c => c.charCodeAt(0));
 
-    // Image object
     const imgObjId = nextId++;
     const imgHeader = enc.encode(`${imgObjId} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`);
     const imgFooter = enc.encode('\nendstream\nendobj\n');
@@ -1654,7 +1711,6 @@ async function buildPdfFromBlobs(blobs, filename) {
     pdfParts.push(imgHeader, jpegBytes, imgFooter);
     pos += imgHeader.byteLength + jpegBytes.byteLength + imgFooter.byteLength;
 
-    // Content stream
     const contentObjId = nextId++;
     const contentStr = `q ${w} 0 0 ${h} 0 0 cm /Im${i} Do Q`;
     const contentData = enc.encode(`${contentObjId} 0 obj\n<< /Length ${contentStr.length} >>\nstream\n${contentStr}\nendstream\nendobj\n`);
@@ -1662,7 +1718,6 @@ async function buildPdfFromBlobs(blobs, filename) {
     pdfParts.push(contentData);
     pos += contentData.byteLength;
 
-    // Page object
     const pageObjId = nextId++;
     const pageData = enc.encode(`${pageObjId} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${w} ${h}] /Contents ${contentObjId} 0 R /Resources << /XObject << /Im${i} ${imgObjId} 0 R >> >> >>\nendobj\n`);
     offsets[pageObjId] = pos;
@@ -1672,19 +1727,16 @@ async function buildPdfFromBlobs(blobs, filename) {
     pageInfos.push(pageObjId);
   }
 
-  // Pages object (id=2)
   offsets[2] = pos;
   const pagesData = enc.encode(`2 0 obj\n<< /Type /Pages /Kids [${pageInfos.map(id => id + ' 0 R').join(' ')}] /Count ${pageInfos.length} >>\nendobj\n`);
   pdfParts.push(pagesData);
   pos += pagesData.byteLength;
 
-  // Catalog (id=1)
   offsets[1] = pos;
   const catalogData = enc.encode(`1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n`);
   pdfParts.push(catalogData);
   pos += catalogData.byteLength;
 
-  // XRef
   const xrefPos = pos;
   const totalObjs = nextId;
   let xref = `xref\n0 ${totalObjs}\n0000000000 65535 f \n`;
@@ -1694,7 +1746,6 @@ async function buildPdfFromBlobs(blobs, filename) {
   xref += `trailer\n<< /Size ${totalObjs} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF\n`;
   pdfParts.push(enc.encode(xref));
 
-  // Assemble
   const totalLen = pdfParts.reduce((a, p) => a + p.byteLength, 0);
   const out = new Uint8Array(totalLen);
   let offset = 0;
@@ -1861,28 +1912,19 @@ function getTourSteps(lang) {
   return lang === 'es' ? es : en;
 }
 
-// ── Tour lock handlers (stored so we can remove them) ──
-function _tourPreventScroll(e) {
-  // Allow scrolling inside the tour bubble itself
-  if (e.target && document.getElementById('tourBubble').contains(e.target)) return;
-  e.preventDefault();
-  e.stopPropagation();
-}
 function _tourPreventKey(e) {
   const blocked = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','PageUp','PageDown','Home','End',' '];
   if (blocked.includes(e.key)) { e.preventDefault(); e.stopPropagation(); }
-  // Block Ctrl+plus/minus/0 (zoom)
   if (e.ctrlKey && ['+','-','=','0'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); }
 }
 function _tourPreventZoomWheel(e) {
   if (e.ctrlKey) { e.preventDefault(); e.stopPropagation(); }
 }
 function _tourPreventTouch(e) {
-  if (e.touches && e.touches.length > 1) { e.preventDefault(); } // pinch-to-zoom
+  if (e.touches && e.touches.length > 1) { e.preventDefault(); }
 }
 
 function tourLockPage() {
-  // Freeze scroll position
   window.__tourScrollY = window.scrollY;
   document.body.style.overflow = 'hidden';
   document.documentElement.style.overflow = 'hidden';
@@ -1912,7 +1954,6 @@ function endTour() {
   isTourActive = false;
   document.getElementById('tourOverlay').classList.add('hidden');
   tourUnlockPage();
-  // Restore any elements that were temporarily shown
   document.querySelectorAll('[data-tour-hidden]').forEach(el => {
     el.style.display = 'none';
     delete el.dataset.tourHidden;
@@ -1924,14 +1965,12 @@ function tourNav(dir) {
   renderTourStep();
 }
 
-// Returns a merged bounding rect covering all selectors in the given array
 function getTourRect(selectors) {
   let top = Infinity, left = Infinity, bottom = -Infinity, right = -Infinity;
   let found = false;
   selectors.forEach(sel => {
     const el = document.querySelector(sel);
     if (!el) return;
-    // Temporarily show if hidden
     const hidden = getComputedStyle(el).display === 'none';
     if (hidden) { el.style.display = 'block'; el.dataset.tourHidden = '1'; }
     const r = el.getBoundingClientRect();
@@ -1966,18 +2005,14 @@ function renderTourStep() {
   document.getElementById('tourCloseBtn').textContent = t.tourClose;
   document.getElementById('tourNextBtn').onclick = isLast ? endTour : () => tourNav(1);
 
-  // Targets: array of CSS selectors whose union defines the spotlight area
   const targets = s.targets || [s.target];
 
-  // First pass: find the primary target to scroll to, then recompute rect
   const primaryEl = document.querySelector(targets[0]);
   if (primaryEl) {
-    // Temporarily unlock scroll just long enough to scroll, then re-lock
     tourUnlockPage();
     primaryEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => {
       if (isTourActive) tourLockPage();
-      // After scroll settles, compute union rect and place spotlight + bubble
       setTimeout(() => {
         const rect = getTourRect(targets);
         if (rect) positionTour(rect, s.arrow);
@@ -1993,13 +2028,11 @@ function positionTour(r, arrow) {
   const bw  = 340;
   const gap = 18;
 
-  // Place spotlight
   spotlight.style.top    = (r.top    - pad) + 'px';
   spotlight.style.left   = (r.left   - pad) + 'px';
   spotlight.style.width  = (r.width  + pad * 2) + 'px';
   spotlight.style.height = (r.height + pad * 2) + 'px';
 
-  // Measure bubble height so we can clamp properly
   bubble.style.visibility = 'hidden';
   bubble.style.display = 'block';
   const bh = bubble.offsetHeight || 260;
@@ -2012,10 +2045,8 @@ function positionTour(r, arrow) {
   let actualArrow = arrow;
 
   if (arrow === 'top') {
-    // Try to place bubble below the spotlight
     bTop = r.bottom + pad + gap;
     if (bTop + bh > vh - 10) {
-      // Not enough room below — place above instead
       bTop = r.top - pad - gap - bh;
       actualArrow = 'bottom';
     }
@@ -2030,7 +2061,6 @@ function positionTour(r, arrow) {
     if (bLeft + bw > vw - 12) bLeft = r.left - bw - gap;
   }
 
-  // Final clamp
   if (bTop + bh > vh - 10) bTop = vh - bh - 10;
   if (bTop < 10) bTop = 10;
   if (bLeft + bw > vw - 8) bLeft = vw - bw - 8;
@@ -2047,7 +2077,9 @@ function positionTour(r, arrow) {
 // ═══════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   currentLang = detectLang();
+  initTheme();
   applyLang(currentLang);
+  updateThemeBtn();
   const last = loadLastConfig();
   if (last) updateLastPresetDesc(last);
   hookPreviewListeners();
