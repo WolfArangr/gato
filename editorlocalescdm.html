@@ -696,7 +696,7 @@ input.changed, textarea.changed, select.changed {
   <div class="header-actions">
     <button class="btn btn-ghost btn-sm" id="btnNewFile" style="display:none" onclick="resetEditor()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-      Cargar otro HTML
+      Recargar
     </button>
     <button class="btn btn-teal btn-sm" id="btnExport" style="display:none" onclick="exportHTML()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -705,18 +705,58 @@ input.changed, textarea.changed, select.changed {
   </div>
 </header>
 
-<!-- DROP ZONE -->
+<!-- DROP ZONE / LOAD SCREEN -->
 <div id="dropzone"
-  onclick="document.getElementById('fileInput').click()"
   ondragover="handleDragOver(event)"
   ondragleave="handleDragLeave(event)"
   ondrop="handleDrop(event)">
-  <span class="drop-icon">📄</span>
-  <h2>Sube el archivo HTML de la web</h2>
-  <p>Arrastra aquí el archivo <code>web_nueva.html</code> o haz clic para seleccionarlo</p>
-  <button class="btn btn-primary" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">Seleccionar archivo</button>
-  <input type="file" id="fileInput" accept=".html" onchange="handleFile(event)">
+
+  <!-- Loading state -->
+  <div id="dzLoading" style="display:none">
+    <span class="drop-icon" style="animation: pulse 1.4s ease-in-out infinite">🌐</span>
+    <h2>Cargando web en vivo…</h2>
+    <p id="dzLoadingUrl" style="font-size:0.8rem;color:var(--muted);word-break:break-all;margin-bottom:0"></p>
+  </div>
+
+  <!-- Error state -->
+  <div id="dzError" style="display:none">
+    <span class="drop-icon">⚠️</span>
+    <h2 style="color:var(--red)">No se pudo cargar</h2>
+    <p id="dzErrorMsg" style="color:var(--muted);margin-bottom:16px"></p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="loadLiveURL()">🔄 Reintentar</button>
+      <button class="btn btn-outline" onclick="showManualLoad()">📂 Cargar archivo local</button>
+    </div>
+  </div>
+
+  <!-- Default / manual state -->
+  <div id="dzManual">
+    <span class="drop-icon">📄</span>
+    <h2>Editor Directorio CDM</h2>
+    <p>Cargando la web en vivo automáticamente…</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px">
+      <button class="btn btn-primary" onclick="loadLiveURL()">
+        🌐 Cargar desde web live
+      </button>
+      <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">
+        📂 Cargar archivo local
+      </button>
+    </div>
+    <p style="font-size:0.72rem;color:var(--muted);margin-top:14px;margin-bottom:0">
+      O arrastra aquí el archivo <code>.html</code>
+    </p>
+  </div>
+
+  <input type="file" id="fileInput" accept=".html" onchange="handleFile(event)" style="display:none">
 </div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.15); opacity: 0.7; }
+}
+#dropzone { cursor: default; }
+</style>
 
 <!-- MAIN APP -->
 <div id="app">
@@ -988,6 +1028,64 @@ let cfgBannerImgMobile  = '';
 let cfgBase             = '';
 let cfgShowHeader       = true;
 let cfgShowFooter       = true;
+
+// ═══════════════════════════════════════════════════════════
+// LIVE URL LOAD
+// ═══════════════════════════════════════════════════════════
+const LIVE_URL = 'https://www.clubdemar-mallorca.com/locales.html';
+
+// Proxy list — tried in order until one works
+const CORS_PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+async function loadLiveURL() {
+  setDropState('loading');
+  document.getElementById('dzLoadingUrl').textContent = LIVE_URL;
+
+  for (const makeProxy of CORS_PROXIES) {
+    try {
+      const proxyUrl = makeProxy(LIVE_URL);
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(12000) });
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (!text.includes('CSV_RAW')) {
+        // Got a response but not the right page (e.g. redirect to login, CDN error page)
+        continue;
+      }
+      rawHTML = text;
+      parseAndInit();
+      return;
+    } catch (err) {
+      // Try next proxy
+    }
+  }
+
+  // All proxies failed
+  setDropState('error',
+    'Los servidores proxy CORS no pudieron acceder a la URL. ' +
+    'Puede ser una restricción temporal o de red. ' +
+    'Puedes cargar el archivo manualmente.');
+}
+
+function setDropState(state, errorMsg) {
+  document.getElementById('dzLoading').style.display = state === 'loading' ? 'block' : 'none';
+  document.getElementById('dzError').style.display   = state === 'error'   ? 'block' : 'none';
+  document.getElementById('dzManual').style.display  = state === 'manual'  ? 'block' : 'none';
+  if (errorMsg) document.getElementById('dzErrorMsg').textContent = errorMsg;
+}
+
+function showManualLoad() {
+  setDropState('manual');
+}
+
+// Auto-load on page open
+window.addEventListener('DOMContentLoaded', () => {
+  setDropState('loading');
+  loadLiveURL();
+});
 
 // ═══════════════════════════════════════════════════════════
 // FILE DROP
@@ -1816,6 +1914,9 @@ function resetEditor() {
   document.getElementById('btnNewFile').style.display = 'none';
   document.getElementById('btnExport').style.display = 'none';
   document.getElementById('fileInput').value = '';
+  // Auto-reload from live
+  setDropState('loading');
+  loadLiveURL();
 }
 
 // ═══════════════════════════════════════════════════════════
