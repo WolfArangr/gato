@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor de Locales — Club de Mar</title>
+<title>Editor Directorio — Club de Mar</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -23,6 +23,8 @@
   --red-bg: #fdf2f2;
   --green: #1a7a4a;
   --green-bg: #f0faf5;
+  --orange: #c07020;
+  --orange-bg: #fff8f0;
   --radius: 10px;
   --shadow: 0 2px 16px rgba(25,52,90,0.09);
 }
@@ -38,20 +40,21 @@ body {
 
 header {
   background: var(--navy-dark);
-  padding: 0 32px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 60px;
+  height: 56px;
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+  flex-shrink: 0;
 }
 
 header h1 {
   font-family: 'Instrument Serif', serif;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   color: #fff;
   font-weight: 400;
   letter-spacing: 0.01em;
@@ -59,21 +62,22 @@ header h1 {
 
 header h1 span { color: var(--gold); font-style: italic; }
 
-.header-actions { display: flex; gap: 10px; align-items: center; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
 
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 7px 14px;
   border-radius: 6px;
   font-family: 'Geist', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   border: none;
   transition: all 0.15s;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .btn-primary { background: var(--gold); color: var(--navy-dark); }
@@ -86,16 +90,22 @@ header h1 span { color: var(--gold); font-style: italic; }
 .btn-danger:hover { background: #fce8e8; }
 .btn-success { background: var(--green-bg); color: var(--green); border: 1.5px solid #a8d8be; }
 .btn-success:hover { background: #e0f5eb; }
-.btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+.btn-orange { background: var(--orange-bg); color: var(--orange); border: 1.5px solid #f0cc90; }
+.btn-orange:hover { background: #fff0dc; }
+.btn-teal { background: rgba(96,205,201,0.15); color: #0d7a78; border: 1.5px solid rgba(96,205,201,0.5); }
+.btn-teal:hover { background: rgba(96,205,201,0.25); }
+.btn-sm { padding: 5px 10px; font-size: 0.74rem; }
+.btn-xs { padding: 3px 8px; font-size: 0.7rem; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ── DROPZONE ────────────────────────────────────────── */
 #dropzone {
-  max-width: 680px;
-  margin: 60px auto;
+  max-width: 660px;
+  margin: 64px auto;
   background: var(--surface);
   border: 2.5px dashed var(--border);
   border-radius: 16px;
-  padding: 70px 40px;
+  padding: 64px 40px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s;
@@ -106,32 +116,21 @@ header h1 span { color: var(--gold); font-style: italic; }
   background: var(--gold-light);
 }
 
-#dropzone .drop-icon {
-  font-size: 3rem;
-  margin-bottom: 16px;
-  display: block;
-}
-
-#dropzone h2 {
-  font-family: 'Instrument Serif', serif;
-  font-size: 1.5rem;
-  font-weight: 400;
-  color: var(--navy);
-  margin-bottom: 8px;
-}
-
-#dropzone p { color: var(--muted); font-size: 0.88rem; margin-bottom: 20px; }
-
+#dropzone .drop-icon { font-size: 3rem; margin-bottom: 16px; display: block; }
+#dropzone h2 { font-family: 'Instrument Serif', serif; font-size: 1.5rem; font-weight: 400; color: var(--navy); margin-bottom: 8px; }
+#dropzone p { color: var(--muted); font-size: 0.86rem; margin-bottom: 20px; }
 #fileInput { display: none; }
 
-#app { display: none; }
+/* ── MAIN LAYOUT ─────────────────────────────────────── */
+#app { display: none; height: calc(100vh - 56px); }
 
 .layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  height: calc(100vh - 60px);
+  grid-template-columns: 300px 1fr;
+  height: 100%;
 }
 
+/* ── SIDEBAR ─────────────────────────────────────────── */
 .sidebar {
   background: var(--surface);
   border-right: 1px solid var(--border);
@@ -141,67 +140,78 @@ header h1 span { color: var(--gold); font-style: italic; }
 }
 
 .sidebar-header {
-  padding: 16px 16px 12px;
+  padding: 14px 14px 10px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .sidebar-header h3 {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--muted);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-weight: 600;
 }
 
-.search-filter {
-  position: relative;
-}
-
+.search-filter { position: relative; }
 .search-filter input {
   width: 100%;
-  padding: 8px 12px 8px 32px;
+  padding: 7px 10px 7px 30px;
   border: 1.5px solid var(--border);
   border-radius: 6px;
   font-family: 'Geist', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--text);
   background: var(--bg);
   outline: none;
   transition: border-color 0.15s;
 }
-
 .search-filter input:focus { border-color: var(--navy); background: #fff; }
-
-.search-filter svg {
-  position: absolute;
-  left: 9px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted);
-  pointer-events: none;
-}
+.search-filter svg { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 
 .sidebar-toolbar {
   display: flex;
-  gap: 6px;
-  padding: 10px 16px;
+  gap: 5px;
+  padding: 8px 14px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   flex-wrap: wrap;
 }
 
-.local-list {
-  overflow-y: auto;
-  flex: 1;
+.stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--gold-light);
+  border-bottom: 1px solid #e8d5a3;
+  font-size: 0.72rem;
+  color: var(--navy);
+  font-weight: 500;
+  flex-shrink: 0;
 }
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.stat-pill.green { background: var(--green-bg); color: var(--green); }
+.stat-pill.red { background: var(--red-bg); color: var(--red); }
+
+.local-list { overflow-y: auto; flex: 1; }
 
 .local-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
+  gap: 8px;
+  padding: 9px 14px;
   cursor: pointer;
   border-bottom: 1px solid #f0f2f6;
   transition: background 0.12s;
@@ -209,25 +219,25 @@ header h1 span { color: var(--gold); font-style: italic; }
 }
 
 .local-item:hover { background: var(--surface2); }
-.local-item.active { background: var(--gold-light); border-left: 3px solid var(--gold); }
-.local-item.hidden-local { opacity: 0.45; }
+.local-item.active { background: var(--gold-light); border-left: 3px solid var(--gold); padding-left: 11px; }
+.local-item.hidden-local { opacity: 0.4; }
 
 .local-id {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: var(--muted);
   background: var(--bg);
   border-radius: 4px;
-  padding: 2px 6px;
-  min-width: 32px;
+  padding: 2px 5px;
+  min-width: 28px;
   text-align: center;
   flex-shrink: 0;
 }
 
-.local-item.active .local-id { background: rgba(201,168,76,0.2); }
+.local-item.active .local-id { background: rgba(201,168,76,0.22); }
 
 .local-name {
-  font-size: 0.84rem;
+  font-size: 0.81rem;
   font-weight: 500;
   flex: 1;
   overflow: hidden;
@@ -235,53 +245,81 @@ header h1 span { color: var(--gold); font-style: italic; }
   white-space: nowrap;
 }
 
-.local-cat {
-  font-size: 0.68rem;
-  color: var(--muted);
-  flex-shrink: 0;
-}
+.local-cat { font-size: 0.65rem; color: var(--muted); flex-shrink: 0; }
 
-.visibility-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
+.visibility-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .visible-dot { background: #2ecc71; }
 .hidden-dot { background: #e74c3c; }
 
+/* ── MAIN PANEL ──────────────────────────────────────── */
 .main-panel {
   overflow-y: auto;
-  padding: 28px 32px;
   background: var(--bg);
+  display: flex;
+  flex-direction: column;
 }
 
+/* ── TAB NAVIGATION ──────────────────────────────────── */
+.panel-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  flex-shrink: 0;
+  padding: 0 24px;
+}
+
+.panel-tab {
+  padding: 12px 18px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Geist', sans-serif;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.panel-tab:hover { color: var(--navy); }
+.panel-tab.active { color: var(--navy); border-bottom-color: var(--gold); }
+
+.panel-content { flex: 1; overflow-y: auto; padding: 24px; }
+.panel-section { display: none; }
+.panel-section.active { display: block; }
+
+/* ── EDITOR CARD ─────────────────────────────────────── */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: 300px;
   color: var(--muted);
   text-align: center;
   gap: 12px;
 }
 
-.empty-state svg { opacity: 0.25; }
-.empty-state p { font-size: 0.9rem; }
+.empty-state svg { opacity: 0.2; }
+.empty-state p { font-size: 0.88rem; }
 
 .editor-card {
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
-  max-width: 820px;
+  max-width: 800px;
 }
 
 .editor-card-header {
   background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%);
-  padding: 20px 24px;
+  padding: 18px 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -290,17 +328,12 @@ header h1 span { color: var(--gold); font-style: italic; }
 
 .editor-card-title {
   font-family: 'Instrument Serif', serif;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   color: #fff;
   font-weight: 400;
 }
 
-.editor-card-id {
-  font-size: 0.72rem;
-  color: var(--gold-light);
-  letter-spacing: 0.08em;
-  opacity: 0.8;
-}
+.editor-card-id { font-size: 0.7rem; color: var(--gold-light); letter-spacing: 0.08em; opacity: 0.8; }
 
 .visibility-toggle {
   display: flex;
@@ -313,7 +346,7 @@ header h1 span { color: var(--gold); font-style: italic; }
   cursor: pointer;
   color: #fff;
   font-family: 'Geist', sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 500;
   transition: all 0.15s;
 }
@@ -322,85 +355,63 @@ header h1 span { color: var(--gold); font-style: italic; }
 .visibility-toggle.is-hidden { background: rgba(231,76,60,0.25); border-color: rgba(231,76,60,0.4); }
 .visibility-toggle.is-visible { background: rgba(46,204,113,0.2); border-color: rgba(46,204,113,0.35); }
 
-.editor-body { padding: 24px; }
+.editor-body { padding: 22px; }
 
-.field-group {
-  margin-bottom: 22px;
-}
+.field-group { margin-bottom: 20px; }
 
-.field-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.field-row-3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 22px;
-}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
 
 label {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.09em;
   color: var(--muted);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
-input[type="text"],
-textarea {
+input[type="text"], input[type="url"], textarea, select {
   width: 100%;
-  padding: 9px 12px;
+  padding: 8px 11px;
   border: 1.5px solid var(--border);
   border-radius: 6px;
   font-family: 'Geist', sans-serif;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--text);
   background: var(--surface2);
   outline: none;
   transition: border-color 0.15s, background 0.15s;
 }
 
-input[type="text"]:focus,
-textarea:focus {
+input[type="text"]:focus, input[type="url"]:focus, textarea:focus, select:focus {
   border-color: var(--navy);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(25,52,90,0.07);
+  box-shadow: 0 0 0 3px rgba(25,52,90,0.06);
 }
 
-textarea {
-  resize: vertical;
-  min-height: 100px;
-  line-height: 1.55;
-}
+textarea { resize: vertical; min-height: 90px; line-height: 1.55; }
+select { cursor: pointer; }
 
 .section-title {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--muted);
   font-weight: 700;
-  padding: 8px 0 10px;
+  padding: 6px 0 9px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
-.section-title svg { opacity: 0.5; }
-
 .save-bar {
-  position: sticky;
-  bottom: 0;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding: 14px 24px;
+  padding: 12px 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -408,72 +419,18 @@ textarea {
 }
 
 .save-bar-info {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--muted);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.unsaved-badge {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--gold);
-  flex-shrink: 0;
-}
+.unsaved-badge { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
 
-.toast {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  background: var(--navy-dark);
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 0.83rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-  z-index: 9999;
-  transform: translateY(16px);
-  opacity: 0;
-  transition: all 0.25s;
-  pointer-events: none;
-}
-
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast.success { border-left: 3px solid #2ecc71; }
-.toast.error { border-left: 3px solid #e74c3c; }
-
-.show-all-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--gold-light);
-  border-bottom: 1px solid #e8d5a3;
-  font-size: 0.76rem;
-  color: var(--navy);
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.stat-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.stat-pill.green { background: var(--green-bg); color: var(--green); }
-.stat-pill.red { background: var(--red-bg); color: var(--red); }
-
+/* ── LANG TABS ───────────────────────────────────────── */
 .lang-tabs {
   display: flex;
-  gap: 0;
   border: 1.5px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
@@ -482,8 +439,8 @@ textarea {
 }
 
 .lang-tab {
-  padding: 5px 14px;
-  font-size: 0.75rem;
+  padding: 5px 13px;
+  font-size: 0.73rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -495,98 +452,668 @@ textarea {
 }
 
 .lang-tab.active { background: var(--navy); color: #fff; }
+
+/* ── CONFIG PANEL ────────────────────────────────────── */
+.config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px; }
+
+.config-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.config-card-header {
+  padding: 14px 18px;
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.config-card-header h3 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1rem;
+  color: #fff;
+  font-weight: 400;
+}
+
+.config-card-body { padding: 18px; }
+
+/* ── TOGGLE SWITCH ───────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.toggle-row:last-child { border-bottom: none; }
+
+.toggle-label {
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+
+.toggle-desc { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: #ccd3e0;
+  border-radius: 22px;
+  transition: background 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-track { background: var(--teal); }
+
+.toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+  pointer-events: none;
+}
+
+.toggle-switch input:checked ~ .toggle-knob { transform: translateX(18px); }
+
+/* ── BANNER MODE SELECT ──────────────────────────────── */
+.mode-selector { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--surface2);
+  font-family: 'Geist', sans-serif;
+  transition: all 0.15s;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  flex: 1;
+  min-width: 70px;
+  text-align: center;
+}
+
+.mode-btn:hover { border-color: var(--navy-mid); color: var(--navy); }
+.mode-btn.selected { border-color: var(--gold); background: var(--gold-light); color: var(--navy); }
+.mode-btn .mode-icon { font-size: 1.3rem; }
+
+/* ── CSV IMPORT ──────────────────────────────────────── */
+.csv-import-zone {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface2);
+  margin-bottom: 14px;
+}
+
+.csv-import-zone:hover, .csv-import-zone.drag-over {
+  border-color: var(--teal);
+  background: rgba(96,205,201,0.08);
+}
+
+.csv-import-zone .ci-icon { font-size: 2rem; margin-bottom: 8px; display: block; }
+.csv-import-zone h4 { font-size: 0.9rem; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+.csv-import-zone p { font-size: 0.77rem; color: var(--muted); }
+
+#csvFileInput { display: none; }
+
+.import-preview {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 0.78rem;
+  color: var(--text);
+  margin-bottom: 14px;
+  display: none;
+}
+
+.import-preview strong { font-weight: 600; }
+.import-preview .match-info { color: var(--green); font-weight: 600; margin-top: 4px; display: block; }
+.import-preview .warn-info { color: var(--orange); font-weight: 600; margin-top: 4px; display: block; }
+
+/* ── MEDIA EDITOR ────────────────────────────────────── */
+.media-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.media-item {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.media-item label { margin-bottom: 4px; }
+
+/* ── TOAST ───────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--navy-dark);
+  color: #fff;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  z-index: 9999;
+  transform: translateY(14px);
+  opacity: 0;
+  transition: all 0.22s;
+  pointer-events: none;
+  max-width: 320px;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-left: 3px solid #2ecc71; }
+.toast.error { border-left: 3px solid #e74c3c; }
+.toast.info { border-left: 3px solid var(--teal); }
+
+/* ── HIGHLIGHT DIFF ──────────────────────────────────── */
+.diff-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(201,168,76,0.2);
+  color: var(--orange);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+input.changed, textarea.changed, select.changed {
+  border-color: var(--gold);
+  background: #fffef5;
+}
+
+/* ── SECTION BADGE ───────────────────────────────────── */
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: var(--navy);
+  color: #fff;
+}
+
+/* ── INLINE HELPER TEXT ──────────────────────────────── */
+.help-text { font-size: 0.7rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+/* ── FULL-WIDTH CONFIG SECTION ───────────────────────── */
+.config-full { max-width: 800px; margin-bottom: 24px; }
+
+.config-full .config-card { margin-bottom: 16px; }
+
+.base-url-row { display: flex; gap: 8px; align-items: flex-end; }
+.base-url-row input { flex: 1; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Editor de <span>Locales</span> — Club de Mar</h1>
+  <h1>Editor <span>Directorio</span> — Club de Mar</h1>
   <div class="header-actions">
-    <button class="btn btn-ghost" id="btnNewFile" style="display:none" onclick="resetEditor()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-      Cargar otro archivo
+    <button class="btn btn-ghost btn-sm" id="btnNewFile" style="display:none" onclick="resetEditor()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      Cargar otro HTML
     </button>
-    <button class="btn btn-primary" id="btnExport" style="display:none" onclick="exportHTML()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Guardar HTML
+    <button class="btn btn-teal btn-sm" id="btnExport" style="display:none" onclick="exportHTML()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar HTML
     </button>
   </div>
 </header>
 
-<div id="dropzone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+<!-- DROP ZONE -->
+<div id="dropzone"
+  onclick="document.getElementById('fileInput').click()"
+  ondragover="handleDragOver(event)"
+  ondragleave="handleDragLeave(event)"
+  ondrop="handleDrop(event)">
   <span class="drop-icon">📄</span>
-  <h2>Sube tu archivo HTML</h2>
-  <p>Arrastra aquí el archivo o haz clic para seleccionarlo</p>
+  <h2>Sube el archivo HTML de la web</h2>
+  <p>Arrastra aquí el archivo <code>web_nueva.html</code> o haz clic para seleccionarlo</p>
   <button class="btn btn-primary" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">Seleccionar archivo</button>
   <input type="file" id="fileInput" accept=".html" onchange="handleFile(event)">
 </div>
 
+<!-- MAIN APP -->
 <div id="app">
   <div class="layout">
+
+    <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="sidebar-header">
         <h3>Fichas de locales</h3>
         <div class="search-filter">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="sidebarSearch" placeholder="Filtrar locales…" oninput="filterSidebar(this.value)">
         </div>
       </div>
-      <div class="show-all-bar" id="statsBar"></div>
+      <div class="stats-bar" id="statsBar"></div>
       <div class="sidebar-toolbar">
-        <button class="btn btn-sm btn-outline" onclick="showAll()" title="Mostrar todos">👁 Todos visible</button>
-        <button class="btn btn-sm btn-outline" onclick="hideAll()" title="Ocultar todos">🚫 Todos oculto</button>
+        <button class="btn btn-sm btn-success" onclick="showAll()" title="Mostrar todos">👁 Todos visibles</button>
+        <button class="btn btn-sm btn-danger" onclick="hideAll()" title="Ocultar todos">🚫 Todos ocultos</button>
       </div>
       <div class="local-list" id="localList"></div>
     </div>
-    <div class="main-panel" id="mainPanel">
-      <div class="empty-state">
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#19345a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
-        <p>Selecciona un local en el panel izquierdo para editarlo</p>
+
+    <!-- MAIN PANEL -->
+    <div class="main-panel">
+      <div class="panel-tabs">
+        <button class="panel-tab active" onclick="switchTab('locales', this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+          Locales
+        </button>
+        <button class="panel-tab" onclick="switchTab('config', this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93L18 6l1.04 1.04A9 9 0 0 1 21 12a9 9 0 0 1-1.96 5.57"/><path d="M4.93 19.07L6 18l-1.04-1.04A9 9 0 0 1 3 12a9 9 0 0 1 1.96-5.57"/></svg>
+          Banners & Config
+        </button>
+        <button class="panel-tab" onclick="switchTab('media', this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="13" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+          Medios & Rutas
+        </button>
+        <button class="panel-tab" onclick="switchTab('importcsv', this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16,16 12,12 8,16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+          Importar CSV
+        </button>
+      </div>
+
+      <div class="panel-content">
+
+        <!-- TAB: LOCALES -->
+        <div class="panel-section active" id="section-locales">
+          <div class="empty-state" id="localEmptyState">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#19345a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+            <p>Selecciona un local en el panel izquierdo para editarlo</p>
+          </div>
+          <div id="editorContainer" style="display:none"></div>
+        </div>
+
+        <!-- TAB: CONFIG -->
+        <div class="panel-section" id="section-config">
+          <div class="config-full">
+
+            <!-- HEADER / FOOTER TOGGLES -->
+            <div class="config-card" style="margin-bottom:16px">
+              <div class="config-card-header">
+                <h3>Header y Footer</h3>
+                <span style="font-size:0.72rem;color:rgba(255,255,255,0.6)">Integración en otras webs</span>
+              </div>
+              <div class="config-card-body">
+                <div class="toggle-row">
+                  <div>
+                    <div class="toggle-label">Mostrar Header</div>
+                    <div class="toggle-desc">Ocultar si vas a embeber el directorio en otra página con su propio header.</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="cfg-header" checked onchange="markConfigChanged()">
+                    <span class="toggle-track"></span>
+                    <span class="toggle-knob"></span>
+                  </label>
+                </div>
+                <div class="toggle-row">
+                  <div>
+                    <div class="toggle-label">Mostrar Footer</div>
+                    <div class="toggle-desc">Ocultar si vas a embeber el directorio en otra página con su propio footer.</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="cfg-footer" checked onchange="markConfigChanged()">
+                    <span class="toggle-track"></span>
+                    <span class="toggle-knob"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- BANNER CONFIG -->
+            <div class="config-card" style="margin-bottom:16px">
+              <div class="config-card-header">
+                <h3>Sistema de Banners</h3>
+                <span style="font-size:0.72rem;color:rgba(255,255,255,0.6)">Lateral desktop + popup móvil</span>
+              </div>
+              <div class="config-card-body">
+
+                <div class="field-group">
+                  <label>Modo de banner</label>
+                  <div class="mode-selector" id="bannerModeSelector">
+                    <button class="mode-btn selected" data-mode="0" onclick="selectBannerMode(0)">
+                      <span class="mode-icon">🚫</span>
+                      Sin banners
+                    </button>
+                    <button class="mode-btn" data-mode="1" onclick="selectBannerMode(1)">
+                      <span class="mode-icon">◀▶</span>
+                      Mismo (ambos)
+                    </button>
+                    <button class="mode-btn" data-mode="2" onclick="selectBannerMode(2)">
+                      <span class="mode-icon">◀ ▶</span>
+                      Distinto (izq/der)
+                    </button>
+                  </div>
+                </div>
+
+                <div class="field-group" id="bannerImgModeRow">
+                  <label>Mostrar imagen en</label>
+                  <select id="cfg-bannerImageMode" onchange="markConfigChanged(); updateBannerImgFields()">
+                    <option value="">Solo texto (sin imagen)</option>
+                    <option value="desktop">Solo desktop (banners laterales)</option>
+                    <option value="mobile">Solo móvil (popup)</option>
+                    <option value="both">Ambos (desktop + móvil)</option>
+                  </select>
+                </div>
+
+                <div id="bannerImgFields" style="display:none">
+                  <div class="field-row" id="bannerImgLeftRow">
+                    <div class="field-group">
+                      <label>URL imagen banner izquierdo</label>
+                      <input type="url" id="cfg-bannerImgLeft" placeholder="https://…" oninput="markConfigChanged()">
+                    </div>
+                    <div class="field-group" id="bannerImgRightGroup">
+                      <label>URL imagen banner derecho <span id="rightSameNote" style="font-weight:400;text-transform:none;font-size:0.68rem;color:var(--muted)">(igual al izq. en modo 1)</span></label>
+                      <input type="url" id="cfg-bannerImgRight" placeholder="https://…" oninput="markConfigChanged()">
+                    </div>
+                  </div>
+                  <div class="field-group" id="bannerImgMobileGroup">
+                    <label>URL imagen banner móvil (popup)</label>
+                    <input type="url" id="cfg-bannerImgMobile" placeholder="https://…" oninput="markConfigChanged()">
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- SHOW THESE -->
+            <div class="config-card">
+              <div class="config-card-header">
+                <h3>Locales a Mostrar</h3>
+                <span style="font-size:0.72rem;color:rgba(255,255,255,0.6)">SHOW_THESE</span>
+              </div>
+              <div class="config-card-body">
+                <div class="field-group">
+                  <label>Números de local visibles (separados por coma)</label>
+                  <input type="text" id="cfg-showThese" placeholder="Vacío = todos visibles. Ej: 2,4,5,6,7,11" oninput="markConfigChanged()">
+                  <div class="help-text">Deja vacío para mostrar todos. Esta lista se sincroniza automáticamente con los toggles del panel de locales.</div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn btn-sm btn-outline" onclick="showAll(); syncShowTheseField()">👁 Poner todos</button>
+                  <button class="btn btn-sm btn-outline" onclick="hideAll(); syncShowTheseField()">🚫 Vaciar</button>
+                  <button class="btn btn-sm btn-orange" onclick="applyShowTheseField()">↩ Aplicar texto manualmente</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- TAB: MEDIA -->
+        <div class="panel-section" id="section-media">
+          <div class="config-full">
+            <div class="config-card">
+              <div class="config-card-header">
+                <h3>Ruta base de medios (BASE)</h3>
+              </div>
+              <div class="config-card-body">
+                <div class="field-group">
+                  <label>URL base para logos y fotos</label>
+                  <div class="base-url-row">
+                    <input type="url" id="cfg-base" placeholder="https://raw.githubusercontent.com/…" oninput="markConfigChanged()">
+                    <button class="btn btn-sm btn-outline" onclick="regenerateMediaFromBase()">♻ Regenerar todas las rutas</button>
+                  </div>
+                  <div class="help-text">Cambia esta URL si mueves los archivos a otro servidor. Al pulsar "Regenerar" se reconstruyen todas las entradas de MEDIA_BY_LOCAL usando esta base y los IDs de local actuales.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="config-card" style="margin-top:16px">
+              <div class="config-card-header">
+                <h3>Tabla MEDIA_BY_LOCAL</h3>
+                <span style="font-size:0.72rem;color:rgba(255,255,255,0.6)">URLs por local</span>
+              </div>
+              <div class="config-card-body" style="padding:0">
+                <div id="mediaTable" style="overflow:auto;max-height:460px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: IMPORTAR CSV -->
+        <div class="panel-section" id="section-importcsv">
+          <div class="config-full">
+            <div class="config-card">
+              <div class="config-card-header">
+                <h3>Importar desde Google Sheets</h3>
+                <span style="font-size:0.72rem;color:rgba(255,255,255,0.6)">CSV UTF-8 con separador ;</span>
+              </div>
+              <div class="config-card-body">
+                <div class="csv-import-zone" id="csvDropZone"
+                  onclick="document.getElementById('csvFileInput').click()"
+                  ondragover="csvDragOver(event)"
+                  ondragleave="csvDragLeave(event)"
+                  ondrop="csvDrop(event)">
+                  <span class="ci-icon">📊</span>
+                  <h4>Arrastra el CSV de Google Sheets aquí</h4>
+                  <p>O haz clic para seleccionar el archivo .csv exportado de Google Sheets (UTF-8)</p>
+                </div>
+                <input type="file" id="csvFileInput" accept=".csv" onchange="handleCSVFile(event)">
+
+                <div class="import-preview" id="importPreview"></div>
+
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:0.78rem;line-height:1.6;margin-bottom:14px">
+                  <strong>Columnas esperadas (separador <code>;</code>):</strong><br>
+                  <code>Nº local ; Nombre Negocio ; Categoría ; Nombre Negocio ; Enlace web ; Telefono ; email u otros contactos ; redes sociales ; logo? ; fotos? ; Copy Español ; Copy Inglés</code>
+                  <br><br>
+                  <strong>Comportamiento:</strong> Se actualizan los campos de texto de cada local. Las rutas de medios (MEDIA_BY_LOCAL) <em>no</em> se tocan. Los locales del CSV que no existan en el HTML se añaden. Los existentes se actualizan.
+                </div>
+
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-teal" id="btnApplyCSV" disabled onclick="applyCSVImport()">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+                    Aplicar importación
+                  </button>
+                  <button class="btn btn-outline" onclick="clearCSVImport()">Descartar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
+
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-let rawHTML = '';
-let companies = [];
-let showSet = new Set();
-let currentIdx = null;
-let unsaved = false;
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let rawHTML      = '';
+let companies    = [];   // parsed from CSV_RAW
+let showSet      = new Set(); // set of local IDs lowercase, or has '__all__'
+let mediaByLocal = {};   // parsed MEDIA_BY_LOCAL
+let currentIdx   = null;
+let unsaved      = false;
+let configChanged= false;
+let pendingCSV   = null; // pending CSV import rows
 
+// Config state
+let cfgBannerMode       = 0;
+let cfgBannerImageMode  = '';
+let cfgBannerImgLeft    = '';
+let cfgBannerImgRight   = '';
+let cfgBannerImgMobile  = '';
+let cfgBase             = '';
+let cfgShowHeader       = true;
+let cfgShowFooter       = true;
+
+// ═══════════════════════════════════════════════════════════
+// FILE DROP
+// ═══════════════════════════════════════════════════════════
 function handleDragOver(e) {
   e.preventDefault();
   document.getElementById('dropzone').classList.add('drag-over');
 }
-
-function handleDragLeave(e) {
+function handleDragLeave() {
   document.getElementById('dropzone').classList.remove('drag-over');
 }
-
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('dropzone').classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file && file.name.endsWith('.html')) readFile(file);
+  const f = e.dataTransfer.files[0];
+  if (f && f.name.endsWith('.html')) readHTMLFile(f);
+  else showToast('Por favor selecciona un archivo .html', 'error');
 }
-
 function handleFile(e) {
-  const file = e.target.files[0];
-  if (file) readFile(file);
+  const f = e.target.files[0];
+  if (f) readHTMLFile(f);
+}
+function readHTMLFile(file) {
+  const r = new FileReader();
+  r.onload = e => { rawHTML = e.target.result; parseAndInit(); };
+  r.readAsText(file, 'UTF-8');
 }
 
-function readFile(file) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    rawHTML = e.target.result;
-    parseAndInit();
-  };
-  reader.readAsText(file, 'UTF-8');
+// ═══════════════════════════════════════════════════════════
+// PARSE HTML
+// ═══════════════════════════════════════════════════════════
+function parseAndInit() {
+  // CSV_RAW
+  const csvMatch = rawHTML.match(/const CSV_RAW = `([\s\S]*?)`;/);
+  if (!csvMatch) { showToast('No se encontró CSV_RAW en el HTML.', 'error'); return; }
+
+  // SHOW_THESE
+  const showMatch = rawHTML.match(/const SHOW_THESE = "([^"]*)"/);
+  const showRaw = showMatch ? showMatch[1] : '';
+  if (!showRaw.trim()) {
+    showSet = new Set(['__all__']);
+  } else {
+    showSet = new Set(showRaw.split(',').map(s => s.trim().toLowerCase()));
+  }
+
+  // Banner config
+  const bModeM = rawHTML.match(/const BANNER_MODE\s*=\s*(\d+)/);
+  cfgBannerMode = bModeM ? parseInt(bModeM[1]) : 0;
+
+  const bImgModeM = rawHTML.match(/const BANNER_IMAGE_MODE\s*=\s*"([^"]*)"/);
+  cfgBannerImageMode = bImgModeM ? bImgModeM[1] : '';
+
+  const bImgL = rawHTML.match(/const BANNER_IMG_LEFT\s*=\s*"([^"]*)"/);
+  cfgBannerImgLeft = bImgL ? bImgL[1] : '';
+
+  const bImgR = rawHTML.match(/const BANNER_IMG_RIGHT\s*=\s*"([^"]*)"/);
+  cfgBannerImgRight = bImgR ? bImgR[1] : '';
+
+  const bImgMob = rawHTML.match(/const BANNER_IMG_MOBILE\s*=\s*"([^"]*)"/);
+  cfgBannerImgMobile = bImgMob ? bImgMob[1] : '';
+
+  // BASE
+  const baseM = rawHTML.match(/const BASE\s*=\s*"([^"]*)"/);
+  cfgBase = baseM ? baseM[1] : '';
+
+  // MEDIA_BY_LOCAL
+  const mediaM = rawHTML.match(/const MEDIA_BY_LOCAL\s*=\s*\{([\s\S]*?)\};/);
+  mediaByLocal = {};
+  if (mediaM) {
+    parseMediaByLocal(mediaM[1]);
+  }
+
+  // Header / Footer - detect HEADER_ENABLED / FOOTER_ENABLED if present; otherwise auto-detect visibility
+  const hEnabledM = rawHTML.match(/const HEADER_ENABLED\s*=\s*(true|false)/);
+  cfgShowHeader = hEnabledM ? hEnabledM[1] === 'true' : true;
+
+  const fEnabledM = rawHTML.match(/const FOOTER_ENABLED\s*=\s*(true|false)/);
+  cfgShowFooter = fEnabledM ? fEnabledM[1] === 'true' : true;
+
+  // Parse CSV
+  companies = parseCSVToCompanies(csvMatch[1]);
+
+  // Init UI
+  document.getElementById('dropzone').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('btnNewFile').style.display = 'flex';
+  document.getElementById('btnExport').style.display = 'flex';
+
+  renderSidebar(companies);
+  updateStats();
+  populateConfigUI();
+  renderMediaTable();
+
+  showToast(`Cargados ${companies.length} locales`, 'success');
 }
 
-function parseCSV(text) {
+function parseMediaByLocal(src) {
+  // Match entries like "key": { logo: ..., foto1: ..., foto2: ..., foto3: ... }
+  const entryRe = /"([^"]+)"\s*:\s*\{([^}]+)\}/g;
+  let m;
+  while ((m = entryRe.exec(src)) !== null) {
+    const key = m[1];
+    const body = m[2];
+    const extract = (field) => {
+      const rx = new RegExp(field + '\\s*:\\s*(?:BASE\\+)?["\'`]([^"\'`]*)["\'`]');
+      const fm = rx.exec(body);
+      if (!fm) return '';
+      // If it's BASE+, we need to reconstruct; we keep just the path part
+      if (body.match(new RegExp(field + '\\s*:\\s*BASE'))) {
+        return '__BASE__' + fm[1];
+      }
+      return fm[1];
+    };
+    mediaByLocal[key] = {
+      logo:  extract('logo'),
+      foto1: extract('foto1'),
+      foto2: extract('foto2'),
+      foto3: extract('foto3'),
+    };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CSV PARSER
+// ═══════════════════════════════════════════════════════════
+function parseCSVRaw(text) {
   text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   const result = [];
   let row = [], field = '', inQuotes = false;
@@ -608,48 +1135,34 @@ function parseCSV(text) {
   return result;
 }
 
-function parseAndInit() {
-  const csvMatch = rawHTML.match(/const CSV_RAW = `([\s\S]*?)`;/);
-  const showMatch = rawHTML.match(/const SHOW_THESE = "([^"]*)"/);
-
-  if (!csvMatch) { showToast('No se encontró el CSV en el HTML.', 'error'); return; }
-
-  const csvRaw = csvMatch[1];
-  const showRaw = showMatch ? showMatch[1] : '';
-  showSet = showRaw ? new Set(showRaw.split(',').map(s => s.trim().toLowerCase())) : new Set(['__all__']);
-
-  const rows = parseCSV(csvRaw);
-  companies = [];
+function parseCSVToCompanies(csvText) {
+  const rows = parseCSVRaw(csvText);
+  const list = [];
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
-    if (r.length < 4) continue;
+    if (r.length < 2) continue;
     const local = (r[0] || '').trim();
     if (!local) continue;
-    companies.push({
+    list.push({
       local,
-      nombre:    ((r[3] && r[3].trim()) || (r[1] && r[1].trim()) || '').trim(),
-      categoria: (r[2] || '').trim(),
-      web:       (r[4] || '').trim(),
-      tel:       (r[5] || '').trim(),
-      contacto:  (r[6] || '').trim(),
-      social:    (r[7] || '').trim(),
-      tienelogo: (r[8] || '').trim(),
-      tienefotos:(r[9] || '').trim(),
-      copyES:    (r[10] || '').trim(),
-      copyEN:    (r[11] || '').trim(),
-      _rawRow: r,
+      nombre:     ((r[3] && r[3].trim()) || (r[1] && r[1].trim()) || '').trim(),
+      categoria:  (r[2] || '').trim(),
+      web:        (r[4] || '').trim(),
+      tel:        (r[5] || '').trim(),
+      contacto:   (r[6] || '').trim(),
+      social:     (r[7] || '').trim(),
+      tienelogo:  (r[8] || '').trim(),
+      tienefotos: (r[9] || '').trim(),
+      copyES:     (r[10] || '').trim(),
+      copyEN:     (r[11] || '').trim(),
     });
   }
-
-  document.getElementById('dropzone').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('btnNewFile').style.display = 'flex';
-  document.getElementById('btnExport').style.display = 'flex';
-
-  renderSidebar(companies);
-  updateStats();
+  return list;
 }
 
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════
 function isVisible(local) {
   if (showSet.has('__all__')) return true;
   return showSet.has(local.toLowerCase().trim());
@@ -667,7 +1180,16 @@ function toggleVisibility(local) {
   markUnsaved();
   renderSidebar(companies);
   updateStats();
-  if (currentIdx !== null) renderEditor(currentIdx);
+  syncShowTheseField();
+  if (currentIdx !== null) {
+    const ec = document.getElementById('editorContainer');
+    const vBtn = ec ? ec.querySelector('.visibility-toggle') : null;
+    if (vBtn) {
+      const vis = isVisible(companies[currentIdx].local);
+      vBtn.className = 'visibility-toggle ' + (vis ? 'is-visible' : 'is-hidden');
+      vBtn.innerHTML = vis ? visibleBtnContent() : hiddenBtnContent();
+    }
+  }
 }
 
 function showAll() {
@@ -675,7 +1197,7 @@ function showAll() {
   markUnsaved();
   renderSidebar(companies);
   updateStats();
-  if (currentIdx !== null) renderEditor(currentIdx);
+  syncShowTheseField();
 }
 
 function hideAll() {
@@ -683,7 +1205,7 @@ function hideAll() {
   markUnsaved();
   renderSidebar(companies);
   updateStats();
-  if (currentIdx !== null) renderEditor(currentIdx);
+  syncShowTheseField();
 }
 
 function filterSidebar(q) {
@@ -696,8 +1218,7 @@ function filterSidebar(q) {
 }
 
 function renderSidebar(list) {
-  const container = document.getElementById('localList');
-  container.innerHTML = list.map((c, idx) => {
+  document.getElementById('localList').innerHTML = list.map((c) => {
     const vis = isVisible(c.local);
     const realIdx = companies.indexOf(c);
     return `<div class="local-item ${realIdx === currentIdx ? 'active' : ''} ${!vis ? 'hidden-local' : ''}"
@@ -712,26 +1233,44 @@ function renderSidebar(list) {
 
 function updateStats() {
   const total = companies.length;
-  const visible = showSet.has('__all__') ? total : [...showSet].filter(k => companies.some(c => c.local.toLowerCase().trim() === k)).length;
+  const visible = showSet.has('__all__')
+    ? total
+    : [...showSet].filter(k => companies.some(c => c.local.toLowerCase().trim() === k)).length;
   const hidden = total - visible;
   document.getElementById('statsBar').innerHTML =
     `<span class="stat-pill green">● ${visible} visibles</span>
-     <span class="stat-pill red" style="margin-left:6px">● ${hidden} ocultos</span>`;
+     <span class="stat-pill red" style="margin-left:4px">● ${hidden} ocultos</span>`;
 }
 
+// ═══════════════════════════════════════════════════════════
+// EDITOR
+// ═══════════════════════════════════════════════════════════
 function selectLocal(idx) {
-  if (currentIdx !== null && unsaved) {
-    saveCurrentEditor();
-  }
+  if (currentIdx !== null && unsaved) saveCurrentEditor();
   currentIdx = idx;
   renderSidebar(companies);
   renderEditor(idx);
+  // make sure locales tab is active
+  const tab = document.querySelector('.panel-tab[onclick*="locales"]');
+  if (tab && !tab.classList.contains('active')) tab.click();
+}
+
+function visibleBtnContent() {
+  return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Visible`;
+}
+function hiddenBtnContent() {
+  return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Oculto`;
 }
 
 function renderEditor(idx) {
   const c = companies[idx];
   const vis = isVisible(c.local);
-  document.getElementById('mainPanel').innerHTML = `
+
+  document.getElementById('localEmptyState').style.display = 'none';
+  const ec = document.getElementById('editorContainer');
+  ec.style.display = 'block';
+
+  ec.innerHTML = `
     <div class="editor-card">
       <div class="editor-card-header">
         <div>
@@ -739,16 +1278,13 @@ function renderEditor(idx) {
           <div class="editor-card-title">${c.nombre || '(sin nombre)'}</div>
         </div>
         <button class="visibility-toggle ${vis ? 'is-visible' : 'is-hidden'}" onclick="toggleVisibility('${c.local}')">
-          ${vis
-            ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Visible`
-            : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Oculto`
-          }
+          ${vis ? visibleBtnContent() : hiddenBtnContent()}
         </button>
       </div>
       <div class="editor-body">
 
         <div class="section-title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
           Datos generales
         </div>
 
@@ -764,7 +1300,7 @@ function renderEditor(idx) {
         </div>
 
         <div class="section-title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.17 6.17l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.17 6.17l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
           Contacto
         </div>
 
@@ -789,11 +1325,11 @@ function renderEditor(idx) {
         </div>
 
         <div class="section-title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Descripción
         </div>
 
-        <div style="margin-bottom: 10px;">
+        <div style="margin-bottom:10px">
           <div class="lang-tabs">
             <button class="lang-tab active" id="tab-es" onclick="switchLang('es')">🇪🇸 Español</button>
             <button class="lang-tab" id="tab-en" onclick="switchLang('en')">🇬🇧 English</button>
@@ -810,17 +1346,17 @@ function renderEditor(idx) {
         </div>
 
         <div class="section-title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="13" rx="2"/><path d="M3 17h18"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
-          Medios
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="13" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+          Medios (referencia)
         </div>
 
         <div class="field-row">
           <div class="field-group">
-            <label>¿Tiene logo?</label>
+            <label>¿Tiene logo? (si/no)</label>
             <input type="text" id="f-tienelogo" value="${esc(c.tienelogo)}" placeholder="si / no">
           </div>
           <div class="field-group">
-            <label>¿Tiene fotos?</label>
+            <label>¿Tiene fotos? (si/no)</label>
             <input type="text" id="f-tienefotos" value="${esc(c.tienefotos)}" placeholder="si / no">
           </div>
         </div>
@@ -828,16 +1364,15 @@ function renderEditor(idx) {
       </div>
       <div class="save-bar">
         <div class="save-bar-info" id="saveInfo">
-          <span class="unsaved-badge" style="display:none" id="unsavedDot"></span>
           Haz cambios y guarda la ficha
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-outline" onclick="selectLocal(${idx > 0 ? idx-1 : companies.length-1})">← Anterior</button>
-          <button class="btn btn-success" onclick="saveCurrentEditor()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+          <button class="btn btn-outline btn-sm" onclick="selectLocal(${idx > 0 ? idx-1 : companies.length-1})">← Anterior</button>
+          <button class="btn btn-success btn-sm" onclick="saveCurrentEditor()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
             Guardar ficha
           </button>
-          <button class="btn btn-outline" onclick="selectLocal(${idx < companies.length-1 ? idx+1 : 0})">Siguiente →</button>
+          <button class="btn btn-outline btn-sm" onclick="selectLocal(${idx < companies.length-1 ? idx+1 : 0})">Siguiente →</button>
         </div>
       </div>
     </div>`;
@@ -859,10 +1394,8 @@ function switchLang(lang) {
 
 function markUnsaved() {
   unsaved = true;
-  const dot = document.getElementById('unsavedDot');
   const info = document.getElementById('saveInfo');
-  if (dot) dot.style.display = 'inline-block';
-  if (info) info.innerHTML = `<span class="unsaved-badge" id="unsavedDot" style="display:inline-block"></span> Cambios sin guardar`;
+  if (info) info.innerHTML = `<span class="unsaved-badge"></span> Cambios sin guardar`;
 }
 
 function saveCurrentEditor() {
@@ -870,27 +1403,289 @@ function saveCurrentEditor() {
   const c = companies[currentIdx];
   const get = id => (document.getElementById(id) || {}).value || '';
 
-  c.nombre    = get('f-nombre');
-  c.categoria = get('f-categoria');
-  c.tel       = get('f-tel');
-  c.contacto  = get('f-contacto');
-  c.web       = get('f-web');
-  c.social    = get('f-social');
-  c.copyES    = get('f-copyES');
-  c.copyEN    = get('f-copyEN');
-  c.tienelogo = get('f-tienelogo');
-  c.tienefotos= get('f-tienefotos');
+  c.nombre     = get('f-nombre');
+  c.categoria  = get('f-categoria');
+  c.tel        = get('f-tel');
+  c.contacto   = get('f-contacto');
+  c.web        = get('f-web');
+  c.social     = get('f-social');
+  c.copyES     = get('f-copyES');
+  c.copyEN     = get('f-copyEN');
+  c.tienelogo  = get('f-tienelogo');
+  c.tienefotos = get('f-tienefotos');
 
   unsaved = false;
   const info = document.getElementById('saveInfo');
-  const dot = document.getElementById('unsavedDot');
-  if (dot) dot.style.display = 'none';
-  if (info) info.textContent = '✓ Ficha guardada en memoria';
+  if (info) info.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg> Guardado`;
 
   renderSidebar(companies);
-  showToast(`Ficha "${c.nombre}" guardada`, 'success');
+  showToast(`"${c.nombre}" guardado`, 'success');
 }
 
+// ═══════════════════════════════════════════════════════════
+// CONFIG UI
+// ═══════════════════════════════════════════════════════════
+function populateConfigUI() {
+  // Banner mode
+  selectBannerMode(cfgBannerMode, false);
+  // Banner image mode
+  document.getElementById('cfg-bannerImageMode').value = cfgBannerImageMode;
+  updateBannerImgFields();
+  // Banner img URLs
+  document.getElementById('cfg-bannerImgLeft').value = cfgBannerImgLeft;
+  document.getElementById('cfg-bannerImgRight').value = cfgBannerImgRight;
+  document.getElementById('cfg-bannerImgMobile').value = cfgBannerImgMobile;
+  // Header/footer
+  document.getElementById('cfg-header').checked = cfgShowHeader;
+  document.getElementById('cfg-footer').checked = cfgShowFooter;
+  // BASE
+  document.getElementById('cfg-base').value = cfgBase;
+  // SHOW_THESE field
+  syncShowTheseField();
+}
+
+function selectBannerMode(mode, triggerChange = true) {
+  cfgBannerMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.toggle('selected', parseInt(b.dataset.mode) === mode);
+  });
+  // Show/hide right banner img field
+  const rightGroup = document.getElementById('bannerImgRightGroup');
+  if (rightGroup) {
+    const noteSpan = document.getElementById('rightSameNote');
+    if (mode === 1) {
+      if (noteSpan) noteSpan.style.display = 'inline';
+    } else {
+      if (noteSpan) noteSpan.style.display = 'none';
+    }
+  }
+  if (triggerChange) markConfigChanged();
+}
+
+function updateBannerImgFields() {
+  const mode = document.getElementById('cfg-bannerImageMode').value;
+  const fields = document.getElementById('bannerImgFields');
+  const mobileGroup = document.getElementById('bannerImgMobileGroup');
+  const leftRow = document.getElementById('bannerImgLeftRow');
+
+  if (!mode) {
+    fields.style.display = 'none';
+  } else {
+    fields.style.display = 'block';
+    leftRow.style.display = (mode === 'desktop' || mode === 'both') ? 'grid' : 'none';
+    mobileGroup.style.display = (mode === 'mobile' || mode === 'both') ? 'block' : 'none';
+  }
+}
+
+function markConfigChanged() {
+  configChanged = true;
+}
+
+function syncShowTheseField() {
+  const field = document.getElementById('cfg-showThese');
+  if (!field) return;
+  if (showSet.has('__all__')) {
+    field.value = '';
+  } else {
+    field.value = [...showSet].join(',');
+  }
+}
+
+function applyShowTheseField() {
+  const val = document.getElementById('cfg-showThese').value.trim();
+  if (!val) {
+    showSet = new Set(['__all__']);
+  } else {
+    showSet = new Set(val.split(',').map(s => s.trim().toLowerCase()));
+  }
+  renderSidebar(companies);
+  updateStats();
+  markUnsaved();
+  showToast('Lista de visibles aplicada', 'info');
+}
+
+function readConfigUI() {
+  cfgBannerMode      = parseInt(document.querySelector('.mode-btn.selected')?.dataset.mode ?? 0);
+  cfgBannerImageMode = document.getElementById('cfg-bannerImageMode').value;
+  cfgBannerImgLeft   = document.getElementById('cfg-bannerImgLeft').value.trim();
+  cfgBannerImgRight  = document.getElementById('cfg-bannerImgRight').value.trim();
+  cfgBannerImgMobile = document.getElementById('cfg-bannerImgMobile').value.trim();
+  cfgShowHeader      = document.getElementById('cfg-header').checked;
+  cfgShowFooter      = document.getElementById('cfg-footer').checked;
+  cfgBase            = document.getElementById('cfg-base').value.trim();
+}
+
+// ═══════════════════════════════════════════════════════════
+// MEDIA TABLE
+// ═══════════════════════════════════════════════════════════
+function renderMediaTable() {
+  const container = document.getElementById('mediaTable');
+  const rows = companies.map((c, idx) => {
+    const m = mediaByLocal[c.local] || mediaByLocal[c.local.toLowerCase()] || { logo:'', foto1:'', foto2:'', foto3:'' };
+    const mKey = c.local;
+    return `<div style="border-bottom:1px solid var(--border);padding:12px 18px">
+      <div style="font-size:0.8rem;font-weight:600;color:var(--navy);margin-bottom:8px">
+        <span style="font-size:0.65rem;color:var(--muted);margin-right:6px">Nº${c.local}</span>${c.nombre || '(sin nombre)'}
+      </div>
+      <div style="display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:6px;align-items:center">
+        <span style="font-size:0.66rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em">Logo</span>
+        <input type="text" class="media-input" data-key="${mKey}" data-field="logo" value="${esc(m.logo)}" placeholder="URL logo" oninput="updateMedia('${mKey}','logo',this.value)" style="grid-column:2/5;font-size:0.75rem;padding:5px 8px">
+      </div>
+      <div style="display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:6px;align-items:center;margin-top:5px">
+        <span style="font-size:0.66rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em">Fotos</span>
+        <input type="text" class="media-input" data-key="${mKey}" data-field="foto1" value="${esc(m.foto1)}" placeholder="foto 1" oninput="updateMedia('${mKey}','foto1',this.value)" style="font-size:0.75rem;padding:5px 8px">
+        <input type="text" class="media-input" data-key="${mKey}" data-field="foto2" value="${esc(m.foto2)}" placeholder="foto 2" oninput="updateMedia('${mKey}','foto2',this.value)" style="font-size:0.75rem;padding:5px 8px">
+        <input type="text" class="media-input" data-key="${mKey}" data-field="foto3" value="${esc(m.foto3)}" placeholder="foto 3 (opcional)" oninput="updateMedia('${mKey}','foto3',this.value)" style="font-size:0.75rem;padding:5px 8px">
+      </div>
+    </div>`;
+  }).join('');
+  container.innerHTML = rows || '<p style="padding:16px;font-size:0.82rem;color:var(--muted)">No hay medios configurados.</p>';
+}
+
+function updateMedia(key, field, value) {
+  if (!mediaByLocal[key]) mediaByLocal[key] = { logo:'', foto1:'', foto2:'', foto3:'' };
+  mediaByLocal[key][field] = value;
+}
+
+function regenerateMediaFromBase() {
+  const base = document.getElementById('cfg-base').value.trim();
+  if (!base) { showToast('Introduce primero la URL base', 'error'); return; }
+  cfgBase = base;
+  companies.forEach(c => {
+    const k = c.local;
+    const slug = k.replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '').toLowerCase();
+    mediaByLocal[k] = {
+      logo:  `__BASE__logo-local${slug}.png`,
+      foto1: `__BASE__local${slug}-foto1.jpg`,
+      foto2: `__BASE__local${slug}-foto2.jpg`,
+      foto3: ``,
+    };
+  });
+  renderMediaTable();
+  showToast('Rutas regeneradas desde BASE', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CSV IMPORT
+// ═══════════════════════════════════════════════════════════
+function csvDragOver(e) {
+  e.preventDefault();
+  document.getElementById('csvDropZone').classList.add('drag-over');
+}
+function csvDragLeave() {
+  document.getElementById('csvDropZone').classList.remove('drag-over');
+}
+function csvDrop(e) {
+  e.preventDefault();
+  document.getElementById('csvDropZone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && (f.name.endsWith('.csv') || f.name.endsWith('.tsv'))) loadCSVFile(f);
+  else showToast('Selecciona un archivo .csv', 'error');
+}
+function handleCSVFile(e) {
+  const f = e.target.files[0];
+  if (f) loadCSVFile(f);
+}
+function loadCSVFile(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    const text = e.target.result;
+    previewCSVImport(text);
+  };
+  r.readAsText(file, 'UTF-8');
+}
+
+function previewCSVImport(text) {
+  try {
+    const rows = parseCSVRaw(text);
+    if (rows.length < 2) { showToast('CSV vacío o inválido', 'error'); return; }
+
+    pendingCSV = rows;
+    const dataRows = rows.slice(1).filter(r => r[0] && r[0].trim());
+
+    const existing = new Set(companies.map(c => c.local.toLowerCase()));
+    let matched = 0, newOnes = 0;
+    dataRows.forEach(r => {
+      const lid = (r[0] || '').trim().toLowerCase();
+      if (existing.has(lid)) matched++;
+      else newOnes++;
+    });
+
+    const preview = document.getElementById('importPreview');
+    preview.style.display = 'block';
+    preview.innerHTML = `<strong>${dataRows.length} filas</strong> en el CSV importado
+      <span class="match-info">✓ ${matched} locales existentes se actualizarán</span>
+      ${newOnes > 0 ? `<span class="warn-info">+ ${newOnes} locales nuevos se añadirán</span>` : ''}`;
+
+    document.getElementById('btnApplyCSV').disabled = false;
+  } catch(err) {
+    showToast('Error leyendo CSV: ' + err.message, 'error');
+  }
+}
+
+function applyCSVImport() {
+  if (!pendingCSV) return;
+  const rows = pendingCSV.slice(1).filter(r => r[0] && r[0].trim());
+  let updated = 0, added = 0;
+
+  rows.forEach(r => {
+    const local = (r[0] || '').trim();
+    const existing = companies.find(c => c.local.toLowerCase() === local.toLowerCase());
+    const data = {
+      local,
+      nombre:     ((r[3] && r[3].trim()) || (r[1] && r[1].trim()) || '').trim(),
+      categoria:  (r[2] || '').trim(),
+      web:        (r[4] || '').trim(),
+      tel:        (r[5] || '').trim(),
+      contacto:   (r[6] || '').trim(),
+      social:     (r[7] || '').trim(),
+      tienelogo:  (r[8] || '').trim(),
+      tienefotos: (r[9] || '').trim(),
+      copyES:     (r[10] || '').trim(),
+      copyEN:     (r[11] || '').trim(),
+    };
+    if (existing) {
+      Object.assign(existing, data);
+      updated++;
+    } else {
+      companies.push(data);
+      added++;
+    }
+  });
+
+  pendingCSV = null;
+  document.getElementById('btnApplyCSV').disabled = true;
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('csvFileInput').value = '';
+
+  renderSidebar(companies);
+  updateStats();
+  renderMediaTable();
+  if (currentIdx !== null) renderEditor(currentIdx);
+
+  showToast(`CSV aplicado: ${updated} actualizados, ${added} añadidos`, 'success');
+}
+
+function clearCSVImport() {
+  pendingCSV = null;
+  document.getElementById('btnApplyCSV').disabled = true;
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('csvFileInput').value = '';
+}
+
+// ═══════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════
+function switchTab(name, btnEl) {
+  document.querySelectorAll('.panel-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel-section').forEach(s => s.classList.remove('active'));
+  btnEl.classList.add('active');
+  document.getElementById('section-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════
+// BUILD CSV & EXPORT
+// ═══════════════════════════════════════════════════════════
 function escapeCSVField(val) {
   if (val === undefined || val === null) return '';
   val = String(val);
@@ -915,35 +1710,107 @@ function buildShowThese() {
   return [...showSet].join(',');
 }
 
+function buildMediaByLocalJS() {
+  const entries = Object.entries(mediaByLocal).map(([key, m]) => {
+    const base = cfgBase;
+    const formatVal = (v) => {
+      if (!v) return '""';
+      if (v.startsWith('__BASE__')) {
+        return `BASE+"${v.slice(8)}"`;
+      }
+      return `"${v}"`;
+    };
+    return `  "${key}": { logo: ${formatVal(m.logo)}, foto1: ${formatVal(m.foto1)}, foto2: ${formatVal(m.foto2)}, foto3: ${formatVal(m.foto3)} }`;
+  });
+  return '{\n' + entries.join(',\n') + '\n}';
+}
+
 function exportHTML() {
-  saveCurrentEditor();
+  if (currentIdx !== null && unsaved) saveCurrentEditor();
+  readConfigUI();
 
   let output = rawHTML;
 
-  const newCSV = buildCSV();
-  output = output.replace(/const CSV_RAW = `[\s\S]*?`;/, 'const CSV_RAW = `' + newCSV + '`;');
+  // ── CSV_RAW
+  output = output.replace(/const CSV_RAW = `[\s\S]*?`;/, 'const CSV_RAW = `' + buildCSV() + '`;');
 
-  const newShow = buildShowThese();
-  output = output.replace(/const SHOW_THESE = "[^"]*"/, `const SHOW_THESE = "${newShow}"`);
+  // ── SHOW_THESE
+  output = output.replace(/const SHOW_THESE = "[^"]*"/, `const SHOW_THESE = "${buildShowThese()}"`);
+
+  // ── BANNER_MODE
+  output = output.replace(/const BANNER_MODE\s*=\s*\d+/, `const BANNER_MODE       = ${cfgBannerMode}`);
+
+  // ── BANNER_IMAGE_MODE
+  output = output.replace(/const BANNER_IMAGE_MODE\s*=\s*"[^"]*"/, `const BANNER_IMAGE_MODE = "${cfgBannerImageMode}"`);
+
+  // ── BANNER_IMG_LEFT
+  output = output.replace(/const BANNER_IMG_LEFT\s*=\s*"[^"]*"/, `const BANNER_IMG_LEFT   = "${cfgBannerImgLeft}"`);
+
+  // ── BANNER_IMG_RIGHT
+  output = output.replace(/const BANNER_IMG_RIGHT\s*=\s*"[^"]*"/, `const BANNER_IMG_RIGHT  = "${cfgBannerImgRight}"`);
+
+  // ── BANNER_IMG_MOBILE
+  output = output.replace(/const BANNER_IMG_MOBILE\s*=\s*"[^"]*"/, `const BANNER_IMG_MOBILE = "${cfgBannerImgMobile}"`);
+
+  // ── BASE
+  if (cfgBase) {
+    output = output.replace(/const BASE\s*=\s*"[^"]*"/, `const BASE = "${cfgBase}"`);
+  }
+
+  // ── MEDIA_BY_LOCAL
+  output = output.replace(
+    /const MEDIA_BY_LOCAL\s*=\s*\{[\s\S]*?\};/,
+    'const MEDIA_BY_LOCAL = ' + buildMediaByLocalJS() + ';'
+  );
+
+  // ── HEADER / FOOTER visibility
+  // Inject or update HEADER_ENABLED / FOOTER_ENABLED constants
+  if (output.match(/const HEADER_ENABLED\s*=/)) {
+    output = output.replace(/const HEADER_ENABLED\s*=\s*(true|false)/, `const HEADER_ENABLED = ${cfgShowHeader}`);
+  } else {
+    // Inject after <script> tag that contains BANNER_MODE
+    output = output.replace(/(const BANNER_MODE)/, `const HEADER_ENABLED = ${cfgShowHeader};\nconst FOOTER_ENABLED = ${cfgShowFooter};\n$1`);
+  }
+  if (output.match(/const FOOTER_ENABLED\s*=/)) {
+    output = output.replace(/const FOOTER_ENABLED\s*=\s*(true|false)/, `const FOOTER_ENABLED = ${cfgShowFooter}`);
+  }
+
+  // ── Apply header/footer visibility via inline style
+  if (!cfgShowHeader) {
+    output = output.replace(/(<header[\s>])/, '<header style="display:none" ');
+  } else {
+    output = output.replace(/<header style="display:none"\s*/, '<header ');
+  }
+  if (!cfgShowFooter) {
+    output = output.replace(/(<footer[\s>])/, '<footer style="display:none" ');
+  } else {
+    output = output.replace(/<footer style="display:none"\s*/, '<footer ');
+  }
 
   const blob = new Blob([output], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
   a.href = url;
   const now = new Date();
   const stamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
-  a.download = `Locales_${stamp}.html`;
+  a.download = `directorio_cdm_${stamp}.html`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('HTML exportado correctamente', 'success');
+  showToast('HTML exportado correctamente ✓', 'success');
 }
 
+// ═══════════════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════════════
 function resetEditor() {
   rawHTML = '';
   companies = [];
   showSet = new Set();
+  mediaByLocal = {};
   currentIdx = null;
   unsaved = false;
+  configChanged = false;
+  pendingCSV = null;
   document.getElementById('dropzone').style.display = 'block';
   document.getElementById('app').style.display = 'none';
   document.getElementById('btnNewFile').style.display = 'none';
@@ -951,6 +1818,9 @@ function resetEditor() {
   document.getElementById('fileInput').value = '';
 }
 
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
 function esc(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -960,7 +1830,7 @@ function showToast(msg, type = 'success') {
   el.textContent = msg;
   el.className = 'toast show ' + type;
   clearTimeout(el._t);
-  el._t = setTimeout(() => el.className = 'toast', 2800);
+  el._t = setTimeout(() => el.className = 'toast', 3000);
 }
 </script>
 </body>
