@@ -894,7 +894,17 @@
 
       const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
+      const isUITarget = (e) => {
+        const src = e.target;
+        // Ignore if touch/click starts on a button, input, or known UI container
+        if (!src) return false;
+        if (src.closest('button, input, select, textarea, label')) return true;
+        if (src.closest('.top-bar, .bottom-bar, .menu-dropdown, .results-panel, .help-overlay, .farkle-setup-overlay, .fhud-top, .fhud-bottom, .twk-panel, .rolling-indicator')) return true;
+        return false;
+      };
+
       const onDown = (e) => {
+        if (isUITarget(e)) return; // let UI handle it
         if (e.touches && e.touches.length === 2) {
           const dx = e.touches[0].clientX - e.touches[1].clientX;
           const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -948,9 +958,10 @@
       canvas.addEventListener('mousedown', onDown);
       window.addEventListener('mousemove', onMove);
       window.addEventListener('mouseup', onUp);
-      canvas.addEventListener('touchstart', onDown, { passive: false });
-      canvas.addEventListener('touchmove',  onMove, { passive: false });
-      canvas.addEventListener('touchend',   onUp);
+      // Touch listeners on window (not canvas) so they fire even when HUD overlays cover the canvas
+      window.addEventListener('touchstart', onDown, { passive: false });
+      window.addEventListener('touchmove',  onMove, { passive: false });
+      window.addEventListener('touchend',   onUp);
       canvas.addEventListener('wheel',      onWheel, { passive: false });
       canvas.addEventListener('dblclick',   onDblClick);
     }
