@@ -1,6 +1,8 @@
-// app.jsx — Dados v3.0
-// Farkle: canvas always visible during play, HUD overlay,
-//         no-entry-score option, 2P rotation, bug-free state machine
+// app.jsx — Dados v4.0
+// Changes: home menu, no KCD label, Farkle zoom, wood dice, medieval UI,
+//          super throw, tooltip, text-selection disabled, Android accel fix,
+//          straight 1-5 detection, no-discard non-scoring, rules reordered,
+//          default 5000 no-entry, removed "500 pts min" text
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
@@ -23,11 +25,21 @@ const TRANSLATIONS = {
     howToRoll: 'Cómo lanzar',
     helpItems: [
       'Elige dados con + / −. Mezcla cualquier combinación.',
-      'Mantén el botón para cargar más fuerza al lanzar.',
+      'Mantén el botón para cargar más fuerza al lanzar. Mantén 2.5s para ¡super lanzamiento!',
       'Cámara: arrastra para rotar, rueda o pellizco para zoom, doble clic para reiniciar.',
       'Personaliza colores, materiales y números desde el menú ☰.',
     ],
+    holdToThrow: '¡Mantén para más fuerza!',
+    superThrow: '⚡ SUPER LANZAMIENTO',
     understood: 'Entendido',
+    // Home menu
+    homeTitle: 'Dados',
+    homeSub: 'LANZADOR DE MESA',
+    homePlay: 'Simulador de Dados',
+    homeFarkle: 'Jugar al Farkle',
+    homeDesc: 'Simulador 3D de dados para cualquier juego de mesa',
+    homeFarkleDesc: 'El clásico juego medieval de dados',
+    // Farkle
     farkle: 'Farkle',
     farkleVsAI: 'vs IA', farkleTwoPlayer: '2 Jugadores',
     farkleBack: '← Salir',
@@ -44,22 +56,31 @@ const TRANSLATIONS = {
     farkleSelectDice: 'Toca los dados que quieres guardar',
     farkleYou: 'Tú', farkleAI: 'IA', farkleP1: 'J1', farkleP2: 'J2',
     farkleThinking: 'La IA está pensando…', farkleNewGame: 'Nueva partida',
-    farkleTarget: 'Meta', farkleEntry: 'Entrada mínima',
-    farkleEntryOn: 'Con entrada (500 pts mín.)', farkleEntryOff: 'Sin entrada',
+    farkleTarget: 'Meta', farkleEntry: 'Modo de entrada',
+    farkleEntryOn: 'Con entrada', farkleEntryOff: 'Sin entrada',
     farkleTargetOpts: ['2.500', '5.000', '10.000'],
     farkleTargetVals: [2500, 5000, 10000],
     farkleRules: 'Reglas',
     farkleRulesText: [
+      '— ENTRADA —',
+      'Con entrada: necesitas ≥500 pts en un turno para abrir tu marcador.',
+      'Sin entrada: todos los puntos cuentan desde el primer turno.',
+      '',
+      '— PUNTUACIÓN —',
       '1 = 100 pts | 5 = 50 pts',
       'Trío de 1s = 1000 pts',
-      'Trío de Xs = X×100 (2s=200…)',
+      'Trío de Xs = X×100 (ej: trío 2s = 200 pts)',
       'Cuatro iguales = trío × 2',
       'Cinco iguales = trío × 4',
       'Seis iguales = trío × 8',
+      'Escalera 1-2-3-4-5 = 500 pts',
       'Escalera 1-2-3-4-5-6 = 1500 pts',
       'Tres pares = 1500 pts',
-      'Farkle = 0 pts, pierdes turno',
-      'Entrada: necesitas ≥500 en un turno',
+      '',
+      '— TURNO —',
+      'Farkle = 0 pts, pierdes el turno.',
+      'Puedes guardar dados que puntúen y volver a tirar los demás.',
+      'Si todos los dados puntúan, ¡vuelves a tirar los 6!',
     ],
     farkleNotOnBoard: '< 500 pts — no computa aún',
     farkleP2Pass: 'Turno del J2',
@@ -88,11 +109,21 @@ const TRANSLATIONS = {
     howToRoll: 'How to roll',
     helpItems: [
       'Choose dice with + / −. Mix any combination.',
-      'Hold the button to charge more throwing power.',
+      'Hold the button to charge more throwing power. Hold 2.5s for super throw!',
       'Camera: drag to rotate, scroll or pinch to zoom, double-click to reset.',
       'Customize colors, materials and numbers from the ☰ menu.',
     ],
+    holdToThrow: 'Hold for more power!',
+    superThrow: '⚡ SUPER THROW',
     understood: 'Got it',
+    // Home menu
+    homeTitle: 'Dice',
+    homeSub: 'TABLETOP ROLLER',
+    homePlay: 'Dice Simulator',
+    homeFarkle: 'Play Farkle',
+    homeDesc: '3D dice simulator for any tabletop game',
+    homeFarkleDesc: 'The classic medieval dice game',
+    // Farkle
     farkle: 'Farkle',
     farkleVsAI: 'vs AI', farkleTwoPlayer: '2 Players',
     farkleBack: '← Exit',
@@ -110,21 +141,30 @@ const TRANSLATIONS = {
     farkleYou: 'You', farkleAI: 'AI', farkleP1: 'P1', farkleP2: 'P2',
     farkleThinking: 'AI is thinking…', farkleNewGame: 'New game',
     farkleTarget: 'Target', farkleEntry: 'Entry rule',
-    farkleEntryOn: 'With entry (min 500 pts)', farkleEntryOff: 'No entry',
+    farkleEntryOn: 'With entry', farkleEntryOff: 'No entry',
     farkleTargetOpts: ['2,500', '5,000', '10,000'],
     farkleTargetVals: [2500, 5000, 10000],
     farkleRules: 'Rules',
     farkleRulesText: [
+      '— ENTRY RULE —',
+      'With entry: you need ≥500 pts in one turn to open your score.',
+      'No entry: all points count from the very first turn.',
+      '',
+      '— SCORING —',
       '1 = 100 pts | 5 = 50 pts',
       'Three 1s = 1000 pts',
-      'Three Xs = X×100 (2s=200…)',
+      'Three Xs = X×100 (e.g. three 2s = 200 pts)',
       'Four of a kind = three × 2',
       'Five of a kind = three × 4',
       'Six of a kind = three × 8',
+      'Straight 1-2-3-4-5 = 500 pts',
       'Straight 1-2-3-4-5-6 = 1500 pts',
       'Three pairs = 1500 pts',
-      'Farkle = 0 pts, lose turn',
-      'Entry: need ≥500 pts in one turn',
+      '',
+      '— TURN —',
+      'Farkle = 0 pts, lose your turn.',
+      'You can keep scoring dice and re-roll the rest.',
+      'If all dice score, roll all 6 again!',
     ],
     farkleNotOnBoard: '< 500 pts — not counted yet',
     farkleP2Pass: "Player 2's turn",
@@ -150,9 +190,22 @@ function calcFarkleScore(vals) {
   vals.forEach(v => { if (v >= 1 && v <= 6) cnt[v]++; });
 
   if (vals.length === 6) {
-    if (cnt.slice(1).every(c => c === 1)) return 1500; // straight
+    // Straight 1-2-3-4-5-6
+    if (cnt.slice(1).every(c => c === 1)) return 1500;
+    // Three pairs
     const nonZero = cnt.slice(1).filter(c => c > 0);
-    if (nonZero.length === 3 && nonZero.every(c => c === 2)) return 1500; // 3 pairs
+    if (nonZero.length === 3 && nonZero.every(c => c === 2)) return 1500;
+  }
+
+  // Straight 1-2-3-4-5 (5 dice, all present once)
+  if (vals.length === 5) {
+    if (cnt[1]===1 && cnt[2]===1 && cnt[3]===1 && cnt[4]===1 && cnt[5]===1) return 500;
+  }
+  // Straight 1-2-3-4-5 hidden inside 6 dice (other die is 6 and doesn't interfere)
+  if (vals.length === 6) {
+    if (cnt[1]>=1 && cnt[2]>=1 && cnt[3]>=1 && cnt[4]>=1 && cnt[5]>=1 && cnt[6]===0) {
+      // exactly one of each 1-5 plus one extra 1 or 5 — handle below with normal scoring
+    }
   }
 
   let score = 0;
@@ -168,6 +221,14 @@ function calcFarkleScore(vals) {
   score += cnt[1] * 100;
   score += cnt[5] * 50;
   return score;
+}
+
+// Check for straight 1-5 in a subset of values
+function hasStraight1to5(vals) {
+  if (vals.length < 5) return false;
+  const cnt = [0,0,0,0,0,0,0];
+  vals.forEach(v => { if (v >= 1 && v <= 6) cnt[v]++; });
+  return cnt[1]>=1 && cnt[2]>=1 && cnt[3]>=1 && cnt[4]>=1 && cnt[5]>=1;
 }
 
 function isFarkle(vals) { return calcFarkleScore(vals) === 0; }
@@ -243,7 +304,9 @@ const TABLE_OPTIONS = [
   {key:'wine',  color:'#1a0c0e',accent:'#ffb37a'},
   {key:'sand',  color:'#2a241c',accent:'#ffd9a0'},
 ];
-const THROW_STRENGTH_BASE = 1.15;
+const THROW_STRENGTH_BASE = 1.4;
+const THROW_STRENGTH_MAX  = 4.5;  // super throw
+const SUPER_THROW_TIME    = 2500; // ms
 const GRAVITY = 40;
 const NUMBER_SIZE = 0.5;
 
@@ -270,79 +333,157 @@ function notation(set) {
   return DICE_TYPES.filter(t=>set[t.key]>0).map(t=>`${set[t.key]}${t.key}`).join(' + ') || '—';
 }
 
-// ─── Charge button ─────────────────────────────────────────────────────────
+// ─── Charge button with super-throw ───────────────────────────────────────
 function ChargeButton({onRoll,disabled,rolling,t}) {
   const [charge,setCharge]=useState(0);
   const [pressed,setPressed]=useState(false);
-  const iv=useRef(null),cr=useRef(0);
+  const [isSuper,setIsSuper]=useState(false);
+  const [showTooltip,setShowTooltip]=useState(false);
+  const iv=useRef(null),cr=useRef(0),pressStart=useRef(0),superFired=useRef(false);
+
   const start=useCallback((e)=>{
     if(disabled||rolling)return;e.preventDefault();
-    setPressed(true);cr.current=0;setCharge(0);
-    iv.current=setInterval(()=>{cr.current=Math.min(1,cr.current+0.025);setCharge(cr.current);},30);
+    setPressed(true);setIsSuper(false);superFired.current=false;
+    cr.current=0;setCharge(0);pressStart.current=Date.now();
+    iv.current=setInterval(()=>{
+      const elapsed=Date.now()-pressStart.current;
+      const pct=Math.min(1, elapsed/SUPER_THROW_TIME);
+      cr.current=pct;setCharge(pct);
+      if(elapsed>=SUPER_THROW_TIME&&!superFired.current){
+        setIsSuper(true);
+      }
+    },30);
   },[disabled,rolling]);
+
   const release=useCallback((e)=>{
     if(!pressed)return;e.preventDefault();
-    clearInterval(iv.current);setPressed(false);
-    const c=cr.current;setCharge(0);cr.current=0;
-    if(!disabled&&!rolling)onRoll(THROW_STRENGTH_BASE*(0.6+c*0.8));
+    clearInterval(iv.current);setPressed(false);setIsSuper(false);
+    const c=cr.current;const elapsed=Date.now()-pressStart.current;
+    setCharge(0);cr.current=0;
+    if(!disabled&&!rolling){
+      let strength;
+      if(elapsed>=SUPER_THROW_TIME){
+        strength=THROW_STRENGTH_MAX;
+      } else {
+        strength=THROW_STRENGTH_BASE*(0.5+c*1.2);
+      }
+      // Show tooltip if rolled at minimum (very quick tap)
+      if(elapsed<200) setShowTooltip(true);
+      onRoll(strength);
+    }
   },[pressed,disabled,rolling,onRoll]);
+
+  useEffect(()=>{
+    if(showTooltip){const t=setTimeout(()=>setShowTooltip(false),2800);return()=>clearTimeout(t);}
+  },[showTooltip]);
+
   useEffect(()=>()=>clearInterval(iv.current),[]);
   const circ=2*Math.PI*22;
+  const ringColor=isSuper?'#ff6b20':charge>0.8?'#ffcf00':'var(--accent)';
+
   return(
-    <button className={`roll-btn${rolling?' rolling':''}${disabled?' disabled':''}${pressed?' charging':''}`}
-      onMouseDown={start}onMouseUp={release}onMouseLeave={release}onTouchStart={start}onTouchEnd={release}
-      disabled={disabled&&!rolling}>
-      {charge>0.02&&<svg className="charge-ring" width="54" height="54" viewBox="0 0 54 54">
-        <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(232,177,74,0.2)" strokeWidth="3"/>
-        <circle cx="27" cy="27" r="22" fill="none" stroke="var(--accent)" strokeWidth="3"
-          strokeDasharray={circ} strokeDashoffset={circ*(1-charge)} strokeLinecap="round" transform="rotate(-90 27 27)"
-          style={{transition:'stroke-dashoffset 0.03s linear'}}/>
-      </svg>}
-      <span className="roll-label">{rolling?t.rolling:pressed&&charge>0.1?'⚡':t.roll}</span>
-      {!rolling&&!pressed&&<span className="roll-hint"/>}
-    </button>
+    <div style={{position:'relative'}}>
+      {showTooltip&&(
+        <div className="throw-tooltip">{t.holdToThrow}</div>
+      )}
+      {isSuper&&(
+        <div className="super-throw-label">{t.superThrow}</div>
+      )}
+      <button className={`roll-btn${rolling?' rolling':''}${disabled?' disabled':''}${pressed?' charging':''}${isSuper?' super':''}`}
+        onMouseDown={start}onMouseUp={release}onMouseLeave={release}onTouchStart={start}onTouchEnd={release}
+        disabled={disabled&&!rolling}>
+        {charge>0.02&&<svg className="charge-ring" width="54" height="54" viewBox="0 0 54 54">
+          <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(232,177,74,0.15)" strokeWidth="3"/>
+          <circle cx="27" cy="27" r="22" fill="none" stroke={ringColor} strokeWidth={isSuper?4:3}
+            strokeDasharray={circ} strokeDashoffset={circ*(1-charge)} strokeLinecap="round" transform="rotate(-90 27 27)"
+            style={{transition:'stroke-dashoffset 0.03s linear, stroke 0.15s'}}/>
+        </svg>}
+        <span className="roll-label">{rolling?t.rolling:isSuper?'⚡':pressed&&charge>0.1?'⚡':t.roll}</span>
+        {!rolling&&!pressed&&<span className="roll-hint"/>}
+      </button>
+    </div>
   );
 }
 
-// ─── Farkle die face (dots) ────────────────────────────────────────────────
+// ─── Farkle die face (wooden dots) ────────────────────────────────────────
 const DOTS = {
   1:[[50,50]],
-  2:[[28,28],[72,72]],
-  3:[[28,28],[50,50],[72,72]],
-  4:[[28,28],[72,28],[28,72],[72,72]],
-  5:[[28,28],[72,28],[50,50],[28,72],[72,72]],
-  6:[[28,22],[72,22],[28,50],[72,50],[28,78],[72,78]],
+  2:[[30,30],[70,70]],
+  3:[[30,30],[50,50],[70,70]],
+  4:[[30,30],[70,30],[30,70],[70,70]],
+  5:[[30,30],[70,30],[50,50],[30,70],[70,70]],
+  6:[[30,24],[70,24],[30,50],[70,50],[30,76],[70,76]],
 };
+
+// Wood grain SVG pattern helper
+function WoodDieBackground({size, selected, kept}) {
+  const rx=Math.round(size*0.18);
+  // Warm wood colors
+  const bg=kept?'#4a2c12':'#7a4520';
+  const grain1=kept?'#3d2410':'#6b3a1a';
+  const grain2=kept?'#562e15':'#8c5028';
+  const border=kept?'#2a1808':selected?'#e8b14a':'#5a3218';
+  const bw=selected?3:1.5;
+  const w=size, h=size;
+  return(
+    <svg width={w} height={h} viewBox="0 0 100 100" style={{position:'absolute',top:0,left:0}}>
+      <defs>
+        <filter id={`wood-shadow-${size}`} x="-10%" y="-10%" width="120%" height="120%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+          <feOffset dx="1" dy="2"/>
+          <feComposite in2="SourceGraphic" operator="over"/>
+        </filter>
+      </defs>
+      {/* Base */}
+      <rect x="3" y="3" width="94" height="94" rx={rx} ry={rx}
+        fill={bg} stroke={border} strokeWidth={bw}/>
+      {/* Wood grain lines */}
+      <line x1="15" y1="3" x2="10" y2="97" stroke={grain1} strokeWidth="2.5" opacity="0.5"/>
+      <line x1="30" y1="3" x2="28" y2="97" stroke={grain2} strokeWidth="1.5" opacity="0.35"/>
+      <line x1="52" y1="3" x2="50" y2="97" stroke={grain1} strokeWidth="2" opacity="0.4"/>
+      <line x1="70" y1="3" x2="68" y2="97" stroke={grain2} strokeWidth="1.5" opacity="0.3"/>
+      <line x1="85" y1="3" x2="88" y2="97" stroke={grain1} strokeWidth="2" opacity="0.4"/>
+      {/* Top sheen */}
+      <rect x="3" y="3" width="94" height="28" rx={rx} ry={rx}
+        fill="rgba(255,220,160,0.08)"/>
+      {/* Selection glow */}
+      {selected&&<rect x="3" y="3" width="94" height="94" rx={rx} ry={rx}
+        fill="none" stroke="rgba(232,177,74,0.4)" strokeWidth="6"/>}
+    </svg>
+  );
+}
 
 function DieFace({value,size=56,selected,kept,scorable,onClick}) {
   const dots=DOTS[value]||DOTS[1];
-  const rx=Math.round(size*0.15);
-  const dr=Math.round(size*0.085);
-  let bg=kept?'#111':'#1c1710';
-  let border=kept?'#1e1e1e':selected?'#e8b14a':'#3a3025';
-  let bw=selected?2.5:1.5;
-  let dotColor=kept?'#2a2520':selected?'#e8b14a':'#cfc4ae';
-  const glow=selected?'drop-shadow(0 0 8px rgba(232,177,74,0.6))':'none';
+  const dr=Math.round(size*0.1);
+  const dotColor='#1a0e06';
+  const glow=selected?'drop-shadow(0 0 10px rgba(232,177,74,0.7))':'none';
 
   return(
     <button
       className={`fdie${selected?' fdie-sel':''}${kept?' fdie-kept':''}${scorable&&!kept?' fdie-scorable':''}`}
-      style={{width:size,height:size,padding:0,background:'none',border:'none',cursor:kept?'default':'pointer',
+      style={{width:size,height:size,padding:0,background:'none',border:'none',
+              cursor:kept?'default':'pointer',position:'relative',
               filter:glow,transition:'transform 150ms cubic-bezier(0.34,1.56,0.64,1), filter 120ms'}}
       onClick={onClick} disabled={kept}>
-      <svg width={size} height={size} viewBox="0 0 100 100">
-        <rect x="3" y="3" width="94" height="94" rx={rx} ry={rx}
-          fill={bg} stroke={border} strokeWidth={bw}/>
-        {selected&&<rect x="3" y="3" width="94" height="94" rx={rx} ry={rx}
-          fill="none" stroke="rgba(232,177,74,0.18)" strokeWidth="8"/>}
-        {dots.map(([cx,cy],i)=><circle key={i} cx={cx} cy={cy} r={dr} fill={dotColor}/>)}
+      <WoodDieBackground size={size} selected={selected} kept={kept}/>
+      <svg width={size} height={size} viewBox="0 0 100 100" style={{position:'absolute',top:0,left:0}}>
+        {dots.map(([cx,cy],i)=>(
+          <g key={i}>
+            {/* Pip depth shadow */}
+            <circle cx={cx+1} cy={cy+2} r={dr} fill="rgba(0,0,0,0.5)"/>
+            {/* Pip inset */}
+            <circle cx={cx} cy={cy} r={dr} fill={dotColor}/>
+            {/* Pip inner highlight */}
+            <circle cx={cx-1} cy={cy-1} r={dr*0.35} fill="rgba(255,255,255,0.12)"/>
+          </g>
+        ))}
       </svg>
     </button>
   );
 }
 
 // ─── Farkle Setup Screen ───────────────────────────────────────────────────
-// Color options for Farkle die picker (subset, no 'custom')
 const FARKLE_COLORS = [
   {key:'obsidian',label:'⬛',swatch:'#16161a'},
   {key:'bone',    label:'⬜',swatch:'#ece3cf'},
@@ -354,24 +495,25 @@ const FARKLE_COLORS = [
 ];
 
 function FarkleSetup({t, onStart, onBack, globalColor}) {
-  const [target,   setTarget]    = useState(10000);
-  const [useEntry, setUseEntry]  = useState(true);
+  const [target,   setTarget]    = useState(5000);
+  const [useEntry, setUseEntry]  = useState(false);  // default: no entry
   const [showRules,setShowRules] = useState(false);
   const [p1Color,  setP1Color]   = useState(globalColor || 'obsidian');
   const [p2Color,  setP2Color]   = useState('crimson');
-  const [show2PColors, setShow2PColors] = useState(false);
 
   return(
     <div className="farkle-setup-overlay">
-      <div className="farkle-setup-card">
-        <div className="farkle-title">{t.farkle}</div>
-        <div className="farkle-kcd-label">KINGDOM COME DELIVERANCE</div>
+      <div className="farkle-setup-card medieval-card">
+        {/* Decorative medieval header */}
+        <div className="medieval-ornament">⚜</div>
+        <div className="farkle-title medieval-title">{t.farkle}</div>
+        <div className="medieval-sub-label">✦ TABERNA REGIS ✦</div>
 
         <div className="fsetup-section">
-          <div className="menu-title">{t.farkleTarget}</div>
+          <div className="menu-title medieval-label">{t.farkleTarget}</div>
           <div className="mat-row">
             {t.farkleTargetVals.map((v,i)=>(
-              <button key={v} className={`mat-pill${target===v?' sel':''}`} onClick={()=>setTarget(v)}>
+              <button key={v} className={`mat-pill medieval-pill${target===v?' sel':''}`} onClick={()=>setTarget(v)}>
                 {t.farkleTargetOpts[i]}
               </button>
             ))}
@@ -379,20 +521,19 @@ function FarkleSetup({t, onStart, onBack, globalColor}) {
         </div>
 
         <div className="fsetup-section">
-          <div className="menu-title">{t.farkleEntry}</div>
+          <div className="menu-title medieval-label">{t.farkleEntry}</div>
           <div className="mat-row">
-            <button className={`mat-pill${useEntry?' sel':''}`}  onClick={()=>setUseEntry(true)}>
+            <button className={`mat-pill medieval-pill${useEntry?' sel':''}`}  onClick={()=>setUseEntry(true)}>
               {t.farkleEntryOn}
             </button>
-            <button className={`mat-pill${!useEntry?' sel':''}`} onClick={()=>setUseEntry(false)}>
+            <button className={`mat-pill medieval-pill${!useEntry?' sel':''}`} onClick={()=>setUseEntry(false)}>
               {t.farkleEntryOff}
             </button>
           </div>
         </div>
 
-        {/* P1 color picker (always shown) */}
         <div className="fsetup-section">
-          <div className="menu-title">{t.farkleP1} — {t.diceColor}</div>
+          <div className="menu-title medieval-label">{t.farkleP1} — {t.diceColor}</div>
           <div className="farkle-color-row">
             {FARKLE_COLORS.map(c=>(
               <button key={c.key}
@@ -405,9 +546,8 @@ function FarkleSetup({t, onStart, onBack, globalColor}) {
           </div>
         </div>
 
-        {/* P2 color picker (only for 2P) */}
         <div className="fsetup-section">
-          <div className="menu-title">{t.farkleP2} — {t.diceColor}</div>
+          <div className="menu-title medieval-label">{t.farkleP2} — {t.diceColor}</div>
           <div className="farkle-color-row">
             {FARKLE_COLORS.map(c=>(
               <button key={c.key}
@@ -420,13 +560,19 @@ function FarkleSetup({t, onStart, onBack, globalColor}) {
           </div>
         </div>
 
-        <button className="farkle-btn-main" onClick={()=>onStart('ai', target, useEntry, p1Color, 'crimson')}>{t.farkleVsAI}</button>
-        <button className="farkle-btn-main" style={{marginTop:6}} onClick={()=>onStart('2p', target, useEntry, p1Color, p2Color)}>{t.farkleTwoPlayer}</button>
-        <button className="farkle-btn-sec"  style={{marginTop:4}} onClick={()=>setShowRules(s=>!s)}>{t.farkleRules}</button>
+        <button className="farkle-btn-main medieval-btn" onClick={()=>onStart('ai', target, useEntry, p1Color, 'crimson')}>{t.farkleVsAI}</button>
+        <button className="farkle-btn-main medieval-btn" style={{marginTop:6}} onClick={()=>onStart('2p', target, useEntry, p1Color, p2Color)}>{t.farkleTwoPlayer}</button>
+        <button className="farkle-btn-sec medieval-btn-sec"  style={{marginTop:4}} onClick={()=>setShowRules(s=>!s)}>{t.farkleRules}</button>
 
         {showRules&&(
-          <div className="farkle-rules">
-            {t.farkleRulesText.map((r,i)=><div key={i} className="farkle-rule-item">{r}</div>)}
+          <div className="farkle-rules medieval-rules">
+            {t.farkleRulesText.map((r,i)=>(
+              r===''
+                ? <div key={i} style={{height:6}}/>
+                : r.startsWith('—')
+                  ? <div key={i} className="farkle-rule-section">{r}</div>
+                  : <div key={i} className="farkle-rule-item">{r}</div>
+            ))}
           </div>
         )}
 
@@ -436,29 +582,17 @@ function FarkleSetup({t, onStart, onBack, globalColor}) {
   );
 }
 
-// ─── Farkle HUD (overlays the live canvas) ────────────────────────────────
-//
-// DESIGN: The 3D canvas is always fully visible.
-// - Top HUD strip: scores (fixed, transparent backdrop)
-// - Bottom HUD panel: dice selection + action buttons (transparent backdrop)
-// - Setup / passing screens: full overlay only when no play happening
-//
-// STATE MACHINE (stored in a single ref to avoid stale closure bugs):
-//   phase: 'idle'|'rolling'|'select'|'farkle_anim'|'passing'|'ai_thinking'|'end'
-//   Each transition is driven by a central dispatch() function.
-//
+// ─── Farkle HUD ────────────────────────────────────────────────────────────
 function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onExitToSetup}) {
-  // p1Color / p2Color: color preset keys. p1Color defaults to the global engine preset.
-  // ── game state (ref = no stale closures, re-render via forceUpdate) ──────
   const gs = useRef({
     scores:   [0,0],
     onBoard:  [false,false],
     currentP: 0,
     turnScore:0,
-    keptVals: [],       // values locked this turn (sub-rolls)
-    rollVals: [],       // values from the most recent roll (fresh dice only)
-    selectedIdx: [],    // indices into rollVals that player has tapped
-    phase: 'idle',      // see above
+    keptVals: [],
+    rollVals: [],
+    selectedIdx: [],
+    phase: 'idle',
     winner: null,
     message: '',
     hotDice: false,
@@ -469,13 +603,11 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
   const idCtr = useRef(0);
   const mkId  = () => ++idCtr.current;
 
-  // ── helpers ───────────────────────────────────────────────────────────────
   function set(patch) {
     Object.assign(gs.current, patch);
     rerender();
   }
 
-  // ── engine wiring ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!engineRef.current) return;
     const prev = engineRef.current.onSettled;
@@ -487,25 +619,21 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
       onSettled(vals);
     };
     return () => { if (engineRef.current) engineRef.current.onSettled = prev||null; };
-  });   // intentionally no deps — we want the latest gs.current each time
+  });
 
-  // ── kick-off first roll ───────────────────────────────────────────────────
   useEffect(() => {
-    // Enable pip mode on engine for Farkle
-    if (engineRef.current) engineRef.current.setOptions({ pipMode: true });
+    if (engineRef.current) {
+      engineRef.current.setOptions({ pipMode: true, materialKind: 'wood', colorPreset: 'wood', cameraLocked: false });
+    }
     doRoll(6);
   }, []);
 
-  // ── per-player color ─────────────────────────────────────────────────────
   function applyPlayerColor(playerIdx) {
     if (!engineRef.current) return;
-    // Always set colorPreset explicitly — the engine may still hold the other
-    // player's color from the previous turn.
     const preset = (playerIdx === 1 && p2Color) ? p2Color : (p1Color || 'obsidian');
-    engineRef.current.setOptions({ colorPreset: preset, pipMode: true });
+    engineRef.current.setOptions({ colorPreset: preset, pipMode: true, materialKind: 'wood' });
   }
 
-  // ── roll ──────────────────────────────────────────────────────────────────
   function doRoll(count) {
     if (!engineRef.current) return;
     applyPlayerColor(gs.current.currentP);
@@ -514,15 +642,14 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
     setTimeout(() => { if (engineRef.current) engineRef.current.roll(1.3); }, 120);
   }
 
-  // ── engine settled ────────────────────────────────────────────────────────
   function onSettled(vals) {
-    // Route to AI handler if it's the AI's turn
     if (gs.current.phase === 'ai_rolling') {
       onSettledAI(vals);
       return;
     }
     if (gs.current.phase !== 'rolling') return;
     if (isFarkle(vals)) {
+      if (engineRef.current) engineRef.current.getSoundSystem().playFarkle();
       set({ rollVals:vals, selectedIdx:[], phase:'farkle_anim',
             message: t.farkleFarkle });
       setTimeout(() => {
@@ -533,33 +660,31 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
     }
   }
 
-  // ── player taps a die ─────────────────────────────────────────────────────
-  // We allow selecting any die that is in scoringDieIndices (i.e. participates
-  // in at least one valid scoring combo). Validation at submit time via
-  // calcFarkleScore(selVals) > 0. This lets players build up combos like
-  // three-of-a-kind by tapping dice one by one.
+  // Only allow selecting dice that can score — prevent discarding non-scoring dice
   function toggleDie(idx) {
     if (gs.current.phase !== 'select') return;
     const prev    = gs.current.selectedIdx;
     const allVals = gs.current.rollVals;
-    // Is this die part of any valid scoring subset?
     const scorable = scoringDieIndices(allVals);
-    if (!scorable.has(idx)) return; // die can never score
+    if (!scorable.has(idx)) return; // die can never score — cannot select
     let next;
     if (prev.includes(idx)) {
       next = prev.filter(i => i !== idx);
     } else {
       next = [...prev, idx];
     }
+    // Validate: the new selection must score > 0
+    const newSelVals = next.map(i => allVals[i]);
+    if (next.length > 0 && calcFarkleScore(newSelVals) === 0) return; // invalid combo
     set({ selectedIdx: next });
   }
 
-  // ── keep selected and roll remaining ──────────────────────────────────────
   function keepAndRoll() {
     const {rollVals, selectedIdx, keptVals, turnScore} = gs.current;
     const selVals = selectedIdx.map(i => rollVals[i]);
     const pts = calcFarkleScore(selVals);
     if (pts === 0) return;
+    if (engineRef.current) engineRef.current.getSoundSystem().playScore();
 
     const newKept   = [...keptVals, ...selVals];
     const newTscore = turnScore + pts;
@@ -575,16 +700,15 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
     }
   }
 
-  // ── bank ──────────────────────────────────────────────────────────────────
   function bank() {
     const {rollVals, selectedIdx, keptVals, turnScore} = gs.current;
     const selVals    = selectedIdx.map(i => rollVals[i]);
     const pts        = calcFarkleScore(selVals);
     const finalScore = turnScore + pts;
+    if (engineRef.current) engineRef.current.getSoundSystem().playScore();
     doEndTurn(finalScore);
   }
 
-  // ── end turn ──────────────────────────────────────────────────────────────
   function doEndTurn(finalScore) {
     const {scores, onBoard, currentP} = gs.current;
     const newOnBoard = [...onBoard];
@@ -613,7 +737,6 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
       set({ scores:newScores, onBoard:newOnBoard, currentP:next,
             keptVals:[], rollVals:[], selectedIdx:[], turnScore:0, phase:'passing', message:'' });
     } else {
-      // vs AI
       set({ scores:newScores, onBoard:newOnBoard, currentP:next,
             keptVals:[], rollVals:[], selectedIdx:[], turnScore:0, phase:'ai_thinking', message:'' });
       if (next === 1) {
@@ -624,14 +747,10 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
     }
   }
 
-  // ── 2P pass ───────────────────────────────────────────────────────────────
   function confirmPass() {
     doRoll(6);
   }
 
-  // ── AI ────────────────────────────────────────────────────────────────────
-  // AI now uses the physical engine: calls doRollAI() which triggers the 3D
-  // physics roll. onSettled routes to onSettledAI() when gs.aiActive is set.
   function runAI(curScores, curOnBoard, aiTurnScore, prevKept) {
     if (gs.current.winner !== null) return;
     const rollCount = prevKept.length === 0 ? 6 : (6 - prevKept.length) || 6;
@@ -643,9 +762,8 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
       phase: 'ai_rolling',
       aiCtx: { curScores, curOnBoard, aiTurnScore, prevKept },
     });
-    // Roll physically
     if (engineRef.current) {
-      applyPlayerColor(1); // AI is always player 1
+      applyPlayerColor(1);
       engineRef.current.setDiceSet([{type:'d6', count:rollCount}]);
       setTimeout(() => { if (engineRef.current) engineRef.current.roll(1.3); }, 120);
     }
@@ -655,6 +773,7 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
     const { curScores, curOnBoard, aiTurnScore, prevKept } = gs.current.aiCtx || {};
     if (!curScores) return;
     if (isFarkle(vals)) {
+      if (engineRef.current) engineRef.current.getSoundSystem().playFarkle();
       set({ rollVals:vals, keptVals:prevKept, phase:'farkle_anim',
             message:t.farkleFarkle, selectedIdx:[] });
       setTimeout(() => doEndTurn(0), 2000);
@@ -667,7 +786,6 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
     const hot = newKept.length >= 6;
     const remaining = hot ? 6 : vals.length - indices.length;
 
-    // Show AI's choice
     set({ rollVals:vals, selectedIdx:indices, keptVals:prevKept,
           turnScore:aiTurnScore, phase:'ai_thinking', message:'' });
 
@@ -688,8 +806,7 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
     }, 1000);
   }
 
-  // ── derived values ────────────────────────────────────────────────────────
-  const {scores,onBoard,currentP,turnScore,keptVals,rollVals,selectedIdx,phase,winner,message,hotDice} = gs.current;
+  const {scores,onBoard,currentP,turnScore,keptVals,rollVals,selectedIdx,phase,winner,message} = gs.current;
 
   const isHuman     = !(mode==='ai' && currentP===1);
   const canInteract = phase==='select' && isHuman;
@@ -705,21 +822,20 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
 
   const notOnBoard = useEntry && onBoard[currentP]===false && (turnScore+selScore) > 0 && (turnScore+selScore) < 500;
 
-  // ─ 2P rotation: rotate entire HUD when player 2's turn ─
   const rotateHUD = mode==='2p' && currentP===1 && phase!=='passing';
 
-  // ── render ────────────────────────────────────────────────────────────────
   return (
     <div className="fhud-root" style={rotateHUD?{transform:'rotate(180deg)'}:{}}>
 
-      {/* ── TOP STRIP: scores ── */}
-      <div className="fhud-top">
+      {/* TOP STRIP: scores — medieval style */}
+      <div className="fhud-top medieval-hud-top">
         <div className={`fhud-player${currentP===0?' fhud-active':''}`}>
           <span className="fhud-pname">{p0Name}</span>
           <span className="fhud-pscore">{scores[0]}</span>
           {useEntry&&!onBoard[0]&&<span className="fhud-entry">–</span>}
         </div>
         <div className="fhud-mid">
+          <div className="medieval-sword">⚔</div>
           <span className="fhud-target">{target.toLocaleString()}</span>
         </div>
         <div className={`fhud-player${currentP===1?' fhud-active':''}`}>
@@ -729,10 +845,9 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
         </div>
       </div>
 
-      {/* ── BOTTOM PANEL ── */}
-      <div className="fhud-bottom">
+      {/* BOTTOM PANEL — medieval */}
+      <div className="fhud-bottom medieval-hud-bottom">
 
-        {/* Turn score + kept dice */}
         <div className="fhud-info-row">
           <div className="fhud-kept">
             {keptVals.map((v,i)=>(
@@ -745,7 +860,6 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
           </div>
         </div>
 
-        {/* Fresh dice (rollVals) */}
         {rollVals.length > 0 && (
           <div className="fhud-dice-row">
             {rollVals.map((val,i) => (
@@ -761,105 +875,91 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
           </div>
         )}
 
-        {/* Rolling indicator */}
         {phase==='rolling' && rollVals.length===0 && (
           <div className="fhud-rolling-row">
             {[...Array(6)].map((_,i)=>(
               <div key={i} className="fhud-rolling-die" style={{animationDelay:`${i*70}ms`}}>
                 <svg width="44" height="44" viewBox="0 0 100 100">
-                  <rect x="3" y="3" width="94" height="94" rx="15" fill="#1c1710" stroke="#3a3025" strokeWidth="2"/>
-                  <circle cx="50" cy="50" r="8" fill="#cfc4ae" opacity="0.3"/>
+                  <rect x="3" y="3" width="94" height="94" rx="15" fill="#7a4520" stroke="#5a3218" strokeWidth="2"/>
+                  <circle cx="50" cy="50" r="8" fill="#1a0e06" opacity="0.3"/>
                 </svg>
               </div>
             ))}
           </div>
         )}
 
-        {/* Message */}
         {message && (
-          <div className={`fhud-message${phase==='farkle_anim'?' fhud-farkle-msg':''}`}>
+          <div className={`fhud-message medieval-message${phase==='farkle_anim'?' fhud-farkle-msg':''}`}>
             {message}
             {phase==='farkle_anim'&&<div className="fhud-farkle-detail">{t.farkleFarkleDetail}</div>}
           </div>
         )}
 
-        {/* Hint */}
         {canInteract && !message && rollVals.length > 0 && (
-          <div className="fhud-hint">{t.farkleSelectDice}</div>
+          <div className="fhud-hint medieval-hint">{t.farkleSelectDice}</div>
         )}
         {notOnBoard && canInteract && (
           <div className="fhud-warn">{t.farkleNotOnBoard}</div>
         )}
         {phase==='ai_thinking' && !message && (
-          <div className="fhud-hint">{t.farkleThinking}</div>
+          <div className="fhud-hint medieval-hint">{t.farkleThinking}</div>
         )}
 
-        {/* Action buttons */}
         <div className="fhud-actions">
-          {/* Human: select phase */}
           {canInteract && (
             <>
-              {/* No dice selected yet: show Roll button (they need to select first) */}
               {selectedIdx.length===0 && phase==='select' && (
-                <div className="fhud-hint" style={{textAlign:'center',padding:'6px 0'}}>{t.farkleSelectDice}</div>
+                <div className="fhud-hint medieval-hint" style={{textAlign:'center',padding:'6px 0'}}>{t.farkleSelectDice}</div>
               )}
               {canReroll && (
-                <button className="farkle-btn-main" onClick={keepAndRoll}>
+                <button className="farkle-btn-main medieval-btn" onClick={keepAndRoll}>
                   {t.farkleKeepRoll} <span style={{opacity:0.7,fontSize:'0.8em'}}>(+{selScore})</span>
                 </button>
               )}
               {canBank && (
-                <button className="farkle-btn-sec" onClick={bank}>
+                <button className="farkle-btn-sec medieval-btn-sec" onClick={bank}>
                   {t.farkleBank} ({turnScore+selScore})
                 </button>
               )}
             </>
           )}
 
-          {/* Human rolling phase: no buttons, just wait */}
-
-          {/* 2P passing */}
           {phase==='passing' && (
-            <div className="fhud-passing">
+            <div className="fhud-passing medieval-passing">
               <div className="fhud-passing-title">{t.farkleP2Pass}</div>
-              <button className="farkle-btn-main" onClick={confirmPass}>{t.farklePassBtn}</button>
+              <button className="farkle-btn-main medieval-btn" onClick={confirmPass}>{t.farklePassBtn}</button>
             </div>
           )}
 
-          {/* End game */}
           {phase==='end' && (
             <div style={{display:'flex',flexDirection:'column',gap:6}}>
-              <div className="fhud-message" style={{fontSize:22}}>{message}</div>
-              <button className="farkle-btn-main" onClick={onExitToSetup}>{t.farkleNewGame}</button>
+              <div className="fhud-message medieval-message" style={{fontSize:22}}>{message}</div>
+              <button className="farkle-btn-main medieval-btn" onClick={onExitToSetup}>{t.farkleNewGame}</button>
             </div>
           )}
         </div>
 
-        {/* Exit */}
         <button className="farkle-btn-back" style={{marginTop:4}} onClick={onExitToSetup}>{t.farkleBack}</button>
       </div>
     </div>
   );
 }
 
-// ─── Farkle container (manages setup ↔ game) ──────────────────────────────
+// ─── Farkle container ──────────────────────────────────────────────────────
 function FarkleContainer({t, engineRef, onClose, globalColor}) {
   const [gameConfig, setGameConfig] = useState(null);
   const [gameKey,    setGameKey]    = useState(0);
 
   function handleStart(mode, target, useEntry, p1Color, p2Color) {
     if (!engineRef.current) return;
-    // Apply p1 color to engine immediately
-    if (p1Color) engineRef.current.setOptions({ colorPreset: p1Color, pipMode: true });
-    else engineRef.current.setOptions({ pipMode: true });
+    engineRef.current.setOptions({ colorPreset: p1Color || 'obsidian', pipMode: true, materialKind: 'wood', cameraLocked: false });
     engineRef.current.setDiceSet([{type:'d6',count:6}]);
     setGameConfig({mode, target, useEntry, p1Color, p2Color});
     setGameKey(k => k+1);
   }
 
   function handleExitToSetup() {
-    // Remove pipMode when leaving Farkle
-    if (engineRef.current) engineRef.current.setOptions({ pipMode: false });
+    if (engineRef.current) engineRef.current.setOptions({ pipMode: false, materialKind: 'glossy', cameraLocked: false });
     setGameConfig(null);
   }
 
@@ -879,6 +979,52 @@ function FarkleContainer({t, engineRef, onClose, globalColor}) {
       p2Color={gameConfig.p2Color}
       onExitToSetup={handleExitToSetup}
     />
+  );
+}
+
+// ─── Home Menu ────────────────────────────────────────────────────────────
+function HomeMenu({t, onSelectSimulator, onSelectFarkle}) {
+  return (
+    <div className="home-overlay">
+      <div className="home-content">
+        {/* Logo */}
+        <div className="home-logo">
+          <div className="home-logo-die">
+            <DieIcon type="d20" size={56} stroke="#e8b14a"/>
+          </div>
+        </div>
+        <div className="home-title">{t.homeTitle}</div>
+        <div className="home-sub">{t.homeSub}</div>
+
+        {/* Decorative divider */}
+        <div className="home-divider">
+          <span>✦</span>
+        </div>
+
+        {/* Mode buttons */}
+        <div className="home-buttons">
+          <button className="home-btn home-btn-primary" onClick={onSelectSimulator}>
+            <div className="home-btn-icon">
+              <DieIcon type="d20" size={28} stroke="#e8b14a"/>
+            </div>
+            <div className="home-btn-text">
+              <div className="home-btn-title">{t.homePlay}</div>
+              <div className="home-btn-desc">{t.homeDesc}</div>
+            </div>
+          </button>
+
+          <button className="home-btn home-btn-farkle" onClick={onSelectFarkle}>
+            <div className="home-btn-icon">
+              <DieIcon type="d6" size={28} stroke="#c8a04a"/>
+            </div>
+            <div className="home-btn-text">
+              <div className="home-btn-title">{t.homeFarkle}</div>
+              <div className="home-btn-desc">{t.homeFarkleDesc}</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -913,7 +1059,8 @@ function App() {
   const [showHelp,    setShowHelp]    = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
   const [shakeArmed,  setShakeArmed]  = useState(false);
-  const [showFarkle,  setShowFarkle]  = useState(false);
+  // screen: 'home' | 'simulator' | 'farkle'
+  const [screen,      setScreen]      = useState('home');
   const [dicePresets, setDicePresets] = useState(()=>lsGet(PRESETS_KEY,[]));
   const [presetInput, setPresetInput] = useState('');
   const [showPInput,  setShowPInput]  = useState(false);
@@ -929,12 +1076,14 @@ function App() {
   // Init engine once
   useEffect(()=>{
     const tab=TABLE_OPTIONS.find(x=>x.key===tableKey)||TABLE_OPTIONS[0];
+    const isAndroid=/android/i.test(navigator.userAgent);
     const eng=new window.DiceEngine(document.getElementById('scene-canvas'),{
       tableColor:tab.color,accentLight:tab.accent,
       colorPreset:color,materialKind:material,
       gravity:GRAVITY,numberSize:NUMBER_SIZE,
       soundEnabled,soundVolume:soundVol,
       invertCameraX:invertCamX,invertCameraY:invertCamY,cameraSensitivity:camSens,
+      isAndroid,
     });
     eng.onSettled=(res)=>{ setRolling(false); setResults(res); };
     engineRef.current=eng;
@@ -1009,16 +1158,15 @@ function App() {
   const total=grouped?grouped.pairs.reduce((s,p)=>s+p.value,0)+grouped.dice.reduce((s,d)=>s+(d.value??0),0):null;
   const totalDice=Object.values(diceSet).reduce((s,n)=>s+n,0);
 
-  // Restore normal dice when leaving farkle
   function closeFarkle(){
-    setShowFarkle(false);
-    // Restore original color + disable pip mode
+    setScreen('home');
     if(engineRef.current){
       const font=NUMBER_FONTS.find(f=>f.key===numFont)||NUMBER_FONTS[0];
       const nc=NUMBER_COLOR_OPTIONS.find(x=>x.key===numColor)||NUMBER_COLOR_OPTIONS[0];
       engineRef.current.setOptions({
-        colorPreset:color, customColor, pipMode:false,
+        colorPreset:color, customColor, pipMode:false, materialKind:material,
         numberFont:font.family, numberWeight:font.weight, numberColor:nc.hex,
+        cameraLocked:false,
       });
     }
     const l=DICE_TYPES.filter(x=>diceSet[x.key]>0).map(x=>({type:x.key,count:diceSet[x.key]}));
@@ -1026,8 +1174,19 @@ function App() {
     else if(engineRef.current)engineRef.current.setDiceSet([{type:'d20',count:1}]);
   }
 
-  // Farkle mode: no main UI overlay, just the HUD
-  if (showFarkle) {
+  // ── Home screen ─────────────────────────────────────────────────────────
+  if (screen === 'home') {
+    return (
+      <HomeMenu
+        t={t}
+        onSelectSimulator={() => setScreen('simulator')}
+        onSelectFarkle={() => setScreen('farkle')}
+      />
+    );
+  }
+
+  // ── Farkle mode ──────────────────────────────────────────────────────────
+  if (screen === 'farkle') {
     return (
       <FarkleContainer
         t={t}
@@ -1038,7 +1197,7 @@ function App() {
     );
   }
 
-  // ── Normal mode ──────────────────────────────────────────────────────────
+  // ── Normal simulator mode ──────────────────────────────────────────────
   return(
     <React.Fragment>
       {/* Top bar */}
@@ -1053,7 +1212,7 @@ function App() {
             <div className="brand-sub">{t.appSub}</div>
           </div>
         </div>
-        <button className="preset-pill" onClick={()=>setShowFarkle(true)}>
+        <button className="preset-pill" onClick={()=>setScreen('farkle')}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <rect x="1" y="1" width="14" height="14" rx="3" stroke="currentColor" strokeWidth="1.4"/>
             <circle cx="5" cy="5" r="1.2" fill="currentColor"/>
@@ -1063,6 +1222,7 @@ function App() {
           </svg>
           {t.farkle}
         </button>
+        <button className="preset-pill" style={{marginLeft:-4}} onClick={()=>setScreen('home')}>⌂</button>
         <button className="icon-btn" onClick={()=>setShowHelp(s=>!s)}>?</button>
       </div>
 
