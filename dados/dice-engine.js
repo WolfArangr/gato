@@ -282,15 +282,42 @@
     return new CANNON.ConvexPolyhedron(verts, faces);
   }
 
-  // Pip dot positions for d6 faces (0-indexed centre coords in 0..1 space)
+  // ─────────────────────────────────────────────────────────────────────────
+  // TUNING REFERENCE — all visual knobs in one place
+  //
+  // PIP SIZE
+  //   PIP_RADIUS — radius of each dot as a fraction of the 256px texture.
+  //   0.085 ≈ 22px dot (original, too large)
+  //   0.043 ≈ 11px dot (current, 50% of original)
+  //   Raise/lower this one number to resize all pips uniformly.
+  const PIP_RADIUS = 0.043;
+  //
+  // PIP POSITIONS — centre of each dot in 0..1 UV space (x, y).
+  //   Adjust individual values to shift dots within the face.
+  //   The face square occupies roughly 0.10–0.90 of the texture;
+  //   values near 0.5 are centred, values near 0.20/0.80 are near the edges.
   const PIP_POSITIONS = {
     1: [[.50,.50]],
-    2: [[.30,.30],[.70,.70]],
-    3: [[.30,.30],[.50,.50],[.70,.70]],
-    4: [[.30,.30],[.70,.30],[.30,.70],[.70,.70]],
-    5: [[.30,.30],[.70,.30],[.50,.50],[.30,.70],[.70,.70]],
-    6: [[.30,.25],[.70,.25],[.30,.50],[.70,.50],[.30,.75],[.70,.75]],
+    2: [[.30,.28],[.70,.72]],
+    3: [[.30,.28],[.50,.50],[.70,.72]],
+    4: [[.30,.28],[.70,.28],[.30,.72],[.70,.72]],
+    5: [[.30,.28],[.70,.28],[.50,.50],[.30,.72],[.70,.72]],
+    6: [[.30,.24],[.70,.24],[.30,.50],[.70,.50],[.30,.76],[.70,.76]],
   };
+  //
+  // NUMBER ROTATION
+  //   The UV tangent basis adds ~+45° to all number orientations.
+  //   The line below cancels it with −π/4 (−45°).
+  //   To fine-tune: change the fraction of Math.PI, e.g. −Math.PI/6 = −30°.
+  //   Affected by: all polyhedral dice (d4, d6, d8, d10, d12, d20, d100).
+  const NUMBER_ROTATION = -Math.PI / 4;   // ← CHANGE THIS to adjust all numbers
+  //
+  // NUMBER SIZE
+  //   Driven by textOpts.size (set via the engine option numberSize, default 0.5).
+  //   baseSize is the font size at scale=1 for 1-digit / 2-digit / 3-digit numbers.
+  //   To make numbers bigger globally, increase numberSize in App (currently 0.5).
+  //   To adjust per digit-count, edit the three values in makeFaceTexture below.
+  // ─────────────────────────────────────────────────────────────────────────
 
   function makeFaceTexture(number, opts, textOpts) {
     const size = 256;
@@ -304,15 +331,15 @@
       ctx.lineWidth = 8;
       ctx.strokeRect(4, 4, size - 8, size - 8);
     }
-    // PIP mode: draw dots instead of numbers (d6 only, number 1-6)
+
+    // ── PIP MODE: draw dots instead of numbers (d6 faces 1–6) ──────────────
     if (textOpts && textOpts.pips && number >= 1 && number <= 6) {
       const positions = PIP_POSITIONS[number] || PIP_POSITIONS[1];
-      const pipColor = (textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
-      const pipR = size * 0.085;
+      const pipColor  = (textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
       ctx.fillStyle = pipColor;
       positions.forEach(([px, py]) => {
         ctx.beginPath();
-        ctx.arc(px * size, py * size, pipR, 0, Math.PI * 2);
+        ctx.arc(px * size, py * size, PIP_RADIUS * size, 0, Math.PI * 2);
         ctx.fill();
       });
       const tex = new THREE.CanvasTexture(canvas);
@@ -320,16 +347,21 @@
       tex.colorSpace = THREE.SRGBColorSpace;
       return tex;
     }
-    const s = String(number);
-    const scale = (textOpts && textOpts.size) ? textOpts.size : 1.0;
+
+    // ── NUMBER MODE ─────────────────────────────────────────────────────────
+    const s        = String(number);
+    const scale    = (textOpts && textOpts.size) ? textOpts.size : 1.0;
+    // ↓ Per-digit-count base sizes (at scale=1). Increase to make numbers bigger.
     const baseSize = s.length === 1 ? 168 : s.length === 2 ? 124 : 100;
     const fontSize = Math.round(baseSize * scale);
-    const color = (textOpts && textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
-    const fontFamily = (textOpts && textOpts.font) ? textOpts.font : '"JetBrains Mono","Menlo",monospace';
+    const color      = (textOpts && textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
+    const fontFamily = (textOpts && textOpts.font)   ? textOpts.font   : '"JetBrains Mono","Menlo",monospace';
     const fontWeight = (textOpts && textOpts.weight) ? textOpts.weight : 700;
+
+    // Apply rotation correction (see NUMBER_ROTATION constant above)
     ctx.save();
     ctx.translate(size / 2, size / 2);
-    ctx.rotate(-Math.PI / 4);
+    ctx.rotate(NUMBER_ROTATION);
     ctx.translate(-size / 2, -size / 2);
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
@@ -337,17 +369,20 @@
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
     ctx.fillText(s, size / 2, size / 2 + fontSize * 0.04);
     ctx.restore();
+
+    // Underline for ambiguous digits (6, 9, 60, 90)
     const underline = (s === '6' || s === '9' || s === '60' || s === '90');
     if (underline) {
       ctx.save();
       ctx.translate(size / 2, size / 2);
-      ctx.rotate(-Math.PI / 4);
+      ctx.rotate(NUMBER_ROTATION);
       ctx.translate(-size / 2, -size / 2);
       const w = fontSize * 0.55;
       ctx.fillStyle = color;
       ctx.fillRect(size / 2 - w / 2, size / 2 + fontSize * 0.45, w, Math.max(4, fontSize * 0.06));
       ctx.restore();
     }
+
     const tex = new THREE.CanvasTexture(canvas);
     tex.anisotropy = 4;
     tex.colorSpace = THREE.SRGBColorSpace;
