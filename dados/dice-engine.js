@@ -465,7 +465,10 @@
       this._volume = 0.7;
       this._lastDiceHit = 0;
       this._lastTableHit = 0;
-      this._minInterval = 60; // ms between sounds
+      this._lastWallHit = 0;
+      // Separate cooldowns so dice-dice and dice-table don't block each other
+      this._minDice  = 35;  // ms between dice-vs-dice sounds
+      this._minTable = 25;  // ms between dice-vs-surface sounds
     }
 
     _getCtx() {
@@ -474,109 +477,158 @@
           this._ctx = new (window.AudioContext || window.webkitAudioContext)();
         } catch (e) { return null; }
       }
-      if (this._ctx.state === 'suspended') {
-        this._ctx.resume();
-      }
+      if (this._ctx.state === 'suspended') this._ctx.resume();
       return this._ctx;
     }
 
     setEnabled(v) { this._enabled = v; }
-    setVolume(v) { this._volume = Math.max(0, Math.min(1, v)); }
+    setVolume(v)  { this._volume = Math.max(0, Math.min(1, v)); }
 
-    // Dice-vs-dice: higher pitched clack
+    // ── Dice vs dice: sharp plastic/bone clack ────────────────────────────
     playDiceHit(intensity = 1.0) {
       if (!this._enabled) return;
       const now = Date.now();
-      if (now - this._lastDiceHit < this._minInterval) return;
+      if (now - this._lastDiceHit < this._minDice) return;
       this._lastDiceHit = now;
 
       const ctx = this._getCtx();
       if (!ctx) return;
+      const t   = ctx.currentTime;
+      const vol = this._volume * Math.min(1, 0.25 + intensity * 0.75);
 
-      const t = ctx.currentTime;
-      const vol = this._volume * Math.min(1, intensity * 0.8 + 0.2);
+      // Two short tonal clicks with noise — classic bone-on-bone
+      const click1 = ctx.createOscillator();
+      const click2 = ctx.createOscillator();
+      const noise  = ctx.createOscillator();
+      const g      = ctx.createGain();
+      const bp     = ctx.createBiquadFilter();
 
-      // Distinctive dice-vs-dice clack: higher frequency, sharper
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 3800 + Math.random() * 1200;
+      bp.Q.value = 1.4;
 
-      filter.type = 'bandpass';
-      filter.frequency.value = 3200 + Math.random() * 1000;
-      filter.Q.value = 1.2;
+      click1.type = 'square';
+      click1.frequency.setValueAtTime(380 + Math.random() * 160, t);
+      click1.frequency.exponentialRampToValueAtTime(90, t + 0.025);
 
-      osc1.type = 'square';
-      osc1.frequency.setValueAtTime(320 + Math.random() * 200, t);
-      osc1.frequency.exponentialRampToValueAtTime(120, t + 0.03);
+      click2.type = 'sawtooth';
+      click2.frequency.setValueAtTime(700 + Math.random() * 250, t);
+      click2.frequency.exponentialRampToValueAtTime(130, t + 0.018);
 
-      osc2.type = 'sawtooth';
-      osc2.frequency.setValueAtTime(600 + Math.random() * 300, t);
-      osc2.frequency.exponentialRampToValueAtTime(180, t + 0.025);
+      noise.type = 'square';
+      noise.frequency.setValueAtTime(200 + Math.random() * 600, t);
 
-      gainNode.gain.setValueAtTime(0, t);
-      gainNode.gain.linearRampToValueAtTime(vol * 0.4, t + 0.001);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.07 + Math.random() * 0.04);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol * 0.45, t + 0.001);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.055 + Math.random() * 0.03);
 
-      osc1.connect(filter);
-      osc2.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(ctx.destination);
+      click1.connect(bp); click2.connect(bp); noise.connect(bp);
+      bp.connect(g); g.connect(ctx.destination);
 
-      osc1.start(t); osc1.stop(t + 0.15);
-      osc2.start(t); osc2.stop(t + 0.15);
+      click1.start(t); click1.stop(t + 0.12);
+      click2.start(t); click2.stop(t + 0.12);
+      noise.start(t);  noise.stop(t + 0.12);
 
-      // Very light vibration for dice collision
-      if (intensity > 0.3) vibrate(8);
+      // Light haptic on meaningful impacts
+      if (intensity > 0.35) vibrate(6);
     }
 
-    // Dice-vs-table/wall: lower thud
+    // ── Dice vs table: wooden thud / felt thump ───────────────────────────
     playTableHit(intensity = 1.0) {
       if (!this._enabled) return;
       const now = Date.now();
-      if (now - this._lastTableHit < this._minInterval * 0.5) return;
+      if (now - this._lastTableHit < this._minTable) return;
       this._lastTableHit = now;
 
       const ctx = this._getCtx();
       if (!ctx) return;
+      const t   = ctx.currentTime;
+      const vol = this._volume * Math.min(1, 0.15 + intensity * 0.85);
 
-      const t = ctx.currentTime;
-      const vol = this._volume * Math.min(1, intensity * 0.6 + 0.1);
+      // Low thud: fundamental + two harmonics + short noise burst
+      const fund  = ctx.createOscillator();
+      const harm2 = ctx.createOscillator();
+      const crack = ctx.createOscillator();
+      const g     = ctx.createGain();
+      const lp    = ctx.createBiquadFilter();
+      const hp    = ctx.createBiquadFilter();
 
-      // Thud/thump for table/wall contact — lower, more resonant
-      const osc = ctx.createOscillator();
-      const oscHarm = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 600 + intensity * 400;
+      lp.Q.value = 0.8;
 
-      filter.type = 'lowpass';
-      filter.frequency.value = 350 + Math.random() * 150;
-      filter.Q.value = 1.5;
+      hp.type = 'highpass';
+      hp.frequency.value = 40;
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(110 + Math.random() * 50, t);
-      osc.frequency.exponentialRampToValueAtTime(35, t + 0.14);
+      // Pitch varies with intensity: harder hit = higher fundamental
+      const f0 = 80 + intensity * 60 + Math.random() * 30;
+      fund.type = 'sine';
+      fund.frequency.setValueAtTime(f0, t);
+      fund.frequency.exponentialRampToValueAtTime(f0 * 0.35, t + 0.18);
 
-      oscHarm.type = 'triangle';
-      oscHarm.frequency.setValueAtTime(220 + Math.random() * 80, t);
-      oscHarm.frequency.exponentialRampToValueAtTime(60, t + 0.10);
+      harm2.type = 'triangle';
+      harm2.frequency.setValueAtTime(f0 * 2.1, t);
+      harm2.frequency.exponentialRampToValueAtTime(f0 * 0.6, t + 0.10);
 
-      gainNode.gain.setValueAtTime(0, t);
-      gainNode.gain.linearRampToValueAtTime(vol * 0.55, t + 0.003);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.18 + Math.random() * 0.08);
+      crack.type = 'sawtooth';
+      crack.frequency.setValueAtTime(900 + Math.random() * 400, t);
+      crack.frequency.exponentialRampToValueAtTime(200, t + 0.02);
 
-      osc.connect(filter);
-      oscHarm.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(ctx.destination);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol * 0.65, t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22 + Math.random() * 0.06);
 
-      osc.start(t); osc.stop(t + 0.35);
-      oscHarm.start(t); oscHarm.stop(t + 0.35);
+      fund.connect(lp); harm2.connect(lp); crack.connect(lp);
+      lp.connect(hp); hp.connect(g); g.connect(ctx.destination);
 
-      // Very light vibration on hard table/wall hit
-      if (intensity > 0.5) vibrate([5, 0, 5]);
+      fund.start(t);  fund.stop(t + 0.35);
+      harm2.start(t); harm2.stop(t + 0.35);
+      crack.start(t); crack.stop(t + 0.10);
+
+      if (intensity > 0.5) vibrate([4, 0, 4]);
     }
 
+    // ── Dice vs wall: same as table but slightly brighter / shorter ───────
+    playWallHit(intensity = 1.0) {
+      if (!this._enabled) return;
+      const now = Date.now();
+      if (now - this._lastWallHit < this._minTable) return;
+      this._lastWallHit = now;
+
+      const ctx = this._getCtx();
+      if (!ctx) return;
+      const t   = ctx.currentTime;
+      const vol = this._volume * Math.min(1, 0.12 + intensity * 0.7);
+
+      const osc  = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const g    = ctx.createGain();
+      const bp   = ctx.createBiquadFilter();
+
+      bp.type = 'bandpass';
+      bp.frequency.value = 1200 + Math.random() * 600;
+      bp.Q.value = 0.7;
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(160 + Math.random() * 80, t);
+      osc.frequency.exponentialRampToValueAtTime(55, t + 0.08);
+
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(320 + Math.random() * 120, t);
+      osc2.frequency.exponentialRampToValueAtTime(80, t + 0.06);
+
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol * 0.5, t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14 + Math.random() * 0.05);
+
+      osc.connect(bp); osc2.connect(bp);
+      bp.connect(g); g.connect(ctx.destination);
+
+      osc.start(t);  osc.stop(t + 0.25);
+      osc2.start(t); osc2.stop(t + 0.25);
+    }
+
+    // ── Settle chime ──────────────────────────────────────────────────────
     playSettle() {
       if (!this._enabled) return;
       const ctx = this._getCtx();
@@ -599,38 +651,12 @@
       osc.start(t); osc.stop(t + 0.25);
     }
 
-    // Power-up charge sound (played during super-launch charge)
-    playSuperChargeLoop(startT) {
-      const ctx = this._getCtx();
-      if (!ctx) return null;
-      const t = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(80, t);
-      osc.frequency.linearRampToValueAtTime(320, t + 2.5);
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(this._volume * 0.06, t + 0.3);
-      gain.gain.linearRampToValueAtTime(this._volume * 0.12, t + 2.5);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t);
-      return { osc, gain };
-    }
-
-    stopNode(node) {
-      if (!node) return;
-      try {
-        node.osc.stop();
-        node.gain.disconnect();
-      } catch(e) {}
-    }
-
+    // ── Super-launch whoosh ───────────────────────────────────────────────
     playSuperLaunch() {
       const ctx = this._getCtx();
       if (!ctx) return;
       const t = ctx.currentTime;
-      // Whoosh + impact sound
+
       const osc1 = ctx.createOscillator();
       const osc2 = ctx.createOscillator();
       const g1 = ctx.createGain();
@@ -655,7 +681,6 @@
       osc1.start(t); osc1.stop(t + 0.5);
       osc2.start(t); osc2.stop(t + 0.5);
 
-      // Strong vibration on super launch
       vibrate([30, 20, 50]);
     }
   }
@@ -777,18 +802,27 @@
       this.world.defaultContactMaterial.friction = 0.5;
 
       // Collision listener for sounds + vibration
+      // We distinguish: ground (mass=0, flat floor), walls (mass=0, vertical), dice-vs-dice
       this.world.addEventListener('beginContact', (event) => {
         if (!this._rolling) return;
         const bA = event.bodyA, bB = event.bodyB;
-        const isGround = bA.mass === 0 || bB.mass === 0;
+        const isDice = bA.mass > 0 && bB.mass > 0;
+        const isStatic = bA.mass === 0 || bB.mass === 0;
         const vA = bA.velocity, vB = bB.velocity;
         const relVel = Math.hypot(vA.x - vB.x, vA.y - vB.y, vA.z - vB.z);
-        const intensity = Math.min(1, relVel / 12);
-        if (intensity > 0.05) {
-          if (isGround) {
+        const intensity = Math.min(1, relVel / 14);
+        if (intensity < 0.04) return;
+
+        if (isDice) {
+          this._sound.playDiceHit(intensity);
+        } else if (isStatic) {
+          // Determine if it's the floor or a wall by checking which static body it is
+          const staticBody = bA.mass === 0 ? bA : bB;
+          const isFloor = staticBody === this._groundBody;
+          if (isFloor) {
             this._sound.playTableHit(intensity);
           } else {
-            this._sound.playDiceHit(intensity);
+            this._sound.playWallHit(intensity);
           }
         }
       });
@@ -797,6 +831,7 @@
       ground.addShape(new CANNON.Plane());
       ground.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
       this.world.addBody(ground);
+      this._groundBody = ground;
 
       this._walls = [];
       for (let i = 0; i < 12; i++) {

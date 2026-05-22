@@ -361,31 +361,33 @@ function notation(set) {
 }
 
 // ─── Charge button with super-launch ──────────────────────────────────────
+// Visual design:
+//   Normal charge  → golden arc fills around the button (0→100%)
+//   Super zone     → arc completes, button glows white-gold with expanding halo rings
+//   No emoji icons — purely visual/geometric
 function ChargeButton({onRoll,disabled,rolling,t}) {
-  const [charge,setCharge]=useState(0);    // 0..1 normal, >1 = super zone
+  const [charge,setCharge]=useState(0);
   const [pressed,setPressed]=useState(false);
   const [isSuper,setIsSuper]=useState(false);
   const [showTip,setShowTip]=useState(false);
   const iv=useRef(null);
   const cr=useRef(0);
   const startTime=useRef(0);
-  const superFired=useRef(false);
-  const superNodeRef=useRef(null);
 
   const start=useCallback((e)=>{
     if(disabled||rolling)return;
     e.preventDefault();
-    setPressed(true);setIsSuper(false);superFired.current=false;
+    setPressed(true);setIsSuper(false);
     cr.current=0;setCharge(0);
     startTime.current=Date.now();
     iv.current=setInterval(()=>{
       const elapsed=Date.now()-startTime.current;
-      const fraction=Math.min(elapsed/MAX_CHARGE_TIME, 1.0);
+      // Normal phase: 0→1 over SUPER_LAUNCH_THRESHOLD ms
+      const fraction=Math.min(elapsed/SUPER_LAUNCH_THRESHOLD, 1.0);
       cr.current=fraction;
       setCharge(fraction);
-      const nowSuper = elapsed >= SUPER_LAUNCH_THRESHOLD;
-      setIsSuper(nowSuper);
-    },30);
+      setIsSuper(elapsed >= SUPER_LAUNCH_THRESHOLD);
+    },20);
   },[disabled,rolling]);
 
   const release=useCallback((e)=>{
@@ -398,82 +400,109 @@ function ChargeButton({onRoll,disabled,rolling,t}) {
     setCharge(0);setIsSuper(false);cr.current=0;
 
     if(!disabled&&!rolling){
-      let strength;
       if(elapsed >= SUPER_LAUNCH_THRESHOLD){
-        // Super launch — very strong
-        strength = 3.5 + (elapsed - SUPER_LAUNCH_THRESHOLD) / 1000 * 0.5;
-        strength = Math.min(strength, 5.0);
+        const extra=(elapsed-SUPER_LAUNCH_THRESHOLD)/1000*0.5;
+        onRoll(Math.min(3.5+extra, 5.0));
       } else {
-        // Normal range: 0.6 at tap, 1.9 at full normal charge
-        strength = THROW_STRENGTH_BASE * (0.6 + c * 1.3);
-        // Show tip if tapped at minimum
-        if(elapsed < 120){
-          setShowTip(true);
-          setTimeout(()=>setShowTip(false),3000);
-        }
+        const strength=THROW_STRENGTH_BASE*(0.6+c*1.3);
+        if(elapsed<120){ setShowTip(true); setTimeout(()=>setShowTip(false),2800); }
+        onRoll(strength);
       }
-      onRoll(strength);
     }
   },[pressed,disabled,rolling,onRoll]);
 
   useEffect(()=>()=>{clearInterval(iv.current);},[]);
 
-  const circ=2*Math.PI*22;
-  // Normal charge fills 0..1; super zone pulses
-  const normalFraction=Math.min(charge,1);
-  const superProgress=isSuper?(Date.now()-startTime.current-SUPER_LAUNCH_THRESHOLD)/700:0;
+  // Ring geometry: radius 26, so circ = 2π×26
+  const R=26, CX=34, CY=34, SIZE=68;
+  const circ=2*Math.PI*R;
+  const offset=circ*(1-Math.min(charge,1));
+
+  // Colour shifts gold → white as charge fills
+  const ringColor = isSuper ? '#ffffff' : `rgba(232,${Math.round(177+60*charge)},${Math.round(74+120*charge)},1)`;
+  const ringWidth = isSuper ? 4 : 2.5+charge*1.5;
 
   return(
-    <div style={{position:'relative',display:'inline-flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:4}}>
+    <div style={{position:'relative',display:'inline-flex',alignItems:'center',justifyContent:'center'}}>
+      {/* Tooltip */}
       {showTip&&!pressed&&(
         <div style={{
-          position:'absolute',bottom:'calc(100% + 10px)',left:'50%',transform:'translateX(-50%)',
-          background:'rgba(10,13,12,0.92)',border:'1px solid var(--line-strong)',
-          borderRadius:8,padding:'5px 11px',
+          position:'absolute',bottom:'calc(100% + 12px)',left:'50%',transform:'translateX(-50%)',
+          background:'rgba(10,13,12,0.93)',border:'1px solid rgba(232,177,74,0.3)',
+          borderRadius:8,padding:'5px 12px',
           fontFamily:'var(--font-ui)',fontSize:11,color:'var(--accent)',
           whiteSpace:'nowrap',pointerEvents:'none',zIndex:200,
           animation:'fadein 200ms ease both',
-          boxShadow:'0 4px 16px rgba(0,0,0,0.5)'
-        }}>
-          {t.tipHold}
-        </div>
+          boxShadow:'0 4px 20px rgba(0,0,0,0.6)'
+        }}>{t.tipHold}</div>
       )}
+
+      {/* Outer halo rings — only visible in super zone */}
+      {isSuper&&<>
+        <div className="super-halo super-halo-1"/>
+        <div className="super-halo super-halo-2"/>
+      </>}
+
+      {/* Charge ring SVG — sits just outside the button */}
+      {pressed&&charge>0.01&&(
+        <svg
+          width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}
+          style={{position:'absolute',top:'50%',left:'50%',
+                  transform:'translate(-50%,-50%)',pointerEvents:'none',
+                  filter:isSuper?`drop-shadow(0 0 ${6+charge*8}px rgba(255,240,180,0.9))`
+                                :`drop-shadow(0 0 4px rgba(232,177,74,0.5))`}}>
+          {/* Track */}
+          <circle cx={CX} cy={CY} r={R} fill="none"
+            stroke="rgba(232,177,74,0.12)" strokeWidth="2.5"/>
+          {/* Fill arc */}
+          <circle cx={CX} cy={CY} r={R} fill="none"
+            stroke={ringColor} strokeWidth={ringWidth}
+            strokeDasharray={circ} strokeDashoffset={offset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${CX} ${CY})`}
+            style={{transition:'stroke-dashoffset 0.02s linear, stroke 0.1s, stroke-width 0.1s'}}/>
+        </svg>
+      )}
+
       <button
-        className={`roll-btn${rolling?' rolling':''}${disabled?' disabled':''}${pressed?' charging':''}${isSuper?' super-charge':''}`}
+        className={`roll-btn${rolling?' rolling':''}${disabled?' disabled':''}${pressed?' charging':''}${isSuper?' super-active':''}`}
         onMouseDown={start}onMouseUp={release}onMouseLeave={release}
         onTouchStart={start}onTouchEnd={release}onTouchCancel={release}
-        disabled={disabled&&!rolling}
-        style={{position:'relative'}}>
-        {/* Normal charge ring */}
-        {pressed&&!isSuper&&charge>0.02&&(
-          <svg className="charge-ring" width="54" height="54" viewBox="0 0 54 54" style={{position:'absolute',top:0,left:0,pointerEvents:'none'}}>
-            <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(232,177,74,0.2)" strokeWidth="3"/>
-            <circle cx="27" cy="27" r="22" fill="none" stroke="var(--accent)" strokeWidth="3"
-              strokeDasharray={circ} strokeDashoffset={circ*(1-normalFraction)} strokeLinecap="round" transform="rotate(-90 27 27)"
-              style={{transition:'stroke-dashoffset 0.03s linear'}}/>
-          </svg>
-        )}
-        {/* Super charge ring — glowing gold/white pulse */}
-        {isSuper&&(
-          <svg className="charge-ring" width="54" height="54" viewBox="0 0 54 54" style={{position:'absolute',top:0,left:0,pointerEvents:'none',filter:'drop-shadow(0 0 8px rgba(255,220,80,0.9))'}}>
-            <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(255,220,80,0.3)" strokeWidth="4"/>
-            <circle cx="27" cy="27" r="22" fill="none" stroke="#ffe050" strokeWidth="4"
-              strokeDasharray={circ} strokeDashoffset={0} strokeLinecap="round" transform="rotate(-90 27 27)"
-              style={{animation:'superPulse 0.4s ease-in-out infinite alternate'}}/>
-          </svg>
-        )}
+        disabled={disabled&&!rolling}>
         <span className="roll-label">
-          {rolling?t.rolling:isSuper?'⚡⚡':pressed&&charge>0.1?'⚡':t.roll}
+          {rolling ? t.rolling : t.roll}
         </span>
       </button>
+
       <style>{`
-        @keyframes superPulse {
-          from { stroke-width: 3; opacity: 0.7; }
-          to   { stroke-width: 6; opacity: 1; }
+        /* Super glow on the button itself */
+        .super-active {
+          box-shadow:
+            0 0 0 1px rgba(255,240,160,0.6),
+            0 0 18px rgba(255,220,100,0.55),
+            0 0 40px rgba(255,200,60,0.3),
+            var(--shadow-lg) !important;
+          border-color: rgba(255,240,160,0.8) !important;
+          color: #fff8e0 !important;
+          animation: superGlowPulse 0.5s ease-in-out infinite alternate;
         }
-        .super-charge {
-          box-shadow: 0 0 0 4px rgba(255,220,80,0.4), 0 0 24px rgba(255,200,50,0.6) !important;
-          border-color: #ffe050 !important;
+        @keyframes superGlowPulse {
+          from { box-shadow: 0 0 0 1px rgba(255,240,160,0.5), 0 0 14px rgba(255,220,100,0.4), 0 0 30px rgba(255,200,60,0.2), var(--shadow-lg); }
+          to   { box-shadow: 0 0 0 2px rgba(255,240,160,0.9), 0 0 28px rgba(255,220,100,0.7), 0 0 60px rgba(255,200,60,0.4), var(--shadow-lg); }
+        }
+        /* Halo rings that expand outward */
+        .super-halo {
+          position: absolute; top: 50%; left: 50%;
+          border-radius: 50%;
+          border: 1.5px solid rgba(255,230,100,0.5);
+          pointer-events: none;
+          transform: translate(-50%,-50%);
+        }
+        .super-halo-1 { animation: haloExpand 1.0s ease-out infinite; }
+        .super-halo-2 { animation: haloExpand 1.0s ease-out 0.5s infinite; }
+        @keyframes haloExpand {
+          0%   { width: 60px; height: 60px; opacity: 0.7; border-color: rgba(255,230,100,0.6); }
+          100% { width: 110px; height: 110px; opacity: 0; border-color: rgba(255,200,60,0); }
         }
       `}</style>
     </div>
@@ -792,11 +821,15 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
     }
   }
 
-  // Only allow toggling dice that are in a scoring subset (prevents discarding non-scorers)
+  // Allow toggling any die that participates in at least one valid scoring subset.
+  // We do NOT reject mid-selection subsets with score=0, because the player may be
+  // building up a triple (e.g. tapping three 2s one by one: each intermediate step
+  // scores 0, but the final [2,2,2] scores 200). Validation happens at keepAndRoll/bank.
   function toggleDie(idx) {
     if (gs.current.phase !== 'select') return;
     const prev    = gs.current.selectedIdx;
     const allVals = gs.current.rollVals;
+    // Only block dice that can NEVER contribute to any valid scoring combo
     const scorable = scoringDieIndices(allVals);
     if (!scorable.has(idx)) return;
     let next;
@@ -805,9 +838,6 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
     } else {
       next = [...prev, idx];
     }
-    // Validate: selected subset must score > 0
-    const selVals = next.map(i => allVals[i]);
-    if (selVals.length > 0 && calcFarkleScoreSubset(selVals) === 0) return;
     set({ selectedIdx: next });
   }
 
