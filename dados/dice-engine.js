@@ -214,9 +214,15 @@
     const c = document.createElement('canvas');
     c.width = 128; c.height = 128;
     const ctx = c.getContext('2d');
+    // Never use ctx.shadow* — it corrupts alpha channels used as Three.js textures
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
+    ctx.clearRect(0, 0, 128, 128);
+
     if (pip) {
-      // Draw pip pattern
-      ctx.clearRect(0, 0, 128, 128);
       const n = parseInt(text) || 1;
       const dots = {
         1:[[64,64]],
@@ -227,25 +233,34 @@
         6:[[36,28],[92,28],[36,64],[92,64],[36,100],[92,100]],
       };
       const positions = dots[Math.min(n,6)] || dots[1];
-      ctx.fillStyle = color === 'auto' ? '#1a1408' : color;
-      // Shadow for depth
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 2;
+      const pipColor = color === 'auto' ? '#1a1408' : color;
+      const r = 10;
+
       positions.forEach(([px, py]) => {
+        // Depth shadow: slightly offset darker circle (no canvas shadow API)
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
         ctx.beginPath();
-        ctx.arc(px, py, 11, 0, Math.PI * 2);
+        ctx.arc(px + 1.5, py + 2, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Main pip
+        ctx.fillStyle = pipColor;
+        ctx.beginPath();
+        ctx.arc(px, py, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Subtle highlight (top-left)
+        ctx.fillStyle = 'rgba(255,255,255,0.13)';
+        ctx.beginPath();
+        ctx.arc(px - 2.5, py - 3, r * 0.38, 0, Math.PI * 2);
         ctx.fill();
       });
     } else {
-      ctx.clearRect(0, 0, 128, 128);
-      ctx.fillStyle = color === 'auto' ? '#f0ebde' : color;
+      const textColor = color === 'auto' ? '#f0ebde' : color;
+      ctx.fillStyle = textColor;
       ctx.font = `${weight} ${size * 72}px ${font}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.shadowBlur = 6;
       ctx.fillText(text, 64, 64);
     }
     return c;
