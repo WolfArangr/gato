@@ -1,5 +1,6 @@
 // Dice Engine — Three.js scene + cannon.js physics
-// v3.0: collision sounds, vibration, Android accel fix, Farkle zoom enabled
+// v2.0: improved physics, sound hooks, camera inversion support
+// Exposes window.DiceEngine + window.DICE_COLORS
 
 (function () {
   const THREE = window.THREE;
@@ -99,229 +100,392 @@
       const a = 1 + ((i * 2) % 10);
       const b = 1 + ((i * 2 + 1) % 10);
       const c = 1 + ((i * 2 + 2) % 10);
-      const d = 1 + ((i * 2 + 3) % 10);
-      f.push([0, b, a]);
-      f.push([11, c, b]);
-      f.push([b, c, a]);
-      f.push([a, c, d]);
+      f.push([0, a, b, c]);
     }
-
-    const nums = isPercentile
-      ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
-      : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-    return { vertices: v, faces: fixWinding(v, f), faceNumbers: [...nums, ...nums] };
+    for (let i = 0; i < 5; i++) {
+      const a = 1 + ((i * 2 + 1) % 10);
+      const b = 1 + ((i * 2 + 2) % 10);
+      const c = 1 + ((i * 2 + 3) % 10);
+      f.push([11, a, b, c]);
+    }
+    const fixed = fixWinding(v, f);
+    const numbers = assignOpposites(v, fixed, 10, true);
+    if (isPercentile) {
+      for (let i = 0; i < numbers.length; i++) numbers[i] = numbers[i] * 10;
+    }
+    return { vertices: v, faces: fixed, faceNumbers: numbers };
   }
 
-  function dodeca() {
-    const phi = (1 + Math.sqrt(5)) / 2;
-    const v = [];
-    for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1])
-      v.push([sx, sy, sz]);
-    for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
-      v.push([0, sx * phi, sy / phi]);
-      v.push([sy / phi, 0, sx * phi]);
-      v.push([sx * phi, sy / phi, 0]);
+  function fromThreeGeom(geom) {
+    const pos = geom.attributes.position;
+    const verts = [];
+    const key = new Map();
+    const tris = [];
+    for (let i = 0; i < pos.count; i += 3) {
+      const tri = [];
+      for (let j = 0; j < 3; j++) {
+        const x = +pos.getX(i + j).toFixed(5);
+        const y = +pos.getY(i + j).toFixed(5);
+        const z = +pos.getZ(i + j).toFixed(5);
+        const k = `${x},${y},${z}`;
+        let idx = key.get(k);
+        if (idx === undefined) { idx = verts.length; key.set(k, idx); verts.push([x, y, z]); }
+        tri.push(idx);
+      }
+      tris.push(tri);
     }
-    const f = [
-      [0,8,10,2,16],[0,16,4,14,12],[0,12,6,18,8],
-      [1,17,5,15,13],[1,13,7,19,9],[1,9,11,3,17],
-      [2,10,11,3,19],[2,19,7,15,16],[4,16,15,7,19], // approximate
-      [4,19,3,11,10],[6,12,14,5,17],[6,17,11,10,18],
-      [8,18,10,2,19],[9,19,3,17,11],[5,14,4,10,11], // approximate
-      [13,15,16,4,14],[13,14,12,6,17],[18,8,0,12,6],
-      [19,2,16,15,7],[9,11,17,5,15],
-    ].slice(0, 12);
-    const faceNumbers = [1,2,3,4,5,6,7,8,9,10,11,12];
-    return { vertices: v, faces: fixWinding(v, f), faceNumbers };
+    const groups = [];
+    for (const tri of tris) {
+      const n = faceNormal(verts, tri);
+      const c = faceCentroid(verts, tri);
+      const d = vdot(c, n);
+      let g = groups.find(g =>
+        Math.abs(g.n[0] - n[0]) < 1e-3 &&
+        Math.abs(g.n[1] - n[1]) < 1e-3 &&
+        Math.abs(g.n[2] - n[2]) < 1e-3 &&
+        Math.abs(g.d - d) < 1e-3
+      );
+      if (!g) { g = { n, d, verts: new Set() }; groups.push(g); }
+      tri.forEach(i => g.verts.add(i));
+    }
+    const faces = groups.map(g => {
+      const arr = [...g.verts];
+      const c = faceCentroid(verts, arr);
+      const n = g.n;
+      let t = Math.abs(n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+      const td = vdot(t, n);
+      t = vnorm([t[0] - td * n[0], t[1] - td * n[1], t[2] - td * n[2]]);
+      const b = vcross(n, t);
+      arr.sort((p, q) => {
+        const dp = vsub(verts[p], c);
+        const dq = vsub(verts[q], c);
+        return Math.atan2(vdot(dp, b), vdot(dp, t)) - Math.atan2(vdot(dq, b), vdot(dq, t));
+      });
+      return arr;
+    });
+    return { vertices: verts, faces: fixWinding(verts, faces) };
   }
 
-  function icosa() {
-    const t = (1 + Math.sqrt(5)) / 2;
-    const v = [
-      [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
-      [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
-      [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1],
-    ];
-    const f = [
-      [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
-      [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
-      [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
-      [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1],
-    ];
-    const nums = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
-    return { vertices: v, faces: fixWinding(v, f), faceNumbers: nums };
+  function assignOpposites(verts, faces, count, startAtZero) {
+    const N = faces.length;
+    const normals = faces.map(f => faceNormal(verts, f));
+    const used = new Set();
+    const pairs = [];
+    for (let i = 0; i < N; i++) {
+      if (used.has(i)) continue;
+      let bestJ = -1, bestDot = Infinity;
+      for (let j = 0; j < N; j++) {
+        if (j === i || used.has(j)) continue;
+        const dot = vdot(normals[i], normals[j]);
+        if (dot < bestDot) { bestDot = dot; bestJ = j; }
+      }
+      pairs.push([i, bestJ]);
+      used.add(i); used.add(bestJ);
+    }
+    const numbers = new Array(N).fill(0);
+    const base = startAtZero ? 0 : 1;
+    pairs.forEach(([a, b], idx) => {
+      const sum = startAtZero ? (count - 1) : (count + 1);
+      const x = base + idx;
+      const y = sum - x;
+      numbers[a] = x;
+      numbers[b] = y;
+    });
+    return numbers;
+  }
+
+  function dodecahedron() {
+    const g = new THREE.DodecahedronGeometry(1);
+    const built = fromThreeGeom(g);
+    const numbers = assignOpposites(built.vertices, built.faces, 12, false);
+    return { vertices: built.vertices, faces: built.faces, faceNumbers: numbers };
+  }
+  function icosahedron() {
+    const g = new THREE.IcosahedronGeometry(1);
+    const built = fromThreeGeom(g);
+    const numbers = assignOpposites(built.vertices, built.faces, 20, false);
+    return { vertices: built.vertices, faces: built.faces, faceNumbers: numbers };
   }
 
   function specFor(type) {
-    if (type === 'd4')   return tetra();
-    if (type === 'd6')   return cube();
-    if (type === 'd8')   return octa();
-    if (type === 'd10')  return trapezohedron(false);
-    if (type === 'd12')  return dodeca();
-    if (type === 'd20')  return icosa();
-    if (type === 'd100') return trapezohedron(true);
-    return cube();
+    switch (type) {
+      case 'd4':   return tetra();
+      case 'd6':   return cube();
+      case 'd8':   return octa();
+      case 'd10':  return trapezohedron(false);
+      case 'd12':  return dodecahedron();
+      case 'd20':  return icosahedron();
+      case 'd100': return trapezohedron(true);
+      default: throw new Error('Unknown die type: ' + type);
+    }
   }
 
   function scaleFor(type) {
-    const s = { d4:0.9, d6:0.8, d8:0.85, d10:0.85, d12:0.88, d20:0.9, d100:0.85 };
-    return s[type] || 0.8;
+    switch (type) {
+      case 'd4':   return 0.50;
+      case 'd6':   return 0.52;
+      case 'd8':   return 0.86;
+      case 'd10':  return 0.85;
+      case 'd12':  return 0.86;
+      case 'd20':  return 0.92;
+      case 'd100': return 0.85;
+      default: return 0.85;
+    }
   }
 
-  // ---------- Geometry builder ----------
   function buildDieGeom(spec, scale) {
-    const geom = new THREE.BufferGeometry();
-    const positions = [], normals = [], uvs = [], indices = [];
-    let vIdx = 0;
-    spec.faces.forEach((face, fi) => {
-      const fverts = face.map(i => spec.vertices[i].map(c => c * scale));
-      const n = faceNormal(spec.vertices, face);
-      for (let i = 1; i < fverts.length - 1; i++) {
-        [0, i, i + 1].forEach(j => {
-          positions.push(...fverts[j]);
-          normals.push(...n);
-          const u = j === 0 ? 0.5 : j === i ? 0 : 1;
-          const v = j === 0 ? 1 : 0;
-          uvs.push(u, v);
-          indices.push(vIdx++);
-        });
-      }
-    });
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geom.setAttribute('normal',   new THREE.Float32BufferAttribute(normals, 3));
-    geom.setAttribute('uv',       new THREE.Float32BufferAttribute(uvs, 2));
-    geom.setIndex(indices);
-    geom.clearGroups();
+    const positions = [], normals = [], uvs = [];
+    const groups = [];
     let triIdx = 0;
-    spec.faces.forEach((face, fi) => {
-      const nTri = face.length - 2;
-      geom.addGroup(triIdx * 3, nTri * 3, fi);
-      triIdx += nTri;
-    });
-    return geom;
+    for (let fIdx = 0; fIdx < spec.faces.length; fIdx++) {
+      const face = spec.faces[fIdx];
+      const n = faceNormal(spec.vertices, face);
+      const c = faceCentroid(spec.vertices, face);
+      const r0 = spec.vertices[face[0]];
+      let t = vsub(r0, c);
+      const tlen = vlen(t) || 1; t = [t[0] / tlen, t[1] / tlen, t[2] / tlen];
+      const b = vcross(n, t);
+      let maxR = 0;
+      face.forEach(i => {
+        const p = vsub(spec.vertices[i], c);
+        const u = vdot(p, t), v = vdot(p, b);
+        const r = Math.hypot(u, v);
+        if (r > maxR) maxR = r;
+      });
+      const start = triIdx;
+      for (let i = 1; i < face.length - 1; i++) {
+        const tri = [face[0], face[i], face[i + 1]];
+        tri.forEach(vi => {
+          const p = spec.vertices[vi];
+          positions.push(p[0] * scale, p[1] * scale, p[2] * scale);
+          normals.push(n[0], n[1], n[2]);
+          const pc = vsub(p, c);
+          const u = vdot(pc, t) / maxR;
+          const v = vdot(pc, b) / maxR;
+          uvs.push(0.5 + u * 0.42, 0.5 + v * 0.42);
+        });
+        triIdx += 3;
+      }
+      groups.push([start, triIdx - start, fIdx]);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    g.setAttribute('normal',   new THREE.Float32BufferAttribute(normals,   3));
+    g.setAttribute('uv',       new THREE.Float32BufferAttribute(uvs,       2));
+    groups.forEach(([s, c, m]) => g.addGroup(s, c, m));
+    return g;
   }
 
-  // ---------- Cannon shape ----------
   function buildCannonShape(spec, scale) {
-    const verts = spec.vertices.map(v => new CANNON.Vec3(v[0]*scale, v[1]*scale, v[2]*scale));
+    const verts = spec.vertices.map(p => new CANNON.Vec3(p[0] * scale, p[1] * scale, p[2] * scale));
     const faces = spec.faces.map(f => f.slice());
     return new CANNON.ConvexPolyhedron(verts, faces);
   }
 
-  // ---------- Canvas text helper ----------
-  function makeTextCanvas(text, font, color, weight, size, pip) {
-    const c = document.createElement('canvas');
-    c.width = 128; c.height = 128;
-    const ctx = c.getContext('2d');
-    // Never use ctx.shadow* — it corrupts alpha channels used as Three.js textures
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
+  // ─────────────────────────────────────────────────────────────────────────
+  // TUNING REFERENCE — all visual knobs in one place
+  //
+  // UV MATHS (read before editing pip positions):
+  //   buildDieGeom maps face vertices to UV as:  uv = 0.5 + coord * 0.42
+  //   Face corner (normalized distance 1.0 from centroid) → UV 0.5 ± 0.42
+  //   So the visible face spans UV 0.08 → 0.92, centred at 0.50.
+  //   Face half-width in UV = 0.42.
+  //
+  //   Classic d6 pips are at ¼ and ¾ of the face width, measured from edge:
+  //     left col   = 0.08 + 0.25 * 0.84 = 0.29
+  //     right col  = 0.08 + 0.75 * 0.84 = 0.71
+  //     top row    = 0.29,  mid row = 0.50,  bottom row = 0.71
+  //
+  // PIP SIZE
+  //   PIP_RADIUS — radius as fraction of 256px texture.
+  //   Face spans ~215px (84% of 256). 0.055 ≈ 14px dot — classic look.
+  //   Raise/lower this one number to resize all pips uniformly.
+  const PIP_RADIUS = 0.05;
+  //
+  // PIP POSITIONS — (x, y) in UV 0..1 space.
+  //   Shorthand: L/R = left/right col, C = centre col, T/M/B = top/mid/bottom row.
+  //   Adjust _L/_R to spread columns apart; adjust _T/_B to spread rows apart.
+  const _L = 0.35, _R = 0.65, _C = 0.50;
+  const _T = 0.35, _M = 0.50, _B = 0.65;
+  const PIP_POSITIONS = {
+    1: [[_C, _M]],
+    2: [[_L, _T], [_R, _B]],
+    3: [[_L, _T], [_C, _M], [_R, _B]],
+    4: [[_L, _T], [_R, _T], [_L, _B], [_R, _B]],
+    5: [[_L, _T], [_R, _T], [_C, _M], [_L, _B], [_R, _B]],
+    6: [[_L, _T], [_R, _T], [_L, _M], [_R, _M], [_L, _B], [_R, _B]],
+  };
+  const PIP_ROTATION = Math.PI / 4;   // 45° — rota SOLO los pips (cambia el valor si quieres otro ángulo)
+  //
+  // NUMBER ROTATION
+  //   −Math.PI/6 = −30°  (current).
+  //   Adjust the divisor: /4=−45°, /6=−30°, /8=−22.5°, /12=−15°, 0=no rotation.
+  const NUMBER_ROTATION = -Math.PI / 6;   // ← −30°. CHANGE THIS to adjust all numbers
+  //
+  // NUMBER SIZE
+  //   Driven by textOpts.size (= engine option numberSize, default 0.5 in App).
+  //   baseSize is the font size at scale=1 for 1-digit / 2-digit / 3-digit numbers.
+  //   To make numbers bigger globally, increase NUMBER_SIZE in app.jsx (const at top).
+  //   To adjust per digit-count, edit the three values in makeFaceTexture below.
+  // ─────────────────────────────────────────────────────────────────────────
 
-    ctx.clearRect(0, 0, 128, 128);
+  function makeFaceTexture(number, opts, textOpts) {
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = opts.bg;
+    ctx.fillRect(0, 0, size, size);
+    if (opts.edge) {
+      ctx.strokeStyle = opts.edge;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(4, 4, size - 8, size - 8);
+    }
 
-    if (pip) {
-      const n = parseInt(text) || 1;
-      const dots = {
-        1:[[64,64]],
-        2:[[36,36],[92,92]],
-        3:[[36,36],[64,64],[92,92]],
-        4:[[36,36],[92,36],[36,92],[92,92]],
-        5:[[36,36],[92,36],[64,64],[36,92],[92,92]],
-        6:[[36,28],[92,28],[36,64],[92,64],[36,100],[92,100]],
-      };
-      const positions = dots[Math.min(n,6)] || dots[1];
-      const pipColor = color === 'auto' ? '#1a1408' : color;
-      const r = 10;
+    // ── PIP MODE: draw dots instead of numbers (d6 faces 1–6) ──────────────
+    if (textOpts && textOpts.pips && number >= 1 && number <= 6) {
+      const positions = PIP_POSITIONS[number] || PIP_POSITIONS[1];
+      const pipColor  = (textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
+      ctx.fillStyle = pipColor;
+
+      // ←←← ROTACIÓN SOLO DE LOS PIPS
+      ctx.save();
+      ctx.translate(size / 2, size / 2);
+      ctx.rotate(PIP_ROTATION);
+      ctx.translate(-size / 2, -size / 2);
 
       positions.forEach(([px, py]) => {
-        // Depth shadow: slightly offset darker circle (no canvas shadow API)
-        ctx.fillStyle = 'rgba(0,0,0,0.55)';
         ctx.beginPath();
-        ctx.arc(px + 1.5, py + 2, r, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Main pip
-        ctx.fillStyle = pipColor;
-        ctx.beginPath();
-        ctx.arc(px, py, r, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Subtle highlight (top-left)
-        ctx.fillStyle = 'rgba(255,255,255,0.13)';
-        ctx.beginPath();
-        ctx.arc(px - 2.5, py - 3, r * 0.38, 0, Math.PI * 2);
+        ctx.arc(px * size, py * size, PIP_RADIUS * size, 0, Math.PI * 2);
         ctx.fill();
       });
-    } else {
-      const textColor = color === 'auto' ? '#f0ebde' : color;
-      ctx.fillStyle = textColor;
-      ctx.font = `${weight} ${size * 72}px ${font}`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, 64, 64);
+      ctx.restore();
+      // ─────────────────────────────────────
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.anisotropy = 4;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
     }
-    return c;
+
+    // ── NUMBER MODE ─────────────────────────────────────────────────────────
+    const s        = String(number);
+    const scale    = (textOpts && textOpts.size) ? textOpts.size : 1.0;
+    // ↓ Per-digit-count base sizes (at scale=1). Increase to make numbers bigger.
+    const baseSize = s.length === 1 ? 168 : s.length === 2 ? 124 : 100;
+    const fontSize = Math.round(baseSize * scale);
+    const color      = (textOpts && textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
+    const fontFamily = (textOpts && textOpts.font)   ? textOpts.font   : '"JetBrains Mono","Menlo",monospace';
+    const fontWeight = (textOpts && textOpts.weight) ? textOpts.weight : 700;
+
+    // Apply rotation correction (see NUMBER_ROTATION constant above)
+    ctx.save();
+    ctx.translate(size / 2, size / 2);
+    ctx.rotate(NUMBER_ROTATION);
+    ctx.translate(-size / 2, -size / 2);
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+    ctx.fillText(s, size / 2, size / 2 + fontSize * 0.04);
+    ctx.restore();
+
+    // Underline for ambiguous digits (6, 9, 60, 90)
+    const underline = (s === '6' || s === '9' || s === '60' || s === '90');
+    if (underline) {
+      ctx.save();
+      ctx.translate(size / 2, size / 2);
+      ctx.rotate(NUMBER_ROTATION);
+      ctx.translate(-size / 2, -size / 2);
+      const w = fontSize * 0.55;
+      ctx.fillStyle = color;
+      ctx.fillRect(size / 2 - w / 2, size / 2 + fontSize * 0.45, w, Math.max(4, fontSize * 0.06));
+      ctx.restore();
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.anisotropy = 4;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
   }
 
-  // ---------- Color presets ----------
   const COLOR_PRESETS = {
-    obsidian: { body: '#16161a', edge: '#2a2820', accent: '#e8b14a' },
-    bone:     { body: '#ece3cf', edge: '#c8b898', accent: '#3a2a1c' },
-    emerald:  { body: '#0f4435', edge: '#1a5a48', accent: '#e6d8a5' },
-    royal:    { body: '#1a2b5a', edge: '#243870', accent: '#d9c98a' },
-    crimson:  { body: '#5c1216', edge: '#7a1a1e', accent: '#e8d3a4' },
-    gold:     { body: '#a9853a', edge: '#c8a040', accent: '#1a1208' },
-    amethyst: { body: '#3a1f5a', edge: '#4e2a78', accent: '#e3d3f0' },
-    // Wooden preset for Farkle
-    wood:     { body: '#8b5a2b', edge: '#6b3d1e', accent: '#1a0e08' },
+    obsidian: { body: '#16161a', fg: '#e8b14a', edge: '#241f1a' },
+    bone:     { body: '#ece3cf', fg: '#3a2a1c', edge: '#c8b896' },
+    emerald:  { body: '#0f4435', fg: '#e6d8a5', edge: '#0a2a20' },
+    royal:    { body: '#1a2b5a', fg: '#d9c98a', edge: '#0f1b3d' },
+    crimson:  { body: '#5c1216', fg: '#e8d3a4', edge: '#3a0a0d' },
+    gold:     { body: '#a9853a', fg: '#1a1208', edge: '#7a5d20' },
+    amethyst: { body: '#3a1f5a', fg: '#e3d3f0', edge: '#26113d' },
   };
 
-  // ---------- Face material builder ----------
+  function hexLuma(hex) {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.substr(0, 2), 16);
+    const g = parseInt(h.substr(2, 2), 16);
+    const b = parseInt(h.substr(4, 2), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+  function shade(hex, amount) {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.substr(0, 2), 16);
+    const g = parseInt(h.substr(2, 2), 16);
+    const b = parseInt(h.substr(4, 2), 16);
+    const t = amount < 0 ? 0 : 255;
+    const a = Math.abs(amount);
+    const mix = (c) => Math.round(c * (1 - a) + t * a);
+    const toHex = (n) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, '0');
+    return '#' + toHex(mix(r)) + toHex(mix(g)) + toHex(mix(b));
+  }
+  function deriveColors(body) {
+    const light = hexLuma(body) > 0.55;
+    return {
+      body,
+      fg:   light ? shade(body, -0.78) : shade(body, +0.72),
+      edge: light ? shade(body, -0.22) : shade(body, +0.18),
+    };
+  }
+
   function buildFaceMaterials(spec, colorPreset, materialKind, textOpts, customColor) {
-    let c = COLOR_PRESETS[colorPreset];
-    if (!c) {
-      c = { body: customColor || '#5a87c2', edge: '#3a5a8a', accent: '#f0ebde' };
+    let c;
+    if (colorPreset === 'custom' && customColor) {
+      c = deriveColors(customColor);
+    } else {
+      c = COLOR_PRESETS[colorPreset] || COLOR_PRESETS.obsidian;
     }
-    const numColor = textOpts.color === 'auto'
-      ? (colorPreset === 'bone' || colorPreset === 'gold' ? '#1a1208' : '#f0ebde')
-      : textOpts.color;
-
-    return spec.faces.map((face, fi) => {
-      const num = spec.faceNumbers[fi];
-      const tex = new THREE.CanvasTexture(
-        makeTextCanvas(String(num), textOpts.font, numColor, textOpts.weight, textOpts.size, textOpts.pips)
-      );
-      tex.colorSpace = THREE.SRGBColorSpace;
-
+    return spec.faceNumbers.map(n => {
+      const tex = makeFaceTexture(n, { bg: c.body, fg: c.fg, edge: c.edge }, textOpts);
+      const params = { map: tex };
       let Cls = THREE.MeshStandardMaterial;
-      const params = {
-        map: tex,
-        color: new THREE.Color(c.body),
-        roughness: 0.55,
-        metalness: 0.05,
-        envMapIntensity: 0.8,
-      };
-
-      if (materialKind === 'glossy') {
-        params.roughness = 0.18;
-        params.metalness = 0.06;
-        params.envMapIntensity = 1.1;
+      if (materialKind === 'matte') {
+        params.roughness = 0.85; params.metalness = 0.0;
+        params.envMapIntensity = 0.35;
+      } else if (materialKind === 'glossy') {
+        Cls = THREE.MeshPhysicalMaterial;
+        params.roughness = 0.45;
+        params.metalness = 0.0;
+        params.clearcoat = 1.0;
+        params.clearcoatRoughness = 0.05;
+        params.envMapIntensity = 1.0;
+        params.reflectivity = 0.5;
       } else if (materialKind === 'metallic') {
         params.roughness = 0.28;
         params.metalness = 1.0;
         params.envMapIntensity = 1.4;
-      } else if (materialKind === 'wood') {
-        // Wood material: matte with warm tones
-        params.roughness = 0.82;
+      } else if (materialKind === 'translucent') {
+        Cls = THREE.MeshPhysicalMaterial;
+        params.color = new THREE.Color('#ffffff');
+        params.roughness = 0.08;
         params.metalness = 0.0;
-        params.envMapIntensity = 0.4;
-        // Slightly lighter face for wood grain effect
-        const woodBody = new THREE.Color(c.body);
-        woodBody.offsetHSL(0, 0, 0.04);
-        params.color = woodBody;
+        params.transmission = 1.0;
+        params.thickness = 1.2;
+        params.ior = 1.55;
+        params.attenuationDistance = 1.2;
+        params.attenuationColor = new THREE.Color(c.body);
+        params.clearcoat = 1.0;
+        params.clearcoatRoughness = 0.05;
+        params.transparent = true;
+        params.envMapIntensity = 1.2;
       }
       return new Cls(params);
     });
@@ -334,9 +498,7 @@
       this._enabled = true;
       this._volume = 0.7;
       this._lastHit = 0;
-      this._lastTableHit = 0;
-      this._minInterval = 50; // ms between dice-dice sounds
-      this._minTableInterval = 40;
+      this._minInterval = 60; // ms between sounds
     }
 
     _getCtx() {
@@ -354,11 +516,6 @@
     setEnabled(v) { this._enabled = v; }
     setVolume(v) { this._volume = Math.max(0, Math.min(1, v)); }
 
-    // Vibration helper
-    _vibrate(pattern) {
-      try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
-    }
-
     // Generate procedural dice sounds using Web Audio API
     playDiceHit(intensity = 1.0) {
       if (!this._enabled) return;
@@ -372,31 +529,32 @@
       const t = ctx.currentTime;
       const vol = this._volume * Math.min(1, intensity * 0.8 + 0.2);
 
-      // Wooden dice clack sound
+      // Main click/clack sound
       const osc1 = ctx.createOscillator();
       const osc2 = ctx.createOscillator();
       const noise = ctx.createOscillator();
       const gainNode = ctx.createGain();
       const filter = ctx.createBiquadFilter();
 
+      // Dice "clack" — short noise burst with tonal click
       filter.type = 'bandpass';
-      filter.frequency.value = 1800 + Math.random() * 600;
-      filter.Q.value = 1.2;
+      filter.frequency.value = 2400 + Math.random() * 800;
+      filter.Q.value = 0.8;
 
       osc1.type = 'square';
-      osc1.frequency.setValueAtTime(180 + Math.random() * 120, t);
-      osc1.frequency.exponentialRampToValueAtTime(60, t + 0.05);
+      osc1.frequency.setValueAtTime(220 + Math.random() * 180, t);
+      osc1.frequency.exponentialRampToValueAtTime(80, t + 0.04);
 
       osc2.type = 'sawtooth';
-      osc2.frequency.setValueAtTime(360 + Math.random() * 160, t);
-      osc2.frequency.exponentialRampToValueAtTime(80, t + 0.04);
+      osc2.frequency.setValueAtTime(440 + Math.random() * 200, t);
+      osc2.frequency.exponentialRampToValueAtTime(100, t + 0.03);
 
       noise.type = 'square';
-      noise.frequency.setValueAtTime(Math.random() * 600 + 300, t);
+      noise.frequency.setValueAtTime(Math.random() * 800 + 400, t);
 
       gainNode.gain.setValueAtTime(0, t);
-      gainNode.gain.linearRampToValueAtTime(vol * 0.28, t + 0.002);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.08 + Math.random() * 0.05);
+      gainNode.gain.linearRampToValueAtTime(vol * 0.35, t + 0.002);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.09 + Math.random() * 0.06);
 
       osc1.connect(filter);
       osc2.connect(filter);
@@ -407,16 +565,13 @@
       osc1.start(t); osc1.stop(t + 0.2);
       osc2.start(t); osc2.stop(t + 0.2);
       noise.start(t); noise.stop(t + 0.2);
-
-      // Very subtle vibration for dice collision
-      if (intensity > 0.3) this._vibrate(8);
     }
 
     playTableHit(intensity = 1.0) {
       if (!this._enabled) return;
       const now = Date.now();
-      if (now - this._lastTableHit < this._minTableInterval * 0.5) return;
-      this._lastTableHit = now;
+      if (now - this._lastHit < this._minInterval * 0.5) return;
+      this._lastHit = now;
 
       const ctx = this._getCtx();
       if (!ctx) return;
@@ -430,25 +585,22 @@
       const filter = ctx.createBiquadFilter();
 
       filter.type = 'lowpass';
-      filter.frequency.value = 280 + Math.random() * 160;
-      filter.Q.value = 1.4;
+      filter.frequency.value = 300 + Math.random() * 200;
+      filter.Q.value = 1.2;
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(110 + Math.random() * 50, t);
-      osc.frequency.exponentialRampToValueAtTime(35, t + 0.14);
+      osc.frequency.setValueAtTime(120 + Math.random() * 60, t);
+      osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
 
       gainNode.gain.setValueAtTime(0, t);
-      gainNode.gain.linearRampToValueAtTime(vol * 0.45, t + 0.003);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.18 + Math.random() * 0.08);
+      gainNode.gain.linearRampToValueAtTime(vol * 0.5, t + 0.003);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.15 + Math.random() * 0.08);
 
       osc.connect(filter);
       filter.connect(gainNode);
       gainNode.connect(ctx.destination);
 
-      osc.start(t); osc.stop(t + 0.32);
-
-      // Very subtle vibration on table hit
-      if (intensity > 0.5) this._vibrate(6);
+      osc.start(t); osc.stop(t + 0.3);
     }
 
     playSettle() {
@@ -472,64 +624,6 @@
       gain.connect(ctx.destination);
       osc.start(t); osc.stop(t + 0.25);
     }
-
-    playFarkle() {
-      if (!this._enabled) return;
-      const ctx = this._getCtx();
-      if (!ctx) return;
-      const t = ctx.currentTime;
-      // Descending "fail" tone
-      [0, 0.15, 0.30].forEach((delay, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(440 - i * 80, t + delay);
-        osc.frequency.exponentialRampToValueAtTime(200 - i * 40, t + delay + 0.12);
-        gain.gain.setValueAtTime(0, t + delay);
-        gain.gain.linearRampToValueAtTime(this._volume * 0.12, t + delay + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.14);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(t + delay); osc.stop(t + delay + 0.2);
-      });
-    }
-
-    playScore() {
-      if (!this._enabled) return;
-      const ctx = this._getCtx();
-      if (!ctx) return;
-      const t = ctx.currentTime;
-      [0, 0.12].forEach((delay, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(660 + i * 110, t + delay);
-        gain.gain.setValueAtTime(0, t + delay);
-        gain.gain.linearRampToValueAtTime(this._volume * 0.1, t + delay + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.15);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(t + delay); osc.stop(t + delay + 0.2);
-      });
-      this._vibrate(20);
-    }
-
-    playSuperThrow() {
-      if (!this._enabled) return;
-      const ctx = this._getCtx();
-      if (!ctx) return;
-      const t = ctx.currentTime;
-      // Rising power sound
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(80, t);
-      osc.frequency.exponentialRampToValueAtTime(400, t + 0.25);
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(this._volume * 0.18, t + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(t); osc.stop(t + 0.35);
-      this._vibrate([30, 20, 60]);
-    }
   }
 
   // ---------- Engine ----------
@@ -549,11 +643,10 @@
         customColor: '#5a87c2',
         soundEnabled: true,
         soundVolume: 0.7,
+        // Camera inversion options
         invertCameraX: false,
-        invertCameraY: true,
+        invertCameraY: true, // default: vertical inverted
         cameraSensitivity: 0.7,
-        cameraLocked: false,    // when true, disables camera drag (but still zoom)
-        isAndroid: /android/i.test(navigator.userAgent),
       }, opts);
       this.dice = [];
       this.onSettled = null;
@@ -649,7 +742,7 @@
       this.world.defaultContactMaterial.restitution = 0.35;
       this.world.defaultContactMaterial.friction = 0.5;
 
-      // Collision listener for sounds + vibration
+      // Collision listener for sounds
       this.world.addEventListener('beginContact', (event) => {
         if (!this._rolling) return;
         const bA = event.bodyA, bB = event.bodyB;
@@ -741,7 +834,6 @@
           dragging = false;
           return;
         }
-        if (this.opts.cameraLocked) return; // locked: no drag, but zoom still works
         dragging = true;
         const pt = e.touches ? e.touches[0] : e;
         lastX = pt.clientX; lastY = pt.clientY;
@@ -806,25 +898,21 @@
       if (this._ring) this._ring.scale.set(s, s, s);
     }
 
-    // Improved accelerometer physics — Android axis fix applied
+    // Improved accelerometer physics — flat=rest, tilt=slide, shake=throw
     setGravityTilt(ax, ay, az, totalAccel) {
       const g = this.opts.gravity;
+      // When flat (totalAccel ≈ 9.8, ax ≈ 0, ay ≈ 0), just gravity down
+      // When tilted, shift gravity vector to make dice slide
       const flatG = 9.81;
+      const normX = ax / flatG;  // [-1, 1] tilt left/right
+      const normZ = -ay / flatG; // [-1, 1] tilt front/back
 
-      let normX, normZ;
-      if (this.opts.isAndroid) {
-        // Android: axes are inverted relative to iOS
-        normX = -ax / flatG;
-        normZ = ay / flatG;
-      } else {
-        normX = ax / flatG;
-        normZ = -ay / flatG;
-      }
-
+      // Clamp tilt to ±1 (normalized)
       const tx = Math.max(-1, Math.min(1, normX));
       const tz = Math.max(-1, Math.min(1, normZ));
       const ty = Math.sqrt(Math.max(0, 1 - tx * tx - tz * tz));
 
+      // Scale: gentle tilt = soft push, strong shake = big force
       const shakeBoost = Math.max(0, (totalAccel - flatG) / flatG);
       const forceScale = 1 + shakeBoost * 3.5;
 
@@ -944,7 +1032,6 @@
       this._settleTimer = 0;
       // Resume audio context on user gesture
       this._sound._getCtx();
-      if (strength >= 3.5) this._sound.playSuperThrow();
       this.dice.forEach((d, i) => {
         const side = i % 2 === 0 ? -1 : 1;
         const startX = side * (5.5 + Math.random() * 1.5);
@@ -957,9 +1044,9 @@
           (Math.random() - 0.5) * 6 * strength,
         );
         d.body.angularVelocity.set(
-          (Math.random() - 0.5) * 18 * Math.min(strength, 2),
-          (Math.random() - 0.5) * 18 * Math.min(strength, 2),
-          (Math.random() - 0.5) * 18 * Math.min(strength, 2),
+          (Math.random() - 0.5) * 18,
+          (Math.random() - 0.5) * 18,
+          (Math.random() - 0.5) * 18,
         );
         d.body.quaternion.setFromEuler(
           Math.random() * Math.PI * 2,
