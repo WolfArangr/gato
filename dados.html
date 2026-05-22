@@ -419,73 +419,108 @@
   .help-card .close { margin-top: 18px; background: rgba(232,177,74,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 9px 16px; border-radius: 999px; font-family: var(--font-ui); font-size: 13px; font-weight: 600; cursor: pointer; }
 
   /* ────────── Farkle overlay ────────── */
-  .farkle-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: grid; place-items: center; z-index: 200; padding: 16px; overflow-y: auto; }
+  .farkle-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: grid; place-items: center;
+    z-index: 200; padding: 12px;
+    transition: transform 400ms cubic-bezier(0.4,0,0.2,1);
+  }
   .farkle-card {
     background: var(--surface-2);
     border: 1px solid var(--line-strong);
     border-radius: var(--radius);
-    padding: 28px 24px;
-    max-width: 480px;
-    width: 100%;
+    padding: 24px 20px 18px;
+    max-width: 500px; width: 100%;
     box-shadow: var(--shadow-lg);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: calc(100vh - 32px);
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: calc(100vh - 24px);
     overflow-y: auto;
+    scrollbar-width: thin;
   }
-  .farkle-title { font-family: var(--font-display); font-size: 36px; color: var(--accent); text-align: center; margin-bottom: 4px; }
+  .farkle-title { font-family: var(--font-display); font-size: 38px; color: var(--accent); text-align: center; }
   .farkle-btn-main {
-    width: 100%; padding: 14px;
-    background: linear-gradient(180deg, rgba(232,177,74,0.18), rgba(232,177,74,0.06));
-    border: 1px solid var(--accent);
-    border-radius: var(--radius-sm);
-    color: var(--ink);
-    font-family: var(--font-display);
-    font-size: 20px;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    transition: all 120ms;
+    width: 100%; padding: 13px;
+    background: linear-gradient(180deg, rgba(232,177,74,0.16), rgba(232,177,74,0.05));
+    border: 1px solid var(--accent); border-radius: var(--radius-sm);
+    color: var(--ink); font-family: var(--font-display); font-size: 20px; letter-spacing: 0.04em;
+    cursor: pointer; transition: all 120ms;
   }
-  .farkle-btn-main:hover { background: rgba(232,177,74,0.25); transform: translateY(-1px); }
+  .farkle-btn-main:hover:not(:disabled) { background: rgba(232,177,74,0.24); transform: translateY(-1px); }
+  .farkle-btn-main:disabled { opacity: 0.4; cursor: not-allowed; }
   .farkle-btn-sec { width: 100%; padding: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink-dim); font-family: var(--font-ui); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 120ms; }
   .farkle-btn-sec:hover { color: var(--ink); border-color: var(--line-strong); }
-  .farkle-btn-back { background: transparent; border: none; color: var(--ink-faint); font-family: var(--font-ui); font-size: 13px; cursor: pointer; padding: 6px; text-align: center; }
+  .farkle-btn-back { background: transparent; border: none; color: var(--ink-faint); font-family: var(--font-ui); font-size: 12px; cursor: pointer; padding: 4px; text-align: center; letter-spacing: 0.04em; }
   .farkle-btn-back:hover { color: var(--ink); }
-  .farkle-rules { background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 4px; }
-  .farkle-rule-item { font-family: var(--font-mono); font-size: 11px; color: var(--ink-dim); padding: 3px 0; border-bottom: 1px solid var(--line); }
+  .farkle-rules { background: rgba(0,0,0,0.35); border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 2px; }
+  .farkle-rule-item { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-dim); padding: 3px 0; border-bottom: 1px solid var(--line); }
   .farkle-rule-item:last-child { border-bottom: none; }
-  .farkle-scores { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
-  .farkle-player-score { flex: 1; text-align: center; padding: 10px; border-radius: var(--radius-sm); border: 1px solid transparent; transition: all 200ms; }
-  .farkle-player-score.active { background: rgba(232,177,74,0.08); border-color: rgba(232,177,74,0.2); }
-  .farkle-player-name { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 4px; }
-  .farkle-score-val { font-family: var(--font-display); font-size: 36px; color: var(--ink); line-height: 1; }
+
+  /* Scores */
+  .farkle-scores { display: flex; align-items: stretch; justify-content: space-between; gap: 8px; padding: 8px 0 12px; border-bottom: 1px solid var(--line); }
+  .farkle-player-score { flex: 1; text-align: center; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid transparent; transition: all 200ms; }
+  .farkle-player-score.active { background: rgba(232,177,74,0.07); border-color: rgba(232,177,74,0.22); }
+  .farkle-player-name { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 3px; }
+  .farkle-score-val { font-family: var(--font-display); font-size: 34px; color: var(--ink); line-height: 1; }
   .farkle-player-score.active .farkle-score-val { color: var(--accent); }
-  .farkle-vs { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); }
-  .farkle-turn-score { display: flex; align-items: baseline; justify-content: space-between; padding: 8px 4px; }
-  .farkle-dice-area { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 12px 0; min-height: 64px; }
-  .farkle-die {
-    width: 52px; height: 52px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.06);
-    border: 2px solid var(--line-strong);
-    color: var(--ink);
-    font-family: var(--font-display);
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 160ms;
-    display: grid; place-items: center;
+  .farkle-vs { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); align-self: center; }
+  .farkle-turn-score { display: flex; align-items: baseline; justify-content: space-between; padding: 6px 2px 2px; }
+
+  /* Kept dice strip */
+  .farkle-kept-strip {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 8px 10px; background: rgba(232,177,74,0.04);
+    border: 1px solid rgba(232,177,74,0.12); border-radius: var(--radius-sm);
   }
-  .farkle-die:hover:not(:disabled) { border-color: var(--accent); background: rgba(232,177,74,0.1); transform: translateY(-2px); }
-  .farkle-die.selected { background: rgba(232,177,74,0.2); border-color: var(--accent); color: var(--accent); transform: translateY(-4px); box-shadow: 0 4px 12px rgba(232,177,74,0.3); }
-  .farkle-die.locked { opacity: 0.3; cursor: not-allowed; transform: none; }
-  .farkle-die:disabled { cursor: not-allowed; }
-  .farkle-rolling-indicator { font-family: var(--font-display); font-size: 32px; color: var(--accent); animation: pulse 0.8s infinite; }
-  @keyframes pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
-  .farkle-message { text-align: center; font-family: var(--font-display); font-size: 22px; color: var(--accent); padding: 8px; animation: fadein 300ms; }
-  @keyframes fadein { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-  .farkle-actions { display: flex; flex-direction: column; gap: 6px; }
-  .farkle-card-game { gap: 4px; }
+  .farkle-kept-label {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    color: var(--accent); margin-left: auto;
+  }
+
+  /* Dice area */
+  .farkle-dice-area { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px 0; min-height: 70px; align-items: center; }
+
+  /* 3D-looking die face */
+  .farkle-die-3d {
+    background: none; border: none; padding: 0;
+    cursor: pointer; border-radius: 12px;
+    transition: transform 160ms cubic-bezier(0.34,1.56,0.64,1), filter 120ms;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+  }
+  .farkle-die-3d:hover:not(:disabled) { transform: translateY(-5px) scale(1.05); filter: drop-shadow(0 8px 14px rgba(0,0,0,0.6)) drop-shadow(0 0 6px rgba(232,177,74,0.3)); }
+  .farkle-die-3d.selected { transform: translateY(-7px) scale(1.08); filter: drop-shadow(0 10px 18px rgba(0,0,0,0.7)) drop-shadow(0 0 10px rgba(232,177,74,0.5)); }
+  .farkle-die-3d.scorable:not(.selected) { filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5)) drop-shadow(0 0 4px rgba(232,177,74,0.2)); }
+  .farkle-die-3d.locked { opacity: 0.35; cursor: not-allowed; transform: none; filter: none; }
+  .farkle-die-3d:disabled { cursor: not-allowed; }
+
+  /* Rolling animation */
+  .farkle-rolling-anim { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .farkle-rolling-die {
+    animation: dieWobble 0.5s ease-in-out infinite alternate;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  }
+  @keyframes dieWobble {
+    from { transform: rotate(-12deg) translateY(0); }
+    to   { transform: rotate(14deg) translateY(-6px); }
+  }
+
+  /* Messages */
+  .farkle-message { text-align: center; font-family: var(--font-display); font-size: 20px; color: var(--accent); padding: 6px 4px; animation: fadein 300ms; }
+  @keyframes fadein { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+  @keyframes pulse   { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  /* Actions */
+  .farkle-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .farkle-card-game { padding-top: 16px; gap: 4px; }
+
+  /* 2P passing screen */
+  .farkle-passing {
+    text-align: center; padding: 16px 8px;
+    font-family: var(--font-ui); font-size: 14px; color: var(--ink-dim);
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.02);
+  }
 
   /* ────────── Mobile ────────── */
   @media (max-width: 760px) {
