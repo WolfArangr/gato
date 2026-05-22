@@ -285,41 +285,40 @@
   // ─────────────────────────────────────────────────────────────────────────
   // TUNING REFERENCE — all visual knobs in one place
   //
-  // PIP SIZE
-  //   PIP_RADIUS — radius of each dot as a fraction of the 256px texture.
-  //   The face polygon occupies roughly the inner 65% of the texture
-  //   (UV scale = 0.42 in buildDieGeom → face spans ≈ 0.08–0.92 of texture).
-  //   A radius of 0.048 gives a dot ≈12px, nicely proportioned.
-  //   Raise/lower this one number to resize all pips uniformly.
-  const PIP_RADIUS = 0.048;
+  // UV MATHS (read before editing pip positions):
+  //   buildDieGeom maps face vertices to UV as:  uv = 0.5 + coord * 0.42
+  //   Face corner (normalized distance 1.0 from centroid) → UV 0.5 ± 0.42
+  //   So the visible face spans UV 0.08 → 0.92, centred at 0.50.
+  //   Face half-width in UV = 0.42.
   //
-  // PIP POSITIONS — centre of each dot in 0..1 UV space (x, y).
-  //   IMPORTANT: the visible face only occupies the inner ~65% of the texture.
-  //   Keep values between 0.22 and 0.78 to stay within the rendered polygon.
-  //   Classic d6 pips sit at the ~1/4 and 3/4 marks of the visible face area,
-  //   which translates to roughly 0.32 and 0.68 in texture UV space.
-  const PIP_MARGIN = 0.32;   // ← distance from centre to pip column/row (0..0.5)
-  const PIP_C      = 0.50;   // ← texture centre
+  //   Classic d6 pips are at ¼ and ¾ of the face width, measured from edge:
+  //     left col   = 0.08 + 0.25 * 0.84 = 0.29
+  //     right col  = 0.08 + 0.75 * 0.84 = 0.71
+  //     top row    = 0.29,  mid row = 0.50,  bottom row = 0.71
+  //
+  // PIP SIZE
+  //   PIP_RADIUS — radius as fraction of 256px texture.
+  //   Face spans ~215px (84% of 256). 0.055 ≈ 14px dot — classic look.
+  //   Raise/lower this one number to resize all pips uniformly.
+  const PIP_RADIUS = 0.055;
+  //
+  // PIP POSITIONS — (x, y) in UV 0..1 space.
+  //   Shorthand: L/R = left/right col, C = centre col, T/M/B = top/mid/bottom row.
+  //   Adjust _L/_R to spread columns apart; adjust _T/_B to spread rows apart.
+  const _L = 0.29, _R = 0.71, _C = 0.50;
+  const _T = 0.29, _M = 0.50, _B = 0.71;
   const PIP_POSITIONS = {
-    1: [[PIP_C,           PIP_C          ]],
-    2: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN]],
-    3: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN],[PIP_C, PIP_C],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN]],
-    4: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C-PIP_MARGIN],
-        [PIP_C-PIP_MARGIN, PIP_C+PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN]],
-    5: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C-PIP_MARGIN],
-        [PIP_C, PIP_C],
-        [PIP_C-PIP_MARGIN, PIP_C+PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN]],
-    6: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN*1.1],[PIP_C+PIP_MARGIN, PIP_C-PIP_MARGIN*1.1],
-        [PIP_C-PIP_MARGIN, PIP_C                 ],[PIP_C+PIP_MARGIN, PIP_C                 ],
-        [PIP_C-PIP_MARGIN, PIP_C+PIP_MARGIN*1.1],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN*1.1]],
+    1: [[_C, _M]],
+    2: [[_L, _T], [_R, _B]],
+    3: [[_L, _T], [_C, _M], [_R, _B]],
+    4: [[_L, _T], [_R, _T], [_L, _B], [_R, _B]],
+    5: [[_L, _T], [_R, _T], [_C, _M], [_L, _B], [_R, _B]],
+    6: [[_L, _T], [_R, _T], [_L, _M], [_R, _M], [_L, _B], [_R, _B]],
   };
   //
   // NUMBER ROTATION
-  //   The UV tangent basis adds an offset to all number orientations.
-  //   −Math.PI/4 = −45°  (previous)
-  //   −Math.PI/6 = −30°  (current, 15° less)
-  //   To fine-tune: adjust the divisor. Larger divisor = smaller rotation.
-  //   e.g. /5 = −36°, /8 = −22.5°, /12 = −15°
+  //   −Math.PI/6 = −30°  (current).
+  //   Adjust the divisor: /4=−45°, /6=−30°, /8=−22.5°, /12=−15°, 0=no rotation.
   const NUMBER_ROTATION = -Math.PI / 6;   // ← −30°. CHANGE THIS to adjust all numbers
   //
   // NUMBER SIZE
