@@ -300,13 +300,13 @@
   //   PIP_RADIUS — radius as fraction of 256px texture.
   //   Face spans ~215px (84% of 256). 0.055 ≈ 14px dot — classic look.
   //   Raise/lower this one number to resize all pips uniformly.
-  const PIP_RADIUS = 0.055;
+  const PIP_RADIUS = 0.05;
   //
   // PIP POSITIONS — (x, y) in UV 0..1 space.
   //   Shorthand: L/R = left/right col, C = centre col, T/M/B = top/mid/bottom row.
   //   Adjust _L/_R to spread columns apart; adjust _T/_B to spread rows apart.
-  const _L = 0.29, _R = 0.71, _C = 0.50;
-  const _T = 0.40, _M = 0.50, _B = 0.60;
+  const _L = 0.35, _R = 0.65, _C = 0.50;
+  const _T = 0.35, _M = 0.50, _B = 0.65;
   const PIP_POSITIONS = {
     1: [[_C, _M]],
     2: [[_L, _T], [_R, _B]],
