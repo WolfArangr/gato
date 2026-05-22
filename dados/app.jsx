@@ -275,14 +275,21 @@ function bestKeepIndices(vals) {
   return { indices, score: best };
 }
 
-// Which individual die indices participate in at least one valid scoring subset?
+// Which dice actually CONTRIBUTE to scoring?
+// A die is selectable only if its removal from some scoring subset strictly reduces the score.
+// This prevents "free riders" (e.g. a 3 in [2,2,2,3] shouldn't be selectable).
 function scoringDieIndices(vals) {
   const n = vals.length;
   const result = new Set();
   for (let mask = 1; mask < (1 << n); mask++) {
     const sub = [], idx = [];
     for (let i = 0; i < n; i++) if (mask & (1 << i)) { sub.push(vals[i]); idx.push(i); }
-    if (calcFarkleScoreSubset(sub) > 0) idx.forEach(i => result.add(i));
+    const s = calcFarkleScoreSubset(sub);
+    if (s === 0) continue;
+    for (let k = 0; k < idx.length; k++) {
+      const without = sub.filter((_, j) => j !== k);
+      if (calcFarkleScoreSubset(without) < s) result.add(idx[k]);
+    }
   }
   return result;
 }
@@ -358,6 +365,33 @@ function DieIcon({type,size=22,stroke='currentColor'}) {
 
 function notation(set) {
   return DICE_TYPES.filter(t=>set[t.key]>0).map(t=>`${set[t.key]}${t.key}`).join(' + ') || '—';
+}
+
+// ─── Rolling indicator ─────────────────────────────────────────────────────
+function RollingIndicator({lang}) {
+  const label = lang === 'es' ? 'Lanzando' : 'Rolling';
+  const R = 18, CX = 22, CY = 22, circ = 2 * Math.PI * R;
+  return (
+    <div className="rolling-indicator">
+      <div className="rolling-spinner">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+          {/* Track */}
+          <circle cx={CX} cy={CY} r={R} stroke="rgba(232,177,74,0.10)" strokeWidth="2"/>
+          {/* Arc — 75% filled, rotates */}
+          <circle cx={CX} cy={CY} r={R}
+            stroke="rgba(232,177,74,0.55)" strokeWidth="2"
+            strokeDasharray={circ}
+            strokeDashoffset={circ * 0.25}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${CX} ${CY})`}
+          />
+          {/* Centre die dot */}
+          <circle cx={CX} cy={CY} r="3.5" fill="rgba(232,177,74,0.35)"/>
+        </svg>
+      </div>
+      <span className="rolling-label">{label}</span>
+    </div>
+  );
 }
 
 // ─── Charge button with super-launch ──────────────────────────────────────
@@ -1029,7 +1063,9 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
         )}
 
         {phase==='rolling' && rollVals.length===0 && (
-          <div className="fhud-rolling-row">
+          <>
+            <RollingIndicator lang={t === TRANSLATIONS.es ? 'es' : 'en'}/>
+            <div className="fhud-rolling-row">
             {[...Array(6)].map((_,i)=>(
               <div key={i} className="fhud-rolling-die" style={{animationDelay:`${i*70}ms`}}>
                 <svg width="44" height="44" viewBox="0 0 100 100">
@@ -1038,7 +1074,8 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onEx
                 </svg>
               </div>
             ))}
-          </div>
+            </div>
+          </>
         )}
 
         {message && (
@@ -1479,6 +1516,9 @@ function App() {
         {shakeToRoll&&isTouch&&!shakeArmed&&<button className="shake-arm" onClick={enableShake}>{t.accelBtn}</button>}
         {shakeToRoll&&isTouch&&shakeArmed&&<div className="shake-active">{t.accelActive}</div>}
       </div>
+
+      {/* Rolling indicator */}
+      {rolling && <RollingIndicator lang={lang}/>}
 
       {/* Results panel */}
       {results&&grouped&&(

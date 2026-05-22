@@ -466,18 +466,32 @@
       this._lastDiceHit = 0;
       this._lastTableHit = 0;
       this._lastWallHit = 0;
-      // Separate cooldowns so dice-dice and dice-table don't block each other
-      this._minDice  = 35;  // ms between dice-vs-dice sounds
-      this._minTable = 25;  // ms between dice-vs-surface sounds
+      this._ready = false; // true once ctx is running
+      this._minDice  = 35;
+      this._minTable = 25;
     }
 
-    _getCtx() {
+    // Called synchronously from the roll() gesture — creates ctx and starts resuming
+    prime() {
       if (!this._ctx) {
         try {
           this._ctx = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) { return null; }
+        } catch (e) { return; }
       }
-      if (this._ctx.state === 'suspended') this._ctx.resume();
+      if (this._ctx.state === 'suspended') {
+        this._ctx.resume().then(() => { this._ready = true; });
+      } else if (this._ctx.state === 'running') {
+        this._ready = true;
+      }
+    }
+
+    _ctx_running() {
+      if (!this._ctx) return null;
+      if (!this._ready || this._ctx.state !== 'running') {
+        // Try to resume again — may succeed now
+        if (this._ctx.state === 'suspended') this._ctx.resume().then(() => { this._ready = true; });
+        return null; // don't play yet
+      }
       return this._ctx;
     }
 
@@ -491,12 +505,11 @@
       if (now - this._lastDiceHit < this._minDice) return;
       this._lastDiceHit = now;
 
-      const ctx = this._getCtx();
+      const ctx = this._ctx_running();
       if (!ctx) return;
       const t   = ctx.currentTime;
       const vol = this._volume * Math.min(1, 0.25 + intensity * 0.75);
 
-      // Two short tonal clicks with noise — classic bone-on-bone
       const click1 = ctx.createOscillator();
       const click2 = ctx.createOscillator();
       const noise  = ctx.createOscillator();
@@ -529,23 +542,21 @@
       click2.start(t); click2.stop(t + 0.12);
       noise.start(t);  noise.stop(t + 0.12);
 
-      // Light haptic on meaningful impacts
       if (intensity > 0.35) vibrate(6);
     }
 
-    // ── Dice vs table: wooden thud / felt thump ───────────────────────────
+    // ── Dice vs table: wooden thud ────────────────────────────────────────
     playTableHit(intensity = 1.0) {
       if (!this._enabled) return;
       const now = Date.now();
       if (now - this._lastTableHit < this._minTable) return;
       this._lastTableHit = now;
 
-      const ctx = this._getCtx();
+      const ctx = this._ctx_running();
       if (!ctx) return;
       const t   = ctx.currentTime;
       const vol = this._volume * Math.min(1, 0.15 + intensity * 0.85);
 
-      // Low thud: fundamental + two harmonics + short noise burst
       const fund  = ctx.createOscillator();
       const harm2 = ctx.createOscillator();
       const crack = ctx.createOscillator();
@@ -556,11 +567,9 @@
       lp.type = 'lowpass';
       lp.frequency.value = 600 + intensity * 400;
       lp.Q.value = 0.8;
-
       hp.type = 'highpass';
       hp.frequency.value = 40;
 
-      // Pitch varies with intensity: harder hit = higher fundamental
       const f0 = 80 + intensity * 60 + Math.random() * 30;
       fund.type = 'sine';
       fund.frequency.setValueAtTime(f0, t);
@@ -588,14 +597,14 @@
       if (intensity > 0.5) vibrate([4, 0, 4]);
     }
 
-    // ── Dice vs wall: same as table but slightly brighter / shorter ───────
+    // ── Dice vs wall ──────────────────────────────────────────────────────
     playWallHit(intensity = 1.0) {
       if (!this._enabled) return;
       const now = Date.now();
       if (now - this._lastWallHit < this._minTable) return;
       this._lastWallHit = now;
 
-      const ctx = this._getCtx();
+      const ctx = this._ctx_running();
       if (!ctx) return;
       const t   = ctx.currentTime;
       const vol = this._volume * Math.min(1, 0.12 + intensity * 0.7);
@@ -631,56 +640,46 @@
     // ── Settle chime ──────────────────────────────────────────────────────
     playSettle() {
       if (!this._enabled) return;
-      const ctx = this._getCtx();
+      const ctx = this._ctx_running();
       if (!ctx) return;
-
       const t = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-
       osc.type = 'sine';
       osc.frequency.setValueAtTime(880, t);
       osc.frequency.exponentialRampToValueAtTime(660, t + 0.15);
-
       gain.gain.setValueAtTime(0, t);
       gain.gain.linearRampToValueAtTime(this._volume * 0.08, t + 0.01);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+      osc.connect(gain); gain.connect(ctx.destination);
       osc.start(t); osc.stop(t + 0.25);
     }
 
     // ── Super-launch whoosh ───────────────────────────────────────────────
     playSuperLaunch() {
-      const ctx = this._getCtx();
+      const ctx = this._ctx_running();
       if (!ctx) return;
       const t = ctx.currentTime;
-
       const osc1 = ctx.createOscillator();
       const osc2 = ctx.createOscillator();
       const g1 = ctx.createGain();
       const g2 = ctx.createGain();
-
       osc1.type = 'sawtooth';
       osc1.frequency.setValueAtTime(400, t);
       osc1.frequency.exponentialRampToValueAtTime(60, t + 0.4);
       g1.gain.setValueAtTime(0, t);
       g1.gain.linearRampToValueAtTime(this._volume * 0.4, t + 0.05);
       g1.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
-
       osc2.type = 'square';
       osc2.frequency.setValueAtTime(200, t);
       osc2.frequency.exponentialRampToValueAtTime(30, t + 0.3);
       g2.gain.setValueAtTime(0, t);
       g2.gain.linearRampToValueAtTime(this._volume * 0.3, t + 0.02);
       g2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-
       osc1.connect(g1); g1.connect(ctx.destination);
       osc2.connect(g2); g2.connect(ctx.destination);
       osc1.start(t); osc1.stop(t + 0.5);
       osc2.start(t); osc2.stop(t + 0.5);
-
       vibrate([30, 20, 50]);
     }
   }
@@ -1104,7 +1103,8 @@
       if (this.dice.length === 0) return;
       this._rolling = true;
       this._settleTimer = 0;
-      this._sound._getCtx();
+      // Prime the AudioContext from this user gesture — must happen synchronously
+      this._sound.prime();
 
       const isSuper = strength >= 2.5;
       if (isSuper) {
