@@ -57,7 +57,10 @@
 
   #scene-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
   #ui-root { position: fixed; inset: 0; pointer-events: none; }
-  #ui-root > * { pointer-events: auto; }
+  /* Each UI component opts IN to pointer-events individually — fhud-root stays none */
+  .top-bar, .bottom-bar, .menu-dropdown, .results-panel,
+  .help-overlay, .farkle-setup-overlay, .fhud-top,
+  .fhud-passing, .twk-panel { pointer-events: auto; }
 
   /* ────────── Top bar ────────── */
   .top-bar {
@@ -435,13 +438,19 @@
   .fhud-mid    { text-align: center; padding: 0 6px; }
   .fhud-target { font-family: var(--font-mono); font-size: 9px; color: var(--ink-faint); letter-spacing: 0.1em; }
 
-  /* BOTTOM PANEL */
+  /* BOTTOM PANEL — pointer-events: none, children opt in individually */
   .fhud-bottom {
     position: absolute; bottom: 0; left: 0; right: 0;
     padding: 10px 14px 18px;
     background: linear-gradient(to top, rgba(10,13,12,0.95) 70%, transparent);
     backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
     display: flex; flex-direction: column; gap: 8px;
+    pointer-events: none;
+  }
+  /* Only actual interactive elements get pointer-events */
+  .fhud-bottom button,
+  .fhud-bottom .fhud-dice-row,
+  .fhud-bottom .fdie {
     pointer-events: auto;
   }
 
@@ -501,7 +510,47 @@
   @keyframes fadein { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
   @keyframes pulse  { 0%,100%{opacity:0.3} 50%{opacity:1} }
 
-  /* ────────── Mobile ────────── */
+  /* ────────── Rolling overlay indicator ────────── */
+  .rolling-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: rollingFadeIn 180ms ease both;
+  }
+  @keyframes rollingFadeIn {
+    from { opacity: 0; transform: translate(-50%, -48%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+  }
+  .rolling-spinner {
+    width: 44px;
+    height: 44px;
+    position: relative;
+  }
+  .rolling-spinner svg {
+    animation: spinnerRotate 1.1s linear infinite;
+  }
+  @keyframes spinnerRotate {
+    to { transform: rotate(360deg); }
+  }
+  .rolling-label {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    animation: rollingPulse 1.1s ease-in-out infinite;
+  }
+  @keyframes rollingPulse {
+    0%, 100% { opacity: 0.4; }
+    50%       { opacity: 0.9; }
+  }
   @media (max-width: 760px) {
     .top-bar { gap: 8px; padding: 8px 10px; top: 10px; flex-wrap: wrap; justify-content: center; }
     .brand-sub { display: none; }
