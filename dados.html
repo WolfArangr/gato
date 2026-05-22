@@ -418,28 +418,27 @@
   .help-card b { color: var(--ink); }
   .help-card .close { margin-top: 18px; background: rgba(232,177,74,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 9px 16px; border-radius: 999px; font-family: var(--font-ui); font-size: 13px; font-weight: 600; cursor: pointer; }
 
-  /* ────────── Farkle overlay ────────── */
-  .farkle-overlay {
+  /* ────────── Farkle setup overlay (only shown on setup screen) ────────── */
+  .farkle-setup-overlay {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.82);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.86);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     display: grid; place-items: center;
-    z-index: 200; padding: 12px;
-    transition: transform 400ms cubic-bezier(0.4,0,0.2,1);
+    z-index: 200; padding: 16px;
   }
-  .farkle-card {
+  .farkle-setup-card {
     background: var(--surface-2);
     border: 1px solid var(--line-strong);
     border-radius: var(--radius);
-    padding: 24px 20px 18px;
-    max-width: 500px; width: 100%;
+    padding: 26px 22px 20px;
+    max-width: 420px; width: 100%;
     box-shadow: var(--shadow-lg);
     display: flex; flex-direction: column; gap: 6px;
-    max-height: calc(100vh - 24px);
-    overflow-y: auto;
-    scrollbar-width: thin;
+    max-height: calc(100vh - 32px); overflow-y: auto;
   }
-  .farkle-title { font-family: var(--font-display); font-size: 38px; color: var(--accent); text-align: center; }
+  .farkle-title { font-family: var(--font-display); font-size: 38px; color: var(--accent); text-align: center; margin-bottom: 2px; }
+  .farkle-kcd-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; color: var(--ink-faint); text-align: center; margin-bottom: 10px; }
+  .fsetup-section { margin-bottom: 8px; }
   .farkle-btn-main {
     width: 100%; padding: 13px;
     background: linear-gradient(180deg, rgba(232,177,74,0.16), rgba(232,177,74,0.05));
@@ -448,79 +447,105 @@
     cursor: pointer; transition: all 120ms;
   }
   .farkle-btn-main:hover:not(:disabled) { background: rgba(232,177,74,0.24); transform: translateY(-1px); }
-  .farkle-btn-main:disabled { opacity: 0.4; cursor: not-allowed; }
+  .farkle-btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   .farkle-btn-sec { width: 100%; padding: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink-dim); font-family: var(--font-ui); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 120ms; }
   .farkle-btn-sec:hover { color: var(--ink); border-color: var(--line-strong); }
-  .farkle-btn-back { background: transparent; border: none; color: var(--ink-faint); font-family: var(--font-ui); font-size: 12px; cursor: pointer; padding: 4px; text-align: center; letter-spacing: 0.04em; }
+  .farkle-btn-back { background: transparent; border: none; color: var(--ink-faint); font-family: var(--font-ui); font-size: 12px; cursor: pointer; padding: 4px; text-align: center; }
   .farkle-btn-back:hover { color: var(--ink); }
   .farkle-rules { background: rgba(0,0,0,0.35); border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 2px; }
   .farkle-rule-item { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-dim); padding: 3px 0; border-bottom: 1px solid var(--line); }
   .farkle-rule-item:last-child { border-bottom: none; }
 
-  /* Scores */
-  .farkle-scores { display: flex; align-items: stretch; justify-content: space-between; gap: 8px; padding: 8px 0 12px; border-bottom: 1px solid var(--line); }
-  .farkle-player-score { flex: 1; text-align: center; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid transparent; transition: all 200ms; }
-  .farkle-player-score.active { background: rgba(232,177,74,0.07); border-color: rgba(232,177,74,0.22); }
-  .farkle-player-name { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 3px; }
-  .farkle-score-val { font-family: var(--font-display); font-size: 34px; color: var(--ink); line-height: 1; }
-  .farkle-player-score.active .farkle-score-val { color: var(--accent); }
-  .farkle-vs { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); align-self: center; }
-  .farkle-turn-score { display: flex; align-items: baseline; justify-content: space-between; padding: 6px 2px 2px; }
-
-  /* Kept dice strip */
-  .farkle-kept-strip {
-    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    padding: 8px 10px; background: rgba(232,177,74,0.04);
-    border: 1px solid rgba(232,177,74,0.12); border-radius: var(--radius-sm);
-  }
-  .farkle-kept-label {
-    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
-    color: var(--accent); margin-left: auto;
+  /* ────────── Farkle HUD (floats over live canvas — NO background) ────────── */
+  .fhud-root {
+    position: fixed; inset: 0;
+    pointer-events: none;   /* allow camera drag through empty areas */
+    z-index: 100;
+    transition: transform 350ms cubic-bezier(0.4,0,0.2,1);
   }
 
-  /* Dice area */
-  .farkle-dice-area { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px 0; min-height: 70px; align-items: center; }
+  /* TOP STRIP — scores */
+  .fhud-top {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px;
+    background: var(--surface);
+    backdrop-filter: blur(18px) saturate(130%);
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow-lg);
+    pointer-events: auto;
+    max-width: calc(100vw - 24px);
+  }
+  .fhud-player { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid transparent; transition: all 180ms; min-width: 70px; }
+  .fhud-player.fhud-active { background: rgba(232,177,74,0.08); border-color: rgba(232,177,74,0.25); }
+  .fhud-pname  { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-faint); }
+  .fhud-pscore { font-family: var(--font-display); font-size: 28px; line-height: 1; color: var(--ink); }
+  .fhud-player.fhud-active .fhud-pscore { color: var(--accent); }
+  .fhud-entry  { font-family: var(--font-mono); font-size: 8px; color: rgba(232,177,74,0.4); }
+  .fhud-mid    { text-align: center; padding: 0 6px; }
+  .fhud-target { font-family: var(--font-mono); font-size: 9px; color: var(--ink-faint); letter-spacing: 0.1em; }
 
-  /* 3D-looking die face */
-  .farkle-die-3d {
-    background: none; border: none; padding: 0;
-    cursor: pointer; border-radius: 12px;
-    transition: transform 160ms cubic-bezier(0.34,1.56,0.64,1), filter 120ms;
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+  /* BOTTOM PANEL — dice + actions */
+  .fhud-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 10px 14px 18px;
+    background: linear-gradient(to top, rgba(10,13,12,0.95) 70%, transparent);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    display: flex; flex-direction: column; gap: 8px;
+    pointer-events: auto;
   }
-  .farkle-die-3d:hover:not(:disabled) { transform: translateY(-5px) scale(1.05); filter: drop-shadow(0 8px 14px rgba(0,0,0,0.6)) drop-shadow(0 0 6px rgba(232,177,74,0.3)); }
-  .farkle-die-3d.selected { transform: translateY(-7px) scale(1.08); filter: drop-shadow(0 10px 18px rgba(0,0,0,0.7)) drop-shadow(0 0 10px rgba(232,177,74,0.5)); }
-  .farkle-die-3d.scorable:not(.selected) { filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5)) drop-shadow(0 0 4px rgba(232,177,74,0.2)); }
-  .farkle-die-3d.locked { opacity: 0.35; cursor: not-allowed; transform: none; filter: none; }
-  .farkle-die-3d:disabled { cursor: not-allowed; }
 
-  /* Rolling animation */
-  .farkle-rolling-anim { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-  .farkle-rolling-die {
-    animation: dieWobble 0.5s ease-in-out infinite alternate;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  /* Info row: kept dice left, turn score right */
+  .fhud-info-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    min-height: 44px;
   }
-  @keyframes dieWobble {
-    from { transform: rotate(-12deg) translateY(0); }
-    to   { transform: rotate(14deg) translateY(-6px); }
+  .fhud-kept { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; flex: 1; }
+  .fhud-turn-score { display: flex; flex-direction: column; align-items: flex-end; }
+  .fhud-ts-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-faint); }
+  .fhud-ts-val   { font-family: var(--font-display); font-size: 36px; color: var(--accent); line-height: 1; }
+
+  /* Fresh dice row */
+  .fhud-dice-row {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: flex-end;
+    padding: 6px 0 2px;
   }
+
+  /* Rolling placeholder */
+  .fhud-rolling-row { display: flex; gap: 6px; justify-content: center; padding: 6px 0; }
+  .fhud-rolling-die { animation: fhudWobble 0.45s ease-in-out infinite alternate; }
+  @keyframes fhudWobble { from{transform:rotate(-10deg) translateY(0)} to{transform:rotate(12deg) translateY(-5px)} }
+
+  /* die hover/select animations */
+  .fdie:hover:not(:disabled) { transform: translateY(-6px) scale(1.07) !important; }
+  .fdie-sel { transform: translateY(-9px) scale(1.1) !important; }
+  .fdie-kept { opacity: 0.55; }
+  .fdie-scorable { box-shadow: 0 0 0 1.5px rgba(232,177,74,0.25), 0 0 10px rgba(232,177,74,0.1); border-radius: 13px; }
 
   /* Messages */
-  .farkle-message { text-align: center; font-family: var(--font-display); font-size: 20px; color: var(--accent); padding: 6px 4px; animation: fadein 300ms; }
-  @keyframes fadein { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
-  @keyframes pulse   { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+  .fhud-message { text-align: center; font-family: var(--font-display); font-size: 20px; color: var(--accent); animation: fadein 280ms; }
+  .fhud-farkle-msg { font-size: 26px; color: var(--danger); }
+  .fhud-farkle-detail { font-family: var(--font-ui); font-size: 12px; color: var(--ink-dim); margin-top: 2px; }
+  .fhud-hint { text-align: center; font-family: var(--font-ui); font-size: 12px; color: var(--ink-faint); }
+  .fhud-warn { text-align: center; font-family: var(--font-mono); font-size: 10px; color: var(--danger); letter-spacing: 0.06em; }
 
-  /* Actions */
-  .farkle-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
-  .farkle-card-game { padding-top: 16px; gap: 4px; }
+  /* Action buttons */
+  .fhud-actions { display: flex; flex-direction: column; gap: 6px; }
 
-  /* 2P passing screen */
-  .farkle-passing {
-    text-align: center; padding: 16px 8px;
-    font-family: var(--font-ui); font-size: 14px; color: var(--ink-dim);
-    border: 1px solid var(--line); border-radius: var(--radius-sm);
-    background: rgba(255,255,255,0.02);
+  /* 2P pass panel */
+  .fhud-passing {
+    text-align: center; padding: 14px 10px;
+    background: rgba(10,13,12,0.7);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
   }
+  .fhud-passing-title { font-family: var(--font-display); font-size: 22px; color: var(--accent); margin-bottom: 10px; }
+
+  @keyframes fadein { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+  @keyframes pulse  { 0%,100%{opacity:0.3} 50%{opacity:1} }
 
   /* ────────── Mobile ────────── */
   @media (max-width: 760px) {
