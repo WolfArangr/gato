@@ -1,4 +1,5 @@
 // Dice Engine — Three.js scene + cannon.js physics
+// v2.0: improved physics, sound hooks, camera inversion support
 // Exposes window.DiceEngine + window.DICE_COLORS
 
 (function () {
@@ -15,8 +16,6 @@
   function vnorm(a) { const l = vlen(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
 
   function faceNormal(verts, face) {
-    // Newell's method-ish: average of cross products for non-triangular faces.
-    // For our convex faces this is fine.
     let nx = 0, ny = 0, nz = 0;
     for (let i = 0; i < face.length; i++) {
       const a = verts[face[i]];
@@ -35,12 +34,10 @@
     return [cx / n, cy / n, cz / n];
   }
 
-  // Ensure every face is wound CCW viewed from outside (assumes convex polyhedron centred at origin)
   function fixWinding(verts, faces) {
     return faces.map(face => {
       const c = faceCentroid(verts, face);
       const n = faceNormal(verts, face);
-      // If centroid · normal < 0, normal points inward → reverse.
       if (vdot(c, n) < 0) return face.slice().reverse();
       return face.slice();
     });
@@ -63,12 +60,12 @@
       [-1, -1, 1],  [1, -1, 1],  [1, 1, 1],  [-1, 1, 1],
     ];
     const f = [
-      [3, 2, 1, 0], // back z=-1 → 1
-      [4, 5, 6, 7], // front z=+1 → 6
-      [0, 1, 5, 4], // bottom y=-1 → 2
-      [7, 6, 2, 3], // top y=+1 → 5
-      [4, 7, 3, 0], // left x=-1 → 3
-      [1, 2, 6, 5], // right x=+1 → 4
+      [3, 2, 1, 0],
+      [4, 5, 6, 7],
+      [0, 1, 5, 4],
+      [7, 6, 2, 3],
+      [4, 7, 3, 0],
+      [1, 2, 6, 5],
     ];
     return { vertices: v, faces: fixWinding(v, f), faceNumbers: [1, 6, 2, 5, 3, 4] };
   }
@@ -77,7 +74,6 @@
     const v = [
       [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1],
     ];
-    // 8 octants; pair opposites sum to 9
     const f = [
       [0, 2, 4], [1, 3, 5],
       [0, 4, 3], [1, 5, 2],
@@ -87,44 +83,39 @@
     return { vertices: v, faces: fixWinding(v, f), faceNumbers: [1, 8, 2, 7, 3, 6, 4, 5] };
   }
 
-  // Pentagonal trapezohedron for d10 / d100
   function trapezohedron(isPercentile) {
-    const k = 0.18; // zigzag amplitude (good rolling)
+    const k = 0.18;
     const apex = 1.0;
     const v = [];
-    v.push([0, apex, 0]); // 0 = top apex
+    v.push([0, apex, 0]);
     for (let i = 0; i < 10; i++) {
       const a = (i * Math.PI * 2) / 10;
       const y = i % 2 === 0 ? k : -k;
       v.push([Math.cos(a), y, Math.sin(a)]);
     }
-    v.push([0, -apex, 0]); // 11 = bottom apex
+    v.push([0, -apex, 0]);
 
     const f = [];
     for (let i = 0; i < 5; i++) {
-      // top kite: top apex + upper + lower + next upper
       const a = 1 + ((i * 2) % 10);
       const b = 1 + ((i * 2 + 1) % 10);
       const c = 1 + ((i * 2 + 2) % 10);
       f.push([0, a, b, c]);
     }
     for (let i = 0; i < 5; i++) {
-      // bottom kite: bottom apex + lower + upper + next lower
       const a = 1 + ((i * 2 + 1) % 10);
       const b = 1 + ((i * 2 + 2) % 10);
       const c = 1 + ((i * 2 + 3) % 10);
       f.push([11, a, b, c]);
     }
     const fixed = fixWinding(v, f);
-    // Assign opposite-face numbers
-    const numbers = assignOpposites(v, fixed, 10, /*startAtZero*/ true);
+    const numbers = assignOpposites(v, fixed, 10, true);
     if (isPercentile) {
       for (let i = 0; i < numbers.length; i++) numbers[i] = numbers[i] * 10;
     }
     return { vertices: v, faces: fixed, faceNumbers: numbers };
   }
 
-  // Generic platonic from THREE.*Geometry (used for d12, d20)
   function fromThreeGeom(geom) {
     const pos = geom.attributes.position;
     const verts = [];
@@ -143,7 +134,6 @@
       }
       tris.push(tri);
     }
-    // Group triangles by coplanar face
     const groups = [];
     for (const tri of tris) {
       const n = faceNormal(verts, tri);
@@ -158,11 +148,9 @@
       if (!g) { g = { n, d, verts: new Set() }; groups.push(g); }
       tri.forEach(i => g.verts.add(i));
     }
-    // Order each face CCW around centroid (viewed from outside, i.e. along +normal)
     const faces = groups.map(g => {
       const arr = [...g.verts];
       const c = faceCentroid(verts, arr);
-      // Build basis in plane
       const n = g.n;
       let t = Math.abs(n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
       const td = vdot(t, n);
@@ -197,11 +185,6 @@
     const numbers = new Array(N).fill(0);
     const base = startAtZero ? 0 : 1;
     pairs.forEach(([a, b], idx) => {
-      const lo = base + idx;
-      const hi = (startAtZero ? (count - 1) : count) - idx + (startAtZero ? 0 : 1) - 1;
-      // simpler: opposite pair sums:
-      // startAtZero: 0+9, 1+8, 2+7, 3+6, 4+5 → sum = count-1 = 9
-      // else: 1+count, 2+(count-1), ... → sum = count+1
       const sum = startAtZero ? (count - 1) : (count + 1);
       const x = base + idx;
       const y = sum - x;
@@ -237,23 +220,19 @@
     }
   }
 
-  // Scales chosen so every die has approximately the same circumradius.
-  // Tetra & cube vertices sit at √3 from origin (≈1.732), so they need a smaller scale
-  // to match dice whose vertices are at radius 1.
   function scaleFor(type) {
     switch (type) {
-      case 'd4':   return 0.50;  // √3 * 0.50 ≈ 0.87 circumradius
-      case 'd6':   return 0.52;  // √3 * 0.52 ≈ 0.90
+      case 'd4':   return 0.50;
+      case 'd6':   return 0.52;
       case 'd8':   return 0.86;
       case 'd10':  return 0.85;
       case 'd12':  return 0.86;
-      case 'd20':  return 0.92;  // d20 traditionally slightly larger
+      case 'd20':  return 0.92;
       case 'd100': return 0.85;
       default: return 0.85;
     }
   }
 
-  // ---------- Build Three.js geometry from a spec (each face is its own material slot) ----------
   function buildDieGeom(spec, scale) {
     const positions = [], normals = [], uvs = [];
     const groups = [];
@@ -262,12 +241,10 @@
       const face = spec.faces[fIdx];
       const n = faceNormal(spec.vertices, face);
       const c = faceCentroid(spec.vertices, face);
-      // tangent basis in face plane
       const r0 = spec.vertices[face[0]];
       let t = vsub(r0, c);
       const tlen = vlen(t) || 1; t = [t[0] / tlen, t[1] / tlen, t[2] / tlen];
       const b = vcross(n, t);
-      // max radius for UV scaling
       let maxR = 0;
       face.forEach(i => {
         const p = vsub(spec.vertices[i], c);
@@ -305,8 +282,6 @@
     return new CANNON.ConvexPolyhedron(verts, faces);
   }
 
-  // ---------- Per-face number texture ----------
-  // textOpts: { font: '"JetBrains Mono"', size: 1.0 (scale factor), color: '#xxx' | 'auto' }
   function makeFaceTexture(number, opts, textOpts) {
     const size = 256;
     const canvas = document.createElement('canvas');
@@ -314,7 +289,6 @@
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = opts.bg;
     ctx.fillRect(0, 0, size, size);
-    // subtle inner edge highlight
     if (opts.edge) {
       ctx.strokeStyle = opts.edge;
       ctx.lineWidth = 8;
@@ -332,7 +306,6 @@
     ctx.textBaseline = 'middle';
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
     ctx.fillText(s, size / 2, size / 2 + fontSize * 0.04);
-    // Underline ambiguous digits
     const underline = (s === '6' || s === '9' || s === '60' || s === '90');
     if (underline) {
       const w = fontSize * 0.55;
@@ -354,7 +327,6 @@
     amethyst: { body: '#3a1f5a', fg: '#e3d3f0', edge: '#26113d' },
   };
 
-  // Derive a coherent fg/edge from any body hex (used for the custom color picker).
   function hexLuma(hex) {
     const h = hex.replace('#', '');
     const r = parseInt(h.substr(0, 2), 16);
@@ -363,7 +335,6 @@
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   }
   function shade(hex, amount) {
-    // amount in [-1, 1]: negative darkens toward black, positive lightens toward white
     const h = hex.replace('#', '');
     const r = parseInt(h.substr(0, 2), 16);
     const g = parseInt(h.substr(2, 2), 16);
@@ -398,7 +369,6 @@
         params.roughness = 0.85; params.metalness = 0.0;
         params.envMapIntensity = 0.35;
       } else if (materialKind === 'glossy') {
-        // Lacquered: dielectric base + clearcoat for the "plastic gem" sheen
         Cls = THREE.MeshPhysicalMaterial;
         params.roughness = 0.45;
         params.metalness = 0.0;
@@ -429,6 +399,141 @@
     });
   }
 
+  // ---------- Web Audio Sound System ----------
+  class SoundSystem {
+    constructor() {
+      this._ctx = null;
+      this._enabled = true;
+      this._volume = 0.7;
+      this._lastHit = 0;
+      this._minInterval = 60; // ms between sounds
+    }
+
+    _getCtx() {
+      if (!this._ctx) {
+        try {
+          this._ctx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) { return null; }
+      }
+      if (this._ctx.state === 'suspended') {
+        this._ctx.resume();
+      }
+      return this._ctx;
+    }
+
+    setEnabled(v) { this._enabled = v; }
+    setVolume(v) { this._volume = Math.max(0, Math.min(1, v)); }
+
+    // Generate procedural dice sounds using Web Audio API
+    playDiceHit(intensity = 1.0) {
+      if (!this._enabled) return;
+      const now = Date.now();
+      if (now - this._lastHit < this._minInterval) return;
+      this._lastHit = now;
+
+      const ctx = this._getCtx();
+      if (!ctx) return;
+
+      const t = ctx.currentTime;
+      const vol = this._volume * Math.min(1, intensity * 0.8 + 0.2);
+
+      // Main click/clack sound
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const noise = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      // Dice "clack" — short noise burst with tonal click
+      filter.type = 'bandpass';
+      filter.frequency.value = 2400 + Math.random() * 800;
+      filter.Q.value = 0.8;
+
+      osc1.type = 'square';
+      osc1.frequency.setValueAtTime(220 + Math.random() * 180, t);
+      osc1.frequency.exponentialRampToValueAtTime(80, t + 0.04);
+
+      osc2.type = 'sawtooth';
+      osc2.frequency.setValueAtTime(440 + Math.random() * 200, t);
+      osc2.frequency.exponentialRampToValueAtTime(100, t + 0.03);
+
+      noise.type = 'square';
+      noise.frequency.setValueAtTime(Math.random() * 800 + 400, t);
+
+      gainNode.gain.setValueAtTime(0, t);
+      gainNode.gain.linearRampToValueAtTime(vol * 0.35, t + 0.002);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.09 + Math.random() * 0.06);
+
+      osc1.connect(filter);
+      osc2.connect(filter);
+      noise.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      osc1.start(t); osc1.stop(t + 0.2);
+      osc2.start(t); osc2.stop(t + 0.2);
+      noise.start(t); noise.stop(t + 0.2);
+    }
+
+    playTableHit(intensity = 1.0) {
+      if (!this._enabled) return;
+      const now = Date.now();
+      if (now - this._lastHit < this._minInterval * 0.5) return;
+      this._lastHit = now;
+
+      const ctx = this._getCtx();
+      if (!ctx) return;
+
+      const t = ctx.currentTime;
+      const vol = this._volume * Math.min(1, intensity * 0.6 + 0.1);
+
+      // Thud/thump for table contact
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      filter.type = 'lowpass';
+      filter.frequency.value = 300 + Math.random() * 200;
+      filter.Q.value = 1.2;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(120 + Math.random() * 60, t);
+      osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+
+      gainNode.gain.setValueAtTime(0, t);
+      gainNode.gain.linearRampToValueAtTime(vol * 0.5, t + 0.003);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.15 + Math.random() * 0.08);
+
+      osc.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      osc.start(t); osc.stop(t + 0.3);
+    }
+
+    playSettle() {
+      if (!this._enabled) return;
+      const ctx = this._getCtx();
+      if (!ctx) return;
+
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.exponentialRampToValueAtTime(660, t + 0.15);
+
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(this._volume * 0.08, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.25);
+    }
+  }
+
   // ---------- Engine ----------
   class DiceEngine {
     constructor(canvas, opts = {}) {
@@ -442,13 +547,24 @@
         numberWeight: 700,
         numberColor: 'auto',
         numberSize: 1.0,
-        gravity: 34,
+        gravity: 40,
         customColor: '#5a87c2',
+        soundEnabled: true,
+        soundVolume: 0.7,
+        // Camera inversion options
+        invertCameraX: false,
+        invertCameraY: true, // default: vertical inverted
+        cameraSensitivity: 0.7,
       }, opts);
       this.dice = [];
       this.onSettled = null;
+      this.onDiceHit = null;
       this._rolling = false;
       this._settleTimer = 0;
+      this._sound = new SoundSystem();
+      this._sound.setEnabled(this.opts.soundEnabled);
+      this._sound.setVolume(this.opts.soundVolume);
+      this._prevPositions = [];
       this._init();
       this._loop = this._loop.bind(this);
       requestAnimationFrame(this._loop);
@@ -470,10 +586,8 @@
       this.scene = new THREE.Scene();
       this.scene.background = new THREE.Color(this.opts.tableColor);
 
-      // Pseudo-env for reflections (a simple gradient texture as scene.environment)
       const pmrem = new THREE.PMREMGenerator(this.renderer);
       const envScene = new THREE.Scene();
-      // big sphere with gradient
       const gradCanvas = document.createElement('canvas');
       gradCanvas.width = 512; gradCanvas.height = 256;
       const gctx = gradCanvas.getContext('2d');
@@ -487,12 +601,10 @@
       this.scene.environment = pmrem.fromEquirectangular(envTex).texture;
       envTex.dispose();
 
-      // Camera
       this.camera = new THREE.PerspectiveCamera(36, w / h, 0.1, 100);
       this.camera.position.set(0, 16, 11);
       this.camera.lookAt(0, 0, 0);
 
-      // Lights
       this.scene.add(new THREE.AmbientLight(0xffffff, 0.28));
       const key = new THREE.DirectionalLight(0xffffff, 1.7);
       key.position.set(6, 16, 8);
@@ -510,7 +622,6 @@
       this.fillLight = fill;
       this.scene.add(new THREE.HemisphereLight(0xfff1d1, 0x1c1410, 0.18));
 
-      // Table
       const tableGeom = new THREE.CircleGeometry(12, 64);
       const tableMat = new THREE.MeshStandardMaterial({
         color: this.opts.tableColor, roughness: 0.95, metalness: 0.0,
@@ -521,7 +632,6 @@
       this.scene.add(table);
       this.table = table;
 
-      // Decorative trim ring
       const ringGeom = new THREE.RingGeometry(11.6, 12.0, 96);
       const ringMat = new THREE.MeshStandardMaterial({ color: 0x2a221a, roughness: 0.85 });
       const ring = new THREE.Mesh(ringGeom, ringMat);
@@ -530,23 +640,38 @@
       this.scene.add(ring);
       this._ring = ring;
 
-      // Physics
+      // Physics world
       this.bounds = 8.5;
       this.world = new CANNON.World();
       this.world.gravity.set(0, -this.opts.gravity, 0);
       this.world.broadphase = new CANNON.NaiveBroadphase();
-      this.world.solver.iterations = 18;
+      this.world.solver.iterations = 20;
       this.world.allowSleep = true;
-      this.world.defaultContactMaterial.restitution = 0.32;
-      this.world.defaultContactMaterial.friction = 0.45;
+      this.world.defaultContactMaterial.restitution = 0.35;
+      this.world.defaultContactMaterial.friction = 0.5;
 
-      // Ground plane (physics)
+      // Collision listener for sounds
+      this.world.addEventListener('beginContact', (event) => {
+        if (!this._rolling) return;
+        const bA = event.bodyA, bB = event.bodyB;
+        const isGround = bA.mass === 0 || bB.mass === 0;
+        const vA = bA.velocity, vB = bB.velocity;
+        const relVel = Math.hypot(vA.x - vB.x, vA.y - vB.y, vA.z - vB.z);
+        const intensity = Math.min(1, relVel / 12);
+        if (intensity > 0.05) {
+          if (isGround) {
+            this._sound.playTableHit(intensity);
+          } else {
+            this._sound.playDiceHit(intensity);
+          }
+        }
+      });
+
       const ground = new CANNON.Body({ mass: 0 });
       ground.addShape(new CANNON.Plane());
       ground.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
       this.world.addBody(ground);
 
-      // Octagonal walls — invisible
       this._walls = [];
       for (let i = 0; i < 12; i++) {
         const a = (i / 12) * Math.PI * 2;
@@ -561,7 +686,6 @@
         this._walls.push({ body: wall, angle: a });
       }
 
-      // Resize
       this._onResize = () => {
         const nw = c.clientWidth || window.innerWidth;
         const nh = c.clientHeight || window.innerHeight;
@@ -571,7 +695,6 @@
       };
       window.addEventListener('resize', this._onResize);
 
-      // Camera controls (orbit + zoom)
       this._initControls();
     }
 
@@ -580,7 +703,6 @@
       this.cameraTarget = new THREE.Vector3(0, 0, 0);
       const p = this.camera.position;
       this.cameraDist = p.length();
-      // azimuth: rotation around Y axis; polar: angle from +Y axis
       this.cameraAzimuth = Math.atan2(p.x, p.z);
       const horiz = Math.hypot(p.x, p.z);
       this.cameraPolar = Math.atan2(horiz, p.y);
@@ -588,16 +710,14 @@
       this._homeAzimuth = this.cameraAzimuth;
       this._homeDist = this.cameraDist;
 
-      const POLAR_MIN = 0.12;          // ≈ 7° from straight down
-      const POLAR_MAX = 1.40;          // ≈ 80°, just above horizon
+      const POLAR_MIN = 0.12;
+      const POLAR_MAX = 1.40;
       const DIST_MIN = 6;
       const DIST_MAX = 38;
 
       let dragging = false;
       let lastX = 0, lastY = 0;
       let pinchStart = null;
-      let movedSincePress = 0;
-      let lastClick = 0;
 
       const update = () => {
         const r = this.cameraDist;
@@ -623,7 +743,6 @@
           return;
         }
         dragging = true;
-        movedSincePress = 0;
         const pt = e.touches ? e.touches[0] : e;
         lastX = pt.clientX; lastY = pt.clientY;
       };
@@ -643,9 +762,13 @@
         const dx = pt.clientX - lastX;
         const dy = pt.clientY - lastY;
         lastX = pt.clientX; lastY = pt.clientY;
-        movedSincePress += Math.abs(dx) + Math.abs(dy);
-        this.cameraAzimuth -= dx * 0.008;
-        this.cameraPolar = clamp(this.cameraPolar + dy * 0.006, POLAR_MIN, POLAR_MAX);
+
+        const sens = this.opts.cameraSensitivity || 0.7;
+        const invX = this.opts.invertCameraX ? -1 : 1;
+        const invY = this.opts.invertCameraY ? -1 : 1;
+
+        this.cameraAzimuth -= dx * 0.006 * sens * invX;
+        this.cameraPolar = clamp(this.cameraPolar + dy * 0.005 * sens * invY, POLAR_MIN, POLAR_MAX);
         update();
         if (e.cancelable) e.preventDefault();
       };
@@ -673,24 +796,40 @@
     }
 
     setTableSize(radius) {
-      // Clamp between 5 and 14
       radius = Math.max(5, Math.min(14, radius));
       this.bounds = radius;
-      // Move walls
       for (const w of this._walls) {
         w.body.position.set(Math.cos(w.angle) * radius, 0, Math.sin(w.angle) * radius);
       }
-      // Resize visual table and ring
-      const s = radius / 12; // 12 was the original radius
+      const s = radius / 12;
       this.table.scale.set(s, s, s);
       if (this._ring) this._ring.scale.set(s, s, s);
     }
 
-    // Tilt gravity to simulate device tilt (ax, az in m/s², base gravity magnitude)
-    setGravityTilt(ax, az) {
+    // Improved accelerometer physics — flat=rest, tilt=slide, shake=throw
+    setGravityTilt(ax, ay, az, totalAccel) {
       const g = this.opts.gravity;
-      // ax/az from accelerometer: when device tilts right, ax goes positive → push dice left
-      this.world.gravity.set(-ax * 2.2, -g, az * 2.2);
+      // When flat (totalAccel ≈ 9.8, ax ≈ 0, ay ≈ 0), just gravity down
+      // When tilted, shift gravity vector to make dice slide
+      const flatG = 9.81;
+      const normX = ax / flatG;  // [-1, 1] tilt left/right
+      const normZ = -ay / flatG; // [-1, 1] tilt front/back
+
+      // Clamp tilt to ±1 (normalized)
+      const tx = Math.max(-1, Math.min(1, normX));
+      const tz = Math.max(-1, Math.min(1, normZ));
+      const ty = Math.sqrt(Math.max(0, 1 - tx * tx - tz * tz));
+
+      // Scale: gentle tilt = soft push, strong shake = big force
+      const shakeBoost = Math.max(0, (totalAccel - flatG) / flatG);
+      const forceScale = 1 + shakeBoost * 3.5;
+
+      this.world.gravity.set(
+        tx * g * forceScale,
+        -ty * g,
+        tz * g * forceScale
+      );
+
       for (const d of this.dice) d.body.wakeUp();
     }
 
@@ -700,13 +839,13 @@
 
     setOptions(opts) {
       const rebuildMats = (
-        (opts.colorPreset && opts.colorPreset !== this.opts.colorPreset) ||
-        (opts.materialKind && opts.materialKind !== this.opts.materialKind) ||
-        (opts.numberFont && opts.numberFont !== this.opts.numberFont) ||
-        (opts.numberColor && opts.numberColor !== this.opts.numberColor) ||
+        (opts.colorPreset !== undefined && opts.colorPreset !== this.opts.colorPreset) ||
+        (opts.materialKind !== undefined && opts.materialKind !== this.opts.materialKind) ||
+        (opts.numberFont !== undefined && opts.numberFont !== this.opts.numberFont) ||
+        (opts.numberColor !== undefined && opts.numberColor !== this.opts.numberColor) ||
         (opts.numberSize !== undefined && opts.numberSize !== this.opts.numberSize) ||
         (opts.numberWeight !== undefined && opts.numberWeight !== this.opts.numberWeight) ||
-        (opts.customColor && opts.customColor !== this.opts.customColor)
+        (opts.customColor !== undefined && opts.customColor !== this.opts.customColor)
       );
       Object.assign(this.opts, opts);
       if (opts.tableColor) {
@@ -718,9 +857,10 @@
       }
       if (opts.gravity !== undefined) {
         this.world.gravity.set(0, -opts.gravity, 0);
-        // Wake all bodies so gravity change applies immediately
         for (const d of this.dice) d.body.wakeUp();
       }
+      if (opts.soundEnabled !== undefined) this._sound.setEnabled(opts.soundEnabled);
+      if (opts.soundVolume !== undefined) this._sound.setVolume(opts.soundVolume);
       if (rebuildMats) {
         for (const d of this.dice) this._rebuildMaterials(d);
       }
@@ -752,6 +892,7 @@
         }
       }
       this.dice = [];
+      this._prevPositions = [];
     }
 
     setDiceSet(set) {
@@ -788,12 +929,15 @@
       this.world.addBody(body);
 
       this.dice.push({ type, spec, scale, mesh, body, value: null, settled: false });
+      this._prevPositions.push({ x, y: 1, z });
     }
 
     roll(strength = 1.0) {
       if (this.dice.length === 0) return;
       this._rolling = true;
       this._settleTimer = 0;
+      // Resume audio context on user gesture
+      this._sound._getCtx();
       this.dice.forEach((d, i) => {
         const side = i % 2 === 0 ? -1 : 1;
         const startX = side * (5.5 + Math.random() * 1.5);
@@ -850,9 +994,10 @@
         const allRest = this.dice.length > 0 && this.dice.every(d => this._isAsleep(d.body));
         if (allRest) {
           this._settleTimer++;
-          if (this._settleTimer > 18) { // ~0.3s of stillness
+          if (this._settleTimer > 18) {
             this._rolling = false;
             this.dice.forEach(d => { d.value = this._readDieValue(d); d.settled = true; });
+            this._sound.playSettle();
             if (this.onSettled) this.onSettled(this.getResults());
           }
         } else {
@@ -866,6 +1011,8 @@
     getResults() {
       return this.dice.map(d => ({ type: d.type, value: d.value }));
     }
+
+    getSoundSystem() { return this._sound; }
   }
 
   window.DiceEngine = DiceEngine;
