@@ -1,5 +1,6 @@
 // Dice Engine — Three.js scene + cannon.js physics
-// v2.0: improved physics, sound hooks, camera inversion support
+// v2.1: improved physics, sound hooks, camera inversion support,
+//       Android motion inversion fix, super-launch, vibration on collision
 // Exposes window.DiceEngine + window.DICE_COLORS
 
 (function () {
@@ -283,28 +284,7 @@
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // TUNING REFERENCE — all visual knobs in one place
-  //
-  // UV MATHS (read before editing pip positions):
-  //   buildDieGeom maps face vertices to UV as:  uv = 0.5 + coord * 0.42
-  //   Face corner (normalized distance 1.0 from centroid) → UV 0.5 ± 0.42
-  //   So the visible face spans UV 0.08 → 0.92, centred at 0.50.
-  //   Face half-width in UV = 0.42.
-  //
-  //   Classic d6 pips are at ¼ and ¾ of the face width, measured from edge:
-  //     left col   = 0.08 + 0.25 * 0.84 = 0.29
-  //     right col  = 0.08 + 0.75 * 0.84 = 0.71
-  //     top row    = 0.29,  mid row = 0.50,  bottom row = 0.71
-  //
-  // PIP SIZE
-  //   PIP_RADIUS — radius as fraction of 256px texture.
-  //   Face spans ~215px (84% of 256). 0.055 ≈ 14px dot — classic look.
-  //   Raise/lower this one number to resize all pips uniformly.
   const PIP_RADIUS = 0.05;
-  //
-  // PIP POSITIONS — (x, y) in UV 0..1 space.
-  //   Shorthand: L/R = left/right col, C = centre col, T/M/B = top/mid/bottom row.
-  //   Adjust _L/_R to spread columns apart; adjust _T/_B to spread rows apart.
   const _L = 0.35, _R = 0.65, _C = 0.50;
   const _T = 0.35, _M = 0.50, _B = 0.65;
   const PIP_POSITIONS = {
@@ -315,19 +295,8 @@
     5: [[_L, _T], [_R, _T], [_C, _M], [_L, _B], [_R, _B]],
     6: [[_L, _T], [_R, _T], [_L, _M], [_R, _M], [_L, _B], [_R, _B]],
   };
-  const PIP_ROTATION = Math.PI / 4;   // 45° — rota SOLO los pips (cambia el valor si quieres otro ángulo)
-  //
-  // NUMBER ROTATION
-  //   −Math.PI/6 = −30°  (current).
-  //   Adjust the divisor: /4=−45°, /6=−30°, /8=−22.5°, /12=−15°, 0=no rotation.
-  const NUMBER_ROTATION = -Math.PI / 6;   // ← −30°. CHANGE THIS to adjust all numbers
-  //
-  // NUMBER SIZE
-  //   Driven by textOpts.size (= engine option numberSize, default 0.5 in App).
-  //   baseSize is the font size at scale=1 for 1-digit / 2-digit / 3-digit numbers.
-  //   To make numbers bigger globally, increase NUMBER_SIZE in app.jsx (const at top).
-  //   To adjust per digit-count, edit the three values in makeFaceTexture below.
-  // ─────────────────────────────────────────────────────────────────────────
+  const PIP_ROTATION = Math.PI / 4;
+  const NUMBER_ROTATION = -Math.PI / 6;
 
   function makeFaceTexture(number, opts, textOpts) {
     const size = 256;
@@ -342,43 +311,34 @@
       ctx.strokeRect(4, 4, size - 8, size - 8);
     }
 
-    // ── PIP MODE: draw dots instead of numbers (d6 faces 1–6) ──────────────
     if (textOpts && textOpts.pips && number >= 1 && number <= 6) {
       const positions = PIP_POSITIONS[number] || PIP_POSITIONS[1];
       const pipColor  = (textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
       ctx.fillStyle = pipColor;
-
-      // ←←← ROTACIÓN SOLO DE LOS PIPS
       ctx.save();
       ctx.translate(size / 2, size / 2);
       ctx.rotate(PIP_ROTATION);
       ctx.translate(-size / 2, -size / 2);
-
       positions.forEach(([px, py]) => {
         ctx.beginPath();
         ctx.arc(px * size, py * size, PIP_RADIUS * size, 0, Math.PI * 2);
         ctx.fill();
       });
       ctx.restore();
-      // ─────────────────────────────────────
-
       const tex = new THREE.CanvasTexture(canvas);
       tex.anisotropy = 4;
       tex.colorSpace = THREE.SRGBColorSpace;
       return tex;
     }
 
-    // ── NUMBER MODE ─────────────────────────────────────────────────────────
     const s        = String(number);
     const scale    = (textOpts && textOpts.size) ? textOpts.size : 1.0;
-    // ↓ Per-digit-count base sizes (at scale=1). Increase to make numbers bigger.
     const baseSize = s.length === 1 ? 168 : s.length === 2 ? 124 : 100;
     const fontSize = Math.round(baseSize * scale);
     const color      = (textOpts && textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
     const fontFamily = (textOpts && textOpts.font)   ? textOpts.font   : '"JetBrains Mono","Menlo",monospace';
     const fontWeight = (textOpts && textOpts.weight) ? textOpts.weight : 700;
 
-    // Apply rotation correction (see NUMBER_ROTATION constant above)
     ctx.save();
     ctx.translate(size / 2, size / 2);
     ctx.rotate(NUMBER_ROTATION);
@@ -390,7 +350,6 @@
     ctx.fillText(s, size / 2, size / 2 + fontSize * 0.04);
     ctx.restore();
 
-    // Underline for ambiguous digits (6, 9, 60, 90)
     const underline = (s === '6' || s === '9' || s === '60' || s === '90');
     if (underline) {
       ctx.save();
@@ -491,13 +450,21 @@
     });
   }
 
+  // ---------- Vibration helper ----------
+  function vibrate(pattern) {
+    try {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    } catch (e) {}
+  }
+
   // ---------- Web Audio Sound System ----------
   class SoundSystem {
     constructor() {
       this._ctx = null;
       this._enabled = true;
       this._volume = 0.7;
-      this._lastHit = 0;
+      this._lastDiceHit = 0;
+      this._lastTableHit = 0;
       this._minInterval = 60; // ms between sounds
     }
 
@@ -516,12 +483,12 @@
     setEnabled(v) { this._enabled = v; }
     setVolume(v) { this._volume = Math.max(0, Math.min(1, v)); }
 
-    // Generate procedural dice sounds using Web Audio API
+    // Dice-vs-dice: higher pitched clack
     playDiceHit(intensity = 1.0) {
       if (!this._enabled) return;
       const now = Date.now();
-      if (now - this._lastHit < this._minInterval) return;
-      this._lastHit = now;
+      if (now - this._lastDiceHit < this._minInterval) return;
+      this._lastDiceHit = now;
 
       const ctx = this._getCtx();
       if (!ctx) return;
@@ -529,49 +496,46 @@
       const t = ctx.currentTime;
       const vol = this._volume * Math.min(1, intensity * 0.8 + 0.2);
 
-      // Main click/clack sound
+      // Distinctive dice-vs-dice clack: higher frequency, sharper
       const osc1 = ctx.createOscillator();
       const osc2 = ctx.createOscillator();
-      const noise = ctx.createOscillator();
       const gainNode = ctx.createGain();
       const filter = ctx.createBiquadFilter();
 
-      // Dice "clack" — short noise burst with tonal click
       filter.type = 'bandpass';
-      filter.frequency.value = 2400 + Math.random() * 800;
-      filter.Q.value = 0.8;
+      filter.frequency.value = 3200 + Math.random() * 1000;
+      filter.Q.value = 1.2;
 
       osc1.type = 'square';
-      osc1.frequency.setValueAtTime(220 + Math.random() * 180, t);
-      osc1.frequency.exponentialRampToValueAtTime(80, t + 0.04);
+      osc1.frequency.setValueAtTime(320 + Math.random() * 200, t);
+      osc1.frequency.exponentialRampToValueAtTime(120, t + 0.03);
 
       osc2.type = 'sawtooth';
-      osc2.frequency.setValueAtTime(440 + Math.random() * 200, t);
-      osc2.frequency.exponentialRampToValueAtTime(100, t + 0.03);
-
-      noise.type = 'square';
-      noise.frequency.setValueAtTime(Math.random() * 800 + 400, t);
+      osc2.frequency.setValueAtTime(600 + Math.random() * 300, t);
+      osc2.frequency.exponentialRampToValueAtTime(180, t + 0.025);
 
       gainNode.gain.setValueAtTime(0, t);
-      gainNode.gain.linearRampToValueAtTime(vol * 0.35, t + 0.002);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.09 + Math.random() * 0.06);
+      gainNode.gain.linearRampToValueAtTime(vol * 0.4, t + 0.001);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.07 + Math.random() * 0.04);
 
       osc1.connect(filter);
       osc2.connect(filter);
-      noise.connect(filter);
       filter.connect(gainNode);
       gainNode.connect(ctx.destination);
 
-      osc1.start(t); osc1.stop(t + 0.2);
-      osc2.start(t); osc2.stop(t + 0.2);
-      noise.start(t); noise.stop(t + 0.2);
+      osc1.start(t); osc1.stop(t + 0.15);
+      osc2.start(t); osc2.stop(t + 0.15);
+
+      // Very light vibration for dice collision
+      if (intensity > 0.3) vibrate(8);
     }
 
+    // Dice-vs-table/wall: lower thud
     playTableHit(intensity = 1.0) {
       if (!this._enabled) return;
       const now = Date.now();
-      if (now - this._lastHit < this._minInterval * 0.5) return;
-      this._lastHit = now;
+      if (now - this._lastTableHit < this._minInterval * 0.5) return;
+      this._lastTableHit = now;
 
       const ctx = this._getCtx();
       if (!ctx) return;
@@ -579,28 +543,38 @@
       const t = ctx.currentTime;
       const vol = this._volume * Math.min(1, intensity * 0.6 + 0.1);
 
-      // Thud/thump for table contact
+      // Thud/thump for table/wall contact — lower, more resonant
       const osc = ctx.createOscillator();
+      const oscHarm = ctx.createOscillator();
       const gainNode = ctx.createGain();
       const filter = ctx.createBiquadFilter();
 
       filter.type = 'lowpass';
-      filter.frequency.value = 300 + Math.random() * 200;
-      filter.Q.value = 1.2;
+      filter.frequency.value = 350 + Math.random() * 150;
+      filter.Q.value = 1.5;
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(120 + Math.random() * 60, t);
-      osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+      osc.frequency.setValueAtTime(110 + Math.random() * 50, t);
+      osc.frequency.exponentialRampToValueAtTime(35, t + 0.14);
+
+      oscHarm.type = 'triangle';
+      oscHarm.frequency.setValueAtTime(220 + Math.random() * 80, t);
+      oscHarm.frequency.exponentialRampToValueAtTime(60, t + 0.10);
 
       gainNode.gain.setValueAtTime(0, t);
-      gainNode.gain.linearRampToValueAtTime(vol * 0.5, t + 0.003);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.15 + Math.random() * 0.08);
+      gainNode.gain.linearRampToValueAtTime(vol * 0.55, t + 0.003);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.18 + Math.random() * 0.08);
 
       osc.connect(filter);
+      oscHarm.connect(filter);
       filter.connect(gainNode);
       gainNode.connect(ctx.destination);
 
-      osc.start(t); osc.stop(t + 0.3);
+      osc.start(t); osc.stop(t + 0.35);
+      oscHarm.start(t); oscHarm.stop(t + 0.35);
+
+      // Very light vibration on hard table/wall hit
+      if (intensity > 0.5) vibrate([5, 0, 5]);
     }
 
     playSettle() {
@@ -624,6 +598,66 @@
       gain.connect(ctx.destination);
       osc.start(t); osc.stop(t + 0.25);
     }
+
+    // Power-up charge sound (played during super-launch charge)
+    playSuperChargeLoop(startT) {
+      const ctx = this._getCtx();
+      if (!ctx) return null;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(80, t);
+      osc.frequency.linearRampToValueAtTime(320, t + 2.5);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(this._volume * 0.06, t + 0.3);
+      gain.gain.linearRampToValueAtTime(this._volume * 0.12, t + 2.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      return { osc, gain };
+    }
+
+    stopNode(node) {
+      if (!node) return;
+      try {
+        node.osc.stop();
+        node.gain.disconnect();
+      } catch(e) {}
+    }
+
+    playSuperLaunch() {
+      const ctx = this._getCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      // Whoosh + impact sound
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const g1 = ctx.createGain();
+      const g2 = ctx.createGain();
+
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(400, t);
+      osc1.frequency.exponentialRampToValueAtTime(60, t + 0.4);
+      g1.gain.setValueAtTime(0, t);
+      g1.gain.linearRampToValueAtTime(this._volume * 0.4, t + 0.05);
+      g1.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+
+      osc2.type = 'square';
+      osc2.frequency.setValueAtTime(200, t);
+      osc2.frequency.exponentialRampToValueAtTime(30, t + 0.3);
+      g2.gain.setValueAtTime(0, t);
+      g2.gain.linearRampToValueAtTime(this._volume * 0.3, t + 0.02);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+      osc1.connect(g1); g1.connect(ctx.destination);
+      osc2.connect(g2); g2.connect(ctx.destination);
+      osc1.start(t); osc1.stop(t + 0.5);
+      osc2.start(t); osc2.stop(t + 0.5);
+
+      // Strong vibration on super launch
+      vibrate([30, 20, 50]);
+    }
   }
 
   // ---------- Engine ----------
@@ -643,14 +677,14 @@
         customColor: '#5a87c2',
         soundEnabled: true,
         soundVolume: 0.7,
-        // Camera inversion options
         invertCameraX: false,
-        invertCameraY: true, // default: vertical inverted
+        invertCameraY: true,
         cameraSensitivity: 0.7,
+        // Android motion inversion: set to true for Android to fix axis flip
+        androidMotionFix: false,
       }, opts);
       this.dice = [];
       this.onSettled = null;
-      this.onDiceHit = null;
       this._rolling = false;
       this._settleTimer = 0;
       this._sound = new SoundSystem();
@@ -742,7 +776,7 @@
       this.world.defaultContactMaterial.restitution = 0.35;
       this.world.defaultContactMaterial.friction = 0.5;
 
-      // Collision listener for sounds
+      // Collision listener for sounds + vibration
       this.world.addEventListener('beginContact', (event) => {
         if (!this._rolling) return;
         const bA = event.bodyA, bB = event.bodyB;
@@ -898,21 +932,25 @@
       if (this._ring) this._ring.scale.set(s, s, s);
     }
 
-    // Improved accelerometer physics — flat=rest, tilt=slide, shake=throw
-    setGravityTilt(ax, ay, az, totalAccel) {
+    // Accelerometer: Android axis inversion fix
+    // On Android: accelerationIncludingGravity axes are inverted vs iOS
+    // iOS: tilt left → ax positive (correct: dice go left)
+    // Android: tilt left → ax negative (wrong: dice go right) → we negate
+    setGravityTilt(ax, ay, az, totalAccel, isAndroid) {
       const g = this.opts.gravity;
-      // When flat (totalAccel ≈ 9.8, ax ≈ 0, ay ≈ 0), just gravity down
-      // When tilted, shift gravity vector to make dice slide
       const flatG = 9.81;
-      const normX = ax / flatG;  // [-1, 1] tilt left/right
-      const normZ = -ay / flatG; // [-1, 1] tilt front/back
 
-      // Clamp tilt to ±1 (normalized)
+      // Apply Android axis inversion fix
+      const fixedAx = isAndroid ? -ax : ax;
+      const fixedAy = isAndroid ? -ay : ay;
+
+      const normX = fixedAx / flatG;
+      const normZ = -fixedAy / flatG;
+
       const tx = Math.max(-1, Math.min(1, normX));
       const tz = Math.max(-1, Math.min(1, normZ));
       const ty = Math.sqrt(Math.max(0, 1 - tx * tx - tz * tz));
 
-      // Scale: gentle tilt = soft push, strong shake = big force
       const shakeBoost = Math.max(0, (totalAccel - flatG) / flatG);
       const forceScale = 1 + shakeBoost * 3.5;
 
@@ -1026,27 +1064,40 @@
       this._prevPositions.push({ x, y: 1, z });
     }
 
+    // strength: 0..1 for normal, >1 for super launch (up to ~3)
     roll(strength = 1.0) {
       if (this.dice.length === 0) return;
       this._rolling = true;
       this._settleTimer = 0;
-      // Resume audio context on user gesture
       this._sound._getCtx();
+
+      const isSuper = strength >= 2.5;
+      if (isSuper) {
+        this._sound.playSuperLaunch();
+        vibrate([40, 20, 80]);
+      }
+
       this.dice.forEach((d, i) => {
         const side = i % 2 === 0 ? -1 : 1;
         const startX = side * (5.5 + Math.random() * 1.5);
         const startY = 4.5 + Math.random() * 2.5;
         const startZ = -3 + Math.random() * 6;
         d.body.position.set(startX, startY, startZ);
+
+        // Increased max force: normal up to ~1.2x, super up to 2.5x
+        const spd = isSuper
+          ? (16 + Math.random() * 8) * strength
+          : (9 + Math.random() * 5) * strength;
+
         d.body.velocity.set(
-          -side * (9 + Math.random() * 5) * strength,
-          2 + Math.random() * 2,
-          (Math.random() - 0.5) * 6 * strength,
+          -side * spd,
+          2 + Math.random() * (isSuper ? 5 : 2),
+          (Math.random() - 0.5) * 8 * strength,
         );
         d.body.angularVelocity.set(
-          (Math.random() - 0.5) * 18,
-          (Math.random() - 0.5) * 18,
-          (Math.random() - 0.5) * 18,
+          (Math.random() - 0.5) * (isSuper ? 36 : 20),
+          (Math.random() - 0.5) * (isSuper ? 36 : 20),
+          (Math.random() - 0.5) * (isSuper ? 36 : 20),
         );
         d.body.quaternion.setFromEuler(
           Math.random() * Math.PI * 2,
