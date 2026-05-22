@@ -447,9 +447,8 @@ function FarkleSetup({t, onStart, onBack, globalColor}) {
 //   phase: 'idle'|'rolling'|'select'|'farkle_anim'|'passing'|'ai_thinking'|'end'
 //   Each transition is driven by a central dispatch() function.
 //
-function FarkleHUD({t, engineRef, mode, target, useEntry, p2Color, onExitToSetup}) {
-  // p2Color: color preset key for player 2 / AI
-  // p1 uses whatever global engine color is set (from settings)
+function FarkleHUD({t, engineRef, mode, target, useEntry, p1Color, p2Color, onExitToSetup}) {
+  // p1Color / p2Color: color preset keys. p1Color defaults to the global engine preset.
   // ── game state (ref = no stale closures, re-render via forceUpdate) ──────
   const gs = useRef({
     scores:   [0,0],
@@ -500,12 +499,10 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, p2Color, onExitToSetup
   // ── per-player color ─────────────────────────────────────────────────────
   function applyPlayerColor(playerIdx) {
     if (!engineRef.current) return;
-    if (playerIdx === 1 && p2Color) {
-      engineRef.current.setOptions({ colorPreset: p2Color, pipMode: true });
-    } else {
-      // Restore p1 settings: pipMode on, their own color (engine already has it)
-      engineRef.current.setOptions({ pipMode: true });
-    }
+    // Always set colorPreset explicitly — the engine may still hold the other
+    // player's color from the previous turn.
+    const preset = (playerIdx === 1 && p2Color) ? p2Color : (p1Color || 'obsidian');
+    engineRef.current.setOptions({ colorPreset: preset, pipMode: true });
   }
 
   // ── roll ──────────────────────────────────────────────────────────────────
@@ -878,6 +875,7 @@ function FarkleContainer({t, engineRef, onClose, globalColor}) {
       mode={gameConfig.mode}
       target={gameConfig.target}
       useEntry={gameConfig.useEntry}
+      p1Color={gameConfig.p1Color}
       p2Color={gameConfig.p2Color}
       onExitToSetup={handleExitToSetup}
     />

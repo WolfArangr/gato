@@ -287,35 +287,45 @@
   //
   // PIP SIZE
   //   PIP_RADIUS — radius of each dot as a fraction of the 256px texture.
-  //   0.085 ≈ 22px dot (original, too large)
-  //   0.043 ≈ 11px dot (current, 50% of original)
+  //   The face polygon occupies roughly the inner 65% of the texture
+  //   (UV scale = 0.42 in buildDieGeom → face spans ≈ 0.08–0.92 of texture).
+  //   A radius of 0.048 gives a dot ≈12px, nicely proportioned.
   //   Raise/lower this one number to resize all pips uniformly.
-  const PIP_RADIUS = 0.043;
+  const PIP_RADIUS = 0.048;
   //
   // PIP POSITIONS — centre of each dot in 0..1 UV space (x, y).
-  //   Adjust individual values to shift dots within the face.
-  //   The face square occupies roughly 0.10–0.90 of the texture;
-  //   values near 0.5 are centred, values near 0.20/0.80 are near the edges.
+  //   IMPORTANT: the visible face only occupies the inner ~65% of the texture.
+  //   Keep values between 0.22 and 0.78 to stay within the rendered polygon.
+  //   Classic d6 pips sit at the ~1/4 and 3/4 marks of the visible face area,
+  //   which translates to roughly 0.32 and 0.68 in texture UV space.
+  const PIP_MARGIN = 0.32;   // ← distance from centre to pip column/row (0..0.5)
+  const PIP_C      = 0.50;   // ← texture centre
   const PIP_POSITIONS = {
-    1: [[.50,.50]],
-    2: [[.30,.28],[.70,.72]],
-    3: [[.30,.28],[.50,.50],[.70,.72]],
-    4: [[.30,.28],[.70,.28],[.30,.72],[.70,.72]],
-    5: [[.30,.28],[.70,.28],[.50,.50],[.30,.72],[.70,.72]],
-    6: [[.30,.24],[.70,.24],[.30,.50],[.70,.50],[.30,.76],[.70,.76]],
+    1: [[PIP_C,           PIP_C          ]],
+    2: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN]],
+    3: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN],[PIP_C, PIP_C],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN]],
+    4: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C-PIP_MARGIN],
+        [PIP_C-PIP_MARGIN, PIP_C+PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN]],
+    5: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C-PIP_MARGIN],
+        [PIP_C, PIP_C],
+        [PIP_C-PIP_MARGIN, PIP_C+PIP_MARGIN],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN]],
+    6: [[PIP_C-PIP_MARGIN, PIP_C-PIP_MARGIN*1.1],[PIP_C+PIP_MARGIN, PIP_C-PIP_MARGIN*1.1],
+        [PIP_C-PIP_MARGIN, PIP_C                 ],[PIP_C+PIP_MARGIN, PIP_C                 ],
+        [PIP_C-PIP_MARGIN, PIP_C+PIP_MARGIN*1.1],[PIP_C+PIP_MARGIN, PIP_C+PIP_MARGIN*1.1]],
   };
   //
   // NUMBER ROTATION
-  //   The UV tangent basis adds ~+45° to all number orientations.
-  //   The line below cancels it with −π/4 (−45°).
-  //   To fine-tune: change the fraction of Math.PI, e.g. −Math.PI/6 = −30°.
-  //   Affected by: all polyhedral dice (d4, d6, d8, d10, d12, d20, d100).
-  const NUMBER_ROTATION = -Math.PI / 4;   // ← CHANGE THIS to adjust all numbers
+  //   The UV tangent basis adds an offset to all number orientations.
+  //   −Math.PI/4 = −45°  (previous)
+  //   −Math.PI/6 = −30°  (current, 15° less)
+  //   To fine-tune: adjust the divisor. Larger divisor = smaller rotation.
+  //   e.g. /5 = −36°, /8 = −22.5°, /12 = −15°
+  const NUMBER_ROTATION = -Math.PI / 6;   // ← −30°. CHANGE THIS to adjust all numbers
   //
   // NUMBER SIZE
-  //   Driven by textOpts.size (set via the engine option numberSize, default 0.5).
+  //   Driven by textOpts.size (= engine option numberSize, default 0.5 in App).
   //   baseSize is the font size at scale=1 for 1-digit / 2-digit / 3-digit numbers.
-  //   To make numbers bigger globally, increase numberSize in App (currently 0.5).
+  //   To make numbers bigger globally, increase NUMBER_SIZE in app.jsx (const at top).
   //   To adjust per digit-count, edit the three values in makeFaceTexture below.
   // ─────────────────────────────────────────────────────────────────────────
 
