@@ -342,10 +342,24 @@ function DieFace({value,size=56,selected,kept,scorable,onClick}) {
 }
 
 // ─── Farkle Setup Screen ───────────────────────────────────────────────────
-function FarkleSetup({t, onStart, onBack}) {
+// Color options for Farkle die picker (subset, no 'custom')
+const FARKLE_COLORS = [
+  {key:'obsidian',label:'⬛',swatch:'#16161a'},
+  {key:'bone',    label:'⬜',swatch:'#ece3cf'},
+  {key:'emerald', label:'🟩',swatch:'#0f4435'},
+  {key:'royal',   label:'🟦',swatch:'#1a2b5a'},
+  {key:'crimson', label:'🟥',swatch:'#5c1216'},
+  {key:'gold',    label:'🟨',swatch:'#a9853a'},
+  {key:'amethyst',label:'🟪',swatch:'#3a1f5a'},
+];
+
+function FarkleSetup({t, onStart, onBack, globalColor}) {
   const [target,   setTarget]    = useState(10000);
   const [useEntry, setUseEntry]  = useState(true);
   const [showRules,setShowRules] = useState(false);
+  const [p1Color,  setP1Color]   = useState(globalColor || 'obsidian');
+  const [p2Color,  setP2Color]   = useState('crimson');
+  const [show2PColors, setShow2PColors] = useState(false);
 
   return(
     <div className="farkle-setup-overlay">
@@ -376,8 +390,38 @@ function FarkleSetup({t, onStart, onBack}) {
           </div>
         </div>
 
-        <button className="farkle-btn-main" onClick={()=>onStart('ai', target, useEntry)}>{t.farkleVsAI}</button>
-        <button className="farkle-btn-main" style={{marginTop:6}} onClick={()=>onStart('2p', target, useEntry)}>{t.farkleTwoPlayer}</button>
+        {/* P1 color picker (always shown) */}
+        <div className="fsetup-section">
+          <div className="menu-title">{t.farkleP1} — {t.diceColor}</div>
+          <div className="farkle-color-row">
+            {FARKLE_COLORS.map(c=>(
+              <button key={c.key}
+                className={`farkle-color-swatch${p1Color===c.key?' sel':''}`}
+                style={{background:c.swatch}}
+                onClick={()=>setP1Color(c.key)}
+                title={c.key}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* P2 color picker (only for 2P) */}
+        <div className="fsetup-section">
+          <div className="menu-title">{t.farkleP2} — {t.diceColor}</div>
+          <div className="farkle-color-row">
+            {FARKLE_COLORS.map(c=>(
+              <button key={c.key}
+                className={`farkle-color-swatch${p2Color===c.key?' sel':''}`}
+                style={{background:c.swatch}}
+                onClick={()=>setP2Color(c.key)}
+                title={c.key}
+              />
+            ))}
+          </div>
+        </div>
+
+        <button className="farkle-btn-main" onClick={()=>onStart('ai', target, useEntry, p1Color, 'crimson')}>{t.farkleVsAI}</button>
+        <button className="farkle-btn-main" style={{marginTop:6}} onClick={()=>onStart('2p', target, useEntry, p1Color, p2Color)}>{t.farkleTwoPlayer}</button>
         <button className="farkle-btn-sec"  style={{marginTop:4}} onClick={()=>setShowRules(s=>!s)}>{t.farkleRules}</button>
 
         {showRules&&(
@@ -403,7 +447,9 @@ function FarkleSetup({t, onStart, onBack}) {
 //   phase: 'idle'|'rolling'|'select'|'farkle_anim'|'passing'|'ai_thinking'|'end'
 //   Each transition is driven by a central dispatch() function.
 //
-function FarkleHUD({t, engineRef, mode, target, useEntry, onExitToSetup}) {
+function FarkleHUD({t, engineRef, mode, target, useEntry, p2Color, onExitToSetup}) {
+  // p2Color: color preset key for player 2 / AI
+  // p1 uses whatever global engine color is set (from settings)
   // ── game state (ref = no stale closures, re-render via forceUpdate) ──────
   const gs = useRef({
     scores:   [0,0],
@@ -435,7 +481,8 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, onExitToSetup}) {
     if (!engineRef.current) return;
     const prev = engineRef.current.onSettled;
     engineRef.current.onSettled = (results) => {
-      if (gs.current.phase !== 'rolling') return;
+      const phase = gs.current.phase;
+      if (phase !== 'rolling' && phase !== 'ai_rolling') return;
       const vals = results.filter(r=>r.type==='d6').map(r=>r.value);
       if (vals.length === 0) return;
       onSettled(vals);
@@ -445,19 +492,39 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, onExitToSetup}) {
 
   // ── kick-off first roll ───────────────────────────────────────────────────
   useEffect(() => {
+    // Enable pip mode on engine for Farkle
+    if (engineRef.current) engineRef.current.setOptions({ pipMode: true });
     doRoll(6);
   }, []);
+
+  // ── per-player color ─────────────────────────────────────────────────────
+  function applyPlayerColor(playerIdx) {
+    if (!engineRef.current) return;
+    if (playerIdx === 1 && p2Color) {
+      engineRef.current.setOptions({ colorPreset: p2Color, pipMode: true });
+    } else {
+      // Restore p1 settings: pipMode on, their own color (engine already has it)
+      engineRef.current.setOptions({ pipMode: true });
+    }
+  }
 
   // ── roll ──────────────────────────────────────────────────────────────────
   function doRoll(count) {
     if (!engineRef.current) return;
-    set({ phase:'rolling', message:'', selectedIdx:[] });
+    applyPlayerColor(gs.current.currentP);
+    set({ phase:'rolling', message:'', selectedIdx:[], rollVals:[] });
     engineRef.current.setDiceSet([{type:'d6',count}]);
     setTimeout(() => { if (engineRef.current) engineRef.current.roll(1.3); }, 120);
   }
 
   // ── engine settled ────────────────────────────────────────────────────────
   function onSettled(vals) {
+    // Route to AI handler if it's the AI's turn
+    if (gs.current.phase === 'ai_rolling') {
+      onSettledAI(vals);
+      return;
+    }
+    if (gs.current.phase !== 'rolling') return;
     if (isFarkle(vals)) {
       set({ rollVals:vals, selectedIdx:[], phase:'farkle_anim',
             message: t.farkleFarkle });
@@ -470,17 +537,22 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, onExitToSetup}) {
   }
 
   // ── player taps a die ─────────────────────────────────────────────────────
+  // We allow selecting any die that is in scoringDieIndices (i.e. participates
+  // in at least one valid scoring combo). Validation at submit time via
+  // calcFarkleScore(selVals) > 0. This lets players build up combos like
+  // three-of-a-kind by tapping dice one by one.
   function toggleDie(idx) {
     if (gs.current.phase !== 'select') return;
-    const prev = gs.current.selectedIdx;
+    const prev    = gs.current.selectedIdx;
+    const allVals = gs.current.rollVals;
+    // Is this die part of any valid scoring subset?
+    const scorable = scoringDieIndices(allVals);
+    if (!scorable.has(idx)) return; // die can never score
     let next;
     if (prev.includes(idx)) {
       next = prev.filter(i => i !== idx);
     } else {
-      const trial = [...prev, idx];
-      const vals  = trial.map(i => gs.current.rollVals[i]);
-      if (calcFarkleScore(vals) === 0) return; // would break scoring
-      next = trial;
+      next = [...prev, idx];
     }
     set({ selectedIdx: next });
   }
@@ -561,33 +633,52 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, onExitToSetup}) {
   }
 
   // ── AI ────────────────────────────────────────────────────────────────────
+  // AI now uses the physical engine: calls doRollAI() which triggers the 3D
+  // physics roll. onSettled routes to onSettledAI() when gs.aiActive is set.
   function runAI(curScores, curOnBoard, aiTurnScore, prevKept) {
     if (gs.current.winner !== null) return;
-    const rollCount = prevKept.length === 0 ? 6 : 6 - prevKept.length;
-    const rolled = Array.from({length:rollCount}, () => Math.floor(Math.random()*6)+1);
+    const rollCount = prevKept.length === 0 ? 6 : (6 - prevKept.length) || 6;
+    set({
+      keptVals: prevKept,
+      turnScore: aiTurnScore,
+      rollVals: [],
+      selectedIdx: [],
+      phase: 'ai_rolling',
+      aiCtx: { curScores, curOnBoard, aiTurnScore, prevKept },
+    });
+    // Roll physically
+    if (engineRef.current) {
+      applyPlayerColor(1); // AI is always player 1
+      engineRef.current.setDiceSet([{type:'d6', count:rollCount}]);
+      setTimeout(() => { if (engineRef.current) engineRef.current.roll(1.3); }, 120);
+    }
+  }
 
-    if (isFarkle(rolled)) {
-      set({ rollVals:rolled, keptVals:prevKept, phase:'farkle_anim',
+  function onSettledAI(vals) {
+    const { curScores, curOnBoard, aiTurnScore, prevKept } = gs.current.aiCtx || {};
+    if (!curScores) return;
+    if (isFarkle(vals)) {
+      set({ rollVals:vals, keptVals:prevKept, phase:'farkle_anim',
             message:t.farkleFarkle, selectedIdx:[] });
-      setTimeout(() => doEndTurn(0), 1800);
+      setTimeout(() => doEndTurn(0), 2000);
       return;
     }
 
-    const {indices, score} = bestKeepIndices(rolled);
+    const {indices, score} = bestKeepIndices(vals);
     const newTurnScore = aiTurnScore + score;
-    const newKept = [...prevKept, ...indices.map(i=>rolled[i])];
+    const newKept = [...prevKept, ...indices.map(i=>vals[i])];
     const hot = newKept.length >= 6;
-    const remaining = hot ? 6 : rollCount - indices.length;
+    const remaining = hot ? 6 : vals.length - indices.length;
 
-    // Show what AI rolled and picked
-    set({ rollVals:rolled, selectedIdx:indices, keptVals:prevKept,
+    // Show AI's choice
+    set({ rollVals:vals, selectedIdx:indices, keptVals:prevKept,
           turnScore:aiTurnScore, phase:'ai_thinking', message:'' });
 
     setTimeout(() => {
       const shouldBank = aiShouldBank(newTurnScore, remaining, curScores[1], target);
       if (shouldBank) {
         set({ keptVals:newKept, turnScore:newTurnScore, selectedIdx:[] });
-        setTimeout(() => doEndTurn(newTurnScore), 600);
+        setTimeout(() => doEndTurn(newTurnScore), 500);
       } else {
         if (hot) {
           set({ keptVals:[], turnScore:newTurnScore, message:t.farkleHot, selectedIdx:[] });
@@ -597,7 +688,7 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, onExitToSetup}) {
           setTimeout(() => runAI(curScores, curOnBoard, newTurnScore, newKept), 700);
         }
       }
-    }, 900);
+    }, 1000);
   }
 
   // ── derived values ────────────────────────────────────────────────────────
@@ -755,23 +846,28 @@ function FarkleHUD({t, engineRef, mode, target, useEntry, onExitToSetup}) {
 }
 
 // ─── Farkle container (manages setup ↔ game) ──────────────────────────────
-function FarkleContainer({t, engineRef, onClose}) {
-  const [gameConfig, setGameConfig] = useState(null); // null=setup, else {mode,target,useEntry}
-  const [gameKey,    setGameKey]    = useState(0);    // increment to force remount
+function FarkleContainer({t, engineRef, onClose, globalColor}) {
+  const [gameConfig, setGameConfig] = useState(null);
+  const [gameKey,    setGameKey]    = useState(0);
 
-  function handleStart(mode, target, useEntry) {
+  function handleStart(mode, target, useEntry, p1Color, p2Color) {
     if (!engineRef.current) return;
+    // Apply p1 color to engine immediately
+    if (p1Color) engineRef.current.setOptions({ colorPreset: p1Color, pipMode: true });
+    else engineRef.current.setOptions({ pipMode: true });
     engineRef.current.setDiceSet([{type:'d6',count:6}]);
-    setGameConfig({mode,target,useEntry});
+    setGameConfig({mode, target, useEntry, p1Color, p2Color});
     setGameKey(k => k+1);
   }
 
   function handleExitToSetup() {
+    // Remove pipMode when leaving Farkle
+    if (engineRef.current) engineRef.current.setOptions({ pipMode: false });
     setGameConfig(null);
   }
 
   if (!gameConfig) {
-    return <FarkleSetup t={t} onStart={handleStart} onBack={onClose}/>;
+    return <FarkleSetup t={t} onStart={handleStart} onBack={onClose} globalColor={globalColor}/>;
   }
 
   return (
@@ -782,6 +878,7 @@ function FarkleContainer({t, engineRef, onClose}) {
       mode={gameConfig.mode}
       target={gameConfig.target}
       useEntry={gameConfig.useEntry}
+      p2Color={gameConfig.p2Color}
       onExitToSetup={handleExitToSetup}
     />
   );
@@ -917,6 +1014,15 @@ function App() {
   // Restore normal dice when leaving farkle
   function closeFarkle(){
     setShowFarkle(false);
+    // Restore original color + disable pip mode
+    if(engineRef.current){
+      const font=NUMBER_FONTS.find(f=>f.key===numFont)||NUMBER_FONTS[0];
+      const nc=NUMBER_COLOR_OPTIONS.find(x=>x.key===numColor)||NUMBER_COLOR_OPTIONS[0];
+      engineRef.current.setOptions({
+        colorPreset:color, customColor, pipMode:false,
+        numberFont:font.family, numberWeight:font.weight, numberColor:nc.hex,
+      });
+    }
     const l=DICE_TYPES.filter(x=>diceSet[x.key]>0).map(x=>({type:x.key,count:diceSet[x.key]}));
     if(l.length>0&&engineRef.current)engineRef.current.setDiceSet(l);
     else if(engineRef.current)engineRef.current.setDiceSet([{type:'d20',count:1}]);
@@ -929,6 +1035,7 @@ function App() {
         t={t}
         engineRef={engineRef}
         onClose={closeFarkle}
+        globalColor={color}
       />
     );
   }

@@ -282,6 +282,16 @@
     return new CANNON.ConvexPolyhedron(verts, faces);
   }
 
+  // Pip dot positions for d6 faces (0-indexed centre coords in 0..1 space)
+  const PIP_POSITIONS = {
+    1: [[.50,.50]],
+    2: [[.30,.30],[.70,.70]],
+    3: [[.30,.30],[.50,.50],[.70,.70]],
+    4: [[.30,.30],[.70,.30],[.30,.70],[.70,.70]],
+    5: [[.30,.30],[.70,.30],[.50,.50],[.30,.70],[.70,.70]],
+    6: [[.30,.25],[.70,.25],[.30,.50],[.70,.50],[.30,.75],[.70,.75]],
+  };
+
   function makeFaceTexture(number, opts, textOpts) {
     const size = 256;
     const canvas = document.createElement('canvas');
@@ -294,6 +304,22 @@
       ctx.lineWidth = 8;
       ctx.strokeRect(4, 4, size - 8, size - 8);
     }
+    // PIP mode: draw dots instead of numbers (d6 only, number 1-6)
+    if (textOpts && textOpts.pips && number >= 1 && number <= 6) {
+      const positions = PIP_POSITIONS[number] || PIP_POSITIONS[1];
+      const pipColor = (textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
+      const pipR = size * 0.085;
+      ctx.fillStyle = pipColor;
+      positions.forEach(([px, py]) => {
+        ctx.beginPath();
+        ctx.arc(px * size, py * size, pipR, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.anisotropy = 4;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
     const s = String(number);
     const scale = (textOpts && textOpts.size) ? textOpts.size : 1.0;
     const baseSize = s.length === 1 ? 168 : s.length === 2 ? 124 : 100;
@@ -301,15 +327,26 @@
     const color = (textOpts && textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
     const fontFamily = (textOpts && textOpts.font) ? textOpts.font : '"JetBrains Mono","Menlo",monospace';
     const fontWeight = (textOpts && textOpts.weight) ? textOpts.weight : 700;
+    ctx.save();
+    ctx.translate(size / 2, size / 2);
+    ctx.rotate(-Math.PI / 4);
+    ctx.translate(-size / 2, -size / 2);
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
     ctx.fillText(s, size / 2, size / 2 + fontSize * 0.04);
+    ctx.restore();
     const underline = (s === '6' || s === '9' || s === '60' || s === '90');
     if (underline) {
+      ctx.save();
+      ctx.translate(size / 2, size / 2);
+      ctx.rotate(-Math.PI / 4);
+      ctx.translate(-size / 2, -size / 2);
       const w = fontSize * 0.55;
+      ctx.fillStyle = color;
       ctx.fillRect(size / 2 - w / 2, size / 2 + fontSize * 0.45, w, Math.max(4, fontSize * 0.06));
+      ctx.restore();
     }
     const tex = new THREE.CanvasTexture(canvas);
     tex.anisotropy = 4;
@@ -845,7 +882,8 @@
         (opts.numberColor !== undefined && opts.numberColor !== this.opts.numberColor) ||
         (opts.numberSize !== undefined && opts.numberSize !== this.opts.numberSize) ||
         (opts.numberWeight !== undefined && opts.numberWeight !== this.opts.numberWeight) ||
-        (opts.customColor !== undefined && opts.customColor !== this.opts.customColor)
+        (opts.customColor !== undefined && opts.customColor !== this.opts.customColor) ||
+        (opts.pipMode !== undefined && opts.pipMode !== this.opts.pipMode)
       );
       Object.assign(this.opts, opts);
       if (opts.tableColor) {
@@ -872,6 +910,7 @@
         size: this.opts.numberSize,
         color: this.opts.numberColor,
         weight: this.opts.numberWeight,
+        pips: this.opts.pipMode || false,
       };
     }
 
