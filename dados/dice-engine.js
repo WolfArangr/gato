@@ -315,6 +315,7 @@
     5: [[_L, _T], [_R, _T], [_C, _M], [_L, _B], [_R, _B]],
     6: [[_L, _T], [_R, _T], [_L, _M], [_R, _M], [_L, _B], [_R, _B]],
   };
+  const PIP_ROTATION = Math.PI / 4;   // 45° — rota SOLO los pips (cambia el valor si quieres otro ángulo)
   //
   // NUMBER ROTATION
   //   −Math.PI/6 = −30°  (current).
@@ -346,11 +347,21 @@
       const positions = PIP_POSITIONS[number] || PIP_POSITIONS[1];
       const pipColor  = (textOpts.color && textOpts.color !== 'auto') ? textOpts.color : opts.fg;
       ctx.fillStyle = pipColor;
+
+      // ←←← ROTACIÓN SOLO DE LOS PIPS
+      ctx.save();
+      ctx.translate(size / 2, size / 2);
+      ctx.rotate(PIP_ROTATION);
+      ctx.translate(-size / 2, -size / 2);
+
       positions.forEach(([px, py]) => {
         ctx.beginPath();
         ctx.arc(px * size, py * size, PIP_RADIUS * size, 0, Math.PI * 2);
         ctx.fill();
       });
+      ctx.restore();
+      // ─────────────────────────────────────
+
       const tex = new THREE.CanvasTexture(canvas);
       tex.anisotropy = 4;
       tex.colorSpace = THREE.SRGBColorSpace;
