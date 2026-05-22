@@ -306,7 +306,7 @@
   //   Shorthand: L/R = left/right col, C = centre col, T/M/B = top/mid/bottom row.
   //   Adjust _L/_R to spread columns apart; adjust _T/_B to spread rows apart.
   const _L = 0.29, _R = 0.71, _C = 0.50;
-  const _T = 0.29, _M = 0.50, _B = 0.71;
+  const _T = 0.49, _M = 0.50, _B = 0.51;
   const PIP_POSITIONS = {
     1: [[_C, _M]],
     2: [[_L, _T], [_R, _B]],
