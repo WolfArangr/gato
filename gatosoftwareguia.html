@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GATO · Guía de instalación y uso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand: #19345a;
+    --ink: #16202e;
+    --ink-2: #475467;
+    --ink-3: #6b7787;
+    --line: #dde3ea;
+    --soft: #eef2f7;
+    --accent-bg: #eaf0f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #5a6577; font-family: "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .mono { font-family: "IBM Plex Mono", monospace; }
+
+  .page {
+    width: 210mm; min-height: 297mm;
+    background: #fff; margin: 16px auto; padding: 20mm 18mm;
+    box-shadow: 0 8px 40px rgba(0,0,0,.25);
+    position: relative;
+  }
+
+  /* ---- Cover header ---- */
+  .cover-head { display: flex; align-items: center; gap: 16px; padding-bottom: 22px; border-bottom: 3px solid var(--brand); margin-bottom: 26px; }
+  .logo { width: 60px; height: 60px; border-radius: 14px; background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 22px; letter-spacing: .02em; flex: 0 0 auto; }
+  .cover-head h1 { font-size: 27px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .cover-head .sub { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
+  .cover-head .tag { font-size: 11px; color: var(--ink-3); margin-top: 2px; letter-spacing: .02em; }
+
+  .lead { font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-bottom: 24px; max-width: 56ch; }
+
+  h2 { font-size: 16.5px; font-weight: 700; color: var(--brand); margin: 26px 0 12px; display: flex; align-items: center; gap: 10px; }
+  h2 .num { width: 26px; height: 26px; border-radius: 8px; background: var(--brand); color: #fff; display: grid; place-items: center; font-size: 13px; flex: 0 0 auto; }
+  h3 { font-size: 13.5px; font-weight: 700; margin: 16px 0 6px; }
+
+  p, li { font-size: 12.8px; line-height: 1.62; color: var(--ink-2); }
+  ol, ul { margin: 8px 0 8px 4px; }
+  ol { counter-reset: step; list-style: none; }
+  ol > li { counter-increment: step; position: relative; padding-left: 30px; margin-bottom: 9px; }
+  ol > li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-bg); color: var(--brand); font-weight: 700; font-size: 11px; font-family: "IBM Plex Mono", monospace; display: grid; place-items: center; }
+  ul { list-style: none; }
+  ul > li { position: relative; padding-left: 18px; margin-bottom: 6px; }
+  ul > li::before { content: ""; position: absolute; left: 4px; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--brand); }
+  b, strong { color: var(--ink); font-weight: 600; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; background: var(--soft); padding: 1px 6px; border-radius: 5px; color: var(--brand); border: 1px solid var(--line); }
+
+  .callout { border: 1px solid var(--line); border-left: 4px solid var(--brand); background: #f7f9fc; border-radius: 8px; padding: 13px 16px; margin: 14px 0; }
+  .callout .t { font-size: 12px; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .callout p { font-size: 12.3px; margin: 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
+  .feat { border: 1px solid var(--line); border-radius: 9px; padding: 13px 15px; background: #fcfdfe; }
+  .feat .h { font-weight: 700; font-size: 13px; margin-bottom: 4px; color: var(--ink); }
+  .feat p { font-size: 11.8px; line-height: 1.5; }
+
+  .foot { position: absolute; bottom: 12mm; left: 18mm; right: 18mm; display: flex; justify-content: space-between; font-size: 10px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 8px; }
+
+  .req { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+  .chip { font-size: 11px; background: var(--soft); border: 1px solid var(--line); border-radius: 99px; padding: 4px 11px; color: var(--ink-2); }
+  .chip b { color: var(--brand); }
+
+  @media print {
+    html, body { background: #fff; }
+    .page { box-shadow: none; margin: 0; width: auto; min-height: auto; padding: 14mm 16mm; }
+    .page + .page { page-break-before: always; }
+    .no-print { display: none; }
+  }
+  .bar { position: fixed; top: 0; left: 0; right: 0; background: var(--brand); color: #fff; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; z-index: 10; }
+  .bar button { background: #fff; color: var(--brand); border: none; border-radius: 7px; padding: 7px 16px; font-weight: 700; font-size: 12.5px; cursor: pointer; font-family: inherit; }
+  body { padding-top: 0; }
+</style>
+</head>
+<body>
+
+<div class="bar no-print">
+  <span>Guía GATO — pulsa <b>Imprimir / Guardar como PDF</b> y elige “Guardar como PDF”.</span>
+  <button onclick="window.print()">Imprimir / Guardar como PDF</button>
+</div>
+
+<!-- ============ PAGE 1 ============ -->
+<div class="page">
+  <div class="cover-head">
+    <div class="logo">GATO</div>
+    <div>
+      <h1>Guía rápida de GATO</h1>
+      <div class="sub">Gestión Asistida de Tareas de Oficina · Club de Mar</div>
+      <div class="tag">Instalación · Funcionamiento · Datos compartidos en red local</div>
+    </div>
+  </div>
+
+  <p class="lead">GATO es una aplicación de gestión de eventos, reservas, clientes y facturación que funciona <b>en local</b>, dentro de un único archivo. No necesita servidor, instalación ni conexión a internet para funcionar. Esta guía explica cómo abrirla, cómo usarla y cómo compartir los datos entre varios ordenadores de la red.</p>
+
+  <h2><span class="num">1</span> Instalación y apertura</h2>
+  <p>GATO es un solo archivo: <code>GATO - App (instalable).html</code>. No hay que instalar nada.</p>
+  <ol>
+    <li>Copia el archivo <code>GATO - App (instalable).html</code> al ordenador (por ejemplo, al Escritorio o a una carpeta de trabajo).</li>
+    <li>Haz <b>doble clic</b> sobre él. Se abrirá en tu navegador web habitual.</li>
+    <li>Para tenerlo siempre a mano, arrastra el archivo a la barra de marcadores del navegador o crea un acceso directo en el Escritorio.</li>
+    <li>La primera vez verás un breve <b>tutorial guiado</b>. Puedes seguirlo o saltarlo; se puede repetir desde el icono de ayuda <b>(i)</b> de la barra superior.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="t">Navegador recomendado</div>
+    <p>Usa <b>Google Chrome</b> o <b>Microsoft Edge</b>. La aplicación funciona en cualquier navegador moderno, pero la función de <b>datos compartidos en red</b> (apartado 3) solo está disponible en Chrome y Edge.</p>
+  </div>
+
+  <div class="req">
+    <span class="chip"><b>Sistema:</b> Windows, macOS o Linux</span>
+    <span class="chip"><b>Navegador:</b> Chrome / Edge</span>
+    <span class="chip"><b>Internet:</b> no necesaria</span>
+  </div>
+
+  <h2><span class="num">2</span> Funcionamiento básico</h2>
+  <p>El menú lateral izquierdo da acceso a todas las áreas. Estos son los módulos principales:</p>
+  <div class="grid2">
+    <div class="feat"><div class="h">Inicio</div><p>Panel con próximos eventos, avisos y actividad. Los avisos son <b>clicables</b>: al pulsarlos te llevan directamente a la factura o evento relacionado.</p></div>
+    <div class="feat"><div class="h">Calendario y Eventos</div><p>Crea y gestiona reservas (presentaciones, exposiciones, caterings…), asigna salas y controla su estado.</p></div>
+    <div class="feat"><div class="h">Salas &amp; Servicios</div><p>Define los espacios del club y el catálogo de servicios con sus precios e impuestos.</p></div>
+    <div class="feat"><div class="h">Clientes</div><p>Ficha de empresas y particulares, con su historial de eventos y documentos.</p></div>
+    <div class="feat"><div class="h">Facturación</div><p>Presupuestos, proformas y facturas. Exporta o imprime cada documento en PDF.</p></div>
+    <div class="feat"><div class="h">Usuarios y permisos</div><p>Da de alta al equipo, asigna roles y decide a qué módulos accede cada rol con la matriz de permisos.</p></div>
+  </div>
+
+  <h3>Personalización</h3>
+  <p>En <b>Configuración → Marca</b> (o desde el panel de <b>Tweaks</b>) puedes cambiar el color corporativo, el estilo del menú lateral, el modo claro/oscuro, la tipografía, el redondeo de esquinas y la densidad. También puedes editar el nombre, eslogan y logotipo del club.</p>
+
+  <div class="foot">
+    <span>GATO · Guía rápida</span>
+    <span>Página 1 de 2</span>
+  </div>
+</div>
+
+<!-- ============ PAGE 2 ============ -->
+<div class="page">
+  <h2><span class="num">3</span> Datos compartidos en la red local</h2>
+  <p>Para que <b>varias personas trabajen sobre los mismos datos</b> desde distintos ordenadores, GATO guarda toda la información en un único archivo (<code>datos-gato.json</code>) alojado en una carpeta compartida de vuestra red.</p>
+
+  <h3>Preparación (una sola vez)</h3>
+  <ol>
+    <li>Elige una <b>carpeta de red</b> a la que tengan acceso todos los equipos del club (por ejemplo, una unidad compartida <code>Z:\GATO\</code> o una carpeta en el servidor / NAS).</li>
+    <li>Abre GATO en <b>Chrome o Edge</b> y pulsa el botón <b>“Local”</b> de la barra superior (control de datos compartidos).</li>
+    <li>Elige <b>“Crear archivo nuevo”</b> y guárdalo dentro de esa carpeta de red con el nombre <code>datos-gato.json</code>.</li>
+    <li>Acepta el permiso que solicita el navegador para acceder al archivo.</li>
+  </ol>
+
+  <h3>En el resto de ordenadores</h3>
+  <ol>
+    <li>Abre el mismo <code>GATO - App (instalable).html</code> en Chrome o Edge.</li>
+    <li>Pulsa <b>“Local”</b> → <b>“Abrir archivo existente”</b> y selecciona el <code>datos-gato.json</code> de la carpeta de red.</li>
+    <li>A partir de ahí, los cambios que haga cada persona se guardan en ese archivo común y el resto los verá al sincronizar.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="t">Cómo se sincroniza</div>
+    <p>Los cambios se guardan automáticamente en el archivo compartido. El indicador de la barra superior muestra el estado (“Guardando…”, “Último guardado por…”). Puedes forzar una actualización con el botón <b>Sincronizar</b>.</p>
+  </div>
+
+  <div class="callout">
+    <div class="t">Recomendaciones</div>
+    <p>Para evitar conflictos, lo ideal es que <b>una persona edite cada evento a la vez</b>. Haz una <b>copia de seguridad periódica</b> del archivo <code>datos-gato.json</code>. Si el navegador pide de nuevo permiso de acceso tras reiniciar, vuelve a pulsar “Local” y reconéctalo: los datos no se pierden.</p>
+  </div>
+
+  <h3>Compartir un calendario o documento puntual</h3>
+  <ul>
+    <li>Desde <b>Calendario → Conectar / compartir</b> puedes <b>descargar la agenda en formato iCal (.ics)</b> e importarla en Google Calendar, Outlook o Apple Calendar, o enviarla por correo a un cliente.</li>
+    <li>Desde <b>Facturación</b>, cualquier presupuesto o factura se puede <b>imprimir o guardar como PDF</b> para enviarlo.</li>
+  </ul>
+
+  <h2><span class="num">4</span> Preguntas frecuentes</h2>
+  <h3>¿Pierdo los datos si cierro el navegador?</h3>
+  <p>No. Si trabajas en local, los datos quedan guardados en el navegador de ese equipo. Si usas el archivo compartido, quedan guardados en <code>datos-gato.json</code>.</p>
+  <h3>¿Necesito internet?</h3>
+  <p>No para trabajar. Solo hace falta conexión la primera vez para cargar las tipografías; después funciona sin conexión.</p>
+  <h3>¿Cómo vuelvo a empezar con datos limpios?</h3>
+  <p>En <b>Configuración</b> encontrarás la opción de reiniciar los datos de ejemplo. Úsala con cuidado: reemplaza la información actual.</p>
+
+  <div class="foot">
+    <span>GATO · Guía rápida</span>
+    <span>Página 2 de 2</span>
+  </div>
+</div>
+
+</body>
+</html>
