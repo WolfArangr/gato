@@ -4,7 +4,7 @@ Aplicación de gestión de eventos, clientes, reservas y facturación para una o
 
 Los datos se guardan en una base de datos **MariaDB** dentro de la propia oficina; los equipos se conectan por el navegador.
 
-![Panel de control de GATO](gatosoftware/docs/captura-inicio.png)
+![Panel de control de GATO](docs/captura-inicio.png)
 
 ---
 
@@ -24,11 +24,11 @@ Los datos se guardan en una base de datos **MariaDB** dentro de la propia oficin
 
 | Calendario y reservas | Clientes |
 |---|---|
-| ![Calendario](gatosoftware/docs/captura-calendario.png) | ![Clientes](gatosoftware/docs/captura-clientes.png) |
+| ![Calendario](docs/captura-calendario.png) | ![Clientes](docs/captura-clientes.png) |
 
 **Centro de seguridad y cumplimiento RGPD**
 
-![Seguridad y RGPD](gatosoftware/docs/captura-rgpd.png)
+![Seguridad y RGPD](docs/captura-rgpd.png)
 
 ---
 
