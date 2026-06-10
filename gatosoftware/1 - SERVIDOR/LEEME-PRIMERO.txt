@@ -1,0 +1,108 @@
+================================================================
+  SERVIDOR GATO · LÉEME PRIMERO   (base de datos MariaDB)
+================================================================
+
+Esta carpeta convierte UN equipo de la oficina en el SERVIDOR de GATO.
+Todos los datos viven en una base de datos MariaDB en ese equipo, y los
+demás equipos se conectan por la red local con el navegador.
+
+Hazlo UNA sola vez, en el equipo que quede siempre encendido.
+Tiempo aproximado: 15 minutos.
+
+----------------------------------------------------------------
+  RESUMEN (lo que vas a hacer)
+----------------------------------------------------------------
+  1. Instalar MariaDB   (una vez, asistente oficial)
+  2. Instalar Node.js   (una vez, asistente oficial)
+  3. Doble clic en  "INSTALAR (ejecutar una vez).bat"
+  4. Doble clic en  "INICIAR-GATO.bat"
+  5. Abrir GATO en el navegador
+
+================================================================
+  PASO 1 · Instalar MariaDB  (el motor de base de datos)
+================================================================
+1. Entra en:   https://mariadb.org/download/
+2. Descarga la versión para Windows (MSI) y ábrela.
+3. En el asistente:
+     - Cuando pida la contraseña de "root": ESCRIBE UNA Y ANÓTALA.
+       (Es la llave maestra de la base de datos. La necesitarás en el paso 3.)
+     - Deja marcada la opción de instalar como SERVICIO ("Install as service").
+       Así MariaDB arranca solo cada vez que se enciende el equipo.
+     - Pulsa Siguiente / Next hasta finalizar.
+
+================================================================
+  PASO 2 · Instalar Node.js  (motor del servidor de GATO)
+================================================================
+1. Entra en:   https://nodejs.org
+2. Descarga la versión "LTS" para Windows y ábrela.
+3. Pulsa Siguiente / Next hasta finalizar (no hay que configurar nada).
+
+================================================================
+  PASO 3 · Preparar GATO  (doble clic, una sola vez)
+================================================================
+1. Doble clic en:   INSTALAR (ejecutar una vez).bat
+2. El programa comprobará Node.js y MariaDB, descargará lo que necesita
+   y creará la base de datos "gato".
+3. Cuando te lo pida, escribe la contraseña de ROOT que anotaste en el Paso 1.
+4. Espera al mensaje "INSTALACION COMPLETADA".
+
+   (Avanzado, opcional) La contraseña interna de la base de datos viene como
+   "gato". Como MariaDB sólo escucha en este equipo, no se expone a la red,
+   pero si quieres cambiarla: edítala en  crear-base-de-datos.sql  y en
+   config.json (campo db.password), y vuelve a ejecutar el .bat.
+
+================================================================
+  PASO 4 · Arrancar el servidor
+================================================================
+1. Doble clic en:   INICIAR-GATO.bat
+2. Se abre una ventana que muestra las direcciones de acceso. NO la cierres:
+   mientras esté abierta, GATO funciona.
+3. La primera vez, si Windows pregunta por el Firewall, pulsa
+   "Permitir acceso" en redes privadas.
+
+================================================================
+  PASO 5 · Abrir GATO
+================================================================
+- En ESTE equipo (servidor):   http://localhost:8090
+- Desde los demás equipos:     http://(IP-DE-ESTE-EQUIPO):8090
+  La IP aparece en la ventana negra del servidor (p. ej. 192.168.1.50).
+
+La primera persona que entre configurará la empresa (o cargará la demo).
+A partir de ahí, TODOS los equipos ven y editan los mismos datos.
+
+----------------------------------------------------------------
+  COPIAS DE SEGURIDAD  (automáticas)
+----------------------------------------------------------------
+- El servidor guarda una copia de los datos cada 30 minutos en la subcarpeta
+  "copias-de-seguridad" (se conservan las últimas 200).
+- RECOMENDADO: cambia esa ruta a tu CARPETA COMPARTIDA de red para tener las
+  copias fuera de este equipo. Edita config.json, campo  backup.dir, por ej.:
+        "dir": "\\\\SERVIDOR\\CarpetaCompartida\\GATO-copias"
+- Para restaurar una copia: en GATO, entra como administrador y usa
+  Configuración → Seguridad y RGPD → importar copia. (Las copias automáticas
+  son archivos .json con los datos.)
+
+----------------------------------------------------------------
+  ARRANQUE AUTOMÁTICO AL ENCENDER  (recomendado)
+----------------------------------------------------------------
+MariaDB ya arranca solo (es un servicio). Para que el servidor de GATO
+también arranque al encender el equipo:
+  1. Pulsa  Win + R , escribe  shell:startup  y pulsa Enter.
+  2. Clic derecho sobre  INICIAR-GATO.bat  →  "Crear acceso directo".
+  3. Mueve ese acceso directo a la carpeta que se abrió en el paso 1.
+
+----------------------------------------------------------------
+  PROBLEMAS FRECUENTES
+----------------------------------------------------------------
+- "Sin conexión al servidor" en GATO:
+     La ventana de INICIAR-GATO.bat debe estar abierta.
+- "Otros equipos no entran":
+     Revisa que el Firewall de Windows permita Node.js en redes privadas
+     y que usen la IP correcta del servidor (no "localhost").
+- "Esperando a que MariaDB esté disponible…" sin avanzar:
+     Comprueba que el servicio de MariaDB está en marcha (Servicios de Windows)
+     y que la contraseña de config.json coincide con la del usuario "gato".
+- Reinstalar desde cero:
+     Vuelve a ejecutar "INSTALAR (ejecutar una vez).bat".
+
+Soporte:  e.arango@clubdemar-mallorca.com

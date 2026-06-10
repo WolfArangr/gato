@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GATOMariaDB · Guía de instalación paso a paso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand:#19345a; --brand-soft:#e8edf4; --brand-2:#1f6feb;
+    --bg:#eef1f5; --surface:#ffffff; --surface-2:#f7f9fb; --surface-3:#eef2f6;
+    --border:#dde3ea; --border-strong:#c9d2dd;
+    --text:#16202e; --text-2:#475467; --text-3:#7a8699;
+    --ok:#1f8a5b; --ok-bg:#e4f4ec; --warn:#b6790a; --warn-bg:#fbf0d8;
+    --danger:#c1402f; --danger-bg:#fbe6e2; --info:#2a6fb0; --info-bg:#e3effa; --purple:#7b5bd6; --purple-bg:#ede8fb;
+    --font-ui:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    --font-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --shadow-sm:0 1px 2px rgba(16,32,52,.06); --shadow-lg:0 18px 50px rgba(16,32,52,.16), 0 6px 16px rgba(16,32,52,.09);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body { font-family:var(--font-ui); background:var(--bg); color:var(--text); line-height:1.62; font-size:15px; -webkit-font-smoothing:antialiased; }
+  .mono { font-family:var(--font-mono); }
+  code { font-family:var(--font-mono); font-size:.9em; background:var(--surface-3); padding:2px 7px; border-radius:5px; color:var(--brand); }
+  kbd { font-family:var(--font-mono); font-size:.82em; background:#1c2a3d; color:#dce6f2; padding:2px 7px; border-radius:5px; border:1px solid #0d1828; box-shadow:0 1px 0 #0d1828; }
+  .doc { max-width:900px; margin:34px auto 80px; background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-lg); overflow:hidden; }
+
+  .hero { background:linear-gradient(155deg,#1a3a66,#11233c); color:#fff; padding:46px 52px 40px; }
+  .hero .kicker { font-size:11.5px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:#9db8da; }
+  .hero h1 { font-size:33px; font-weight:700; letter-spacing:-.022em; margin:10px 0 12px; }
+  .hero p { font-size:15.5px; color:#c8d6e8; max-width:640px; }
+  .hero .meta { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+  .hero .pill { font-size:12px; font-weight:600; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16); color:#dbe7f5; padding:5px 12px; border-radius:99px; }
+
+  .pad { padding:34px 52px; }
+  section + section { border-top:1px solid var(--border); }
+  .lead { color:var(--text-2); font-size:14.5px; margin-bottom:4px; }
+
+  /* índice */
+  .toc { background:var(--surface-2); }
+  .toc h2 { font-size:12px; letter-spacing:.08em; color:var(--text-3); margin-bottom:14px; }
+  .toc ol { list-style:none; counter-reset:t; display:grid; grid-template-columns:1fr 1fr; gap:7px 26px; }
+  .toc li { counter-increment:t; }
+  .toc a { display:flex; gap:10px; align-items:baseline; text-decoration:none; color:var(--text); font-size:13.5px; padding:5px 0; border-bottom:1px dashed var(--border); }
+  .toc a:hover { color:var(--brand-2); }
+  .toc a::before { content:counter(t); font-family:var(--font-mono); font-size:11px; font-weight:600; color:#fff; background:var(--brand); min-width:21px; height:21px; border-radius:6px; display:inline-grid; place-items:center; flex:0 0 auto; }
+
+  h2.sec { font-size:21px; font-weight:700; letter-spacing:-.01em; color:var(--brand); display:flex; align-items:center; gap:13px; margin-bottom:6px; scroll-margin-top:18px; }
+  h2.sec .b { width:34px; height:34px; border-radius:9px; background:var(--brand); color:#fff; display:inline-grid; place-items:center; font-size:16px; flex:0 0 auto; }
+  .sub { color:var(--text-2); font-size:14px; margin:0 0 20px 47px; }
+  @media (max-width:620px){ .sub{margin-left:0;} }
+
+  .steps { counter-reset:s; display:flex; flex-direction:column; gap:0; }
+  .step { display:flex; gap:17px; padding:17px 0; border-top:1px solid var(--border); }
+  .step:first-child { border-top:none; }
+  .step .num { counter-increment:s; flex:0 0 auto; width:32px; height:32px; border-radius:50%; background:var(--brand-soft); color:var(--brand); display:grid; place-items:center; font-size:14px; font-weight:700; }
+  .step .num::before { content:counter(s); }
+  .step .body { flex:1; padding-top:3px; }
+  .step .body h3 { font-size:16px; font-weight:650; margin:0 0 6px; }
+  .step .body p { font-size:14px; color:var(--text-2); margin:6px 0 0; }
+  .step .body ul, .step .body ol.in { margin:9px 0 0 0; padding-left:19px; font-size:13.8px; color:var(--text-2); }
+  .step .body li { margin:5px 0; }
+  .step .body b { color:var(--text); }
+
+  .note { display:flex; gap:13px; border-radius:11px; padding:14px 17px; margin-top:14px; font-size:13.6px; line-height:1.55; }
+  .note.warn { background:var(--warn-bg); border:1px solid #ecd3a0; color:#7a5a10; }
+  .note.info { background:var(--info-bg); border:1px solid #b9d6ef; color:#1d4e78; }
+  .note.ok { background:var(--ok-bg); border:1px solid #b9e2cd; color:#155c3c; }
+  .note.danger { background:var(--danger-bg); border:1px solid #e6b6ac; color:#8c2c1e; }
+  .note .ic { flex:0 0 auto; font-weight:700; }
+  .note b { color:inherit; }
+
+  .term { background:#0f1d30; color:#cfe0f0; border-radius:11px; padding:15px 18px; font-family:var(--font-mono); font-size:12.6px; line-height:1.7; margin-top:12px; overflow-x:auto; white-space:pre; }
+  .term .c { color:#6b87a8; } .term .g { color:#8fd0a8; } .term .y { color:#e6c07a; } .term .w { color:#fff; }
+
+  .req { display:flex; flex-direction:column; gap:11px; }
+  .req .row { display:flex; gap:13px; align-items:flex-start; }
+  .req .ic { flex:0 0 auto; width:26px; height:26px; border-radius:7px; background:var(--brand-soft); color:var(--brand); display:grid; place-items:center; font-size:14px; }
+  .req .row b { display:block; font-size:14px; }
+  .req .row span { font-size:13.3px; color:var(--text-2); }
+
+  .check { display:flex; flex-direction:column; gap:10px; }
+  .check .row { display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2); }
+  .check .box { flex:0 0 auto; width:20px; height:20px; border:2px solid var(--border-strong); border-radius:5px; margin-top:1px; }
+  .check .row b { color:var(--text); }
+
+  table.tb { width:100%; border-collapse:collapse; margin-top:14px; font-size:13.4px; }
+  table.tb th, table.tb td { text-align:left; padding:11px 13px; border-bottom:1px solid var(--border); vertical-align:top; }
+  table.tb th { background:var(--surface-2); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--text-3); }
+  table.tb td:first-child { font-weight:600; color:var(--text); white-space:nowrap; }
+  table.tb .err { color:var(--danger); font-weight:600; }
+
+  .folder { font-family:var(--font-mono); font-size:12.6px; background:#0f1d30; color:#cde; border-radius:11px; padding:18px 20px; line-height:1.75; overflow-x:auto; }
+  .folder .f { color:#8fd0a8; } .folder .d { color:#e0b870; } .folder .c { color:#6b87a8; }
+
+  .kpi { display:flex; gap:9px; align-items:center; background:var(--ok-bg); border:1px solid #b9e2cd; color:#155c3c; padding:11px 15px; border-radius:10px; font-size:13.6px; font-weight:600; margin-top:14px; }
+
+  .foot { background:var(--surface-2); border-top:1px solid var(--border); padding:24px 52px; font-size:12.6px; color:var(--text-3); line-height:1.6; }
+  @media (max-width:620px){ .pad,.hero,.foot{padding-left:24px;padding-right:24px;} .toc ol{grid-template-columns:1fr;} }
+  @media print { body{background:#fff;} .doc{box-shadow:none;border:none;margin:0;max-width:none;} .toc{display:none;} }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <div class="hero">
+    <div class="kicker">GATOMariaDB · Puesta en marcha</div>
+    <h1>Guía de instalación, paso a paso</h1>
+    <p>De cero a funcionando. Sigue los pasos en orden, sin saltarte ninguno. Está pensada para hacerse <b>una sola vez</b>, aunque no tengas conocimientos técnicos: solo hay que descargar dos programas, hacer doble clic en dos archivos y escribir una contraseña.</p>
+    <div class="meta">
+      <span class="pill">⏱ 20–30 minutos</span>
+      <span class="pill">🖥 Windows 10 / 11</span>
+      <span class="pill">📶 Red local (sin nube)</span>
+      <span class="pill">🗄 Base de datos MariaDB</span>
+    </div>
+  </div>
+
+  <!-- ÍNDICE -->
+  <section class="pad toc">
+    <h2>CONTENIDO</h2>
+    <ol>
+      <li><a href="#req">Antes de empezar: qué necesitas</a></li>
+      <li><a href="#copiar">Copiar la carpeta GATOMariaDB al servidor</a></li>
+      <li><a href="#mariadb">Instalar MariaDB (base de datos)</a></li>
+      <li><a href="#node">Instalar Node.js</a></li>
+      <li><a href="#preparar">Preparar GATO (una sola vez)</a></li>
+      <li><a href="#arrancar">Arrancar el servidor</a></li>
+      <li><a href="#configurar">Configurar GATO por primera vez</a></li>
+      <li><a href="#equipos">Conectar los equipos de la oficina</a></li>
+      <li><a href="#autostart">Que arranque solo al encender</a></li>
+      <li><a href="#backups">Copias de seguridad</a></li>
+      <li><a href="#checklist">Lista de comprobación final</a></li>
+      <li><a href="#problemas">Si algo va mal</a></li>
+    </ol>
+  </section>
+
+  <!-- 0 · REQUISITOS -->
+  <section class="pad">
+    <h2 class="sec" id="req"><span class="b">0</span> Antes de empezar: qué necesitas</h2>
+    <p class="sub">Reúne esto antes de tocar nada. Te ahorrará idas y venidas.</p>
+    <div class="req">
+      <div class="row"><span class="ic">🖥</span><div><b>Un equipo que hará de “servidor”</b><span>Un PC con Windows que quede <b>encendido</b> durante el horario de oficina. No necesita ser potente; vale uno normal. Será donde vivan los datos.</span></div></div>
+      <div class="row"><span class="ic">📶</span><div><b>Todos en la misma red</b><span>El servidor y los demás equipos deben estar conectados a la <b>misma red local</b> (el mismo router/wifi de la oficina).</span></div></div>
+      <div class="row"><span class="ic">🔑</span><div><b>Permisos de administrador</b><span>En el equipo servidor, para poder instalar programas (te pedirá confirmación de Windows).</span></div></div>
+      <div class="row"><span class="ic">🌐</span><div><b>Conexión a internet</b><span>Solo <b>durante la instalación</b>, para descargar los dos programas y unos componentes. Después GATO funciona sin internet.</span></div></div>
+      <div class="row"><span class="ic">📁</span><div><b>La carpeta <span class="mono">GATOMariaDB</span></b><span>Esta carpeta que te hemos entregado, con todo dentro. Tenla a mano (en un USB, descarga o red).</span></div></div>
+    </div>
+    <div class="note info"><span class="ic">i</span><div>A lo largo de la guía verás una <b>“ventana negra”</b> (la consola de Windows). No te asustes: solo hay que mirar lo que escribe y, como mucho, teclear una contraseña. No hay que saber comandos.</div></div>
+  </section>
+
+  <!-- 1 · COPIAR -->
+  <section class="pad">
+    <h2 class="sec" id="copiar"><span class="b">1</span> Copiar la carpeta al servidor</h2>
+    <p class="sub">Trabajaremos siempre en el equipo servidor.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Copia la carpeta <code>GATOMariaDB</code> a un sitio fácil</h3>
+        <p>Recomendado: directamente en el disco <code>C:</code>. Es decir, que quede así: <code>C:\GATOMariaDB</code>.</p>
+        <ul>
+          <li>Abre el <b>Explorador de archivos</b> (carpeta amarilla en la barra de tareas, o <kbd>⊞ Win</kbd> + <kbd>E</kbd>).</li>
+          <li>Arrastra o copia la carpeta <code>GATOMariaDB</code> a <code>Este equipo → Disco local (C:)</code>.</li>
+        </ul>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Comprueba que dentro están las carpetas numeradas</h3>
+        <p>Abre <code>C:\GATOMariaDB</code> y verifica que ves esto:</p>
+        <div class="folder">
+<span class="d">C:\GATOMariaDB\</span>
+  <span class="d">1 - SERVIDOR\</span>                  <span class="c">← lo que instalaremos ahora</span>
+  <span class="d">2 - EQUIPOS DE LA OFICINA\</span>     <span class="c">← para los demás PC</span>
+  <span class="d">3 - APP LOCAL (1 equipo...)\</span>   <span class="c">← versión sin servidor (respaldo)</span>
+  <span class="d">HERRAMIENTAS\</span>                  <span class="c">← restablecer PIN admin</span>
+  <span class="f">GUÍA DE INSTALACIÓN (paso a paso).html</span>  <span class="c">← este documento</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 2 · MARIADB -->
+  <section class="pad">
+    <h2 class="sec" id="mariadb"><span class="b">2</span> Instalar MariaDB (la base de datos)</h2>
+    <p class="sub">Es el programa que guarda los datos. Gratuito y oficial. Se instala como “servicio”, lo que significa que <b>arranca solo</b> cada vez que enciendes el equipo.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Descarga MariaDB</h3>
+        <ul>
+          <li>En el navegador del servidor, entra en <code>https://mariadb.org/download/</code></li>
+          <li>Deja las opciones que vienen por defecto (la última versión, <b>Windows</b>, paquete <b>MSI</b>).</li>
+          <li>Pulsa <b>Download</b>. Se descargará un archivo que termina en <code>.msi</code>.</li>
+        </ul>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Abre el instalador</h3>
+        <p>Doble clic en el archivo <code>.msi</code> descargado. Si Windows pregunta “¿Permitir que esta aplicación haga cambios?”, pulsa <b>Sí</b>. En la primera pantalla pulsa <b>Next</b> y acepta los términos (<i>“I accept…”</i>) → <b>Next</b>.</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Deja los componentes como están</h3>
+        <p>En la pantalla de componentes (“Custom Setup”) no cambies nada. Pulsa <b>Next</b>.</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>⚠ La pantalla MÁS importante: la contraseña de “root”</h3>
+        <p>Verás un recuadro “Default instance properties” con campos de contraseña:</p>
+        <ul>
+          <li>En <b>“New root password”</b> y <b>“Confirm”</b>: escribe una contraseña y <b>ANÓTALA</b> en papel. Es la llave maestra de la base de datos; la usarás dentro de un par de pasos.</li>
+          <li><b>NO marques</b> “Enable access from remote machines for root user” (por seguridad, root solo local).</li>
+          <li>Puedes marcar “Use UTF8 as default server's character set” (recomendado para acentos y ñ).</li>
+        </ul>
+        <div class="note danger"><span class="ic">!</span><div>Si pierdes esta contraseña tendrás que reinstalar MariaDB. <b>Apúntala bien</b> (por ejemplo, en el mismo papel donde guardas las llaves del local).</div></div>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Servicio y puerto: deja los valores por defecto</h3>
+        <p>La siguiente pantalla muestra “Install as service” (marcado), Service Name <code>MariaDB</code> y TCP port <code>3306</code>. <b>No cambies nada</b>, pulsa <b>Next</b>.</p>
+        <div class="note info"><span class="ic">i</span><div>“Install as service” es lo que hace que MariaDB se encienda sola con el equipo. Déjalo marcado.</div></div>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Instala y termina</h3>
+        <p>Pulsa <b>Next</b> → <b>Install</b>. Espera a que termine la barra y pulsa <b>Finish</b>. MariaDB ya está instalado y funcionando en segundo plano.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 3 · NODE -->
+  <section class="pad">
+    <h2 class="sec" id="node"><span class="b">3</span> Instalar Node.js</h2>
+    <p class="sub">Es el motor que sirve la aplicación GATO a los navegadores. También gratuito y oficial.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Descarga Node.js</h3>
+        <ul>
+          <li>Entra en <code>https://nodejs.org</code></li>
+          <li>Pulsa el botón grande que dice <b>“LTS”</b> (es la versión estable recomendada). Se descarga un archivo <code>.msi</code>.</li>
+        </ul>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Instálalo (Siguiente → Siguiente)</h3>
+        <p>Doble clic en el archivo descargado. Acepta los términos y pulsa <b>Next</b> en todas las pantallas sin cambiar nada. Si aparece una casilla sobre “Tools for Native Modules”, <b>déjala sin marcar</b>. Pulsa <b>Install</b> y, al final, <b>Finish</b>.</p>
+      </div></div>
+    </div>
+    <div class="note ok"><span class="ic">✓</span><div>Ya tienes los dos programas base instalados. <b>No hay que configurarlos</b>: el siguiente paso lo hace todo automáticamente.</div></div>
+  </section>
+
+  <!-- 4 · PREPARAR -->
+  <section class="pad">
+    <h2 class="sec" id="preparar"><span class="b">4</span> Preparar GATO (una sola vez)</h2>
+    <p class="sub">Este paso crea la base de datos de GATO y deja todo listo. Solo se hace una vez.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Entra en la carpeta del servidor</h3>
+        <p>Abre <code>C:\GATOMariaDB\1 - SERVIDOR</code>.</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Doble clic en <code>INSTALAR (ejecutar una vez).bat</code></h3>
+        <p>Se abrirá la ventana negra. Irá comprobando cosas y escribiendo mensajes. Cuando llegue al paso de la base de datos, <b>te pedirá la contraseña de root de MariaDB</b> (la que anotaste en el Paso 2).</p>
+        <div class="note warn"><span class="ic">⌨</span><div>Al escribir la contraseña <b>no se verá nada</b> en pantalla (ni puntos ni asteriscos): es normal, por seguridad. Escríbela con cuidado y pulsa <kbd>Enter</kbd>.</div></div>
+        <p>Si todo va bien, verás al final:</p>
+        <div class="term"><span class="g">  ============================================================</span>
+<span class="g">     ✓ INSTALACION COMPLETADA</span>
+<span class="g">  ============================================================</span>
+
+     Ya puedes arrancar el servidor con:
+        <span class="w">INICIAR-GATO.bat</span></div>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Si te dice que falta algo</h3>
+        <p>La ventana te lo indicará claramente. Lo más habitual:</p>
+        <ul>
+          <li><b>“No se encuentra Node.js / MariaDB”</b>: repite el Paso 2 o 3. Si los acabas de instalar, <b>cierra esta ventana y abre de nuevo</b> el .bat (Windows necesita refrescar).</li>
+          <li><b>“Contraseña de root incorrecta”</b>: vuelve a hacer doble clic en el .bat e introdúcela de nuevo.</li>
+        </ul>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 5 · ARRANCAR -->
+  <section class="pad">
+    <h2 class="sec" id="arrancar"><span class="b">5</span> Arrancar el servidor</h2>
+    <p class="sub">Esto enciende GATO. A partir de aquí, ya se puede usar.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Doble clic en <code>INICIAR-GATO.bat</code></h3>
+        <p>Se abre una ventana negra que muestra las direcciones de acceso, algo parecido a esto:</p>
+        <div class="term"><span class="g">     SERVIDOR GATO  ·  EN MARCHA</span>
+
+     La aplicación GATO está disponible en:
+
+        · En ESTE equipo (servidor):  <span class="y">http://localhost:8090</span>
+        · Desde los demás equipos:    <span class="y">http://192.168.1.50:8090</span>
+
+  <span class="c">     IMPORTANTE: NO CIERRES esta ventana mientras se use GATO.</span></div>
+        <p><b>Apunta la dirección que empieza por <code>192.168…</code></b> (tu número será distinto). Es la que usarán los demás equipos.</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Permite el acceso en el Firewall</h3>
+        <p>La primera vez, Windows puede preguntar por el “Firewall de Windows Defender”. Marca <b>“Redes privadas”</b> y pulsa <b>“Permitir acceso”</b>. (Si no aparece, no pasa nada.)</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Deja esa ventana abierta</h3>
+        <p>Mientras esa ventana esté abierta, GATO funciona. Si la cierras, el servidor se apaga. (Más adelante haremos que arranque solo, en el Paso 9.)</p>
+      </div></div>
+    </div>
+    <div class="note info"><span class="ic">i</span><div>La primera vez, el servidor tarda unos segundos en preparar la base de datos (verás “Esperando a que MariaDB esté disponible…” y luego “Base de datos lista”). Es normal.</div></div>
+  </section>
+
+  <!-- 6 · CONFIGURAR -->
+  <section class="pad">
+    <h2 class="sec" id="configurar"><span class="b">6</span> Configurar GATO por primera vez</h2>
+    <p class="sub">Lo hacemos desde el propio equipo servidor.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Abre GATO en el navegador</h3>
+        <p>En el equipo servidor, abre Chrome o Edge y escribe: <code>http://localhost:8090</code></p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Crea tu empresa (o prueba con la demo)</h3>
+        <ul>
+          <li>Verás la pantalla de bienvenida. Elige <b>configurar tu empresa</b> y rellena los datos (nombre, etc.).</li>
+          <li>Crea el primer usuario <b>administrador</b> con su <b>PIN de 4 dígitos</b>. Anótalo.</li>
+          <li>¿Solo quieres ver cómo funciona antes? Pulsa <b>“Ver una demostración”</b>: carga datos de ejemplo que luego puedes vaciar. La demo no se guarda en la base de datos real.</li>
+        </ul>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Comprueba el indicador verde</h3>
+        <p>Arriba a la derecha debe poner <b>“Servidor conectado”</b> en verde. Significa que GATO está guardando en MariaDB correctamente.</p>
+        <div class="kpi"><span>✓</span> Si ves “Servidor conectado”, ¡la instalación funciona!</div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 7 · EQUIPOS -->
+  <section class="pad">
+    <h2 class="sec" id="equipos"><span class="b">7</span> Conectar los equipos de la oficina</h2>
+    <p class="sub">En los demás PC <b>no se instala nada</b>. Solo abren una dirección en el navegador.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Ten a mano la dirección del servidor</h3>
+        <p>Es la que apuntaste en el Paso 5 (la de <code>192.168…:8090</code>). Si no la tienes, mírala en la ventana negra del servidor.</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Opción A — Acceso directo con doble clic (recomendado)</h3>
+        <ol class="in">
+          <li>Copia el archivo <code>ABRIR-GATO.bat</code> de la carpeta <code>2 - EQUIPOS DE LA OFICINA</code> a cada PC (al Escritorio, por ejemplo).</li>
+          <li>Clic derecho en él → <b>Editar</b>. Cambia la línea <code>set SERVIDOR=192.168.1.50:8090</code> poniendo <b>la IP real</b> de tu servidor. Guarda (<kbd>Ctrl</kbd>+<kbd>S</kbd>) y cierra.</li>
+          <li>Doble clic en <code>ABRIR-GATO.bat</code>: se abre GATO en el navegador.</li>
+        </ol>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Opción B — Escribir la dirección en el navegador</h3>
+        <p>Abre Chrome o Edge y escribe <code>http://(IP-DEL-SERVIDOR):8090</code> (por ejemplo <code>http://192.168.1.50:8090</code>). Guárdalo en <b>Favoritos</b> o usa <b>“Anclar a la barra de tareas”</b> para tenerlo siempre a mano.</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Cada persona entra con su PIN</h3>
+        <p>Todos los equipos ven y editan <b>los mismos datos en tiempo real</b>. Cada uno elige su perfil y entra con su PIN. Cerrar sesión en un equipo no afecta a los demás.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 8 · AUTOSTART -->
+  <section class="pad">
+    <h2 class="sec" id="autostart"><span class="b">8</span> Que arranque solo al encender (recomendado)</h2>
+    <p class="sub">Así, si reinician el equipo servidor, GATO vuelve solo sin que nadie haga nada.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>MariaDB ya arranca sola</h3>
+        <p>Se instaló como servicio de Windows (Paso 2), así que no hay que hacer nada con ella.</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Haz que el servidor de GATO también arranque solo</h3>
+        <ol class="in">
+          <li>Pulsa <kbd>⊞ Win</kbd> + <kbd>R</kbd>, escribe <code>shell:startup</code> y pulsa <kbd>Enter</kbd>. Se abre la carpeta de “Inicio”.</li>
+          <li>Ve a <code>C:\GATOMariaDB\1 - SERVIDOR</code>, clic derecho sobre <code>INICIAR-GATO.bat</code> → <b>“Mostrar más opciones”</b> → <b>“Crear acceso directo”</b>.</li>
+          <li>Mueve (arrastra) ese <b>acceso directo</b> a la carpeta de “Inicio” que abriste en el paso 1.</li>
+        </ol>
+        <p>Listo: cada vez que se encienda el equipo, GATO se levantará solo.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 9 · BACKUPS -->
+  <section class="pad">
+    <h2 class="sec" id="backups"><span class="b">9</span> Copias de seguridad</h2>
+    <p class="sub">El servidor ya hace copias solo. Conviene guardarlas fuera del equipo.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Copias automáticas (ya activas)</h3>
+        <p>Cada 30 minutos se guarda una copia de los datos en la subcarpeta <code>1 - SERVIDOR\copias-de-seguridad</code> (se conservan las últimas 200).</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Recomendado: guárdalas en vuestra carpeta compartida de red</h3>
+        <ol class="in">
+          <li>Abre con el Bloc de notas el archivo <code>C:\GATOMariaDB\1 - SERVIDOR\config.json</code>.</li>
+          <li>Busca la línea <code>"dir": "./copias-de-seguridad"</code> y cámbiala por la ruta de vuestra carpeta de red, por ejemplo:<br><code>"dir": "\\\\SERVIDOR\\Compartida\\GATO-copias"</code></li>
+          <li>Guarda el archivo y reinicia el servidor (cierra la ventana negra y vuelve a abrir <code>INICIAR-GATO.bat</code>).</li>
+        </ol>
+        <div class="note warn"><span class="ic">!</span><div>Respeta las comillas y las barras dobles tal cual. Si tienes dudas, mejor deja la copia local por defecto: también es válida.</div></div>
+      </div></div>
+      <div class="step"><div class="num"></div><div class="body">
+        <h3>Cómo restaurar una copia</h3>
+        <p>Dentro de GATO, entra como administrador → <b>Configuración → Seguridad y RGPD</b>. Desde ahí puedes exportar e importar una copia cifrada. (Las copias automáticas son archivos <code>.json</code> dentro de la carpeta de copias.)</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 10 · CHECKLIST -->
+  <section class="pad">
+    <h2 class="sec" id="checklist"><span class="b">10</span> Lista de comprobación final</h2>
+    <p class="sub">Valida esto en la red real <b>antes</b> del primer día de trabajo.</p>
+    <div class="check">
+      <div class="row"><span class="box"></span><div>MariaDB y Node.js instalados en el equipo servidor.</div></div>
+      <div class="row"><span class="box"></span><div><code>INSTALAR (ejecutar una vez).bat</code> terminó con <b>“INSTALACION COMPLETADA”</b>.</div></div>
+      <div class="row"><span class="box"></span><div><code>INICIAR-GATO.bat</code> abre la ventana con la dirección <code>192.168…:8090</code>.</div></div>
+      <div class="row"><span class="box"></span><div>En el servidor, <code>http://localhost:8090</code> abre GATO y dice <b>“Servidor conectado”</b>.</div></div>
+      <div class="row"><span class="box"></span><div>Desde <b>otro</b> equipo, <code>http://IP:8090</code> abre GATO y también dice <b>“Servidor conectado”</b>.</div></div>
+      <div class="row"><span class="box"></span><div>Creáis un cliente o evento en un equipo y aparece en el otro a los pocos segundos.</div></div>
+      <div class="row"><span class="box"></span><div>Cada persona entra con su PIN; cerrar sesión en un equipo no afecta a los demás.</div></div>
+      <div class="row"><span class="box"></span><div>Apagáis y reabrís el servidor: GATO arranca solo (Paso 8) y los datos siguen ahí.</div></div>
+      <div class="row"><span class="box"></span><div>Aparecen archivos de copia en la carpeta <code>copias-de-seguridad</code>.</div></div>
+    </div>
+  </section>
+
+  <!-- 11 · PROBLEMAS -->
+  <section class="pad">
+    <h2 class="sec" id="problemas"><span class="b">11</span> Si algo va mal</h2>
+    <p class="sub">Casi todo se resuelve en un minuto. Busca tu síntoma:</p>
+    <table class="tb">
+      <thead><tr><th>Qué ves</th><th>Qué hacer</th></tr></thead>
+      <tbody>
+        <tr><td class="err">“Sin conexión al servidor” en GATO</td><td>La ventana negra de <code>INICIAR-GATO.bat</code> debe estar <b>abierta</b> en el servidor. Si la cerraste, vuelve a hacer doble clic.</td></tr>
+        <tr><td class="err">Los otros equipos no entran</td><td>1) Comprueba que usan la <b>IP correcta</b> del servidor (no “localhost”). 2) Permite <b>Node.js</b> en el Firewall de Windows (redes privadas). 3) Verifica que están en la misma red wifi/cable.</td></tr>
+        <tr><td class="err">“Esperando a que MariaDB esté disponible…” y no avanza</td><td>El servicio de MariaDB no está en marcha o la contraseña no coincide. Abre <b>Servicios</b> de Windows (busca “Servicios”) y arranca <code>MariaDB</code>. Si persiste, vuelve a ejecutar <code>INSTALAR (ejecutar una vez).bat</code>.</td></tr>
+        <tr><td class="err">“No se encuentra Node.js / MariaDB” al instalar</td><td>Acabas de instalarlos pero la ventana no los ve: <b>ciérrala y vuelve a abrir</b> el .bat (Windows necesita refrescar la lista de programas).</td></tr>
+        <tr><td class="err">La contraseña de root no la acepta</td><td>Vuelve a ejecutar el .bat de instalar y escríbela de nuevo (recuerda: al teclearla no se ve nada en pantalla).</td></tr>
+        <tr><td class="err">Un administrador olvidó su PIN</td><td>Usa <code>HERRAMIENTAS\GATO - Restablecer PIN admin.html</code>. Guárdala con cuidado: solo para personal de confianza.</td></tr>
+        <tr><td class="err">Necesito trabajar sin servidor / sin red</td><td>Abre la versión de un solo equipo: <code>3 - APP LOCAL (1 equipo, sin servidor)\GATO - App (un solo equipo).html</code>. Guarda los datos en ese equipo (no comparte con los demás).</td></tr>
+      </tbody>
+    </table>
+    <div class="note info"><span class="ic">✉</span><div>Si nada de esto lo resuelve, desde la propia app (botón discreto abajo a la izquierda) se envía un reporte con captura a <b>e.arango@clubdemar-mallorca.com</b>.</div></div>
+  </section>
+
+  <div class="foot">
+    <b>GATOMariaDB</b> · Gestión Asistida de Tareas de Oficina. Servidor de datos sobre MariaDB + Node.js en red local. Todos los datos permanecen en vuestra oficina; nada sale a internet. La base de datos solo escucha en el propio equipo servidor.<br>
+    Consejo: imprime esta guía (<kbd>Ctrl</kbd>+<kbd>P</kbd>) y guárdala junto al equipo servidor.
+  </div>
+</div>
+</body>
+</html>
