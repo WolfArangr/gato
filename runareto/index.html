@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reto RUNA</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:#07070f;color:#f0ede8;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+.card{
+  background:#0f0f1c;border:1px solid #2e2e48;border-radius:20px;
+  padding:32px 24px;max-width:360px;width:100%;text-align:center;
+}
+.logo{
+  font-size:3rem;font-weight:900;letter-spacing:.22em;
+  background:linear-gradient(135deg,#c4b5fd,#7c6af7,#a594f9);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:4px;
+}
+.tagline{font-size:.65rem;color:#5a5770;letter-spacing:.14em;text-transform:uppercase;margin-bottom:24px;}
+.challenge-icon{font-size:3rem;margin-bottom:12px;}
+h1{font-size:1.2rem;font-weight:900;color:#f0ede8;margin-bottom:8px;}
+p{font-size:.85rem;color:#a09cb0;line-height:1.6;margin-bottom:20px;}
+.code-box{
+  background:#171724;border:1px solid #2e2e48;border-radius:12px;
+  padding:14px;margin:16px 0;font-size:1.4rem;font-weight:900;
+  letter-spacing:.15em;color:#a594f9;
+}
+.btn{
+  display:block;width:100%;padding:14px;border:none;border-radius:12px;
+  background:#7c6af7;color:#fff;font-size:.9rem;font-weight:900;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  text-decoration:none;margin-top:8px;transition:background .2s;
+}
+.btn:hover{background:#a594f9;}
+.btn.sec{
+  background:transparent;border:1px solid #2e2e48;color:#a09cb0;
+  font-size:.8rem;margin-top:6px;
+}
+.status{font-size:.72rem;color:#5a5770;margin-top:16px;min-height:20px;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #2e2e48;
+  border-top-color:#7c6af7;border-radius:50%;animation:spin .8s linear infinite;
+  vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">RUNA</div>
+  <div class="tagline">Desenreda la runa · Revela la palabra</div>
+  <div class="challenge-icon">⚔️</div>
+  <h1>¡Tienes un reto!</h1>
+  <p>Alguien te ha retado a descifrar su runa. ¿Puedes superarlo?</p>
+
+  <div id="opening-msg">
+    <div class="status"><span class="spinner"></span>Abriendo RUNA…</div>
+  </div>
+
+  <div id="fallback" style="display:none">
+    <p style="color:#ef4444;font-size:.8rem;margin-bottom:12px">
+      No se ha podido abrir la app automáticamente.
+    </p>
+    <div class="code-box" id="code-display"></div>
+    <p style="font-size:.75rem;color:#a09cb0;">
+      Copia este código, abre RUNA y úsalo en <strong>Nueva Runa → Código de reto</strong>
+    </p>
+    <a class="btn" href="" id="play-link" target="_blank">
+      Descargar RUNA en Google Play
+    </a>
+    <button class="btn sec" onclick="tryAgain()">Intentar abrir la app de nuevo</button>
+  </div>
+</div>
+
+<script>
+const PLAY_URL = 'https://play.google.com/store/apps/details?id=red.gato.runa';
+
+// Extraer el código del path: /runareto/CODIGO o /runareto/?r=CODIGO
+function getCode() {
+  // Intentar desde el path
+  const parts = window.location.pathname.replace(/\/+$/, '').split('/');
+  const last = parts[parts.length - 1];
+  if (last && last !== 'runareto' && last !== 'index.html') return last;
+  // Intentar desde query string
+  const params = new URLSearchParams(window.location.search);
+  return params.get('r') || '';
+}
+
+const code = getCode();
+const deepLink = `runa://reto?r=${code}`;
+
+document.getElementById('code-display').textContent = code;
+document.getElementById('play-link').href = PLAY_URL;
+
+function showFallback() {
+  document.getElementById('opening-msg').style.display = 'none';
+  document.getElementById('fallback').style.display = 'block';
+}
+
+function tryOpen() {
+  if (!code) { showFallback(); return; }
+
+  // Intentar abrir el deep link
+  window.location.href = deepLink;
+
+  // Si tras 2.5s seguimos aquí, la app no está instalada
+  setTimeout(showFallback, 2500);
+}
+
+function tryAgain() {
+  document.getElementById('opening-msg').style.display = 'block';
+  document.getElementById('fallback').style.display = 'none';
+  tryOpen();
+}
+
+// Iniciar al cargar
+tryOpen();
+</script>
+</body>
+</html>
