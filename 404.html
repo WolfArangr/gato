@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>404 — gato.red</title>
+<link rel="apple-touch-icon" sizes="180x180" href="https://www.gato.red/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://www.gato.red/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://www.gato.red/favicon-16x16.png">
+<link rel="icon" href="https://www.gato.red/favicon.ico" type="image/x-icon">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.18);
+    --text: #f0ece2;
+    --muted: #888;
+    --accent-red: #e84d4d;
+    --accent-amber: #f0a020;
+    --accent-teal: #2dbf8a;
+    --accent-blue: #4d9de8;
+    --accent-purple: #9b7dea;
+    --accent-pink: #e05ca3;
+    --accent-gray: #aaa;
+    --mono: 'Space Mono', monospace;
+    --display: 'Unbounded', sans-serif;
+    --max: 1400px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ─── HEADER (idéntico al de gato.red) ─── */
+  header {
+    padding: 3rem 2rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: flex-end;
+    justify-content: space-between;
+    max-width: var(--max);
+    margin: 0 auto;
+  }
+
+  .logo-block h1 {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .logo-block h1 span { color: var(--accent-red); }
+
+  .logo-block p {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .stats { display: flex; gap: 2rem; text-align: right; }
+
+  .stat-n {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: var(--text);
+    line-height: 1;
+    transition: color 0.3s;
+  }
+
+  .stat-l {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  /* ─── HERO ERROR (mismo patrón que .showcase-wrap) ─── */
+  .hero-wrap {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 2.5rem 2rem 0;
+  }
+
+  .section-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .error-code {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(5rem, 19vw, 9.5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--text);
+  }
+
+  .error-code span {
+    color: var(--accent-red);
+    display: inline-block;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .error-code span { animation: flicker 4s infinite; }
+  }
+
+  @keyframes flicker {
+    0%, 90%, 100% { opacity: 1; }
+    91% { opacity: 0.3; }
+    92% { opacity: 1; }
+    93% { opacity: 0.5; }
+    94% { opacity: 1; }
+  }
+
+  .error-sub {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(1rem, 2.6vw, 1.35rem);
+    text-transform: lowercase;
+    margin-top: 0.5rem;
+  }
+
+  .error-desc {
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.75;
+    margin-top: 0.85rem;
+    max-width: 580px;
+  }
+
+  .error-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin: 1.6rem 0 2.5rem;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    text-transform: lowercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn:hover { border-color: var(--border-hover); background: var(--surface); }
+
+  .btn.primary { border-color: var(--accent-red); color: var(--accent-red); }
+  .btn.primary:hover { background: rgba(232,77,77,0.1); }
+
+  /* ─── SECCIÓN JUEGO (mismo patrón que .cat-section) ─── */
+  #grid {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 0 2rem 3rem;
+  }
+
+  .cat-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .cat-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent-red);
+    white-space: nowrap;
+  }
+
+  .cat-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(232,77,77,0.3), transparent);
+  }
+
+  .cat-count {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .game-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+  }
+
+  .game-hud {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .game-hud strong {
+    color: var(--text);
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    margin-left: 5px;
+    letter-spacing: 0;
+  }
+
+  #lives {
+    color: var(--accent-red);
+    letter-spacing: 3px;
+  }
+
+  .icon-btn {
+    margin-left: auto;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.15s;
+  }
+
+  .icon-btn:hover { border-color: var(--border-hover); color: var(--text); }
+
+  .canvas-wrap {
+    position: relative;
+    max-width: 640px;
+    margin: 0 auto;
+    border: 1px solid var(--border);
+    line-height: 0;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 640 / 400;
+    background: var(--bg);
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  .game-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(13,13,13,0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.85rem;
+    padding: 1.5rem;
+  }
+
+  .game-overlay.hidden { display: none; }
+
+  .overlay-title {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(1.2rem, 4.5vw, 1.7rem);
+    text-transform: lowercase;
+    color: var(--text);
+  }
+
+  .overlay-title.win { color: var(--accent-teal); }
+  .overlay-title.lose { color: var(--accent-red); }
+
+  .overlay-text {
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.8;
+    max-width: 380px;
+  }
+
+  .overlay-score {
+    font-family: var(--display);
+    font-weight: 700;
+    color: var(--text);
+    font-size: 13px;
+  }
+
+  .game-tip {
+    text-align: center;
+    font-size: 10px;
+    color: #444;
+    margin-top: 0.85rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── FOOTER (idéntico al de gato.red) ─── */
+  footer {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  footer p { font-size: 11px; color: #444; }
+
+  footer a {
+    font-family: var(--display);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  footer a:hover { color: var(--accent-red); }
+
+  @media (max-width: 700px) {
+    header, .hero-wrap, #grid, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .error-actions { flex-direction: column; align-self: flex-start; }
+    .game-hud { gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-block">
+    <h1>gato<span>.</span>red</h1>
+    <p>colección de proyectos, herramientas y experimentos</p>
+  </div>
+  <div class="stats">
+    <div>
+      <div class="stat-n" id="ping-val">···</div>
+      <div class="stat-l" id="ping-label">ms ping</div>
+    </div>
+    <div>
+      <div class="stat-n" style="color:var(--accent-red)">404</div>
+      <div class="stat-l">estado http</div>
+    </div>
+  </div>
+</header>
+
+<!-- HERO DE ERROR -->
+<div class="hero-wrap">
+  <div class="section-label">// fuera de servicio</div>
+
+  <h2 class="error-code">4<span>0</span>4</h2>
+  <p class="error-sub">no hay conexión con el servidor, o esta página está caída por algún motivo</p>
+  <p class="error-desc">puede que estemos haciendo mantenimiento, que la url ya no exista, o que tu propia red esté fallando — todavía no lo sabemos. mientras lo comprobamos, no pierdas el tiempo:</p>
+
+  <div class="error-actions">
+    <a href="https://gato.red" class="btn primary">cd ~ // volver al inicio</a>
+    <button class="btn" id="retry-btn">reintentar conexión</button>
+  </div>
+</div>
+
+<!-- JUEGO -->
+<div id="grid">
+  <div class="cat-header">
+    <span class="cat-title">rompe bloques</span>
+    <div class="cat-line"></div>
+    <span class="cat-count" id="game-state-label">esperando</span>
+  </div>
+
+  <div class="game-card">
+    <div class="game-hud">
+      <span>puntos<strong id="score">0</strong></span>
+      <span>vidas<strong id="lives">●●●</strong></span>
+      <span>nivel<strong id="level">1</strong></span>
+      <button class="icon-btn" id="mute-btn" aria-label="silenciar sonido" title="silenciar sonido">🔊</button>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="game" width="640" height="400" aria-label="juego rompe bloques" role="img"></canvas>
+
+      <div class="game-overlay" id="overlay">
+        <p class="overlay-title">restablece la señal</p>
+        <p class="overlay-text">rompe los bloques de error antes de quedarte sin vidas<br>← → o ratón para mover · clic / espacio para lanzar</p>
+        <button class="btn primary" id="start-btn">▶ jugar</button>
+      </div>
+    </div>
+    <p class="game-tip">// también puedes arrastrar el dedo sobre la pantalla en móvil</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>gato.red — esto no debería estar aquí, pero al menos hay algo que romper</p>
+  <a href="https://gato.red">cd ~ // volver al inicio</a>
+</footer>
+
+<script>
+(function () {
+  // ── ping falso de cabecera (solo decorativo) ─────────────────────────
+  setTimeout(function () {
+    var el = document.getElementById('ping-val');
+    var label = document.getElementById('ping-label');
+    el.textContent = '✕';
+    el.style.color = 'var(--accent-red)';
+    label.textContent = 'sin respuesta';
+  }, 1200);
+
+  document.getElementById('retry-btn').addEventListener('click', function () {
+    location.reload();
+  });
+
+  // ── JUEGO: ROMPE BLOQUES ──────────────────────────────────────────────
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+
+  var LOGICAL_W = 640, LOGICAL_H = 400;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = LOGICAL_W * DPR;
+  canvas.height = LOGICAL_H * DPR;
+  ctx.scale(DPR, DPR);
+
+  var COLORS = {
+    bg: '#0d0d0d',
+    grid: 'rgba(255,255,255,0.035)',
+    text: '#f0ece2',
+    red: '#e84d4d',
+    muted: '#888'
+  };
+
+  var ROW_COLORS = ['#e05ca3', '#9b7dea', '#4d9de8', '#2dbf8a', '#f0a020'];
+  var ROW_SCORES = [50, 40, 30, 20, 10];
+
+  var COLS = 8, ROWS = 5;
+  var SIDE_PAD = 16, TOP_PAD = 42, BRICK_GAP = 6, BRICK_H = 20;
+  var BRICK_W = (LOGICAL_W - SIDE_PAD * 2 - BRICK_GAP * (COLS - 1)) / COLS;
+
+  var PADDLE_W = 92, PADDLE_H = 12, PADDLE_Y = LOGICAL_H - 28;
+  var PADDLE_SPEED = 480;
+  var BALL_R = 7;
+  var BASE_BALL_SPEED = 250;
+
+  var scoreEl = document.getElementById('score');
+  var livesEl = document.getElementById('lives');
+  var levelEl = document.getElementById('level');
+  var stateLabelEl = document.getElementById('game-state-label');
+  var overlayEl = document.getElementById('overlay');
+  var startBtn = document.getElementById('start-btn');
+  var muteBtn = document.getElementById('mute-btn');
+
+  var state = 'idle'; // idle | ready | playing | win | over
+  var score = 0, lives = 3, level = 1, bricksBroken = 0, livesLostThisRun = 0;
+  var muted = false;
+  var keys = { left: false, right: false };
+  var shakeT = 0, shakeMag = 0;
+  var particles = [];
+  var floaters = [];
+  var trail = [];
+
+  var paddle = { x: (LOGICAL_W - PADDLE_W) / 2, y: PADDLE_Y, w: PADDLE_W, h: PADDLE_H };
+  var ball = { x: 0, y: 0, vx: 0, vy: 0, speed: BASE_BALL_SPEED, attached: true };
+  var bricks = [];
+
+  function buildBricks() {
+    bricks = [];
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        bricks.push({
+          x: SIDE_PAD + c * (BRICK_W + BRICK_GAP),
+          y: TOP_PAD + r * (BRICK_H + BRICK_GAP),
+          w: BRICK_W,
+          h: BRICK_H,
+          color: ROW_COLORS[r],
+          score: ROW_SCORES[r],
+          alive: true
+        });
+      }
+    }
+  }
+
+  function resetBall() {
+    ball.x = paddle.x + paddle.w / 2;
+    ball.y = paddle.y - BALL_R - 1;
+    ball.vx = 0;
+    ball.vy = 0;
+    ball.attached = true;
+    trail.length = 0;
+  }
+
+  function launchBall() {
+    if (!ball.attached) return;
+    ball.attached = false;
+    var angle = (Math.random() * 0.5 - 0.25); // ligera variación
+    ball.vx = Math.sin(angle) * ball.speed;
+    ball.vy = -Math.cos(angle) * ball.speed;
+  }
+
+  function setLivesDisplay() {
+    var s = '';
+    for (var i = 0; i < 3; i++) s += (i < lives ? '●' : '○');
+    livesEl.textContent = s;
+  }
+
+  function setStateLabel(text) { stateLabelEl.textContent = text; }
+
+  // ── AUDIO sintetizado, sin archivos ──────────────────────────────────
+  var audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+  }
+  function beep(freq, dur, type, vol, when) {
+    if (muted || !audioCtx) return;
+    dur = dur || 0.08; type = type || 'square'; vol = vol || 0.05; when = when || 0;
+    var t0 = audioCtx.currentTime + when;
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = vol;
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  muteBtn.addEventListener('click', function () {
+    muted = !muted;
+    muteBtn.textContent = muted ? '🔈' : '🔊';
+  });
+
+  // ── EFECTOS: partículas, texto flotante, shake ───────────────────────
+  function spawnParticles(x, y, color) {
+    for (var i = 0; i < 10; i++) {
+      var a = Math.random() * Math.PI * 2;
+      var sp = 60 + Math.random() * 140;
+      particles.push({
+        x: x, y: y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        life: 0.5 + Math.random() * 0.3,
+        age: 0,
+        size: 2 + Math.random() * 3,
+        color: color
+      });
+    }
+  }
+
+  function spawnFloater(x, y, text, color) {
+    floaters.push({ x: x, y: y, text: text, color: color, age: 0, life: 0.7 });
+  }
+
+  function triggerShake(mag) {
+    shakeMag = mag;
+    shakeT = 0.28;
+  }
+
+  function updateEffects(dt) {
+    for (var i = particles.length - 1; i >= 0; i--) {
+      var p = particles[i];
+      p.age += dt;
+      if (p.age >= p.life) { particles.splice(i, 1); continue; }
+      p.vy += 260 * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+    }
+    for (var j = floaters.length - 1; j >= 0; j--) {
+      var f = floaters[j];
+      f.age += dt;
+      if (f.age >= f.life) { floaters.splice(j, 1); continue; }
+      f.y -= 40 * dt;
+    }
+    if (shakeT > 0) shakeT = Math.max(0, shakeT - dt);
+  }
+
+  // ── INPUT ──────────────────────────────────────────────────────────
+  function canvasX(clientX) {
+    var rect = canvas.getBoundingClientRect();
+    return (clientX - rect.left) * (LOGICAL_W / rect.width);
+  }
+
+  function movePaddleTo(x) {
+    paddle.x = Math.max(0, Math.min(LOGICAL_W - paddle.w, x - paddle.w / 2));
+  }
+
+  canvas.addEventListener('mousemove', function (e) {
+    movePaddleTo(canvasX(e.clientX));
+  });
+
+  canvas.addEventListener('touchmove', function (e) {
+    if (e.touches && e.touches[0]) movePaddleTo(canvasX(e.touches[0].clientX));
+    e.preventDefault();
+  }, { passive: false });
+
+  function tryLaunchOrStart() {
+    if (state === 'ready') { ensureAudio(); launchBall(); state = 'playing'; setStateLabel('jugando'); }
+  }
+
+  canvas.addEventListener('mousedown', tryLaunchOrStart);
+  canvas.addEventListener('touchstart', function (e) {
+    if (e.touches && e.touches[0]) movePaddleTo(canvasX(e.touches[0].clientX));
+    tryLaunchOrStart();
+    e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('keydown', function (e) {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') { keys.left = true; e.preventDefault(); }
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') { keys.right = true; e.preventDefault(); }
+    if (e.code === 'Space' || e.code === 'ArrowUp') { tryLaunchOrStart(); e.preventDefault(); }
+  });
+  window.addEventListener('keyup', function (e) {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+  });
+
+  function showOverlay(titleText, cls, bodyText, btnText) {
+    overlayEl.classList.remove('hidden');
+    overlayEl.querySelector('.overlay-title').textContent = titleText;
+    overlayEl.querySelector('.overlay-title').className = 'overlay-title' + (cls ? ' ' + cls : '');
+    var bodyEl = overlayEl.querySelector('.overlay-text');
+    bodyEl.innerHTML = bodyText;
+    startBtn.textContent = btnText;
+  }
+
+  function startGame() {
+    score = 0; lives = 3; level = 1; bricksBroken = 0; livesLostThisRun = 0;
+    ball.speed = BASE_BALL_SPEED;
+    scoreEl.textContent = score;
+    levelEl.textContent = level;
+    setLivesDisplay();
+    buildBricks();
+    paddle.x = (LOGICAL_W - PADDLE_W) / 2;
+    resetBall();
+    particles.length = 0; floaters.length = 0;
+    overlayEl.classList.add('hidden');
+    state = 'ready';
+    setStateLabel('preparado');
+  }
+
+  startBtn.addEventListener('click', function () {
+    ensureAudio();
+    startGame();
+  });
+
+  // ── COLISIONES ─────────────────────────────────────────────────────
+  function rectHit(px, py, rect) {
+    return px + BALL_R > rect.x && px - BALL_R < rect.x + rect.w &&
+           py + BALL_R > rect.y && py - BALL_R < rect.y + rect.h;
+  }
+
+  function update(dt) {
+    updateEffects(dt);
+    if (state !== 'playing' && state !== 'ready') return;
+
+    // paddle por teclado
+    if (keys.left) paddle.x -= PADDLE_SPEED * dt;
+    if (keys.right) paddle.x += PADDLE_SPEED * dt;
+    paddle.x = Math.max(0, Math.min(LOGICAL_W - paddle.w, paddle.x));
+
+    if (state === 'ready') {
+      ball.x = paddle.x + paddle.w / 2;
+      ball.y = paddle.y - BALL_R - 1;
+      return;
+    }
+
+    // ── bola ──
+    trail.push({ x: ball.x, y: ball.y });
+    if (trail.length > 9) trail.shift();
+
+    ball.x += ball.vx * dt;
+    ball.y += ball.vy * dt;
+
+    if (ball.x - BALL_R < 0) { ball.x = BALL_R; ball.vx *= -1; beep(180, 0.04, 'triangle', 0.03); }
+    if (ball.x + BALL_R > LOGICAL_W) { ball.x = LOGICAL_W - BALL_R; ball.vx *= -1; beep(180, 0.04, 'triangle', 0.03); }
+    if (ball.y - BALL_R < 0) { ball.y = BALL_R; ball.vy *= -1; beep(180, 0.04, 'triangle', 0.03); }
+
+    // paddle
+    if (ball.vy > 0 && rectHit(ball.x, ball.y, paddle)) {
+      ball.y = paddle.y - BALL_R - 0.5;
+      var offset = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
+      offset = Math.max(-1, Math.min(1, offset));
+      var angle = offset * 1.1;
+      ball.vx = Math.sin(angle) * ball.speed;
+      ball.vy = -Math.cos(angle) * ball.speed;
+      beep(220, 0.05, 'triangle', 0.045);
+    }
+
+    // suelo: pierde vida
+    if (ball.y - BALL_R > LOGICAL_H) {
+      lives--;
+      livesLostThisRun++;
+      setLivesDisplay();
+      triggerShake(8);
+      beep(90, 0.25, 'sawtooth', 0.07);
+      if (lives <= 0) {
+        state = 'over';
+        setStateLabel('señal perdida');
+        showOverlay('señal perdida', 'lose',
+          'te has quedado sin vidas.<br><span class="overlay-score">puntuación: ' + score + '</span>',
+          '↻ reintentar');
+        beep(150, 0.15, 'sawtooth', 0.06, 0);
+        beep(110, 0.2, 'sawtooth', 0.06, 0.15);
+        beep(70, 0.3, 'sawtooth', 0.07, 0.32);
+      } else {
+        resetBall();
+        state = 'ready';
+        setStateLabel('preparado');
+      }
+    }
+
+    // ladrillos
+    for (var i = 0; i < bricks.length; i++) {
+      var b = bricks[i];
+      if (!b.alive) continue;
+      if (rectHit(ball.x, ball.y, b)) {
+        b.alive = false;
+        ball.vy *= -1;
+        score += b.score;
+        scoreEl.textContent = score;
+        spawnParticles(b.x + b.w / 2, b.y + b.h / 2, b.color);
+        spawnFloater(b.x + b.w / 2, b.y + b.h / 2, '+' + b.score, b.color);
+        beep(420 + i * 4, 0.06, 'square', 0.045);
+        bricksBroken++;
+        if (bricksBroken % 10 === 0 && ball.speed < BASE_BALL_SPEED * 1.6) {
+          ball.speed *= 1.08;
+          level++;
+          levelEl.textContent = level;
+        }
+        break;
+      }
+    }
+
+    if (state === 'playing' && bricks.every(function (b) { return !b.alive; })) {
+      state = 'win';
+      setStateLabel('conexión restablecida');
+      var bonus = livesLostThisRun === 0 ? 100 : 0;
+      score += bonus;
+      scoreEl.textContent = score;
+      var extra = bonus ? '<br><span class="overlay-score">bonus sin daños: +' + bonus + '</span>' : '';
+      showOverlay('¡conexión restablecida!', 'win',
+        'has despejado todos los errores de la red.<br><span class="overlay-score">puntuación: ' + score + '</span>' + extra,
+        '↻ jugar otra vez');
+      beep(440, 0.1, 'square', 0.05, 0);
+      beep(554, 0.1, 'square', 0.05, 0.1);
+      beep(659, 0.1, 'square', 0.05, 0.2);
+      beep(880, 0.18, 'square', 0.055, 0.32);
+    }
+  }
+
+  // ── RENDER ────────────────────────────────────────────────────────
+  function drawRoundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function render() {
+    ctx.save();
+    if (shakeT > 0) {
+      var m = shakeMag * (shakeT / 0.28);
+      ctx.translate((Math.random() * 2 - 1) * m, (Math.random() * 2 - 1) * m);
+    }
+
+    ctx.fillStyle = COLORS.bg;
+    ctx.fillRect(-10, -10, LOGICAL_W + 20, LOGICAL_H + 20);
+
+    ctx.strokeStyle = COLORS.grid;
+    ctx.lineWidth = 1;
+    for (var gx = 0; gx <= LOGICAL_W; gx += 40) {
+      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, LOGICAL_H); ctx.stroke();
+    }
+    for (var gy = 0; gy <= LOGICAL_H; gy += 40) {
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(LOGICAL_W, gy); ctx.stroke();
+    }
+
+    // ladrillos
+    for (var i = 0; i < bricks.length; i++) {
+      var b = bricks[i];
+      if (!b.alive) continue;
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = b.color;
+      drawRoundRect(b.x, b.y, b.w, b.h, 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.fillRect(b.x, b.y, b.w, 2);
+    }
+
+    // partículas
+    for (var p = 0; p < particles.length; p++) {
+      var pa = particles[p];
+      var alpha = 1 - pa.age / pa.life;
+      ctx.globalAlpha = Math.max(0, alpha);
+      ctx.fillStyle = pa.color;
+      ctx.fillRect(pa.x - pa.size / 2, pa.y - pa.size / 2, pa.size, pa.size);
+    }
+    ctx.globalAlpha = 1;
+
+    // texto flotante
+    ctx.font = "700 12px 'Space Mono', monospace";
+    ctx.textAlign = 'center';
+    for (var f = 0; f < floaters.length; f++) {
+      var fl = floaters[f];
+      ctx.globalAlpha = Math.max(0, 1 - fl.age / fl.life);
+      ctx.fillStyle = fl.color;
+      ctx.fillText(fl.text, fl.x, fl.y);
+    }
+    ctx.globalAlpha = 1;
+
+    // paddle
+    ctx.shadowColor = COLORS.red;
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = COLORS.text;
+    drawRoundRect(paddle.x, paddle.y, paddle.w, paddle.h, 4);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = COLORS.red;
+    ctx.fillRect(paddle.x, paddle.y + paddle.h - 3, paddle.w, 3);
+
+    // estela + bola
+    for (var t = 0; t < trail.length; t++) {
+      var tp = trail[t];
+      ctx.globalAlpha = (t / trail.length) * 0.35;
+      ctx.fillStyle = COLORS.red;
+      ctx.beginPath();
+      ctx.arc(tp.x, tp.y, BALL_R * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.shadowColor = COLORS.red;
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = COLORS.red;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
+  }
+
+  var last = performance.now();
+  function loop(now) {
+    var dt = Math.min((now - last) / 1000, 0.034);
+    last = now;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // estado inicial visible en el canvas antes de pulsar "jugar"
+  buildBricks();
+  resetBall();
+})();
+</script>
+
+</body>
+</html>
