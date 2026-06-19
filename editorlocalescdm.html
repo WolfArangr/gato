@@ -687,6 +687,85 @@ input.changed, textarea.changed, select.changed {
 
 .base-url-row { display: flex; gap: 8px; align-items: flex-end; }
 .base-url-row input { flex: 1; }
+
+/* ── HEADER EDITOR ────────────────────────────────────── */
+.nav-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: move;
+}
+.nav-link-row:hover { border-color: var(--navy-mid); background: var(--bg); }
+.nav-link-drag { color: var(--muted); font-size: 1.1rem; flex-shrink: 0; cursor: grab; line-height: 1; }
+.nav-link-inputs { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.nav-link-inputs input { font-size: 0.78rem; padding: 5px 8px; }
+.nav-dropdown-toggle {
+  font-size: 0.68rem; font-weight: 600; color: var(--navy-mid);
+  background: none; border: 1.5px solid var(--border); border-radius: 5px;
+  padding: 2px 8px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+}
+.nav-dropdown-toggle:hover { background: var(--gold-light); border-color: var(--gold); }
+.nav-dropdown-toggle.has-items { background: rgba(96,205,201,0.12); border-color: var(--teal); color: #0d7a78; }
+.nav-dropdown-area {
+  padding: 8px 10px 10px 32px;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: 0 0 8px 8px;
+  margin-top: -6px;
+  margin-bottom: 8px;
+  display: none;
+}
+.nav-dropdown-area.open { display: block; }
+.dropdown-item-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.dropdown-item-row input { flex: 1; font-size: 0.76rem; padding: 4px 7px; }
+.btn-icon-del {
+  background: none; border: 1.5px solid #f0b8b8; border-radius: 5px;
+  color: var(--red); padding: 2px 6px; cursor: pointer; font-size: 0.72rem;
+  flex-shrink: 0;
+}
+.btn-icon-del:hover { background: var(--red-bg); }
+
+/* ── MANUAL ORDER DRAG LIST ──────────────────────────── */
+.mo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  transition: background 0.12s;
+  cursor: grab;
+  user-select: none;
+}
+.mo-row:last-child { border-bottom: none; }
+.mo-row:hover { background: var(--gold-light); }
+.mo-row.drag-over-top { border-top: 2px solid var(--gold); }
+.mo-row.drag-over-bot { border-bottom: 2px solid var(--gold); }
+.mo-row.dragging { opacity: 0.4; }
+.mo-drag-handle { font-size: 1rem; color: var(--muted); flex-shrink: 0; }
+.mo-num { font-size: 0.65rem; font-weight: 700; color: var(--muted); background: var(--bg); border-radius: 4px; padding: 1px 5px; min-width: 28px; text-align: center; flex-shrink: 0; }
+.mo-name { font-size: 0.81rem; font-weight: 500; flex: 1; }
+.mo-cat { font-size: 0.65rem; color: var(--muted); flex-shrink: 0; }
+
+/* ── CAT TRANS TABLE ─────────────────────────────────── */
+.cat-trans-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 32px;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.cat-trans-row input { font-size: 0.8rem; padding: 5px 8px; }
 </style>
 </head>
 <body>
@@ -711,52 +790,19 @@ input.changed, textarea.changed, select.changed {
   ondragleave="handleDragLeave(event)"
   ondrop="handleDrop(event)">
 
-  <!-- Loading state -->
-  <div id="dzLoading" style="display:none">
-    <span class="drop-icon" style="animation: pulse 1.4s ease-in-out infinite">🌐</span>
-    <h2>Cargando web en vivo…</h2>
-    <p id="dzLoadingUrl" style="font-size:0.8rem;color:var(--muted);word-break:break-all;margin-bottom:0"></p>
-  </div>
-
-  <!-- Error state -->
-  <div id="dzError" style="display:none">
-    <span class="drop-icon">⚠️</span>
-    <h2 style="color:var(--red)">No se pudo cargar</h2>
-    <p id="dzErrorMsg" style="color:var(--muted);margin-bottom:16px"></p>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="loadLiveURL()">🔄 Reintentar</button>
-      <button class="btn btn-outline" onclick="showManualLoad()">📂 Cargar archivo local</button>
-    </div>
-  </div>
-
-  <!-- Default / manual state -->
-  <div id="dzManual">
-    <span class="drop-icon">📄</span>
-    <h2>Editor Directorio CDM</h2>
-    <p>Cargando la web en vivo automáticamente…</p>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px">
-      <button class="btn btn-primary" onclick="loadLiveURL()">
-        🌐 Cargar desde web live
-      </button>
-      <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">
-        📂 Cargar archivo local
-      </button>
-    </div>
-    <p style="font-size:0.72rem;color:var(--muted);margin-top:14px;margin-bottom:0">
-      O arrastra aquí el archivo <code>.html</code>
-    </p>
+  <span class="drop-icon">📄</span>
+  <h2>Editor Directorio CDM</h2>
+  <p>Arrastra aquí el archivo <code>.html</code> o cárgalo manualmente</p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px">
+    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+      📂 Cargar archivo local
+    </button>
   </div>
 
   <input type="file" id="fileInput" accept=".html" onchange="handleFile(event)" style="display:none">
 </div>
 
-<style>
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50%       { transform: scale(1.15); opacity: 0.7; }
-}
-#dropzone { cursor: default; }
-</style>
+
 
 <!-- MAIN APP -->
 <div id="app">
@@ -797,6 +843,18 @@ input.changed, textarea.changed, select.changed {
         <button class="panel-tab" onclick="switchTab('importcsv', this)">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16,16 12,12 8,16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
           Importar CSV
+        </button>
+        <button class="panel-tab" onclick="switchTab('header', this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="5" rx="1"/><path d="M3 10h18M3 14h18M3 18h11"/></svg>
+          Header
+        </button>
+        <button class="panel-tab" onclick="switchTab('orden', this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Orden
+        </button>
+        <button class="panel-tab" onclick="switchTab('traducciones', this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+          Traducciones
         </button>
       </div>
 
@@ -881,6 +939,18 @@ input.changed, textarea.changed, select.changed {
                     <option value="mobile">Solo móvil (popup)</option>
                     <option value="both">Ambos (desktop + móvil)</option>
                   </select>
+                </div>
+
+                <div class="toggle-row" style="margin-top:12px">
+                  <div>
+                    <div class="toggle-label">Popup en móvil</div>
+                    <div class="toggle-desc">El popup flotante en la esquina inferior derecha (solo aparece en pantallas estrechas, cuando los banners laterales no son visibles).</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="cfg-banner-popup" checked onchange="markConfigChanged()">
+                    <span class="toggle-track"></span>
+                    <span class="toggle-knob"></span>
+                  </label>
                 </div>
 
                 <div id="bannerImgFields" style="display:none">
@@ -998,6 +1068,81 @@ input.changed, textarea.changed, select.changed {
           </div>
         </div>
 
+        <!-- TAB: HEADER -->
+        <div class="panel-section" id="section-header">
+          <div class="config-full" id="headerEditorRoot">
+            <p style="font-size:0.82rem;color:var(--muted);padding:12px 0">Cargando editor de header…</p>
+          </div>
+        </div>
+
+        <!-- TAB: ORDEN -->
+        <div class="panel-section" id="section-orden">
+          <div class="config-full">
+            <div class="config-card" style="margin-bottom:16px">
+              <div class="config-card-header">
+                <h3>Orden de visualización</h3>
+                <span style="font-size:0.72rem;color:rgba(255,255,255,0.6)">SORT_ORDER</span>
+              </div>
+              <div class="config-card-body">
+                <div class="field-group">
+                  <label>Modo de ordenación</label>
+                  <div class="mode-selector" id="sortModeSelector" style="margin-bottom:14px">
+                    <button class="mode-btn" data-sort="random" onclick="selectSortMode('random')">
+                      <span class="mode-icon">🎲</span>
+                      Aleatorio
+                    </button>
+                    <button class="mode-btn" data-sort="numero" onclick="selectSortMode('numero')">
+                      <span class="mode-icon">🔢</span>
+                      Nº local
+                    </button>
+                    <button class="mode-btn" data-sort="alfabetico" onclick="selectSortMode('alfabetico')">
+                      <span class="mode-icon">🔤</span>
+                      Alfabético
+                    </button>
+                    <button class="mode-btn" data-sort="manual" onclick="selectSortMode('manual')">
+                      <span class="mode-icon">✋</span>
+                      Manual
+                    </button>
+                  </div>
+                  <div id="sortModeDesc" class="help-text" style="padding:8px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);margin-bottom:12px"></div>
+                </div>
+
+                <div id="manualOrderSection" style="display:none">
+                  <div class="section-title">Orden manual de locales</div>
+                  <div class="help-text" style="margin-bottom:10px">Arrastra las filas para reordenar. Los locales aquí listados se mostrarán primero en ese orden. Los que no estén en la lista aparecerán al final.</div>
+                  <div id="manualOrderList" style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;max-height:460px;overflow-y:auto;background:var(--surface2)">
+                    <!-- drag-and-drop list rendered by JS -->
+                  </div>
+                  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+                    <button class="btn btn-sm btn-outline" onclick="manualOrderReset('numero')">↕ Ordenar por nº</button>
+                    <button class="btn btn-sm btn-outline" onclick="manualOrderReset('alfa')">↕ Ordenar alfabéticamente</button>
+                    <button class="btn btn-sm btn-outline" onclick="manualOrderReset('original')">↺ Restaurar original</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: TRADUCCIONES DE CATEGORÍAS -->
+        <div class="panel-section" id="section-traducciones">
+          <div class="config-full">
+            <div class="config-card">
+              <div class="config-card-header">
+                <h3>Traducciones de categorías</h3>
+                <span style="font-size:0.72rem;color:rgba(255,255,255,0.6)">ES → EN</span>
+              </div>
+              <div class="config-card-body">
+                <div class="help-text" style="margin-bottom:14px">Estas traducciones se muestran junto al nombre de la categoría en español en los botones de filtro y en las tarjetas de locales.</div>
+                <div id="catTransTable">
+                  <!-- rendered by JS -->
+                </div>
+                <button class="btn btn-sm btn-teal" style="margin-top:10px" onclick="addCatTransRow()">+ Añadir categoría</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -1028,63 +1173,28 @@ let cfgBannerImgMobile  = '';
 let cfgBase             = '';
 let cfgShowHeader       = true;
 let cfgShowFooter       = true;
+let cfgSortOrder        = 'random';
+let cfgManualOrder      = '';
+
+// Header config
+let cfgHeaderLinks      = [];  // [{label, url, dropdown:[{label,url},...]}]
+let cfgHeaderLogo       = '';
+let cfgHeaderLogoLink   = '';
+let cfgHeaderBg         = '#19345A';
+let cfgHeaderWeather    = true;
+let cfgHeaderWeatherUrl = 'https://embed.windy.com/';
+let cfgHeaderSociosLabel = 'Área de socios';
+let cfgHeaderSociosUrl  = 'https://socios-clubdemar.sailti.com/';
+let cfgHeaderSociosShow = true;
+let cfgCategoryTranslations = {};
 
 // ═══════════════════════════════════════════════════════════
 // LIVE URL LOAD
 // ═══════════════════════════════════════════════════════════
-const LIVE_URL = 'https://www.clubdemar-mallorca.com/locales.html';
 
-// Proxy list — tried in order until one works
-const CORS_PROXIES = [
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-];
-
-async function loadLiveURL() {
-  setDropState('loading');
-  document.getElementById('dzLoadingUrl').textContent = LIVE_URL;
-
-  for (const makeProxy of CORS_PROXIES) {
-    try {
-      const proxyUrl = makeProxy(LIVE_URL);
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10) });
-      if (!res.ok) continue;
-      const text = await res.text();
-      if (!text.includes('CSV_RAW')) {
-        // Got a response but not the right page (e.g. redirect to login, CDN error page)
-        continue;
-      }
-      rawHTML = text;
-      parseAndInit();
-      return;
-    } catch (err) {
-      // Try next proxy
-    }
-  }
-
-  // All proxies failed
-  setDropState('error',
-    'Los servidores proxy CORS no pudieron acceder a la URL. ' +
-    'Puede ser una restricción temporal o de red. ' +
-    'Puedes cargar el archivo manualmente.');
-}
-
-function setDropState(state, errorMsg) {
-  document.getElementById('dzLoading').style.display = state === 'loading' ? 'block' : 'none';
-  document.getElementById('dzError').style.display   = state === 'error'   ? 'block' : 'none';
-  document.getElementById('dzManual').style.display  = state === 'manual'  ? 'block' : 'none';
-  if (errorMsg) document.getElementById('dzErrorMsg').textContent = errorMsg;
-}
-
-function showManualLoad() {
-  setDropState('manual');
-}
-
-// Auto-load on page open
+// Show manual load immediately on open
 window.addEventListener('DOMContentLoaded', () => {
-  setDropState('loading');
-  loadLiveURL();
+  // Nothing to auto-load; user drops or selects a file
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -1164,6 +1274,50 @@ function parseAndInit() {
 
   const fEnabledM = rawHTML.match(/const FOOTER_ENABLED\s*=\s*(true|false)/);
   cfgShowFooter = fEnabledM ? fEnabledM[1] === 'true' : true;
+
+  // Sort order
+  const sortM = rawHTML.match(/const SORT_ORDER\s*=\s*"([^"]*)"/);
+  cfgSortOrder = sortM ? sortM[1] : 'random';
+
+  const manualM = rawHTML.match(/const MANUAL_ORDER\s*=\s*"([^"]*)"/);
+  cfgManualOrder = manualM ? manualM[1] : '';
+
+  // Category translations
+  const catTransM = rawHTML.match(/const CATEGORY_TRANSLATIONS\s*=\s*\{([\s\S]*?)\};/);
+  cfgCategoryTranslations = {};
+  if (catTransM) {
+    const src = catTransM[1];
+    const rx = /"([^"]+)"\s*:\s*"([^"]*)"/g;
+    let m2;
+    while ((m2 = rx.exec(src)) !== null) {
+      cfgCategoryTranslations[m2[1]] = m2[2];
+    }
+  }
+
+  // Parse header nav links from HTML
+  cfgHeaderLinks = [];
+  cfgHeaderLogo = '';
+  cfgHeaderLogoLink = '';
+  cfgHeaderWeather = rawHTML.includes('⛅');
+  const weatherUrlM = rawHTML.match(/href="([^"]+)"[^>]*>⛅/);
+  cfgHeaderWeatherUrl = weatherUrlM ? weatherUrlM[1] : 'https://embed.windy.com/';
+  const sociosUrlM = rawHTML.match(/href="([^"]+)"[^>]*class="btn-socios"[^>]*>([^<]+)</);
+  cfgHeaderSociosUrl = sociosUrlM ? sociosUrlM[1] : 'https://socios-clubdemar.sailti.com/';
+  cfgHeaderSociosLabel = sociosUrlM ? sociosUrlM[2].trim() : 'Área de socios';
+  cfgHeaderSociosShow = rawHTML.includes('btn-socios');
+
+  const logoM = rawHTML.match(/<a[^>]*class="logo"[^>]*href="([^"]*)"[^>]*>[\s\S]*?<img[^>]*src="([^"]*)"/);
+  if (logoM) { cfgHeaderLogoLink = logoM[1]; cfgHeaderLogo = logoM[2]; }
+
+  // Parse nav links (desktop nav)
+  const navM = rawHTML.match(/<nav>[\s\S]*?<ul>([\s\S]*?)<\/ul>[\s\S]*?<\/nav>/);
+  if (navM) {
+    const liRe = /<li><a href="([^"]*)"[^>]*>([^<]*)<\/a><\/li>/g;
+    let lm;
+    while ((lm = liRe.exec(navM[1])) !== null) {
+      cfgHeaderLinks.push({ label: lm[2].trim(), url: lm[1], dropdown: [] });
+    }
+  }
 
   // Parse CSV
   companies = parseCSVToCompanies(csvMatch[1]);
@@ -1540,6 +1694,14 @@ function populateConfigUI() {
   document.getElementById('cfg-base').value = cfgBase;
   // SHOW_THESE field
   syncShowTheseField();
+  // Sort order
+  selectSortMode(cfgSortOrder, false);
+  // Manual order list
+  renderManualOrderList();
+  // Header editor
+  renderHeaderEditor();
+  // Category translations
+  renderCatTransTable();
 }
 
 function selectBannerMode(mode, triggerChange = true) {
@@ -1603,7 +1765,7 @@ function applyShowTheseField() {
 }
 
 function readConfigUI() {
-  cfgBannerMode      = parseInt(document.querySelector('.mode-btn.selected')?.dataset.mode ?? 0);
+  cfgBannerMode      = parseInt(document.querySelector('.mode-btn.selected[data-mode]')?.dataset.mode ?? 0);
   cfgBannerImageMode = document.getElementById('cfg-bannerImageMode').value;
   cfgBannerImgLeft   = document.getElementById('cfg-bannerImgLeft').value.trim();
   cfgBannerImgRight  = document.getElementById('cfg-bannerImgRight').value.trim();
@@ -1611,6 +1773,18 @@ function readConfigUI() {
   cfgShowHeader      = document.getElementById('cfg-header').checked;
   cfgShowFooter      = document.getElementById('cfg-footer').checked;
   cfgBase            = document.getElementById('cfg-base').value.trim();
+  // Sort
+  const sortSel = document.querySelector('.mode-btn.selected[data-sort]');
+  if (sortSel) cfgSortOrder = sortSel.dataset.sort;
+  // Manual order
+  if (cfgSortOrder === 'manual') {
+    const rows = document.querySelectorAll('#manualOrderList .mo-row');
+    cfgManualOrder = [...rows].map(r => r.dataset.id).join(',');
+  }
+  // Read header links from UI
+  readHeaderLinksFromUI();
+  // Read category translations
+  readCatTransFromUI();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1661,6 +1835,437 @@ function regenerateMediaFromBase() {
   });
   renderMediaTable();
   showToast('Rutas regeneradas desde BASE', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SORT ORDER
+// ═══════════════════════════════════════════════════════════
+const SORT_DESCS = {
+  random:     'Orden aleatorio cada vez que se carga la página. Los locales con descripción aparecen primero.',
+  numero:     'Los locales se muestran en orden ascendente de su número de local (1, 2, 3…).',
+  alfabetico: 'Los locales se ordenan alfabéticamente por nombre.',
+  manual:     'Tú decides el orden arrastrando las fichas en la lista de abajo.',
+};
+
+function selectSortMode(mode, doChange = true) {
+  cfgSortOrder = mode;
+  document.querySelectorAll('.mode-btn[data-sort]').forEach(b => {
+    b.classList.toggle('selected', b.dataset.sort === mode);
+  });
+  const desc = document.getElementById('sortModeDesc');
+  if (desc) desc.textContent = SORT_DESCS[mode] || '';
+  const manualSec = document.getElementById('manualOrderSection');
+  if (manualSec) manualSec.style.display = mode === 'manual' ? 'block' : 'none';
+  if (doChange) markConfigChanged();
+}
+
+let manualOrder = []; // array of local IDs in desired order
+
+function renderManualOrderList() {
+  const container = document.getElementById('manualOrderList');
+  if (!container) return;
+  // init from cfgManualOrder or from companies order
+  if (cfgManualOrder) {
+    const ids = cfgManualOrder.split(',').map(s => s.trim());
+    const compMap = Object.fromEntries(companies.map(c => [c.local, c]));
+    manualOrder = ids.map(id => compMap[id]).filter(Boolean);
+    // add any not in the list
+    const listed = new Set(ids);
+    companies.filter(c => !listed.has(c.local)).forEach(c => manualOrder.push(c));
+  } else {
+    manualOrder = [...companies];
+  }
+  rebuildManualOrderDOM(container);
+}
+
+function rebuildManualOrderDOM(container) {
+  container.innerHTML = manualOrder.map((c, i) => `
+    <div class="mo-row" data-id="${esc(c.local)}" data-idx="${i}"
+         draggable="true"
+         ondragstart="moDragStart(event, ${i})"
+         ondragover="moDragOver(event, ${i})"
+         ondragleave="moDragLeave(event)"
+         ondrop="moDrop(event, ${i})"
+         ondragend="moDragEnd(event)">
+      <span class="mo-drag-handle">⠿</span>
+      <span class="mo-num">${esc(c.local)}</span>
+      <span class="mo-name">${esc(c.nombre || '(sin nombre)')}</span>
+      <span class="mo-cat">${esc(c.categoria || '')}</span>
+    </div>`).join('');
+}
+
+let moDraggingIdx = null;
+function moDragStart(e, idx) {
+  moDraggingIdx = idx;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function moDragOver(e, idx) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.mo-row').forEach(r => r.classList.remove('drag-over-top','drag-over-bot'));
+  if (idx !== moDraggingIdx) {
+    e.currentTarget.classList.add(idx < moDraggingIdx ? 'drag-over-top' : 'drag-over-bot');
+  }
+}
+function moDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over-top','drag-over-bot');
+}
+function moDrop(e, idx) {
+  e.preventDefault();
+  document.querySelectorAll('.mo-row').forEach(r => r.classList.remove('drag-over-top','drag-over-bot','dragging'));
+  if (moDraggingIdx === null || moDraggingIdx === idx) return;
+  const moved = manualOrder.splice(moDraggingIdx, 1)[0];
+  manualOrder.splice(idx, 0, moved);
+  const container = document.getElementById('manualOrderList');
+  rebuildManualOrderDOM(container);
+  cfgManualOrder = manualOrder.map(c => c.local).join(',');
+  markConfigChanged();
+}
+function moDragEnd(e) {
+  document.querySelectorAll('.mo-row').forEach(r => r.classList.remove('dragging','drag-over-top','drag-over-bot'));
+  moDraggingIdx = null;
+}
+
+function manualOrderReset(mode) {
+  if (mode === 'numero') {
+    manualOrder = [...companies].sort((a, b) => {
+      const n = id => { const m = String(id).match(/^(\d+)/); return m ? parseInt(m[1],10) : 9999; };
+      return n(a.local) - n(b.local) || String(a.local).localeCompare(String(b.local));
+    });
+  } else if (mode === 'alfa') {
+    manualOrder = [...companies].sort((a,b) => (a.nombre||'').localeCompare(b.nombre||'','es',{sensitivity:'base'}));
+  } else {
+    manualOrder = [...companies];
+  }
+  rebuildManualOrderDOM(document.getElementById('manualOrderList'));
+  cfgManualOrder = manualOrder.map(c => c.local).join(',');
+  markConfigChanged();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CATEGORY TRANSLATIONS
+// ═══════════════════════════════════════════════════════════
+function renderCatTransTable() {
+  const container = document.getElementById('catTransTable');
+  if (!container) return;
+  // Merge existing translations with any categories found in companies
+  const allCats = [...new Set(companies.map(c => c.categoria).filter(Boolean).sort())];
+  allCats.forEach(cat => {
+    if (!(cat in cfgCategoryTranslations)) cfgCategoryTranslations[cat] = '';
+  });
+  container.innerHTML = `
+    <div class="cat-trans-row" style="margin-bottom:10px">
+      <label>Categoría (ES)</label>
+      <label>Traducción (EN)</label>
+      <span></span>
+    </div>
+    ${Object.entries(cfgCategoryTranslations).map(([es, en], i) => `
+      <div class="cat-trans-row" data-idx="${i}">
+        <input type="text" class="ct-es" value="${esc(es)}" placeholder="Categoría en español" oninput="markConfigChanged()">
+        <input type="text" class="ct-en" value="${esc(en)}" placeholder="Category in English" oninput="markConfigChanged()">
+        <button class="btn-icon-del" onclick="delCatTransRow(this)" title="Eliminar">×</button>
+      </div>`).join('')}`;
+}
+
+function addCatTransRow() {
+  const container = document.getElementById('catTransTable');
+  const div = document.createElement('div');
+  div.className = 'cat-trans-row';
+  div.innerHTML = `<input type="text" class="ct-es" placeholder="Categoría en español" oninput="markConfigChanged()">
+    <input type="text" class="ct-en" placeholder="Category in English" oninput="markConfigChanged()">
+    <button class="btn-icon-del" onclick="delCatTransRow(this)" title="Eliminar">×</button>`;
+  container.appendChild(div);
+}
+
+function delCatTransRow(btn) {
+  btn.closest('.cat-trans-row').remove();
+  markConfigChanged();
+}
+
+function readCatTransFromUI() {
+  cfgCategoryTranslations = {};
+  document.querySelectorAll('#catTransTable .cat-trans-row').forEach(row => {
+    const esEl = row.querySelector('.ct-es');
+    const enEl = row.querySelector('.ct-en');
+    if (esEl && enEl) {
+      const es = esEl.value.trim();
+      if (es) cfgCategoryTranslations[es] = enEl.value.trim();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// HEADER EDITOR
+// ═══════════════════════════════════════════════════════════
+function renderHeaderEditor() {
+  const root = document.getElementById('headerEditorRoot');
+  if (!root) return;
+  root.innerHTML = `
+    <div class="config-card" style="margin-bottom:16px">
+      <div class="config-card-header">
+        <h3>Logo y colores</h3>
+      </div>
+      <div class="config-card-body">
+        <div class="field-row">
+          <div class="field-group">
+            <label>URL del logo</label>
+            <input type="url" id="hdr-logo" value="${esc(cfgHeaderLogo)}" placeholder="https://…" oninput="markConfigChanged()">
+          </div>
+          <div class="field-group">
+            <label>Link del logo</label>
+            <input type="url" id="hdr-logolink" value="${esc(cfgHeaderLogoLink)}" placeholder="https://…" oninput="markConfigChanged()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Color de fondo header (hex)</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="color" id="hdr-bg-picker" value="${esc(cfgHeaderBg)}" oninput="document.getElementById('hdr-bg').value=this.value;markConfigChanged()" style="width:36px;height:32px;padding:2px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;flex-shrink:0">
+              <input type="text" id="hdr-bg" value="${esc(cfgHeaderBg)}" placeholder="#19345A" oninput="document.getElementById('hdr-bg-picker').value=this.value;markConfigChanged()">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-card" style="margin-bottom:16px">
+      <div class="config-card-header">
+        <h3>Elementos de la barra</h3>
+      </div>
+      <div class="config-card-body">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Icono del tiempo ⛅</div>
+            <div class="toggle-desc">Enlace al widget meteorológico.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="hdr-weather" ${cfgHeaderWeather ? 'checked' : ''} onchange="markConfigChanged()">
+            <span class="toggle-track"></span><span class="toggle-knob"></span>
+          </label>
+        </div>
+        <div class="field-group" style="margin-top:10px">
+          <label>URL del widget del tiempo</label>
+          <input type="url" id="hdr-weatherurl" value="${esc(cfgHeaderWeatherUrl)}" placeholder="https://embed.windy.com/" oninput="markConfigChanged()">
+        </div>
+        <div class="toggle-row" style="margin-top:14px">
+          <div>
+            <div class="toggle-label">Botón "Área de socios"</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="hdr-socios-show" ${cfgHeaderSociosShow ? 'checked' : ''} onchange="markConfigChanged()">
+            <span class="toggle-track"></span><span class="toggle-knob"></span>
+          </label>
+        </div>
+        <div class="field-row" style="margin-top:8px">
+          <div class="field-group">
+            <label>Etiqueta del botón</label>
+            <input type="text" id="hdr-socios-label" value="${esc(cfgHeaderSociosLabel)}" placeholder="Área de socios" oninput="markConfigChanged()">
+          </div>
+          <div class="field-group">
+            <label>URL del botón</label>
+            <input type="url" id="hdr-socios-url" value="${esc(cfgHeaderSociosUrl)}" placeholder="https://…" oninput="markConfigChanged()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <div class="config-card-header">
+        <h3>Menú de navegación</h3>
+        <span style="font-size:0.72rem;color:rgba(255,255,255,0.6)">Arrastra para reordenar</span>
+      </div>
+      <div class="config-card-body">
+        <div class="help-text" style="margin-bottom:12px">Cada enlace puede tener subelementos (desplegable). El menú móvil se genera automáticamente con los mismos enlaces.</div>
+        <div id="navLinkList">
+          ${cfgHeaderLinks.map((link, i) => buildNavLinkRow(link, i)).join('')}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-teal" onclick="addNavLink()">+ Añadir enlace</button>
+          <button class="btn btn-sm btn-outline" onclick="sortNavLinks()">↕ Ordenar A→Z</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildNavLinkRow(link, i) {
+  const hasDropdown = link.dropdown && link.dropdown.length > 0;
+  return `<div class="nav-link-row" data-idx="${i}" draggable="true"
+    ondragstart="navDragStart(event,${i})"
+    ondragover="navDragOver(event,${i})"
+    ondrop="navDrop(event,${i})"
+    ondragend="navDragEnd(event)">
+    <span class="nav-link-drag">⠿</span>
+    <div class="nav-link-inputs">
+      <input type="text" class="nl-label" value="${esc(link.label)}" placeholder="Etiqueta…" oninput="markConfigChanged()">
+      <input type="url" class="nl-url" value="${esc(link.url)}" placeholder="URL (https://…)" oninput="markConfigChanged()">
+    </div>
+    <button class="nav-dropdown-toggle ${hasDropdown ? 'has-items' : ''}"
+      onclick="toggleNavDropdownArea(this)"
+      title="${hasDropdown ? link.dropdown.length + ' subelementos' : 'Sin desplegable'}">
+      ▾ ${hasDropdown ? link.dropdown.length : '+'} sub
+    </button>
+    <button class="btn-icon-del" onclick="removeNavLink(${i})">×</button>
+  </div>
+  <div class="nav-dropdown-area" id="dd-${i}">
+    <div class="help-text" style="margin-bottom:8px">Subelementos del desplegable:</div>
+    ${(link.dropdown || []).map((item, j) => `
+      <div class="dropdown-item-row" data-didx="${j}">
+        <input type="text" class="dd-label" value="${esc(item.label)}" placeholder="Etiqueta" oninput="markConfigChanged()">
+        <input type="url" class="dd-url" value="${esc(item.url)}" placeholder="URL" oninput="markConfigChanged()">
+        <button class="btn-icon-del" onclick="removeDropdownItem(this)">×</button>
+      </div>`).join('')}
+    <button class="btn btn-xs btn-outline" style="margin-top:6px" onclick="addDropdownItem(this, ${i})">+ Subelemento</button>
+  </div>`;
+}
+
+function toggleNavDropdownArea(btn) {
+  const row = btn.closest('.nav-link-row');
+  const nextArea = row.nextElementSibling;
+  if (nextArea && nextArea.classList.contains('nav-dropdown-area')) {
+    nextArea.classList.toggle('open');
+  }
+}
+
+function addNavLink() {
+  cfgHeaderLinks.push({ label: '', url: '', dropdown: [] });
+  renderHeaderEditor();
+  markConfigChanged();
+}
+
+function removeNavLink(idx) {
+  cfgHeaderLinks.splice(idx, 1);
+  renderHeaderEditor();
+  markConfigChanged();
+}
+
+function addDropdownItem(btn, linkIdx) {
+  // Read current state first
+  readHeaderLinksFromUI();
+  if (!cfgHeaderLinks[linkIdx]) return;
+  cfgHeaderLinks[linkIdx].dropdown.push({ label: '', url: '' });
+  renderHeaderEditor();
+  // Re-open the dropdown area
+  const ddArea = document.getElementById('dd-' + linkIdx);
+  if (ddArea) ddArea.classList.add('open');
+  markConfigChanged();
+}
+
+function removeDropdownItem(btn) {
+  btn.closest('.dropdown-item-row').remove();
+  markConfigChanged();
+}
+
+function readHeaderLinksFromUI() {
+  const rows = document.querySelectorAll('#navLinkList .nav-link-row');
+  cfgHeaderLinks = [...rows].map((row, i) => {
+    const label = (row.querySelector('.nl-label')?.value || '').trim();
+    const url   = (row.querySelector('.nl-url')?.value || '').trim();
+    const ddArea = document.getElementById('dd-' + row.dataset.idx);
+    const dropdown = [];
+    if (ddArea) {
+      ddArea.querySelectorAll('.dropdown-item-row').forEach(drow => {
+        const dl = (drow.querySelector('.dd-label')?.value || '').trim();
+        const du = (drow.querySelector('.dd-url')?.value || '').trim();
+        if (dl || du) dropdown.push({ label: dl, url: du });
+      });
+    }
+    return { label, url, dropdown };
+  });
+}
+
+let navDraggingIdx = null;
+function navDragStart(e, idx) { navDraggingIdx = idx; }
+function navDragOver(e, idx) { e.preventDefault(); }
+function navDrop(e, idx) {
+  e.preventDefault();
+  if (navDraggingIdx === null || navDraggingIdx === idx) return;
+  readHeaderLinksFromUI();
+  const moved = cfgHeaderLinks.splice(navDraggingIdx, 1)[0];
+  cfgHeaderLinks.splice(idx, 0, moved);
+  renderHeaderEditor();
+  markConfigChanged();
+}
+function navDragEnd(e) { navDraggingIdx = null; }
+
+function sortNavLinks() {
+  readHeaderLinksFromUI();
+  cfgHeaderLinks.sort((a,b) => a.label.localeCompare(b.label, 'es', { sensitivity: 'base' }));
+  renderHeaderEditor();
+  markConfigChanged();
+}
+
+function buildHeaderHTML() {
+  readHeaderLinksFromUI();
+  const bg = document.getElementById('hdr-bg')?.value.trim() || cfgHeaderBg;
+  const logo = document.getElementById('hdr-logo')?.value.trim() || cfgHeaderLogo;
+  const logoLink = document.getElementById('hdr-logolink')?.value.trim() || cfgHeaderLogoLink;
+  const weather = document.getElementById('hdr-weather')?.checked ?? cfgHeaderWeather;
+  const weatherUrl = document.getElementById('hdr-weatherurl')?.value.trim() || cfgHeaderWeatherUrl;
+  const sociosShow = document.getElementById('hdr-socios-show')?.checked ?? cfgHeaderSociosShow;
+  const sociosLabel = document.getElementById('hdr-socios-label')?.value.trim() || cfgHeaderSociosLabel;
+  const sociosUrl = document.getElementById('hdr-socios-url')?.value.trim() || cfgHeaderSociosUrl;
+
+  // Desktop nav links
+  const navLiItems = cfgHeaderLinks.map(link => {
+    if (link.dropdown && link.dropdown.length > 0) {
+      const subItems = link.dropdown.map(d =>
+        `<li><a href="${esc(d.url)}">${esc(d.label)}</a></li>`
+      ).join('');
+      return `<li class="has-dropdown">
+                <a href="${esc(link.url)}">${esc(link.label)} <span class="dd-arrow">▾</span></a>
+                <ul class="dropdown-menu">${subItems}</ul>
+              </li>`;
+    }
+    return `<li><a href="${esc(link.url)}">${esc(link.label)}</a></li>`;
+  }).join('\n                    ');
+
+  // Mobile menu links
+  const mobileItems = cfgHeaderLinks.flatMap(link => {
+    const items = [`<li><a href="${esc(link.url)}">${esc(link.label)}</a></li>`];
+    if (link.dropdown) {
+      link.dropdown.forEach(d => {
+        items.push(`<li><a href="${esc(d.url)}" style="padding-left:28px;opacity:0.8;font-size:1.05rem">↳ ${esc(d.label)}</a></li>`);
+      });
+    }
+    return items;
+  }).join('\n            ');
+
+  const bgStyle = bg !== '#19345A' ? ` style="background:${bg}"` : '';
+
+  return `<!-- HEADER -->
+    <header${bgStyle}>
+        <div class="header-inner">
+            <a href="${esc(logoLink)}" class="logo">
+                <img src="${esc(logo)}" alt="Club De Mar Mallorca">
+            </a>
+
+            <nav>
+                <ul>
+                    ${navLiItems}
+                </ul>
+            </nav>
+
+            <div class="header-right">
+                ${weather ? `<a href="${esc(weatherUrl)}" target="_blank" style="color:white; font-size:24px;">⛅</a>` : ''}
+                ${sociosShow ? `<a href="${esc(sociosUrl)}" class="btn-socios">${esc(sociosLabel)}</a>` : ''}
+                <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE MENU OVERLAY -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul>
+            ${mobileItems}
+        </ul>
+        <div class="mobile-menu-footer">
+            ${weather ? `<a href="${esc(weatherUrl)}" target="_blank" style="color:white; font-size:22px;">⛅ Tiempo</a>` : ''}
+            ${sociosShow ? `<a href="${esc(sociosUrl)}" class="btn-socios">${esc(sociosLabel)}</a>` : ''}
+        </div>
+    </div>`;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1861,12 +2466,34 @@ function exportHTML() {
     'const MEDIA_BY_LOCAL = ' + buildMediaByLocalJS() + ';'
   );
 
+  // ── SORT_ORDER
+  if (output.match(/const SORT_ORDER\s*=/)) {
+    output = output.replace(/const SORT_ORDER\s*=\s*"[^"]*"/, `const SORT_ORDER = "${cfgSortOrder}"`);
+  } else {
+    output = output.replace(/(const SHOW_THESE\s*=\s*"[^"]*";)/, `$1\nconst SORT_ORDER = "${cfgSortOrder}";\nconst MANUAL_ORDER = "${cfgManualOrder}";`);
+  }
+
+  // ── MANUAL_ORDER
+  if (output.match(/const MANUAL_ORDER\s*=/)) {
+    output = output.replace(/const MANUAL_ORDER\s*=\s*"[^"]*"/, `const MANUAL_ORDER = "${cfgManualOrder}"`);
+  }
+
+  // ── CATEGORY_TRANSLATIONS
+  const catTransObj = Object.entries(cfgCategoryTranslations)
+    .map(([es, en]) => `  "${es}": "${en}"`)
+    .join(',\n');
+  const catTransBlock = `const CATEGORY_TRANSLATIONS = {\n${catTransObj}\n};`;
+  if (output.match(/const CATEGORY_TRANSLATIONS\s*=/)) {
+    output = output.replace(/const CATEGORY_TRANSLATIONS\s*=\s*\{[\s\S]*?\};/, catTransBlock);
+  } else {
+    // inject after MANUAL_ORDER or SHOW_THESE
+    output = output.replace(/(const MANUAL_ORDER\s*=\s*"[^"]*";)/, `$1\n\n// ═══════════════════════════════════════════════════════════════\n// TRADUCCIONES DE CATEGORÍAS (ES → EN)\n// ═══════════════════════════════════════════════════════════════\n${catTransBlock}`);
+  }
+
   // ── HEADER / FOOTER visibility
-  // Inject or update HEADER_ENABLED / FOOTER_ENABLED constants
   if (output.match(/const HEADER_ENABLED\s*=/)) {
     output = output.replace(/const HEADER_ENABLED\s*=\s*(true|false)/, `const HEADER_ENABLED = ${cfgShowHeader}`);
   } else {
-    // Inject after <script> tag that contains BANNER_MODE
     output = output.replace(/(const BANNER_MODE)/, `const HEADER_ENABLED = ${cfgShowHeader};\nconst FOOTER_ENABLED = ${cfgShowFooter};\n$1`);
   }
   if (output.match(/const FOOTER_ENABLED\s*=/)) {
@@ -1883,6 +2510,51 @@ function exportHTML() {
     output = output.replace(/(<footer[\s>])/, '<footer style="display:none" ');
   } else {
     output = output.replace(/<footer style="display:none"\s*/, '<footer ');
+  }
+
+  // ── Rewrite header HTML with new nav/logo/colors
+  const newHeaderHTML = buildHeaderHTML();
+  // Replace from <!-- HEADER --> to end of <!-- MOBILE MENU OVERLAY -->
+  const headerRegex = /<!-- HEADER -->[\s\S]*?<\/div>\s*\n\s*<\/div>/;
+  const match = output.match(headerRegex);
+  if (match) {
+    output = output.replace(headerRegex, newHeaderHTML);
+  }
+
+  // ── Add dropdown CSS if needed (header dropdowns)
+  if (cfgHeaderLinks.some(l => l.dropdown && l.dropdown.length > 0)) {
+    if (!output.includes('.dropdown-menu')) {
+      const dropdownCSS = `
+        /* ─── HEADER DROPDOWNS ─────────────────────────────── */
+        .has-dropdown { position: relative; }
+        .dropdown-menu {
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          background: #19345A;
+          min-width: 200px;
+          border-radius: 8px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+          padding: 6px 0;
+          z-index: 100;
+          margin-top: 4px;
+          list-style: none;
+        }
+        .has-dropdown:hover .dropdown-menu { display: block; }
+        .dropdown-menu li a {
+          display: block;
+          padding: 8px 18px;
+          color: white;
+          text-decoration: none;
+          font-size: 0.9rem;
+          white-space: nowrap;
+          transition: background 0.12s;
+        }
+        .dropdown-menu li a:hover { background: rgba(255,255,255,0.1); }
+        .dd-arrow { font-size: 0.7em; opacity: 0.7; }`;
+      output = output.replace('/* ─── HAMBURGER BUTTON', dropdownCSS + '\n        /* ─── HAMBURGER BUTTON');
+    }
   }
 
   const blob = new Blob([output], { type: 'text/html;charset=utf-8' });
@@ -1909,14 +2581,16 @@ function resetEditor() {
   unsaved = false;
   configChanged = false;
   pendingCSV = null;
+  cfgHeaderLinks = [];
+  cfgSortOrder = 'random';
+  cfgManualOrder = '';
+  cfgCategoryTranslations = {};
   document.getElementById('dropzone').style.display = 'block';
   document.getElementById('app').style.display = 'none';
   document.getElementById('btnNewFile').style.display = 'none';
   document.getElementById('btnExport').style.display = 'none';
   document.getElementById('fileInput').value = '';
-  // Auto-reload from live
-  setDropState('loading');
-  loadLiveURL();
+  // No auto-load; user will drop or select a file
 }
 
 // ═══════════════════════════════════════════════════════════
