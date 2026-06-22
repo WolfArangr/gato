@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GatoPaint — gato.red</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: rgba(255,255,255,.07);
+    --border-hover: rgba(255,255,255,.18);
+    --text: #f0ece2;
+    --muted: #888;
+    --accent-red: #e84d4d;
+    --accent-amber: #f0a020;
+    --accent-teal: #2dbf8a;
+    --accent-blue: #4d9de8;
+    --accent-purple: #9b7dea;
+    --accent-pink: #e05ca3;
+    --accent-gray: #aaa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* CRT scanlines overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      rgba(0,0,0,.04) 2px,
+      rgba(0,0,0,.04) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 0 24px;
+    margin-bottom: 48px;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .logo-block h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .logo-block h1 .dot { color: var(--accent-red); }
+
+  .logo-block .sub {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 32px;
+    align-items: flex-end;
+  }
+
+  .stat {
+    text-align: right;
+  }
+
+  .stat-num {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 0.13em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* SECTION LABELS */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .section-label span {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border: 1px solid var(--border-hover);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .tab-btn:hover { color: var(--text); border-color: var(--border-hover); }
+
+  .tab-btn.active {
+    background: var(--accent-teal);
+    color: var(--bg);
+    border-color: var(--accent-teal);
+  }
+
+  .tab-btn.active.amber { background: var(--accent-amber); border-color: var(--accent-amber); }
+  .tab-btn.active.blue  { background: var(--accent-blue);  border-color: var(--accent-blue); }
+  .tab-btn.active.purple{ background: var(--accent-purple); border-color: var(--accent-purple); }
+
+  /* PANEL */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* CARDS / BLOCKS */
+  .block {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    padding: 24px;
+    transition: background .15s, border-color .15s;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .block:hover {
+    background: var(--surface);
+    border-color: var(--border-hover);
+  }
+
+  .block.accent-teal::before  { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background: var(--accent-teal); }
+  .block.accent-amber::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background: var(--accent-amber); }
+  .block.accent-blue::before  { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background: var(--accent-blue); }
+  .block.accent-purple::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background: var(--accent-purple); }
+  .block.accent-pink::before  { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background: var(--accent-pink); }
+  .block.accent-red::before   { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background: var(--accent-red); }
+
+  .block-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* INPUTS */
+  label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+
+  label:first-of-type { margin-top: 0; }
+
+  input[type=text], input[type=number], textarea, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color .15s;
+    resize: vertical;
+  }
+
+  input[type=text]:focus, input[type=number]:focus,
+  textarea:focus, select:focus {
+    border-color: var(--border-hover);
+  }
+
+  select option { background: var(--surface2); }
+
+  textarea { min-height: 120px; line-height: 1.5; }
+  textarea.code { min-height: 160px; font-size: 12px; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border: 1px solid var(--border-hover);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: var(--surface2); }
+
+  .btn-primary {
+    background: var(--accent-teal);
+    color: var(--bg);
+    border-color: var(--accent-teal);
+    font-weight: 700;
+  }
+  .btn-primary:hover { opacity: .85; background: var(--accent-teal); }
+
+  .btn-amber  { background: var(--accent-amber);  color: var(--bg); border-color: var(--accent-amber); }
+  .btn-blue   { background: var(--accent-blue);   color: var(--bg); border-color: var(--accent-blue); }
+  .btn-purple { background: var(--accent-purple); color: var(--bg); border-color: var(--accent-purple); }
+  .btn-red    { background: var(--accent-red);    color: var(--bg); border-color: var(--accent-red); }
+  .btn-amber:hover, .btn-blue:hover, .btn-purple:hover, .btn-red:hover { opacity: .85; }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* CANVAS */
+  .canvas-wrap {
+    border: 1px solid var(--border);
+    display: inline-block;
+    line-height: 0;
+    position: relative;
+    max-width: 100%;
+    overflow: auto;
+  }
+
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+  }
+
+  /* OUTPUT */
+  .output-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 16px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent-teal);
+    word-break: break-all;
+    line-height: 1.8;
+    min-height: 60px;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .output-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* COLOR PALETTE LEGEND */
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .pal-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color .1s;
+  }
+
+  .pal-cell:hover { border-color: var(--border-hover); }
+
+  .pal-swatch {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,.1);
+  }
+
+  .pal-char {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 12px;
+    min-width: 12px;
+  }
+
+  .pal-hex { color: var(--muted); font-size: 9px; }
+
+  /* PAINT */
+  #paintCanvas {
+    cursor: crosshair;
+    image-rendering: pixelated;
+    display: block;
+  }
+
+  .paint-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .size-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  input[type=range] {
+    accent-color: var(--accent-teal);
+    width: 80px;
+  }
+
+  .selected-char-display {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--accent-teal);
+    letter-spacing: -0.02em;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  /* STATUS */
+  .status {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 8px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin-top: 12px;
+  }
+
+  .status.ok  { color: var(--accent-teal); border-color: rgba(45,191,138,.2); }
+  .status.err { color: var(--accent-red);  border-color: rgba(232,77,77,.2); }
+
+  /* DOCS section */
+  .docs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .op-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .op-sym {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    color: var(--accent-teal);
+    min-width: 40px;
+  }
+
+  .op-desc { color: var(--muted); flex: 1; }
+
+  .op-ex { color: var(--accent-amber); font-size: 11px; }
+
+  /* SHARE */
+  .share-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 12px;
+    font-size: 11px;
+    word-break: break-all;
+    color: #444;
+    margin-top: 12px;
+  }
+
+  /* CAT HEADER STRIPE */
+  .cat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .cat-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .cat-line {
+    flex: 1;
+    height: 1px;
+  }
+
+  .cat-count {
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* responsive */
+  @media (max-width: 700px) {
+    .container { padding: 0 16px; }
+    .row-2, .row-3, .docs-grid { grid-template-columns: 1fr; }
+    .header-stats { gap: 16px; }
+    .stat-num { font-size: 18px; }
+    .header-inner { flex-direction: column; }
+  }
+
+  .tooltip {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  .compression-badge {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    font-size: 10px;
+    color: var(--accent-teal);
+    letter-spacing: 0.08em;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 40px 0;
+  }
+
+  /* ---- EXPLANATION SECTION ---- */
+  .explain-section { margin-top: 56px; }
+
+  .explain-lead {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 300;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 32px;
+    max-width: 700px;
+  }
+
+  .explain-lead em { color: var(--accent-teal); font-style: normal; }
+
+  .use-case-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+    margin-bottom: 32px;
+  }
+
+  .use-case {
+    border: 1px solid var(--border);
+    padding: 20px;
+    transition: background .15s, border-color .15s;
+  }
+
+  .use-case:hover { background: var(--surface); border-color: var(--border-hover); }
+
+  .use-case-icon { font-size: 22px; margin-bottom: 10px; }
+
+  .use-case h3 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .use-case p { color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+  .logic-block {
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  .logic-block h3 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-blue);
+    margin-bottom: 10px;
+  }
+
+  .logic-block p { color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+  .logic-block code {
+    background: var(--surface2);
+    padding: 1px 5px;
+    color: var(--accent-amber);
+    font-size: 11px;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    margin-top: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer span { color: #444; font-size: 11px; }
+  footer a { color: #444; text-decoration: none; font-size: 11px; }
+  footer a:hover { color: var(--muted); }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-block">
+        <h1>GatoPaint<span class="dot">.</span>red</h1>
+        <div class="sub">codificador / decodificador de imágenes en texto · formato .miau</div>
+      </div>
+      <div class="header-stats">
+        <div class="stat">
+          <div class="stat-num" id="stat-chars">63</div>
+          <div class="stat-label">colores</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="stat-ops">8</div>
+          <div class="stat-label">operadores</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="stat-ratio">—</div>
+          <div class="stat-label">compresión</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('encode')">// codificar imagen</button>
+    <button class="tab-btn" onclick="switchTab('decode')">// decodificar texto</button>
+    <button class="tab-btn" onclick="switchTab('paint')">// gatopaint</button>
+    <button class="tab-btn" onclick="switchTab('palette')">// paleta completa</button>
+  </div>
+
+  <!-- ====== ENCODE PANEL ====== -->
+  <div class="panel active" id="panel-encode">
+    <div class="section-label"><span>// entrada</span></div>
+
+    <div class="block accent-amber">
+      <div class="block-title">cargar imagen</div>
+      <label>archivo de imagen (png, jpg, gif, bmp, webp…)</label>
+      <input type="file" id="imgFile" accept="image/*" style="
+        background: var(--surface2); border: 1px solid var(--border);
+        color: var(--muted); padding: 10px; width: 100%; font-family: 'Space Mono', monospace;
+        font-size: 12px; cursor: pointer;
+      " onchange="loadImageFile(this)">
+
+      <div class="row-3" style="margin-top:16px;">
+        <div>
+          <label>ancho objetivo (px)</label>
+          <input type="number" id="encW" value="50" min="1" max="500">
+        </div>
+        <div>
+          <label>alto objetivo (px)</label>
+          <input type="number" id="encH" value="50" min="1" max="500">
+        </div>
+        <div>
+          <label>algoritmo de escala</label>
+          <select id="encScaleMode">
+            <option value="fit">ajustar (fit)</option>
+            <option value="stretch">estirar (stretch)</option>
+            <option value="crop">recortar (crop)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-amber" onclick="encodeImage()">→ codificar</button>
+        <button class="btn" onclick="clearEncode()">limpiar</button>
+      </div>
+    </div>
+
+    <div class="block accent-teal" id="encPreviewBlock" style="display:none">
+      <div class="block-title">previsualización cuantizada</div>
+      <div style="overflow:auto;">
+        <div class="canvas-wrap">
+          <canvas id="previewCanvas"></canvas>
+        </div>
+      </div>
+      <div class="tooltip">los colores han sido cuantizados a los 63 colores de la paleta + transparencia</div>
+    </div>
+
+    <div class="block accent-teal" id="encOutputBlock" style="display:none">
+      <div class="block-title">código generado</div>
+      <div class="output-box" id="encOutput"></div>
+      <div class="output-meta">
+        <span id="encMeta"></span>
+        <span class="compression-badge" id="encCompBadge"></span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="copyCode('encOutput')">copiar código</button>
+        <button class="btn btn-blue" onclick="shareCode()">compartir enlace</button>
+        <button class="btn" onclick="downloadCode()">descargar .miau</button>
+      </div>
+      <div id="shareResult" style="display:none">
+        <label>url para compartir</label>
+        <div class="share-box" id="shareUrl"></div>
+      </div>
+    </div>
+
+    <div id="encStatus" class="status" style="display:none"></div>
+  </div>
+
+  <!-- ====== DECODE PANEL ====== -->
+  <div class="panel" id="panel-decode">
+    <div class="section-label"><span>// entrada de código</span></div>
+
+    <div class="block accent-blue">
+      <div class="block-title">pegar código gatopaint</div>
+      <label>dimensiones (ancho × alto)</label>
+      <div class="row-2">
+        <input type="number" id="decW" placeholder="ancho" min="1" max="1000" oninput="decodeRealtime()">
+        <input type="number" id="decH" placeholder="alto"  min="1" max="1000" oninput="decodeRealtime()">
+      </div>
+      <label>código</label>
+      <textarea class="code" id="decInput" placeholder="escribe aquí: p.ej.  aaa#bbb#ccc  o  a+#b-#c*" oninput="decodeRealtime()"></textarea>
+      <div class="btn-row">
+        <button class="btn" onclick="loadFromUrl()">cargar desde url</button>
+        <button class="btn" onclick="clearDecode()">limpiar</button>
+      </div>
+    </div>
+
+    <div class="block accent-teal" id="decOutputBlock">
+      <div class="block-title">imagen resultante <span id="decLiveIndicator" style="color:var(--accent-teal);font-size:10px;letter-spacing:.1em;">· en vivo</span></div>
+      <div style="overflow:auto;">
+        <div class="canvas-wrap">
+          <canvas id="decCanvas"></canvas>
+        </div>
+      </div>
+      <div class="output-meta">
+        <span id="decMeta" style="color:var(--muted);font-size:11px;">escribe dimensiones y código arriba para ver la imagen</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="downloadDecoded()">descargar png</button>
+      </div>
+    </div>
+
+    <div id="decStatus" class="status" style="display:none"></div>
+  </div>
+
+  <!-- ====== PAINT PANEL ====== -->
+  <div class="panel" id="panel-paint">
+    <div class="section-label"><span>// gatopaint — editor de píxeles</span></div>
+
+    <div class="block accent-purple">
+      <div class="block-title">configurar lienzo</div>
+      <div class="row-3">
+        <div>
+          <label>ancho (píxeles)</label>
+          <input type="number" id="inputPaintW" value="32" min="1" max="200">
+        </div>
+        <div>
+          <label>alto (píxeles)</label>
+          <input type="number" id="inputPaintH" value="32" min="1" max="200">
+        </div>
+        <div>
+          <label>zoom (tamaño visual)</label>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+            <input type="range" id="paintZoomRange" min="2" max="24" value="12" oninput="updateZoom(this.value)" style="flex:1;">
+            <span id="zoomLabel" style="color:var(--muted);font-size:11px;min-width:28px;">12×</span>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-purple" onclick="initPaintCanvas()">crear lienzo</button>
+        <button class="btn" onclick="clearPaint()">limpiar todo</button>
+      </div>
+    </div>
+
+    <div id="paintArea" style="display:none">
+      <div class="block" style="border-left: 3px solid var(--accent-purple)">
+        <div class="block-title">herramientas</div>
+        <div class="paint-controls">
+          <span style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em;">color seleccionado:</span>
+          <div class="selected-char-display" id="selChar">a</div>
+          <div class="pal-swatch" id="selSwatch" style="width:20px;height:20px;"></div>
+          <div style="flex:1;"></div>
+          <div class="size-control">
+            <span>modo borrado</span>
+            <input type="checkbox" id="eraseMode" style="accent-color:var(--accent-red)">
+          </div>
+        </div>
+
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px;">paleta rápida (clic para seleccionar)</div>
+        <div class="palette-grid" id="quickPalette"></div>
+      </div>
+
+      <div class="block" style="border-left: 3px solid var(--accent-purple); overflow:auto;">
+        <div class="block-title">lienzo</div>
+        <canvas id="paintCanvas"></canvas>
+      </div>
+
+      <div class="block accent-teal">
+        <div class="block-title">código generado en tiempo real</div>
+        <div class="output-box" id="paintOutput" style="color: var(--accent-purple);"></div>
+        <div class="output-meta">
+          <span id="paintMeta"></span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="copyCode('paintOutput')">copiar código</button>
+          <button class="btn btn-blue" onclick="sharePaintCode()">compartir enlace</button>
+          <button class="btn" onclick="downloadPaintCode()">descargar .miau</button>
+          <button class="btn btn-purple" onclick="sendPaintToDecode()">→ decodificar</button>
+        </div>
+        <div id="paintShareResult" style="display:none">
+          <label>url para compartir</label>
+          <div class="share-box" id="paintShareUrl"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== PALETTE PANEL ====== -->
+  <div class="panel" id="panel-palette">
+    <div class="section-label"><span>// paleta de 63 colores + transparencia</span></div>
+
+    <div class="block accent-pink">
+      <div class="block-title">referencia completa de caracteres</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.7;">
+        cada carácter representa un color. el <code style="color:var(--accent-teal)">0</code> siempre es transparencia.
+        la paleta está distribuida en <em>26 minúsculas + 26 mayúsculas + 10 números + @</em> = 63 colores + transparente.
+      </p>
+      <div class="palette-grid" id="fullPalette"></div>
+    </div>
+
+    <div class="block">
+      <div class="block-title">operadores de compresión</div>
+      <div id="opsRef"></div>
+    </div>
+  </div>
+
+  <!-- DIVIDER -->
+  <div class="divider"></div>
+
+  <!-- ====== EXPLANATION SECTION ====== -->
+  <div class="explain-section">
+    <div class="section-label"><span>// cómo funciona y para qué sirve</span></div>
+
+    <p class="explain-lead">
+      GatoPaint convierte imágenes en <em>cadenas de texto comprimidas</em> que cualquier programa puede leer, guardar o transmitir sin necesidad de binarios, formatos propietarios ni librerías de imagen.
+    </p>
+
+    <div class="section-label"><span>// casos de uso</span></div>
+    <div class="use-case-grid">
+      <div class="use-case">
+        <div class="use-case-icon">🎮</div>
+        <h3>videojuegos indie & pixel art</h3>
+        <p>guarda sprites, mapas o tilesets directamente en archivos de texto o código fuente. cero dependencias de imagen. un sprite de 16×16 cabe en una sola línea.</p>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">📡</div>
+        <h3>transmisión ligera de datos</h3>
+        <p>envía imágenes pequeñas por protocolos que solo admiten texto: IRC, SMS, señales MQTT, chats básicos. compresión sin pérdida en iconos, avatares y miniaturas.</p>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">🤖</div>
+        <h3>arte generativo & bots</h3>
+        <p>genera imágenes con código o IA en formato texto, luego renderízalas. perfecto para bots de twitter/mastodon que crean pixel art algorítmico.</p>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">📱</div>
+        <h3>apps sin servidor de imágenes</h3>
+        <p>almacena avatares o iconos de usuario en una base de datos SQL normal como strings. no necesitas CDN ni bucket de almacenamiento para assets pequeños.</p>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">🔐</div>
+        <h3>esteganografía artística</h3>
+        <p>oculta mensajes dentro de imágenes reales: el código parece texto normal hasta que se decodifica. útil para watermarks visuales o ARGs.</p>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">📖</div>
+        <h3>documentación legible</h3>
+        <p>incluye diagramas visuales directamente en README, wikis o comentarios de código. cualquiera con el decodificador puede ver la imagen sin salir del editor.</p>
+      </div>
+    </div>
+
+    <div class="section-label"><span>// lógica de funcionamiento</span></div>
+
+    <div class="logic-block">
+      <h3>1. cuantización de color</h3>
+      <p>
+        una imagen tiene millones de colores posibles. GatoPaint los reduce a <code>63</code> colores predefinidos + transparencia, usando distancia euclidiana en espacio RGB para elegir el más cercano a cada píxel. la paleta está diseñada para cubrir el espectro completo con representación uniforme. el carácter <code>0</code> siempre es transparencia (alpha = 0).
+      </p>
+    </div>
+
+    <div class="logic-block">
+      <h3>2. run-length encoding por caracteres</h3>
+      <p>
+        el método básico de compresión: en lugar de escribir <code>aaaaa</code>, se escribe <code>a+</code>. los operadores son multiplicadores: <code>/</code>=×2, <code>*</code>=×3, <code>-</code>=×4, <code>+</code>=×5. se pueden combinar: <code>a/*</code> = <code>a</code> repetida 2×3=6 veces. <code>a++</code> = a×5×5 = 25 veces. esto es especialmente efectivo en imágenes con fondos sólidos o zonas de color uniforme.
+      </p>
+    </div>
+
+    <div class="logic-block">
+      <h3>3. saltos de línea y repetición de líneas</h3>
+      <p>
+        <code>#</code> es un salto de línea virtual — repite el último carácter hasta el final de fila, útil cuando una línea entera es de un color. <code>_</code> repite la línea anterior completa, ideal para imágenes con filas idénticas (patrones, degradados, zonas planas). combinando <code>#</code> y <code>_</code>, bloques grandes de transparencia como <code>0#___</code> se reducen a 4 caracteres en lugar de cientos.
+      </p>
+    </div>
+
+    <div class="logic-block">
+      <h3>4. mirroring con |</h3>
+      <p>
+        el símbolo <code>|</code> indica simetría especular: todo lo que está antes del <code>|</code> se espeja y se añade al final. <code>sdkjh|</code> se convierte en <code>sdkjhhjkds</code>. perfecto para sprites simétricos (caras, escudos, iconos centrados) donde codificar solo la mitad izquierda ahorra hasta un 50% de caracteres.
+      </p>
+    </div>
+
+    <div class="logic-block">
+      <h3>5. grupos y anidación con paréntesis</h3>
+      <p>
+        cualquier secuencia entre paréntesis se trata como una unidad y puede recibir un operador de repetición. <code>(ab)*</code> = <code>ababab</code>. los grupos se anidan: <code>((ab)*c)+</code> = repite <code>ab</code> 3 veces, añade <code>c</code>, y repite todo ese bloque 5 veces. esto captura patrones geométricos repetitivos en muy pocos caracteres, eficaz en texturas, patrones de tiled o bordes decorativos.
+      </p>
+    </div>
+
+    <div class="logic-block">
+      <h3>6. lectura en orden raster</h3>
+      <p>
+        la codificación recorre la imagen de <code>izquierda a derecha, arriba a abajo</code>, igual que se lee texto. cada carácter del código corresponde a un píxel (o más si hay operadores). el decodificador simplemente lee el string de izquierda a derecha, expandiendo operadores, y va colocando colores en el canvas en el mismo orden. para decodificar solo hacen falta las dimensiones de la imagen y el string.
+      </p>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label"><span>// formato de intercambio</span></div>
+
+    <div class="block">
+      <div class="block-title">estructura del archivo .miau</div>
+      <div class="output-box" style="color: var(--accent-amber);">// gatopaint v1
+// dim: 50x50
+// chars: 1847
+sdkjh|ab(op)*0#___...</div>
+      <p style="font-size:12px; color:var(--muted); margin-top:12px; line-height:1.7;">
+        los archivos <code style="color:var(--accent-teal)">.miau</code> son texto plano con una cabecera mínima de comentarios. cualquier editor de texto puede abrirlos. son versionables con git, diff-eables, y comprimibles adicionalmente con gzip para máxima eficiencia.
+      </p>
+    </div>
+  </div>
+
+  <footer>
+    <span>GatoPaint — gato<span style="color:var(--accent-red)">.</span>red — formato .miau, abierto y sin licencia</span>
+    <a href="#">documentación →</a>
+  </footer>
+
+</div><!-- /container -->
+
+<script>
+// =====================================================================
+//  PALETTE: 63 colors + transparency
+//  chars: 0 (transparent), a-z (26), A-Z (26), 1-9 (9), then special
+//  Total mapped: '0' + 'a'-'z' + 'A'-'Z' + '1'-'9' = 1+26+26+9 = 62
+//  We add one more via '@' = index 62, total 63 colors + transparent
+// =====================================================================
+
+const PALETTE_CHARS = '0abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@';
+// 0 = transparent, rest = 63 colors
+
+const PALETTE_COLORS = (() => {
+  const colors = [];
+  // 0 = transparent
+  colors.push([0,0,0,0]);
+
+  // We generate 63 perceptually-spread colors
+  // Using a fixed, curated palette for predictability:
+  // Rows: hue steps, cols: lightness/saturation variation
+  const hues = [0, 15, 30, 45, 60, 80, 100, 120, 145, 170, 195, 210, 225, 240, 260, 280, 300, 320, 340, 355];
+  const configs = [
+    // [saturation%, lightness%]
+    [100, 50], [85, 65], [60, 35], [40, 80]
+  ];
+
+  // Generate from hsl
+  function hslToRgb(h, s, l) {
+    s /= 100; l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return [Math.round(f(0)*255), Math.round(f(8)*255), Math.round(f(4)*255), 255];
+  }
+
+  // Build palette: 63 colors
+  const palette63 = [];
+  // Vivid full-hue row (20 colors)
+  for(let h of hues) palette63.push(hslToRgb(h, 100, 50));
+  // Pastel row (20 colors)
+  for(let h of hues) palette63.push(hslToRgb(h, 70, 75));
+  // Dark saturated (20 colors)  
+  for(let h of hues) palette63.push(hslToRgb(h, 80, 28));
+  // Neutrals (3: white, mid gray, dark gray)
+  palette63.push([255,255,255,255]);
+  palette63.push([128,128,128,255]);
+  palette63.push([30,30,30,255]);
+
+  for(let i=0; i<63; i++) colors.push(palette63[i] || [128,128,128,255]);
+  return colors;
+})();
+
+function colorDist(a, b) {
+  return Math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2);
+}
+
+function quantizePixel(r, g, b, a) {
+  if(a < 30) return 0; // transparent
+  let best = 1, bestD = Infinity;
+  for(let i=1; i<PALETTE_COLORS.length; i++) {
+    const d = colorDist([r,g,b], PALETTE_COLORS[i]);
+    if(d < bestD) { bestD = d; best = i; }
+  }
+  return best;
+}
+
+function charToColor(ch) {
+  const idx = PALETTE_CHARS.indexOf(ch);
+  if(idx < 0) return null;
+  return PALETTE_COLORS[idx];
+}
+
+// =====================================================================
+//  ENCODER
+// =====================================================================
+
+function encodePixels(pixels, w, h) {
+  // pixels: array of palette indices (0..63), length w*h
+  // Returns: rows array of strings, one per row
+  const rows = [];
+  for(let y=0; y<h; y++) {
+    const row = [];
+    for(let x=0; x<w; x++) row.push(PALETTE_CHARS[pixels[y*w+x]]);
+    rows.push(row.join(''));
+  }
+
+  // Apply run-length encoding per row
+  function rleRow(row) {
+    let out = '';
+    let i = 0;
+    while(i < row.length) {
+      const ch = row[i];
+      let count = 1;
+      while(i+count < row.length && row[i+count] === ch) count++;
+      out += encodeRun(ch, count);
+      i += count;
+    }
+    return out;
+  }
+
+  function encodeRun(ch, count) {
+    // operators: /=2, *=3, -=4, +=5
+    if(count === 1) return ch;
+    // Decompose count into multiplier chain
+    // We try to express count using combinations of 2,3,4,5
+    return ch + encodeMultipliers(count);
+  }
+
+  function encodeMultipliers(n) {
+    if(n === 1) return '';
+    // Greedy from largest
+    const ops = [[5,'+'],[4,'-'],[3,'*'],[2,'/']];
+    let s = '';
+    while(n > 1) {
+      let found = false;
+      for(const [v, op] of ops) {
+        if(n % v === 0) { s += op; n = n/v; found = true; break; }
+      }
+      if(!found) {
+        // Remainder: just repeat
+        // e.g. count=7: 5+2 = a+a/  but simpler: just write literal
+        // For simplicity: greedy largest ≤ n
+        let best = 1, bestOp = '';
+        for(const [v, op] of ops) { if(v <= n && v > best) { best = v; bestOp = op; } }
+        if(best > 1) { s += bestOp; n -= (best-1)*1; /* wrong — we need multiplicative */ }
+        // Actually for non-divisible: break into parts
+        // n=7: floor(7/5)=1 r2 → a+a/ … but we need to emit char again
+        // Let's just repeat the char
+        s = '';
+        return encodeRunLiteral(n);
+      }
+    }
+    return s;
+  }
+
+  function encodeRunLiteral(n) {
+    // Decompose n as sum of products of 2,3,4,5
+    // We'll use a simple DP / greedy approach
+    let out = '';
+    const ops = [[5,'+'],[4,'-'],[3,'*'],[2,'/']];
+    while(n > 0) {
+      let used = false;
+      for(const [v,op] of ops) {
+        if(n >= v && n % v === 0) {
+          // Check if we can express n as product
+          out += op; n = n/v; used = true; break;
+        }
+      }
+      if(!used) {
+        // Take largest factor ≤ n
+        let best = 1;
+        for(const [v] of ops) if(v <= n) { best = v; break; }
+        if(best > 1) { n -= best; out += '×'.repeat(0); /* placeholder */ }
+        else { n--; } // single unit already counted
+        break;
+      }
+    }
+    return out;
+  }
+
+  // Better RLE: handle arbitrary counts
+  function encodeCount(count) {
+    if(count === 1) return '';
+    // Express as chain of multipliers, remainder as repeated chars
+    // Factorize greedily
+    const ops = {5:'+', 4:'-', 3:'*', 2:'/'};
+    const factors = [];
+    let n = count;
+    while(n > 1) {
+      let found = false;
+      for(const v of [5,4,3,2]) {
+        if(n % v === 0) { factors.push(v); n = n/v; found=true; break; }
+      }
+      if(!found) {
+        // n is prime > 5 or remainder: use floor approach
+        // Express as: n = q*5 + r → emit char q times with + then r times bare
+        // This requires emitting the char multiple times in caller
+        factors.push(n); n = 1; // just return n as bare repeats
+      }
+    }
+    return factors.map(f => ops[f] || '').join('');
+  }
+
+  function buildRLE(rawRow) {
+    let out = '';
+    let i = 0;
+    while(i < rawRow.length) {
+      const ch = rawRow[i];
+      let count = 1;
+      while(i+count < rawRow.length && rawRow[i+count] === ch) count++;
+
+      // Handle arbitrary count: factorize cleanly
+      out += encodeRunFull(ch, count);
+      i += count;
+    }
+    return out;
+  }
+
+  function encodeRunFull(ch, n) {
+    if(n === 1) return ch;
+    // Try to express n as product of 2,3,4,5
+    const mults = factorize(n);
+    if(mults !== null) return ch + mults;
+    // Otherwise: split into factorizable chunks
+    let out = '';
+    while(n > 0) {
+      // Find largest ≤ n that is factorizable
+      let found = false;
+      for(let k = n; k >= 1; k--) {
+        const f = factorize(k);
+        if(f !== null) {
+          out += ch + f;
+          n -= k;
+          found = true;
+          break;
+        }
+      }
+      if(!found) { out += ch; n--; }
+    }
+    return out;
+  }
+
+  function factorize(n) {
+    if(n === 1) return '';
+    const ops = [[5,'+'],[4,'-'],[3,'*'],[2,'/']];
+    // DP: find sequence of multiplications = n
+    function dp(rem, path) {
+      if(rem === 1) return path;
+      for(const [v,op] of ops) {
+        if(rem % v === 0) {
+          const res = dp(rem/v, path+op);
+          if(res !== null) return res;
+        }
+      }
+      return null;
+    }
+    return dp(n, '');
+  }
+
+  // Apply mirror compression if right half mirrors left
+  function tryMirror(row) {
+    const len = row.length;
+    if(len < 4) return null;
+    // Check if row is palindrome-like: first half mirrors second half
+    const half = Math.floor(len/2);
+    const left = row.slice(0, half);
+    const rev = row.slice(0, half).split('').reverse().join('');
+    const right = row.slice(len - half);
+    if(right === rev) {
+      // Can use mirror: encode left half + |
+      return left + '|';
+    }
+    return null;
+  }
+
+  // Encode each row with RLE
+  const encodedRows = rows.map(r => {
+    const rle = buildRLE(r);
+    const mir = tryMirror(r);
+    if(mir && mir.length < rle.length) return mir;
+    return rle;
+  });
+
+  // Apply line-repeat compression (_)
+  const finalLines = [];
+  for(let i=0; i<encodedRows.length; i++) {
+    if(i > 0 && rows[i] === rows[i-1]) {
+      finalLines.push('_');
+    } else {
+      finalLines.push(encodedRows[i]);
+    }
+  }
+
+  // Collapse consecutive _ lines
+  let result = finalLines.join('#');
+
+  // Collapse consecutive _ blocks with operators
+  result = result.replace(/(_#)+_/g, m => {
+    const count = (m.length + 1) / 2;
+    return '_' + factorize(count) || '_'.repeat(count);
+  });
+
+  return result;
+}
+
+function factorize(n) {
+  if(n === 1) return '';
+  const ops = [[5,'+'],[4,'-'],[3,'*'],[2,'/']];
+  function dp(rem, path) {
+    if(rem === 1) return path;
+    for(const [v,op] of ops) {
+      if(rem % v === 0) {
+        const res = dp(rem/v, path+op);
+        if(res !== null) return res;
+      }
+    }
+    return null;
+  }
+  return dp(n, '');
+}
+
+// =====================================================================
+//  DECODER
+// =====================================================================
+
+function decodeString(code, w, h) {
+  // Step 1: Expand nested groups (parentheses)
+  function expandGroups(s) {
+    let prev = null;
+    let safetyLimit = 50;
+    while(s !== prev && safetyLimit-- > 0) {
+      prev = s;
+      // Find innermost parens
+      s = s.replace(/\(([^()]*)\)([\+\-\*\/]*)/, (match, inner, ops) => {
+        if(!ops) return inner; // no operator
+        const count = evalOps(ops);
+        return inner.repeat(count);
+      });
+    }
+    return s;
+  }
+
+  function evalOps(ops) {
+    let n = 1;
+    for(const ch of ops) {
+      if(ch === '/') n *= 2;
+      else if(ch === '*') n *= 3;
+      else if(ch === '-') n *= 4;
+      else if(ch === '+') n *= 5;
+    }
+    return n;
+  }
+
+  // Step 2: Expand run-length: char followed by operators
+  function expandRLE(s) {
+    let out = '';
+    let i = 0;
+    while(i < s.length) {
+      const ch = s[i];
+      if(ch === '#' || ch === '_' || ch === '|') {
+        out += ch; i++; continue;
+      }
+      // Count operators after this char
+      let ops = '';
+      let j = i+1;
+      while(j < s.length && '/+-*'.includes(s[j])) { ops += s[j]; j++; }
+      if(ops) {
+        const count = evalOps(ops);
+        out += ch.repeat(count);
+        i = j;
+      } else {
+        out += ch; i++;
+      }
+    }
+    return out;
+  }
+
+  // Step 3: Split on # to get lines
+  // Step 4: Expand _ (repeat previous line)
+  // Step 5: Expand | (mirror)
+
+  // Process
+  let expanded = expandGroups(code);
+  expanded = expandRLE(expanded);
+
+  // Split into lines by #
+  const rawLines = expanded.split('#');
+
+  // Expand _ and |
+  const lines = [];
+  for(let i=0; i<rawLines.length; i++) {
+    let line = rawLines[i];
+
+    // Handle leading _ repetitions
+    let finalLine = '';
+    let j = 0;
+    while(j < line.length) {
+      const ch = line[j];
+      if(ch === '_') {
+        // Repeat previous line
+        const prev = lines[lines.length-1] || '';
+        finalLine += prev;
+        j++;
+      } else if(ch === '|') {
+        // Mirror: reverse what we have so far and append
+        const rev = finalLine.split('').reverse().join('');
+        finalLine += rev;
+        j++;
+      } else {
+        finalLine += ch;
+        j++;
+      }
+    }
+
+    // Pad or trim to width
+    if(finalLine.length < w) {
+      const lastCh = finalLine[finalLine.length-1] || '0';
+      finalLine = finalLine.padEnd(w, lastCh);
+    }
+    finalLine = finalLine.slice(0, w);
+
+    lines.push(finalLine);
+    if(lines.length >= h) break;
+  }
+
+  // Pad rows if needed
+  while(lines.length < h) {
+    lines.push('0'.repeat(w));
+  }
+
+  // Convert to pixel array
+  const pixels = [];
+  for(let y=0; y<h; y++) {
+    for(let x=0; x<w; x++) {
+      const ch = lines[y][x] || '0';
+      const idx = PALETTE_CHARS.indexOf(ch);
+      pixels.push(idx >= 0 ? idx : 0);
+    }
+  }
+
+  return pixels;
+}
+
+// =====================================================================
+//  CANVAS RENDERING
+// =====================================================================
+
+function renderPixels(canvas, pixels, w, h, zoom=1) {
+  canvas.width = w * zoom;
+  canvas.height = h * zoom;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Checkerboard for transparency
+  const cSize = zoom > 4 ? zoom : 8;
+  for(let cy=0; cy<canvas.height; cy+=cSize) {
+    for(let cx=0; cx<canvas.width; cx+=cSize) {
+      const isEven = ((cx/cSize + cy/cSize) % 2 === 0);
+      ctx.fillStyle = isEven ? '#222' : '#2a2a2a';
+      ctx.fillRect(cx, cy, cSize, cSize);
+    }
+  }
+
+  const img = ctx.createImageData(w*zoom, h*zoom);
+  for(let y=0; y<h; y++) {
+    for(let x=0; x<w; x++) {
+      const idx = pixels[y*w+x];
+      const [r,g,b,a] = PALETTE_COLORS[idx] || [0,0,0,0];
+      if(a === 0) continue;
+      for(let dy=0; dy<zoom; dy++) {
+        for(let dx=0; dx<zoom; dx++) {
+          const px = ((y*zoom+dy)*w*zoom + (x*zoom+dx))*4;
+          img.data[px]   = r;
+          img.data[px+1] = g;
+          img.data[px+2] = b;
+          img.data[px+3] = a;
+        }
+      }
+    }
+  }
+  ctx.putImageData(img,0,0);
+}
+
+// =====================================================================
+//  UI: ENCODE
+// =====================================================================
+
+let loadedImage = null;
+
+function loadImageFile(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const img = new Image();
+  img.onload = () => { loadedImage = img; showStatus('encStatus', `imagen cargada: ${img.width}×${img.height}px`, 'ok'); };
+  img.src = URL.createObjectURL(file);
+}
+
+function encodeImage() {
+  if(!loadedImage) { showStatus('encStatus', 'carga una imagen primero', 'err'); return; }
+  const w = parseInt(document.getElementById('encW').value)||50;
+  const h = parseInt(document.getElementById('encH').value)||50;
+
+  const offscreen = document.createElement('canvas');
+  offscreen.width = w; offscreen.height = h;
+  const ctx = offscreen.getContext('2d');
+  ctx.clearRect(0,0,w,h);
+  ctx.drawImage(loadedImage, 0, 0, w, h);
+
+  const imgData = ctx.getImageData(0,0,w,h);
+  const pixels = [];
+  for(let i=0; i<w*h; i++) {
+    const r = imgData.data[i*4];
+    const g = imgData.data[i*4+1];
+    const b = imgData.data[i*4+2];
+    const a = imgData.data[i*4+3];
+    pixels.push(quantizePixel(r,g,b,a));
+  }
+
+  // Preview
+  const preview = document.getElementById('previewCanvas');
+  const zoom = Math.max(1, Math.min(8, Math.floor(400/Math.max(w,h))));
+  renderPixels(preview, pixels, w, h, zoom);
+  document.getElementById('encPreviewBlock').style.display='block';
+
+  // Encode
+  const code = encodePixels(pixels, w, h);
+  const rawLen = w*h;
+  const compRatio = ((1 - code.length/rawLen)*100).toFixed(1);
+
+  document.getElementById('encOutput').textContent = code;
+  document.getElementById('encMeta').textContent = `${w}×${h} — ${rawLen} píxeles — ${code.length} caracteres`;
+  document.getElementById('encCompBadge').textContent = `${compRatio}% comprimido`;
+  document.getElementById('encOutputBlock').style.display='block';
+  document.getElementById('shareResult').style.display='none';
+
+  document.getElementById('stat-ratio').textContent = compRatio+'%';
+
+  showStatus('encStatus', `codificado: ${code.length} chars (${compRatio}% de compresión)`, 'ok');
+}
+
+function clearEncode() {
+  loadedImage = null;
+  document.getElementById('imgFile').value='';
+  document.getElementById('encPreviewBlock').style.display='none';
+  document.getElementById('encOutputBlock').style.display='none';
+  document.getElementById('encStatus').style.display='none';
+}
+
+// =====================================================================
+//  UI: DECODE (realtime)
+// =====================================================================
+
+let decodeTimer = null;
+
+function decodeRealtime() {
+  // Debounce 80ms so it's snappy but not thrashing on every keystroke
+  clearTimeout(decodeTimer);
+  decodeTimer = setTimeout(_runDecode, 80);
+}
+
+function decodeText() {
+  _runDecode();
+}
+
+function _runDecode() {
+  const w = parseInt(document.getElementById('decW').value);
+  const h = parseInt(document.getElementById('decH').value);
+  const code = document.getElementById('decInput').value.trim();
+
+  const metaEl = document.getElementById('decMeta');
+  const canvas  = document.getElementById('decCanvas');
+
+  if(!code) {
+    metaEl.textContent = 'escribe dimensiones y código arriba para ver la imagen';
+    // Clear canvas
+    canvas.width = 1; canvas.height = 1;
+    return;
+  }
+
+  if(!w || !h || w < 1 || h < 1) {
+    metaEl.textContent = '← especifica ancho y alto primero';
+    return;
+  }
+
+  try {
+    const pixels = decodeString(code, w, h);
+    const maxDim = Math.max(w, h);
+    const zoom = Math.max(1, Math.min(16, Math.floor(480 / maxDim)));
+    renderPixels(canvas, pixels, w, h, zoom);
+    metaEl.textContent = `${w}×${h}px · zoom ${zoom}× · ${code.length} chars`;
+    showStatus('decStatus', `decodificado: ${w*h} píxeles`, 'ok');
+  } catch(e) {
+    metaEl.textContent = 'error: ' + e.message;
+    showStatus('decStatus', 'error al decodificar: ' + e.message, 'err');
+  }
+}
+
+function clearDecode() {
+  document.getElementById('decInput').value = '';
+  document.getElementById('decW').value = '';
+  document.getElementById('decH').value = '';
+  document.getElementById('decMeta').textContent = 'escribe dimensiones y código arriba para ver la imagen';
+  const c = document.getElementById('decCanvas');
+  c.width = 1; c.height = 1;
+  document.getElementById('decStatus').style.display = 'none';
+}
+
+function loadFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('c');
+  const w    = params.get('w');
+  const h    = params.get('h');
+  if(code && w && h) {
+    document.getElementById('decInput').value = decodeURIComponent(code);
+    document.getElementById('decW').value = w;
+    document.getElementById('decH').value = h;
+    _runDecode();
+  } else {
+    showStatus('decStatus', 'no se encontró código en la url actual', 'err');
+  }
+}
+
+function downloadDecoded() {
+  const canvas = document.getElementById('decCanvas');
+  if(canvas.width <= 1) { showStatus('decStatus','nada que descargar todavía','err'); return; }
+  const link = document.createElement('a');
+  link.download = 'decoded.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// =====================================================================
+//  UI: PAINT (GatoPaint)
+// =====================================================================
+
+let paintPixels = [];
+let paintW = 0, paintH = 0;
+let paintZoom = 12;
+let paintDrawing = false;
+let selectedColorIdx = 1; // 'a'
+
+function initPaintCanvas() {
+  // Read from the renamed inputs (no collision with JS vars)
+  const newW = parseInt(document.getElementById('inputPaintW').value) || 32;
+  const newH = parseInt(document.getElementById('inputPaintH').value) || 32;
+  paintZoom  = parseInt(document.getElementById('paintZoomRange').value) || 12;
+
+  paintW = newW;
+  paintH = newH;
+  paintPixels = new Array(paintW * paintH).fill(0);
+
+  setupPaintCanvas();
+  buildQuickPalette();
+  updateSelectedSwatch();
+  document.getElementById('paintArea').style.display = 'block';
+  updatePaintCode();
+}
+
+function setupPaintCanvas() {
+  const canvas = document.getElementById('paintCanvas');
+  // Set exact pixel dimensions
+  canvas.width  = paintW * paintZoom;
+  canvas.height = paintH * paintZoom;
+  canvas.style.width  = (paintW * paintZoom) + 'px';
+  canvas.style.height = (paintH * paintZoom) + 'px';
+
+  // Remove old listeners by cloning
+  const fresh = canvas.cloneNode(false);
+  canvas.parentNode.replaceChild(fresh, fresh); // keep same node, just reset
+  
+  // Re-get (same element, just cleared listeners via replacement strategy)
+  const c = document.getElementById('paintCanvas');
+  c.width  = paintW * paintZoom;
+  c.height = paintH * paintZoom;
+  c.style.width  = (paintW * paintZoom) + 'px';
+  c.style.height = (paintH * paintZoom) + 'px';
+
+  c.onmousedown  = (e) => { e.preventDefault(); paintDrawing = true; paintAt(e, c); };
+  c.onmousemove  = (e) => { if(paintDrawing) paintAt(e, c); };
+  c.onmouseup    = ()  => { paintDrawing = false; updatePaintCode(); };
+  c.onmouseleave = ()  => { paintDrawing = false; };
+
+  c.ontouchstart = (e) => { e.preventDefault(); paintDrawing = true; paintAtTouch(e, c); };
+  c.ontouchmove  = (e) => { e.preventDefault(); if(paintDrawing) paintAtTouch(e, c); };
+  c.ontouchend   = ()  => { paintDrawing = false; updatePaintCode(); };
+
+  renderPaintCanvasFull();
+}
+
+function paintAt(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = paintW * paintZoom / rect.width;
+  const scaleY = paintH * paintZoom / rect.height;
+  const x = Math.floor((e.clientX - rect.left) * scaleX / paintZoom);
+  const y = Math.floor((e.clientY - rect.top)  * scaleY / paintZoom);
+  doPaint(x, y);
+}
+
+function paintAtTouch(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const t = e.touches[0];
+  const scaleX = paintW * paintZoom / rect.width;
+  const scaleY = paintH * paintZoom / rect.height;
+  const x = Math.floor((t.clientX - rect.left) * scaleX / paintZoom);
+  const y = Math.floor((t.clientY - rect.top)  * scaleY / paintZoom);
+  doPaint(x, y);
+}
+
+function doPaint(x, y) {
+  if(x < 0 || x >= paintW || y < 0 || y >= paintH) return;
+  const erase = document.getElementById('eraseMode').checked;
+  const newVal = erase ? 0 : selectedColorIdx;
+  if(paintPixels[y * paintW + x] === newVal) return; // no change, skip redraw
+  paintPixels[y * paintW + x] = newVal;
+  renderPaintPixel(x, y);
+}
+
+function renderPaintCanvasFull() {
+  const canvas = document.getElementById('paintCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw checkerboard background
+  for(let y = 0; y < paintH; y++) {
+    for(let x = 0; x < paintW; x++) {
+      const isEven = (x + y) % 2 === 0;
+      ctx.fillStyle = isEven ? '#222' : '#2a2a2a';
+      ctx.fillRect(x * paintZoom, y * paintZoom, paintZoom, paintZoom);
+    }
+  }
+
+  // Draw pixels
+  for(let y = 0; y < paintH; y++) {
+    for(let x = 0; x < paintW; x++) {
+      const idx = paintPixels[y * paintW + x];
+      if(idx === 0) continue; // transparent — show checker below
+      const [r, g, b, a] = PALETTE_COLORS[idx];
+      ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
+      ctx.fillRect(x * paintZoom, y * paintZoom, paintZoom, paintZoom);
+    }
+  }
+}
+
+function renderPaintPixel(x, y) {
+  const canvas = document.getElementById('paintCanvas');
+  const ctx = canvas.getContext('2d');
+  const idx = paintPixels[y * paintW + x];
+
+  // Redraw checker for this cell
+  const isEven = (x + y) % 2 === 0;
+  ctx.fillStyle = isEven ? '#222' : '#2a2a2a';
+  ctx.fillRect(x * paintZoom, y * paintZoom, paintZoom, paintZoom);
+
+  if(idx !== 0) {
+    const [r, g, b, a] = PALETTE_COLORS[idx];
+    ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`;
+    ctx.fillRect(x * paintZoom, y * paintZoom, paintZoom, paintZoom);
+  }
+}
+
+function updateZoom(v) {
+  paintZoom = parseInt(v);
+  document.getElementById('zoomLabel').textContent = v + '×';
+  if(paintW > 0 && paintH > 0) {
+    setupPaintCanvas();
+  }
+}
+
+function buildQuickPalette() {
+  const container = document.getElementById('quickPalette');
+  container.innerHTML = '';
+  for(let i = 0; i < PALETTE_CHARS.length; i++) {
+    const [r, g, b, a] = PALETTE_COLORS[i];
+    const isSelected = (i === selectedColorIdx);
+    const cell = document.createElement('div');
+    cell.className = 'pal-cell';
+    cell.style.borderColor = isSelected ? 'var(--border-hover)' : '';
+    cell.style.background  = isSelected ? 'var(--surface2)' : '';
+
+    const checker = 'repeating-linear-gradient(45deg,#333 0px,#333 4px,#222 4px,#222 8px)';
+    cell.innerHTML = `
+      <div class="pal-swatch" style="background:${i===0 ? checker : `rgba(${r},${g},${b},${a/255})`};"></div>
+      <span class="pal-char" style="${isSelected?'color:var(--accent-teal)':''}">${PALETTE_CHARS[i]}</span>
+    `;
+    cell.onclick = () => selectColor(i);
+    container.appendChild(cell);
+  }
+}
+
+function selectColor(idx) {
+  selectedColorIdx = idx;
+  document.getElementById('selChar').textContent = PALETTE_CHARS[idx];
+  updateSelectedSwatch();
+  buildQuickPalette();
+}
+
+function updateSelectedSwatch() {
+  const [r, g, b, a] = PALETTE_COLORS[selectedColorIdx];
+  const sw = document.getElementById('selSwatch');
+  sw.style.background = selectedColorIdx === 0
+    ? 'repeating-linear-gradient(45deg,#333 0px,#333 4px,#222 4px,#222 8px)'
+    : `rgba(${r},${g},${b},${a/255})`;
+}
+
+function clearPaint() {
+  if(!paintW || !paintH) return;
+  paintPixels = new Array(paintW * paintH).fill(0);
+  renderPaintCanvasFull();
+  updatePaintCode();
+}
+
+function updatePaintCode() {
+  if(!paintW || !paintH) return;
+  const code = encodePixels(paintPixels, paintW, paintH);
+  document.getElementById('paintOutput').textContent = code;
+  document.getElementById('paintMeta').textContent = `${paintW}×${paintH} · ${code.length} chars`;
+}
+
+function sendPaintToDecode() {
+  const code = document.getElementById('paintOutput').textContent;
+  document.getElementById('decInput').value = code;
+  document.getElementById('decW').value = paintW;
+  document.getElementById('decH').value = paintH;
+  switchTab('decode');
+  _runDecode();
+}
+
+// =====================================================================
+//  SHARE
+// =====================================================================
+
+function shareCode() {
+  const code = document.getElementById('encOutput').textContent;
+  const w = document.getElementById('encW').value;
+  const h = document.getElementById('encH').value;
+  const url = buildShareUrl(code, w, h);
+  document.getElementById('shareUrl').textContent = url;
+  document.getElementById('shareResult').style.display='block';
+  navigator.clipboard?.writeText(url).catch(()=>{});
+}
+
+function sharePaintCode() {
+  const code = document.getElementById('paintOutput').textContent;
+  const url = buildShareUrl(code, paintW, paintH);
+  document.getElementById('paintShareUrl').textContent = url;
+  document.getElementById('paintShareResult').style.display='block';
+  navigator.clipboard?.writeText(url).catch(()=>{});
+}
+
+function buildShareUrl(code, w, h) {
+  const base = window.location.href.split('?')[0];
+  return `${base}?w=${w}&h=${h}&c=${encodeURIComponent(code)}`;
+}
+
+function downloadCode() {
+  const code = document.getElementById('encOutput').textContent;
+  const w = document.getElementById('encW').value;
+  const h = document.getElementById('encH').value;
+  downloadPxc(code, w, h);
+}
+
+function downloadPaintCode() {
+  const code = document.getElementById('paintOutput').textContent;
+  downloadPxc(code, paintW, paintH);
+}
+
+function downloadPxc(code, w, h) {
+  const content = `// gatopaint v1\n// dim: ${w}x${h}\n// chars: ${code.length}\n${code}`;
+  const blob = new Blob([content], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'image.miau';
+  a.click();
+}
+
+function copyCode(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard?.writeText(text).then(()=>{
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ copiado';
+    setTimeout(()=>btn.textContent=orig, 1500);
+  });
+}
+
+// =====================================================================
+//  FULL PALETTE + OPS REFERENCE
+// =====================================================================
+
+function buildFullPalette() {
+  const container = document.getElementById('fullPalette');
+  container.innerHTML = '';
+  for(let i=0; i<PALETTE_CHARS.length; i++) {
+    const [r,g,b,a] = PALETTE_COLORS[i];
+    const hex = i===0 ? 'transparent' : `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+    const cell = document.createElement('div');
+    cell.className = 'pal-cell';
+    cell.innerHTML = `
+      <div class="pal-swatch" style="background:${i===0?'repeating-linear-gradient(45deg,#333 0px,#333 4px,#222 4px,#222 8px)':hex};"></div>
+      <span class="pal-char">${PALETTE_CHARS[i]}</span>
+      <span class="pal-hex">${i===0?'transp':hex}</span>
+    `;
+    container.appendChild(cell);
+  }
+}
+
+function buildOpsRef() {
+  const container = document.getElementById('opsRef');
+  const ops = [
+    ['A/', 'AA', '×2 — repite el carácter anterior 2 veces'],
+    ['A*', 'AAA', '×3 — repite 3 veces'],
+    ['A-', 'AAAA', '×4 — repite 4 veces'],
+    ['A+', 'AAAAA', '×5 — repite 5 veces'],
+    ['A/+', 'AAAAAAAAAA', 'combinación: 2×5 = 10 veces'],
+    ['A++', 'A×25', '5×5 = 25 veces'],
+    ['#', '(salto de línea)', 'nueva fila, el último color se extiende hasta el final'],
+    ['_', '(repetir fila)', 'repite la fila anterior completa'],
+    ['A|', 'AA (espejo)', 'simetría especular: la fila se completa espejando lo anterior'],
+    ['(AB)*', 'ABABAB', 'grupo: repite el patrón AB 3 veces'],
+    ['((AB)*C)+', 'ver descripción', 'anidación: (AB×3 + C) × 5'],
+  ];
+
+  container.innerHTML = ops.map(([sym, exp, desc]) => `
+    <div class="op-row">
+      <span class="op-sym">${sym}</span>
+      <span class="op-desc">${desc}</span>
+      <span class="op-ex">→ ${exp}</span>
+    </div>
+  `).join('');
+}
+
+// =====================================================================
+//  TABS
+// =====================================================================
+
+function switchTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active','amber','blue','purple'));
+  document.getElementById('panel-'+id).classList.add('active');
+
+  const btns = document.querySelectorAll('.tab-btn');
+  const map = {encode:0, decode:1, paint:2, palette:3};
+  const colorMap = {encode:'', decode:'blue', paint:'purple', palette:'amber'};
+  btns[map[id]].classList.add('active');
+  if(colorMap[id]) btns[map[id]].classList.add(colorMap[id]);
+}
+
+// =====================================================================
+//  STATUS
+// =====================================================================
+
+function showStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status ' + (type||'');
+  el.style.display='block';
+}
+
+// =====================================================================
+//  INIT
+// =====================================================================
+
+buildFullPalette();
+buildOpsRef();
+
+// Auto-load from URL params
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('c') && params.get('w') && params.get('h')) {
+    switchTab('decode');
+    loadFromUrl();
+  }
+});
+
+</script>
+</body>
+</html>
