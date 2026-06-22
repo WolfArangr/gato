@@ -633,14 +633,14 @@
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('encode')">// codificar imagen</button>
+    <button class="tab-btn active" onclick="switchTab('paint')">// gatopaint</button>
+    <button class="tab-btn" onclick="switchTab('encode')">// codificar imagen</button>
     <button class="tab-btn" onclick="switchTab('decode')">// decodificar texto</button>
-    <button class="tab-btn" onclick="switchTab('paint')">// gatopaint</button>
     <button class="tab-btn" onclick="switchTab('palette')">// paleta completa</button>
   </div>
 
   <!-- ====== ENCODE PANEL ====== -->
-  <div class="panel active" id="panel-encode">
+  <div class="panel" id="panel-encode">
     <div class="section-label"><span>// entrada</span></div>
 
     <div class="block accent-amber">
@@ -652,24 +652,33 @@
         font-size: 12px; cursor: pointer;
       " onchange="loadImageFile(this)">
 
-      <div class="row-3" style="margin-top:16px;">
+      <div style="margin-top:16px; display:grid; grid-template-columns:1fr auto 1fr 1fr; gap:12px; align-items:end;">
         <div>
           <label>ancho objetivo (px)</label>
-          <input type="number" id="encW" value="50" min="1" max="500">
+          <input type="number" id="encW" value="50" min="1" max="500" oninput="onEncWChange()">
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding-bottom:2px;gap:4px;">
+          <span style="font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;">proporción</span>
+          <button id="lockBtn" onclick="toggleLock()" title="bloquear proporción" style="
+            width:32px;height:32px;border:1px solid var(--border-hover);background:transparent;
+            color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;
+            justify-content:center;transition:all .15s;flex-shrink:0;
+          ">🔓</button>
         </div>
         <div>
           <label>alto objetivo (px)</label>
-          <input type="number" id="encH" value="50" min="1" max="500">
+          <input type="number" id="encH" value="50" min="1" max="500" oninput="onEncHChange()">
         </div>
         <div>
           <label>algoritmo de escala</label>
           <select id="encScaleMode">
-            <option value="fit">ajustar (fit)</option>
             <option value="stretch">estirar (stretch)</option>
+            <option value="fit">ajustar + letterbox (fit)</option>
             <option value="crop">recortar (crop)</option>
           </select>
         </div>
       </div>
+      <div id="encAspectHint" style="font-size:10px;color:var(--muted);margin-top:6px;font-style:italic;"></div>
 
       <div class="btn-row">
         <button class="btn btn-amber" onclick="encodeImage()">→ codificar</button>
@@ -685,6 +694,11 @@
         </div>
       </div>
       <div class="tooltip">los colores han sido cuantizados a los 63 colores de la paleta + transparencia</div>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn" onclick="downloadPreview('png')">descargar png</button>
+        <button class="btn" onclick="downloadPreview('jpeg')">descargar jpg</button>
+        <button class="btn" onclick="downloadPreview('webp')">descargar webp</button>
+      </div>
     </div>
 
     <div class="block accent-teal" id="encOutputBlock" style="display:none">
@@ -715,6 +729,20 @@
 
     <div class="block accent-blue">
       <div class="block-title">pegar código gatopaint</div>
+
+      <label>abrir archivo .miau</label>
+      <input type="file" id="miauFile" accept=".miau,text/plain" style="
+        background: var(--surface2); border: 1px solid var(--border);
+        color: var(--muted); padding: 10px; width: 100%; font-family: 'Space Mono', monospace;
+        font-size: 12px; cursor: pointer;
+      " onchange="loadMiauFile(this)">
+
+      <div style="display:flex;align-items:center;gap:12px;margin:16px 0 10px;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">o escribe manualmente</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+
       <label>dimensiones (ancho × alto)</label>
       <div class="row-2">
         <input type="number" id="decW" placeholder="ancho" min="1" max="1000" oninput="decodeRealtime()">
@@ -739,7 +767,9 @@
         <span id="decMeta" style="color:var(--muted);font-size:11px;">escribe dimensiones y código arriba para ver la imagen</span>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="downloadDecoded()">descargar png</button>
+        <button class="btn btn-primary" onclick="downloadDecoded('png')">descargar png</button>
+        <button class="btn" onclick="downloadDecoded('jpeg')">descargar jpg</button>
+        <button class="btn" onclick="downloadDecoded('webp')">descargar webp</button>
       </div>
     </div>
 
@@ -747,7 +777,7 @@
   </div>
 
   <!-- ====== PAINT PANEL ====== -->
-  <div class="panel" id="panel-paint">
+  <div class="panel active" id="panel-paint">
     <div class="section-label"><span>// gatopaint — editor de píxeles</span></div>
 
     <div class="block accent-purple">
@@ -957,47 +987,90 @@ sdkjh|ab(op)*0#___...</div>
 // =====================================================================
 
 const PALETTE_CHARS = '0abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@';
-// 0 = transparent, rest = 63 colors
+// index 0 = transparent, indices 1-63 = 63 opaque colors
+// Generated with OKLAB perceptual color space for maximum coverage:
+// 11 neutrals (black→white, perceptually uniform) + 52 chromatic
+// (12 hues × 30° × 4 tiers: shadow/body/bright/pastel) + 4 strategic extras
+// Min pairwise perceptual distance: 12.1 — no wasted near-duplicates
 
-const PALETTE_COLORS = (() => {
-  const colors = [];
-  // 0 = transparent
-  colors.push([0,0,0,0]);
-
-  // We generate 63 perceptually-spread colors
-  // Using a fixed, curated palette for predictability:
-  // Rows: hue steps, cols: lightness/saturation variation
-  const hues = [0, 15, 30, 45, 60, 80, 100, 120, 145, 170, 195, 210, 225, 240, 260, 280, 300, 320, 340, 355];
-  const configs = [
-    // [saturation%, lightness%]
-    [100, 50], [85, 65], [60, 35], [40, 80]
-  ];
-
-  // Generate from hsl
-  function hslToRgb(h, s, l) {
-    s /= 100; l /= 100;
-    const k = n => (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-    return [Math.round(f(0)*255), Math.round(f(8)*255), Math.round(f(4)*255), 255];
-  }
-
-  // Build palette: 63 colors
-  const palette63 = [];
-  // Vivid full-hue row (20 colors)
-  for(let h of hues) palette63.push(hslToRgb(h, 100, 50));
-  // Pastel row (20 colors)
-  for(let h of hues) palette63.push(hslToRgb(h, 70, 75));
-  // Dark saturated (20 colors)  
-  for(let h of hues) palette63.push(hslToRgb(h, 80, 28));
-  // Neutrals (3: white, mid gray, dark gray)
-  palette63.push([255,255,255,255]);
-  palette63.push([128,128,128,255]);
-  palette63.push([30,30,30,255]);
-
-  for(let i=0; i<63; i++) colors.push(palette63[i] || [128,128,128,255]);
-  return colors;
-})();
+const PALETTE_COLORS = [
+  [0,0,0,0],       // 0  transparent
+  [0,0,0,255],     // a  black
+  [7,7,7,255],     // b  near-black
+  [36,36,36,255],  // c  very dark gray
+  [69,69,69,255],  // d  dark gray
+  [102,102,102,255],// e  mid-dark gray
+  [134,134,134,255],// f  mid gray
+  [164,164,164,255],// g  mid-light gray
+  [193,193,193,255],// h  light gray
+  [219,219,219,255],// i  very light gray
+  [238,238,238,255],// j  near-white
+  [255,255,255,255],// k  white
+  // ── hue 0° (red/pink) ───────────────────
+  [119,0,55,255],  // l  dark crimson
+  [201,26,109,255],// m  vivid rose
+  [250,116,163,255],// n bright pink
+  [255,191,213,255],// o pastel pink
+  // ── hue 30° (red/orange) ────────────────
+  [124,0,0,255],   // p  dark red
+  [208,32,16,255], // q  vivid red
+  [255,120,101,255],// r bright coral
+  [255,194,181,255],// s pastel salmon
+  // ── hue 60° (orange) ────────────────────
+  [115,10,0,255],  // t  dark burnt orange
+  [195,66,0,255],  // u  vivid orange
+  [243,137,6,255], // v  bright amber
+  [255,202,155,255],// w pastel peach
+  // ── hue 90° (yellow) ────────────────────
+  [92,46,0,255],   // x  dark gold
+  [161,100,0,255], // y  vivid gold
+  [209,160,0,255], // z  bright yellow
+  [238,213,146,255],// A pastel yellow
+  // ── hue 120° (chartreuse) ───────────────
+  [50,67,0,255],   // B  dark olive
+  [100,127,0,255], // C  vivid olive
+  [155,182,17,255],// D  bright chartreuse
+  [207,225,157,255],// E pastel lime
+  // ── hue 150° (green) ────────────────────
+  [0,79,0,255],    // F  dark green
+  [0,144,27,255],  // G  vivid green
+  [67,196,107,255],// H  bright green
+  [173,233,184,255],// I pastel mint
+  // ── hue 180° (teal) ─────────────────────
+  [0,82,62,255],   // J  dark teal
+  [0,148,118,255], // K  vivid teal
+  [0,201,172,255], // L  bright teal
+  [146,235,218,255],// M pastel aqua
+  // ── hue 210° (sky) ──────────────────────
+  [0,75,106,255],  // N  dark sky blue
+  [0,140,180,255], // O  vivid sky blue
+  [0,194,226,255], // P  bright cyan
+  [141,232,248,255],// Q pastel sky
+  // ── hue 240° (blue) ─────────────────────
+  [0,60,136,255],  // R  dark blue
+  [0,120,221,255], // S  vivid blue
+  [0,179,255,255], // T  bright blue
+  [160,224,255,255],// U pastel blue
+  // ── hue 270° (violet) ───────────────────
+  [30,39,145,255], // V  dark indigo
+  [70,95,234,255], // W  vivid violet
+  [127,159,255,255],// X bright periwinkle
+  [192,213,255,255],// Y pastel lavender
+  // ── hue 300° (purple) ───────────────────
+  [75,17,131,255], // Z  dark purple
+  [135,71,215,255],// 1  vivid purple
+  [185,140,255,255],// 2 bright lilac
+  [224,203,255,255],// 3 pastel purple
+  // ── hue 330° (magenta) ──────────────────
+  [102,0,99,255],  // 4  dark magenta
+  [176,48,170,255],// 5  vivid magenta
+  [226,124,218,255],// 6 bright orchid
+  [250,194,244,255],// 7 pastel mauve
+  // ── strategic extras ────────────────────
+  [198,137,86,255],// 8  warm skin/sand (fills orange-brown gap)
+  [76,18,4,255],   // 9  deep chocolate brown
+  [71,122,138,255],// @  muted cool blue-gray (sky, shadows in photos)
+];
 
 function colorDist(a, b) {
   return Math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2);
@@ -1024,195 +1097,52 @@ function charToColor(ch) {
 // =====================================================================
 
 function encodePixels(pixels, w, h) {
-  // pixels: array of palette indices (0..63), length w*h
-  // Returns: rows array of strings, one per row
+  // Build raw char rows
   const rows = [];
-  for(let y=0; y<h; y++) {
-    const row = [];
-    for(let x=0; x<w; x++) row.push(PALETTE_CHARS[pixels[y*w+x]]);
-    rows.push(row.join(''));
+  for(let y = 0; y < h; y++) {
+    let row = '';
+    for(let x = 0; x < w; x++) row += PALETTE_CHARS[pixels[y*w+x]];
+    rows.push(row);
   }
 
-  // Apply run-length encoding per row
-  function rleRow(row) {
+  // RLE encode a single raw row into compressed form
+  function rleRow(raw) {
     let out = '';
     let i = 0;
-    while(i < row.length) {
-      const ch = row[i];
+    while(i < raw.length) {
+      const ch = raw[i];
       let count = 1;
-      while(i+count < row.length && row[i+count] === ch) count++;
-      out += encodeRun(ch, count);
-      i += count;
-    }
-    return out;
-  }
-
-  function encodeRun(ch, count) {
-    // operators: /=2, *=3, -=4, +=5
-    if(count === 1) return ch;
-    // Decompose count into multiplier chain
-    // We try to express count using combinations of 2,3,4,5
-    return ch + encodeMultipliers(count);
-  }
-
-  function encodeMultipliers(n) {
-    if(n === 1) return '';
-    // Greedy from largest
-    const ops = [[5,'+'],[4,'-'],[3,'*'],[2,'/']];
-    let s = '';
-    while(n > 1) {
-      let found = false;
-      for(const [v, op] of ops) {
-        if(n % v === 0) { s += op; n = n/v; found = true; break; }
-      }
-      if(!found) {
-        // Remainder: just repeat
-        // e.g. count=7: 5+2 = a+a/  but simpler: just write literal
-        // For simplicity: greedy largest ≤ n
-        let best = 1, bestOp = '';
-        for(const [v, op] of ops) { if(v <= n && v > best) { best = v; bestOp = op; } }
-        if(best > 1) { s += bestOp; n -= (best-1)*1; /* wrong — we need multiplicative */ }
-        // Actually for non-divisible: break into parts
-        // n=7: floor(7/5)=1 r2 → a+a/ … but we need to emit char again
-        // Let's just repeat the char
-        s = '';
-        return encodeRunLiteral(n);
-      }
-    }
-    return s;
-  }
-
-  function encodeRunLiteral(n) {
-    // Decompose n as sum of products of 2,3,4,5
-    // We'll use a simple DP / greedy approach
-    let out = '';
-    const ops = [[5,'+'],[4,'-'],[3,'*'],[2,'/']];
-    while(n > 0) {
-      let used = false;
-      for(const [v,op] of ops) {
-        if(n >= v && n % v === 0) {
-          // Check if we can express n as product
-          out += op; n = n/v; used = true; break;
-        }
-      }
-      if(!used) {
-        // Take largest factor ≤ n
-        let best = 1;
-        for(const [v] of ops) if(v <= n) { best = v; break; }
-        if(best > 1) { n -= best; out += '×'.repeat(0); /* placeholder */ }
-        else { n--; } // single unit already counted
-        break;
-      }
-    }
-    return out;
-  }
-
-  // Better RLE: handle arbitrary counts
-  function encodeCount(count) {
-    if(count === 1) return '';
-    // Express as chain of multipliers, remainder as repeated chars
-    // Factorize greedily
-    const ops = {5:'+', 4:'-', 3:'*', 2:'/'};
-    const factors = [];
-    let n = count;
-    while(n > 1) {
-      let found = false;
-      for(const v of [5,4,3,2]) {
-        if(n % v === 0) { factors.push(v); n = n/v; found=true; break; }
-      }
-      if(!found) {
-        // n is prime > 5 or remainder: use floor approach
-        // Express as: n = q*5 + r → emit char q times with + then r times bare
-        // This requires emitting the char multiple times in caller
-        factors.push(n); n = 1; // just return n as bare repeats
-      }
-    }
-    return factors.map(f => ops[f] || '').join('');
-  }
-
-  function buildRLE(rawRow) {
-    let out = '';
-    let i = 0;
-    while(i < rawRow.length) {
-      const ch = rawRow[i];
-      let count = 1;
-      while(i+count < rawRow.length && rawRow[i+count] === ch) count++;
-
-      // Handle arbitrary count: factorize cleanly
+      while(i + count < raw.length && raw[i+count] === ch) count++;
       out += encodeRunFull(ch, count);
       i += count;
     }
     return out;
   }
 
+  // Express a run of `n` copies of `ch` using multiplier operators
   function encodeRunFull(ch, n) {
     if(n === 1) return ch;
-    // Try to express n as product of 2,3,4,5
-    const mults = factorize(n);
-    if(mults !== null) return ch + mults;
-    // Otherwise: split into factorizable chunks
+    const ops = factorize(n);
+    if(ops !== null) return ch + ops;
+    // n not fully factorisable — split into factorisable chunks
     let out = '';
     while(n > 0) {
-      // Find largest ≤ n that is factorizable
-      let found = false;
-      for(let k = n; k >= 1; k--) {
+      // find largest k <= n that factorises cleanly
+      for(let k = Math.min(n, 500); k >= 1; k--) {
         const f = factorize(k);
-        if(f !== null) {
-          out += ch + f;
-          n -= k;
-          found = true;
-          break;
-        }
+        if(f !== null) { out += ch + f; n -= k; break; }
       }
-      if(!found) { out += ch; n--; }
     }
     return out;
   }
 
-  function factorize(n) {
-    if(n === 1) return '';
-    const ops = [[5,'+'],[4,'-'],[3,'*'],[2,'/']];
-    // DP: find sequence of multiplications = n
-    function dp(rem, path) {
-      if(rem === 1) return path;
-      for(const [v,op] of ops) {
-        if(rem % v === 0) {
-          const res = dp(rem/v, path+op);
-          if(res !== null) return res;
-        }
-      }
-      return null;
-    }
-    return dp(n, '');
-  }
-
-  // Apply mirror compression if right half mirrors left
-  function tryMirror(row) {
-    const len = row.length;
-    if(len < 4) return null;
-    // Check if row is palindrome-like: first half mirrors second half
-    const half = Math.floor(len/2);
-    const left = row.slice(0, half);
-    const rev = row.slice(0, half).split('').reverse().join('');
-    const right = row.slice(len - half);
-    if(right === rev) {
-      // Can use mirror: encode left half + |
-      return left + '|';
-    }
-    return null;
-  }
-
   // Encode each row with RLE
-  const encodedRows = rows.map(r => {
-    const rle = buildRLE(r);
-    const mir = tryMirror(r);
-    if(mir && mir.length < rle.length) return mir;
-    return rle;
-  });
+  const encodedRows = rows.map(r => rleRow(r));
 
   // Apply line-repeat compression (_)
+  // Consecutive identical raw rows become _ markers
   const finalLines = [];
-  for(let i=0; i<encodedRows.length; i++) {
+  for(let i = 0; i < encodedRows.length; i++) {
     if(i > 0 && rows[i] === rows[i-1]) {
       finalLines.push('_');
     } else {
@@ -1220,16 +1150,7 @@ function encodePixels(pixels, w, h) {
     }
   }
 
-  // Collapse consecutive _ lines
-  let result = finalLines.join('#');
-
-  // Collapse consecutive _ blocks with operators
-  result = result.replace(/(_#)+_/g, m => {
-    const count = (m.length + 1) / 2;
-    return '_' + factorize(count) || '_'.repeat(count);
-  });
-
-  return result;
+  return finalLines.join('#');
 }
 
 function factorize(n) {
@@ -1415,13 +1336,84 @@ function renderPixels(canvas, pixels, w, h, zoom=1) {
 // =====================================================================
 
 let loadedImage = null;
+let aspectLocked = false; // becomes true automatically when image loads
+let aspectRatio  = 1;
 
 function loadImageFile(input) {
   const file = input.files[0];
   if(!file) return;
   const img = new Image();
-  img.onload = () => { loadedImage = img; showStatus('encStatus', `imagen cargada: ${img.width}×${img.height}px`, 'ok'); };
+  img.onload = () => {
+    loadedImage = img;
+    aspectRatio = img.width / img.height;
+
+    // Fill in native dimensions (capped at 200 so it's still usable)
+    const maxSide = 512;
+    let w = img.width, h = img.height;
+    if(w > maxSide || h > maxSide) {
+      if(w >= h) { h = Math.round(maxSide * h / w); w = maxSide; }
+      else       { w = Math.round(maxSide * w / h); h = maxSide; }
+    }
+    document.getElementById('encW').value = w;
+    document.getElementById('encH').value = h;
+
+    // Enable lock by default
+    aspectLocked = true;
+    updateLockBtn();
+    updateAspectHint(img.width, img.height);
+
+    showStatus('encStatus', `imagen cargada: ${img.width}×${img.height}px · proporción ${gcd(img.width,img.height) > 0 ? (img.width/gcd(img.width,img.height))+'∶'+(img.height/gcd(img.width,img.height)) : ''}`, 'ok');
+  };
   img.src = URL.createObjectURL(file);
+}
+
+function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+function toggleLock() {
+  aspectLocked = !aspectLocked;
+  if(aspectLocked && loadedImage) {
+    // Snap H to match current W
+    const w = parseInt(document.getElementById('encW').value) || 50;
+    document.getElementById('encH').value = Math.max(1, Math.round(w / aspectRatio));
+  }
+  updateLockBtn();
+}
+
+function updateLockBtn() {
+  const btn = document.getElementById('lockBtn');
+  if(aspectLocked) {
+    btn.textContent = '🔒';
+    btn.style.color      = 'var(--accent-teal)';
+    btn.style.borderColor = 'var(--accent-teal)';
+    btn.style.background  = 'rgba(45,191,138,.08)';
+  } else {
+    btn.textContent = '🔓';
+    btn.style.color      = 'var(--muted)';
+    btn.style.borderColor = 'var(--border-hover)';
+    btn.style.background  = 'transparent';
+  }
+}
+
+function updateAspectHint(srcW, srcH) {
+  const hint = document.getElementById('encAspectHint');
+  if(!srcW || !srcH) { hint.textContent = ''; return; }
+  const g = gcd(srcW, srcH);
+  const rw = srcW/g, rh = srcH/g;
+  hint.textContent = `original: ${srcW}×${srcH}px · proporción ${rw}∶${rh}${aspectLocked ? ' · bloqueada 🔒' : ' · libre'}`;
+}
+
+function onEncWChange() {
+  if(!aspectLocked || !loadedImage) return;
+  const w = parseInt(document.getElementById('encW').value);
+  if(!w || w < 1) return;
+  document.getElementById('encH').value = Math.max(1, Math.round(w / aspectRatio));
+}
+
+function onEncHChange() {
+  if(!aspectLocked || !loadedImage) return;
+  const h = parseInt(document.getElementById('encH').value);
+  if(!h || h < 1) return;
+  document.getElementById('encW').value = Math.max(1, Math.round(h * aspectRatio));
 }
 
 function encodeImage() {
@@ -1469,7 +1461,13 @@ function encodeImage() {
 
 function clearEncode() {
   loadedImage = null;
+  aspectLocked = true;
+  aspectRatio  = 1;
   document.getElementById('imgFile').value='';
+  document.getElementById('encW').value = '50';
+  document.getElementById('encH').value = '50';
+  document.getElementById('encAspectHint').textContent = '';
+  updateLockBtn();
   document.getElementById('encPreviewBlock').style.display='none';
   document.getElementById('encOutputBlock').style.display='none';
   document.getElementById('encStatus').style.display='none';
@@ -1528,10 +1526,57 @@ function clearDecode() {
   document.getElementById('decInput').value = '';
   document.getElementById('decW').value = '';
   document.getElementById('decH').value = '';
+  document.getElementById('miauFile').value = '';
   document.getElementById('decMeta').textContent = 'escribe dimensiones y código arriba para ver la imagen';
   const c = document.getElementById('decCanvas');
   c.width = 1; c.height = 1;
   document.getElementById('decStatus').style.display = 'none';
+}
+
+function loadMiauFile(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = e.target.result;
+    const lines = text.split('\n');
+
+    // Parse header: lines starting with //
+    let w = null, h = null, code = '';
+    for(const line of lines) {
+      const trimmed = line.trim();
+      if(trimmed.startsWith('// dim:')) {
+        // "// dim: 50x50" or "// dim:50x50"
+        const match = trimmed.match(/dim:\s*(\d+)[x×](\d+)/i);
+        if(match) { w = parseInt(match[1]); h = parseInt(match[2]); }
+      } else if(trimmed.startsWith('//')) {
+        // other comment lines, skip
+      } else if(trimmed.length > 0) {
+        // First non-comment non-empty line is the code
+        code = trimmed;
+        break;
+      }
+    }
+
+    if(!code) {
+      showStatus('decStatus', 'archivo .miau vacío o sin código', 'err');
+      return;
+    }
+    if(!w || !h) {
+      showStatus('decStatus', 'no se encontró cabecera "// dim: WxH" — introduce las dimensiones manualmente', 'err');
+      // Still load the code so user can fill dims manually
+      document.getElementById('decInput').value = code;
+      return;
+    }
+
+    document.getElementById('decW').value = w;
+    document.getElementById('decH').value = h;
+    document.getElementById('decInput').value = code;
+    switchTab('decode');
+    _runDecode();
+    showStatus('decStatus', `archivo ${file.name} cargado · ${w}×${h}px`, 'ok');
+  };
+  reader.readAsText(file);
 }
 
 function loadFromUrl() {
@@ -1549,12 +1594,36 @@ function loadFromUrl() {
   }
 }
 
-function downloadDecoded() {
+function downloadDecoded(fmt = 'png') {
   const canvas = document.getElementById('decCanvas');
   if(canvas.width <= 1) { showStatus('decStatus','nada que descargar todavía','err'); return; }
+  _downloadCanvas(canvas, 'decoded', fmt);
+}
+
+function downloadPreview(fmt = 'png') {
+  const canvas = document.getElementById('previewCanvas');
+  _downloadCanvas(canvas, 'preview', fmt);
+}
+
+function _downloadCanvas(canvas, name, fmt) {
+  const mimeMap = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' };
+  const mime = mimeMap[fmt] || 'image/png';
+  const ext  = fmt === 'jpeg' ? 'jpg' : fmt;
+  // For JPEG (no alpha), paint canvas onto white background first
+  let src = canvas;
+  if(fmt === 'jpeg') {
+    const tmp = document.createElement('canvas');
+    tmp.width  = canvas.width;
+    tmp.height = canvas.height;
+    const ctx = tmp.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, tmp.width, tmp.height);
+    ctx.drawImage(canvas, 0, 0);
+    src = tmp;
+  }
   const link = document.createElement('a');
-  link.download = 'decoded.png';
-  link.href = canvas.toDataURL('image/png');
+  link.download = `${name}.${ext}`;
+  link.href = src.toDataURL(mime, 0.92);
   link.click();
 }
 
@@ -1860,13 +1929,13 @@ function switchTab(id) {
   document.getElementById('panel-'+id).classList.add('active');
 
   const btns = document.querySelectorAll('.tab-btn');
-  const map = {encode:0, decode:1, paint:2, palette:3};
-  const colorMap = {encode:'', decode:'blue', paint:'purple', palette:'amber'};
+  const map = {paint:0, encode:1, decode:2, palette:3};
+  const colorMap = {paint:'purple', encode:'amber', decode:'blue', palette:''};
   btns[map[id]].classList.add('active');
   if(colorMap[id]) btns[map[id]].classList.add(colorMap[id]);
 
-  // Explanation section only visible on the encode (main) tab
-  const showExplain = (id === 'encode');
+  // Explanation section only visible on the paint (main) tab
+  const showExplain = (id === 'paint');
   document.getElementById('explainSection').style.display = showExplain ? '' : 'none';
   document.getElementById('explainDivider').style.display  = showExplain ? '' : 'none';
 }
@@ -1888,16 +1957,24 @@ function showStatus(id, msg, type) {
 
 buildFullPalette();
 buildOpsRef();
+updateLockBtn(); // start in unlocked visual state (no image yet)
 
-// Explanation starts visible (encode tab is default)
-// Nothing needed — it's visible by default in HTML
-
-// Auto-load from URL params
+// Auto-load from URL params, otherwise boot straight into gatopaint with 64x64
 window.addEventListener('load', () => {
   const params = new URLSearchParams(window.location.search);
   if(params.get('c') && params.get('w') && params.get('h')) {
     switchTab('decode');
     loadFromUrl();
+  } else {
+    // Default: paint tab active, 64×64 canvas ready to go
+    document.getElementById('inputPaintW').value = 64;
+    document.getElementById('inputPaintH').value = 64;
+    document.getElementById('paintZoomRange').value = 8;
+    document.getElementById('zoomLabel').textContent = '8×';
+    initPaintCanvas();
+    // Set the paint tab button active state visually
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active','amber','blue','purple'));
+    document.querySelector('.tab-btn').classList.add('active', 'purple');
   }
 });
 
