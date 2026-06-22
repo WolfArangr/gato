@@ -530,10 +530,14 @@
 
   .use-case-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 14px;
     margin-top: 16px;
     margin-bottom: 32px;
+  }
+
+  @media (max-width: 900px) {
+    .use-case-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   .use-case {
@@ -702,7 +706,8 @@
     </div>
 
     <div id="encStatus" class="status" style="display:none"></div>
-  </div>
+  <!-- DIVIDER + EXPLANATION: only shown in encode tab, lives inside that panel -->
+  </div><!-- close panel-encode -->
 
   <!-- ====== DECODE PANEL ====== -->
   <div class="panel" id="panel-decode">
@@ -833,10 +838,10 @@
   </div>
 
   <!-- DIVIDER -->
-  <div class="divider"></div>
+  <div class="divider" id="explainDivider"></div>
 
   <!-- ====== EXPLANATION SECTION ====== -->
-  <div class="explain-section">
+  <div class="explain-section" id="explainSection">
     <div class="section-label"><span>// cómo funciona y para qué sirve</span></div>
 
     <p class="explain-lead">
@@ -1581,24 +1586,16 @@ function initPaintCanvas() {
 }
 
 function setupPaintCanvas() {
-  const canvas = document.getElementById('paintCanvas');
-  // Set exact pixel dimensions
-  canvas.width  = paintW * paintZoom;
-  canvas.height = paintH * paintZoom;
-  canvas.style.width  = (paintW * paintZoom) + 'px';
-  canvas.style.height = (paintH * paintZoom) + 'px';
-
-  // Remove old listeners by cloning
-  const fresh = canvas.cloneNode(false);
-  canvas.parentNode.replaceChild(fresh, fresh); // keep same node, just reset
-  
-  // Re-get (same element, just cleared listeners via replacement strategy)
   const c = document.getElementById('paintCanvas');
+
+  // Set canvas buffer size exactly
   c.width  = paintW * paintZoom;
   c.height = paintH * paintZoom;
+  // Force CSS size to match (prevents browser scaling)
   c.style.width  = (paintW * paintZoom) + 'px';
   c.style.height = (paintH * paintZoom) + 'px';
 
+  // Assign handlers directly — .on* always replaces previous handler, no cloning needed
   c.onmousedown  = (e) => { e.preventDefault(); paintDrawing = true; paintAt(e, c); };
   c.onmousemove  = (e) => { if(paintDrawing) paintAt(e, c); };
   c.onmouseup    = ()  => { paintDrawing = false; updatePaintCode(); };
@@ -1867,6 +1864,11 @@ function switchTab(id) {
   const colorMap = {encode:'', decode:'blue', paint:'purple', palette:'amber'};
   btns[map[id]].classList.add('active');
   if(colorMap[id]) btns[map[id]].classList.add(colorMap[id]);
+
+  // Explanation section only visible on the encode (main) tab
+  const showExplain = (id === 'encode');
+  document.getElementById('explainSection').style.display = showExplain ? '' : 'none';
+  document.getElementById('explainDivider').style.display  = showExplain ? '' : 'none';
 }
 
 // =====================================================================
@@ -1886,6 +1888,9 @@ function showStatus(id, msg, type) {
 
 buildFullPalette();
 buildOpsRef();
+
+// Explanation starts visible (encode tab is default)
+// Nothing needed — it's visible by default in HTML
 
 // Auto-load from URL params
 window.addEventListener('load', () => {
