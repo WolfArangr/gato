@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sistema x · estándar dimensional modular — gato.red</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #0d0d0d;
+  --surface:      #161616;
+  --surface2:     #1e1e1e;
+  --border:       rgba(255,255,255,.07);
+  --border-hover: rgba(255,255,255,.18);
+  --text:         #f0ece2;
+  --muted:        #888;
+  --ghost:        #444;
+  --red:          #e84d4d;
+  --amber:        #f0a020;
+  --teal:         #2dbf8a;
+  --blue:         #4d9de8;
+  --purple:       #9b7dea;
+  --pink:         #e05ca3;
+  --gray:         #aaa;
+  /* system x accent principal: amber (herramientas/fabricación) */
+  --accent:       #f0a020;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background: repeating-linear-gradient(to bottom,rgba(0,0,0,.04) 0px,rgba(0,0,0,.04) 1px,transparent 1px,transparent 2px);
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #333; }
+
+.wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+@media (max-width:700px) { .wrap { padding: 0 16px; } }
+
+/* ── header ── */
+header {
+  border-bottom: 1px solid var(--border); padding: 28px 0 22px;
+  position: sticky; top: 0; z-index: 100; background: var(--bg);
+}
+.header-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.logo { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 22px; letter-spacing: -0.03em; color: var(--text); text-decoration: none; line-height: 1; }
+.logo .dot { color: var(--red); }
+.logo-sub { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-top: 5px; }
+.header-stats { display: flex; gap: 32px; text-align: right; }
+.hstat-val { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 20px; letter-spacing: -0.03em; color: var(--text); display: block; }
+.hstat-lbl { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 2px; }
+@media (max-width:700px) { .header-stats { gap: 12px; } .hstat-val { font-size: 15px; } }
+nav { margin-top: 18px; display: flex; gap: 20px; flex-wrap: wrap; }
+nav a { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color .15s; }
+nav a:hover { color: var(--text); }
+
+/* ── secciones ── */
+section { padding: 72px 0; }
+section + section { border-top: 1px solid var(--border); }
+.section-label { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.section-label span { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+h1 { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: clamp(2rem,5vw,3.8rem); letter-spacing: -0.03em; line-height: 1.05; color: var(--text); }
+h2 { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: clamp(1.4rem,3vw,2.2rem); letter-spacing: -0.02em; line-height: 1.1; color: var(--text); margin-bottom: 12px; }
+h3 { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: -0.01em; color: var(--text); margin-bottom: 6px; }
+p { color: var(--muted); margin-bottom: 12px; }
+p strong { color: var(--text); }
+.lead { font-size: 14px; color: var(--text); margin-bottom: 20px; line-height: 1.75; }
+
+/* ── hero ── */
+#hero { padding: 90px 0 72px; border-top: none; }
+.hero-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.hero-eyebrow::before { content: '//'; color: var(--red); font-weight: 700; }
+h1 .acc { color: var(--accent); }
+.hero-sub { max-width: 620px; margin-top: 20px; font-size: 13px; color: var(--muted); line-height: 1.75; }
+.hero-meta { margin-top: 48px; display: inline-flex; border: 1px solid var(--border); }
+.hmeta-item { padding: 16px 28px; border-right: 1px solid var(--border); }
+.hmeta-item:last-child { border-right: none; }
+.hmeta-val { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 1.5rem; letter-spacing: -0.03em; color: var(--accent); display: block; }
+.hmeta-lbl { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 3px; }
+@media (max-width:700px) { .hero-meta { display: grid; grid-template-columns: 1fr 1fr; width: 100%; } .hmeta-item { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); } }
+
+/* ── toggle simple/técnico ── */
+.mode-strip { display: inline-flex; border: 1px solid var(--border); margin: 20px 0 24px; }
+.mode-btn { padding: 7px 18px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; border: none; color: var(--muted); cursor: pointer; transition: all .15s; }
+.mode-btn.active { background: var(--accent); color: var(--bg); }
+.mode-panel { display: none; }
+.mode-panel.active { display: block; }
+
+/* ── tabla principal ── */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--border); margin-top: 24px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead tr { background: var(--surface); }
+th { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 400; }
+td { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--muted); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,.02); }
+td.sz { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 14px; color: var(--accent); }
+td.dim { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); }
+td.hi { color: var(--teal); font-family: 'Space Mono', monospace; }
+td.md { color: var(--amber); font-family: 'Space Mono', monospace; }
+
+/* ── visualizador de tamaños ── */
+.sizes-section { background: var(--surface); }
+.sizes-wrap { margin-top: 32px; position: relative; }
+.sizes-intro { margin-bottom: 24px; }
+.scale-controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.size-btn {
+  padding: 5px 14px; font-family: 'Space Mono', monospace; font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.size-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.size-btn:hover:not(.active) { border-color: var(--border-hover); color: var(--text); }
+.canvas-container {
+  border: 1px solid var(--border); background: var(--bg);
+  overflow: auto; position: relative; height: 480px;
+  display: flex; align-items: center; justify-content: center;
+}
+#sizeCanvas { display: block; }
+.size-info-panel {
+  margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+}
+.sinfo {
+  background: var(--bg); padding: 14px 16px; transition: background .15s;
+}
+.sinfo:hover { background: var(--surface); }
+.sinfo-name { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 18px; color: var(--accent); margin-bottom: 4px; }
+.sinfo-dim { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text); }
+.sinfo-area { font-size: 10px; color: var(--ghost); margin-top: 2px; }
+
+/* ── comparativa ISO ── */
+.comp-grid { display: grid; gap: 1px; grid-template-columns: 1fr 1fr; background: var(--border); border: 1px solid var(--border); margin-top: 28px; }
+@media (max-width:700px) { .comp-grid { grid-template-columns: 1fr; } }
+.comp-col { background: var(--bg); padding: 28px 24px; }
+.comp-col:first-child { border-top: 3px solid var(--amber); }
+.comp-col:last-child  { border-top: 3px solid var(--blue); }
+.comp-label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px; display: block; }
+.comp-col:first-child .comp-label { color: var(--amber); }
+.comp-col:last-child  .comp-label { color: var(--blue); }
+.comp-title { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 1.1rem; color: var(--text); margin-bottom: 16px; }
+.comp-row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 8px 0; font-size: 11px; }
+.comp-row:last-child { border-bottom: none; }
+.comp-k { color: var(--ghost); }
+.comp-v { font-family: 'Space Mono', monospace; color: var(--text); }
+.comp-v.good { color: var(--teal); }
+.comp-v.bad  { color: var(--red); }
+.comp-v.neu  { color: var(--amber); }
+
+/* ── calculadora de nesting ── */
+.calc-section { background: var(--surface); }
+.nesting-calc { display: grid; gap: 32px; grid-template-columns: 1fr 1fr; margin-top: 32px; }
+@media (max-width:700px) { .nesting-calc { grid-template-columns: 1fr; } }
+.calc-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+.calc-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.calc-select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  font-family: 'Space Mono', monospace; font-size: 12px; padding: 8px 12px;
+  appearance: none; cursor: pointer; outline: none;
+}
+.calc-select:focus { border-color: var(--accent); }
+.nesting-result { border: 1px solid var(--border); padding: 28px; }
+.nr-label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+.nr-value { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 3rem; letter-spacing: -0.04em; color: var(--accent); line-height: 1.1; margin: 8px 0 4px; }
+.nr-unit { font-size: 11px; color: var(--muted); }
+.nr-detail { margin-top: 14px; font-size: 12px; color: var(--muted); line-height: 1.75; border-left: 2px solid var(--accent); padding-left: 14px; }
+.nr-detail strong { color: var(--text); }
+.nr-warn { margin-top: 12px; font-size: 11px; color: var(--red); }
+#nest-canvas { margin-top: 20px; border: 1px solid var(--border); display: block; max-width: 100%; }
+
+/* ── calculadora pixels ── */
+.px-grid { display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); background: var(--border); border: 1px solid var(--border); margin-top: 24px; }
+.px-card { background: var(--bg); padding: 16px; transition: background .15s; }
+.px-card:hover { background: var(--surface); }
+.px-dpi { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.px-val { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); }
+
+/* ── usos ── */
+.uses-grid { display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); background: var(--border); border: 1px solid var(--border); margin-top: 28px; }
+.use-card { background: var(--bg); padding: 22px 20px; border-top: 3px solid transparent; transition: background .15s; }
+.use-card:hover { background: var(--surface); }
+.use-card.u1 { border-top-color: var(--amber); }
+.use-card.u2 { border-top-color: var(--teal); }
+.use-card.u3 { border-top-color: var(--blue); }
+.use-card.u4 { border-top-color: var(--purple); }
+.use-card.u5 { border-top-color: var(--pink); }
+.use-icon { font-size: 20px; margin-bottom: 12px; }
+.use-card h3 { font-size: 12px; margin-bottom: 8px; }
+.use-card p { font-size: 11px; margin: 0; }
+
+/* ── ventajas / inconvenientes ── */
+.vs-grid { display: grid; gap: 1px; grid-template-columns: 1fr 1fr; background: var(--border); border: 1px solid var(--border); margin-top: 28px; }
+@media (max-width:700px) { .vs-grid { grid-template-columns: 1fr; } }
+.vs-col { background: var(--bg); padding: 24px; }
+.vs-col.pro { border-top: 3px solid var(--teal); }
+.vs-col.con { border-top: 3px solid var(--red); }
+.vs-header { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; display: block; }
+.vs-col.pro .vs-header { color: var(--teal); }
+.vs-col.con .vs-header { color: var(--red); }
+.vs-item { display: flex; gap: 10px; margin-bottom: 12px; font-size: 12px; color: var(--muted); }
+.vs-item::before { flex-shrink: 0; font-size: 11px; margin-top: 1px; }
+.vs-col.pro .vs-item::before { content: '✓'; color: var(--teal); }
+.vs-col.con .vs-item::before { content: '✗'; color: var(--red); }
+
+/* ── idoneidad ── */
+.fit-grid { display: grid; gap: 1px; grid-template-columns: 1fr 1fr; background: var(--border); border: 1px solid var(--border); margin-top: 28px; }
+@media (max-width:700px) { .fit-grid { grid-template-columns: 1fr; } }
+.fit-col { background: var(--bg); padding: 22px; }
+.fit-col.good { border-top: 3px solid var(--teal); }
+.fit-col.bad  { border-top: 3px solid var(--red); }
+.fit-label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px; display: block; }
+.fit-col.good .fit-label { color: var(--teal); }
+.fit-col.bad  .fit-label { color: var(--red); }
+.fit-item { font-size: 12px; color: var(--muted); margin-bottom: 8px; padding-left: 14px; position: relative; }
+.fit-item::before { content: '→'; position: absolute; left: 0; }
+.fit-col.good .fit-item::before { color: var(--teal); }
+.fit-col.bad  .fit-item::before { color: var(--red); }
+
+/* ── accordión técnico ── */
+.accordion { display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); margin-top: 28px; background: var(--border); }
+.acc-hdr { width: 100%; background: var(--bg); border: none; cursor: pointer; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; text-align: left; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.06em; transition: background .15s; }
+.acc-hdr:hover { background: var(--surface); color: var(--text); }
+.acc-icon { color: var(--accent); font-size: 14px; transition: transform .2s; line-height: 1; }
+.acc-icon.open { transform: rotate(45deg); }
+.acc-body { max-height: 0; overflow: hidden; transition: max-height .35s ease; background: var(--surface); }
+.acc-body.open { max-height: 1000px; }
+.acc-inner { padding: 18px 20px; font-size: 12px; color: var(--muted); line-height: 1.75; }
+.acc-inner .eq { font-family: 'Space Mono', monospace; font-size: 11px; background: var(--bg); padding: 12px 16px; color: var(--accent); margin: 12px 0; border-left: 2px solid var(--accent); }
+.acc-inner ul { padding-left: 16px; }
+.acc-inner li { margin-bottom: 5px; }
+.acc-inner strong { color: var(--text); }
+.acc-inner .tbl-wrap { margin-top: 14px; }
+
+/* ── roadmap ── */
+.roadmap { display: grid; gap: 1px; grid-template-columns: repeat(4,1fr); background: var(--border); border: 1px solid var(--border); margin-top: 28px; }
+@media (max-width:700px) { .roadmap { grid-template-columns: 1fr 1fr; } }
+.phase { background: var(--bg); padding: 20px 18px; transition: background .15s; border-top: 3px solid transparent; }
+.phase:hover { background: var(--surface); }
+.phase:nth-child(1) { border-top-color: var(--muted); }
+.phase:nth-child(2) { border-top-color: var(--amber); }
+.phase:nth-child(3) { border-top-color: var(--teal); }
+.phase:nth-child(4) { border-top-color: var(--blue); }
+.phase-tag { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+.phase-title { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 12px; color: var(--text); margin-bottom: 10px; }
+.phase-items { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); }
+.phase-items span::before { content: '→ '; color: var(--accent); }
+
+/* ── footer ── */
+footer { border-top: 1px solid var(--border); padding: 28px 0; }
+.footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.footer-left { font-size: 11px; color: var(--ghost); }
+.gh-link { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); padding: 8px 16px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: all .15s; font-family: 'Space Mono', monospace; }
+.gh-link:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── misc ── */
+code { font-family: 'Space Mono', monospace; font-size: 11px; background: var(--surface); padding: 1px 6px; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="header-inner">
+      <div>
+        <a class="logo" href="https://gato.red">gato<span class="dot">.</span>red</a>
+        <div class="logo-sub">sistema x · estándar dimensional modular · v1.0</div>
+      </div>
+      <div class="header-stats">
+        <div>
+          <span class="hstat-val">10</span>
+          <span class="hstat-lbl">tamaños definidos</span>
+        </div>
+        <div>
+          <span class="hstat-val">0%</span>
+          <span class="hstat-lbl">desperdicio interno</span>
+        </div>
+        <div>
+          <span class="hstat-val">CC0</span>
+          <span class="hstat-lbl">dominio público</span>
+        </div>
+      </div>
+    </div>
+    <nav>
+      <a href="#intro">// intro</a>
+      <a href="#tamaños">// tamaños</a>
+      <a href="#visual">// visualizador</a>
+      <a href="#vs-iso">// vs iso 216</a>
+      <a href="#nesting">// nesting</a>
+      <a href="#usos">// usos</a>
+      <a href="#tecnico">// técnico</a>
+    </nav>
+  </div>
+</header>
+
+<!-- hero -->
+<section id="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">especificación técnica · diciembre 2025 · cc0 dominio público</div>
+    <h1>sistema <span class="acc">x</span></h1>
+    <p class="hero-sub" style="margin-top:8px;font-size:15px;color:var(--muted)">estándar dimensional modular para papel, fabricación y medios digitales</p>
+    <p class="hero-sub">una familia de diez tamaños derivados por <strong>división exacta a la mitad</strong>, con dimensiones en milímetros enteros, proporciones racionales, y cero residuos en cortes internos. pensado para talleres, aulas y workflows digitales donde los números redondos importan.</p>
+    <div class="hero-meta">
+      <div class="hmeta-item">
+        <span class="hmeta-val">X0–X9</span>
+        <span class="hmeta-lbl">familia de tamaños</span>
+      </div>
+      <div class="hmeta-item">
+        <span class="hmeta-val">enteros</span>
+        <span class="hmeta-lbl">todas las dimensiones en mm</span>
+      </div>
+      <div class="hmeta-item">
+        <span class="hmeta-val">÷2 exacto</span>
+        <span class="hmeta-lbl">sin redondeo entre tamaños</span>
+      </div>
+      <div class="hmeta-item">
+        <span class="hmeta-val">×5 preferido</span>
+        <span class="hmeta-lbl">múltiplos de 5 mm</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- intro -->
+<section id="intro">
+  <div class="wrap">
+    <div class="section-label"><span>// 01 · introducción y filosofía</span></div>
+    <h2>¿por qué otro<br>estándar de tamaños?</h2>
+
+    <div class="mode-strip" id="tog1">
+      <button class="mode-btn active" onclick="tog(1,'s')">explicación simple</button>
+      <button class="mode-btn" onclick="tog(1,'t')">técnico</button>
+    </div>
+
+    <div class="mode-panel active" id="p1-s">
+      <p class="lead">el ISO 216 (el sistema A4/A3/A0 que conoces) es matemáticamente elegante pero tiene un problema: sus dimensiones son números irracionales. A4 mide exactamente 210 × 297 mm, pero esos números vienen de raíces cuadradas y son aproximaciones redondeadas. dividir A4 a la mitad da 148.5 mm, que se redondea a 148 mm — una pequeña inconsistencia que se acumula.</p>
+      <p>el sistema X propone lo contrario: empezar desde dimensiones elegidas deliberadamente para que <strong>todas las divisiones den números enteros</strong>. X4 mide 680 × 960 mm. la mitad de 960 es 480. la mitad de 480 es 240. nunca hay decimales, nunca hay redondeo. cualquier persona puede calcularlo mentalmente.</p>
+      <p>no pretende reemplazar al ISO 216. es una alternativa para contextos donde los números redondos importan: talleres de fabricación, aulas, diseño digital, sistemas modulares.</p>
+    </div>
+    <div class="mode-panel" id="p1-t">
+      <p class="lead">el ISO 216 se basa en la razón 1:√2 ≈ 1.41421… para preservar proporciones al dividir. esto garantiza que el contenido escale sin distorsión, pero genera dimensiones irracionales en toda la cadena.</p>
+      <p>el sistema X adopta un enfoque diferente: se define X0 con dimensiones (2720 × 3840 mm) elegidas para que todas las divisiones sucesivas por 2 den enteros exactos. la consecuencia es que la razón de aspecto alterna entre 24/17 ≈ 1.4118 y 17/12 ≈ 1.4167, una variación de ±0.18% respecto a √2. esta variación es operativamente negligible para la mayoría de aplicaciones, y el beneficio — aritmética de enteros en toda la familia — es concreto y medible en reducción de errores y carga cognitiva.</p>
+    </div>
+
+    <div style="display:grid;gap:1px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));background:var(--border);border:1px solid var(--border);margin-top:28px">
+      <div style="background:var(--bg);padding:20px;border-top:3px solid var(--amber)">
+        <h3>dimensiones enteras</h3>
+        <p style="font-size:12px;margin:0">todas las cotas son milímetros enteros. sin fracciones en especificación, medición ni cálculo.</p>
+      </div>
+      <div style="background:var(--bg);padding:20px;border-top:3px solid var(--teal)">
+        <h3>división exacta</h3>
+        <p style="font-size:12px;margin:0">cada tamaño se obtiene dividiendo la dimensión larga de su predecesor entre 2. siempre exacto.</p>
+      </div>
+      <div style="background:var(--bg);padding:20px;border-top:3px solid var(--blue)">
+        <h3>múltiplos de 5</h3>
+        <p style="font-size:12px;margin:0">dimensiones divisibles por 5 y 10, compatibles con herramientas de medición estándar y retículas tipográficas.</p>
+      </div>
+      <div style="background:var(--bg);padding:20px;border-top:3px solid var(--purple)">
+        <h3>proporciones racionales</h3>
+        <p style="font-size:12px;margin:0">razones de aspecto expresables como fracciones simples. sin dependencia de números irracionales.</p>
+      </div>
+      <div style="background:var(--bg);padding:20px;border-top:3px solid var(--pink)">
+        <h3>multidominio</h3>
+        <p style="font-size:12px;margin:0">papel, fabricación industrial, medios digitales. un solo framework dimensional para todos los contextos.</p>
+      </div>
+      <div style="background:var(--bg);padding:20px;border-top:3px solid var(--gray)">
+        <h3>legible humanamente</h3>
+        <p style="font-size:12px;margin:0">"seiscientos ochenta por novecientos sesenta" se dice, se transcribe y se verifica sin calculadora.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- tamaños -->
+<section id="tamaños">
+  <div class="wrap">
+    <div class="section-label"><span>// 02 · tabla de tamaños</span></div>
+    <h2>los diez tamaños<br>del sistema x</h2>
+    <p>todas las dimensiones en milímetros, orientación vertical (ancho × alto). la orientación horizontal es la transposición directa.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>tamaño</th>
+            <th>ancho (mm)</th>
+            <th>alto (mm)</th>
+            <th>razón de aspecto</th>
+            <th>razón (fracción)</th>
+            <th>área (m²)</th>
+            <th>hojas por X0</th>
+            <th>equiv. ISO aprox.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="sz">X0</td><td class="dim">2720</td><td class="dim">3840</td><td class="md">1:1.412</td><td class="hi">24/17</td><td>10.4448</td><td class="hi">1</td><td class="ghost" style="color:var(--ghost)">entre A0 y A1 (×3.2 área A0)</td></tr>
+          <tr><td class="sz">X1</td><td class="dim">1920</td><td class="dim">2720</td><td class="md">1:1.417</td><td class="hi">17/12</td><td>5.2224</td><td class="hi">2</td><td class="ghost" style="color:var(--ghost)">entre A1 y A0</td></tr>
+          <tr><td class="sz">X2</td><td class="dim">1360</td><td class="dim">1920</td><td class="md">1:1.412</td><td class="hi">24/17</td><td>2.6112</td><td class="hi">4</td><td class="ghost" style="color:var(--ghost)">entre A1 y A2</td></tr>
+          <tr><td class="sz">X3</td><td class="dim">960</td><td class="dim">1360</td><td class="md">1:1.417</td><td class="hi">17/12</td><td>1.3056</td><td class="hi">8</td><td class="ghost" style="color:var(--ghost)">entre A2 y A1</td></tr>
+          <tr><td class="sz">X4</td><td class="dim">680</td><td class="dim">960</td><td class="md">1:1.412</td><td class="hi">24/17</td><td>0.6528</td><td class="hi">16</td><td class="ghost" style="color:var(--ghost)">cercano a A2 (×1.6 área)</td></tr>
+          <tr><td class="sz">X5</td><td class="dim">480</td><td class="dim">680</td><td class="md">1:1.417</td><td class="hi">17/12</td><td>0.3264</td><td class="hi">32</td><td class="ghost" style="color:var(--ghost)">entre A3 y A2</td></tr>
+          <tr><td class="sz">X6</td><td class="dim">340</td><td class="dim">480</td><td class="md">1:1.412</td><td class="hi">24/17</td><td>0.1632</td><td class="hi">64</td><td class="ghost" style="color:var(--ghost)">entre A4 y A5</td></tr>
+          <tr><td class="sz">X7</td><td class="dim">240</td><td class="dim">340</td><td class="md">1:1.417</td><td class="hi">17/12</td><td>0.0816</td><td class="hi">128</td><td class="ghost" style="color:var(--ghost)">entre A4 y A5</td></tr>
+          <tr><td class="sz">X8</td><td class="dim">170</td><td class="dim">240</td><td class="md">1:1.412</td><td class="hi">24/17</td><td>0.0408</td><td class="hi">256</td><td class="ghost" style="color:var(--ghost)">cercano a A5 (+31% área)</td></tr>
+          <tr><td class="sz">X9</td><td class="dim">120</td><td class="dim">170</td><td class="md">1:1.417</td><td class="hi">17/12</td><td>0.0204</td><td class="hi">512</td><td class="ghost" style="color:var(--ghost)">entre A5 y A6</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:14px;font-size:11px;color:var(--ghost)">nota: la razón de aspecto alterna entre dos valores racionales (24/17 y 17/12) por el redondeo a enteros en cada paso. la variación es ±0.18% respecto a ISO 216 (1:√2) — operativamente imperceptible.</p>
+  </div>
+</section>
+
+<!-- visualizador -->
+<section id="visual" class="sizes-section">
+  <div class="wrap">
+    <div class="section-label"><span>// 03 · visualizador de tamaños</span></div>
+    <h2>todos los tamaños<br>a escala</h2>
+    <p>selecciona un tamaño para destacarlo. todos los rectángulos están dibujados a escala relativa entre sí.</p>
+
+    <div class="scale-controls" id="sizeButtons"></div>
+    <div class="canvas-container">
+      <canvas id="sizeCanvas"></canvas>
+    </div>
+    <div class="size-info-panel" id="sizeInfoPanel"></div>
+  </div>
+</section>
+
+<!-- vs iso -->
+<section id="vs-iso">
+  <div class="wrap">
+    <div class="section-label"><span>// 04 · sistema x vs. iso 216</span></div>
+    <h2>comparativa con<br>el estándar global</h2>
+
+    <div class="mode-strip" id="tog2">
+      <button class="mode-btn active" onclick="tog(2,'s')">en palabras</button>
+      <button class="mode-btn" onclick="tog(2,'t')">análisis técnico</button>
+    </div>
+    <div class="mode-panel active" id="p2-s">
+      <p class="lead">iso 216 (a4, a3, etc.) es el estándar universal. funciona de maravilla para lo que fue diseñado. el sistema x no viene a reemplazarlo, sino a cubrir los casos donde iso 216 se queda corto.</p>
+      <p>iso 216 tiene una propiedad preciosa: si divides una hoja a la mitad, el resultado tiene exactamente la misma proporción. pero para conseguirlo, sus dimensiones son irracionalesuna hoja A4 en realidad mide 210.000… × 296.985… mm, redondeados a 210 × 297. dividirla a la mitad da 148.5 mm, que se redondea a 148 mm. esos errores se acumulan. en software, en cnc, en cálculo mental.</p>
+      <p>el sistema X sacrifica la constancia exacta de proporción (varía ±0.18%) a cambio de que todos los números sean enteros y todas las divisiones sean exactas. para la mayoría de usos reales, esa variación es invisible.</p>
+    </div>
+    <div class="mode-panel" id="p2-t">
+      <p>la división de A4 para obtener A5: 297/2 = 148.5 mm → redondeo a 148 mm en ISO 216. error: 0.5 mm acumulable. en el sistema X, 960/2 = 480 mm exacto, sin redondeo. aritméticamente, el sistema X propaga <strong>cero error de redondeo</strong> a través de la familia de tamaños. la razón de aspecto alterna entre 24/17 ≈ 1.41176 y 17/12 ≈ 1.41667, ambas dentro de ±0.18% de √2 ≈ 1.41421. para aplicaciones que requieren preservación exacta de proporción (como ampliaciones fotográficas), ISO 216 ofrece ventaja teórica. en implementaciones prácticas, ambos sistemas acumulan errores de redondeo en entornos de píxeles.</p>
+    </div>
+
+    <div class="comp-grid">
+      <div class="comp-col">
+        <span class="comp-label">sistema x</span>
+        <div class="comp-title">racional, entero, modular</div>
+        <div class="comp-row"><span class="comp-k">tamaño raíz</span><span class="comp-v">X0: 2720 × 3840 mm</span></div>
+        <div class="comp-row"><span class="comp-k">razón de aspecto</span><span class="comp-v neu">alterna 1.412 / 1.417</span></div>
+        <div class="comp-row"><span class="comp-k">dimensiones</span><span class="comp-v good">siempre enteros</span></div>
+        <div class="comp-row"><span class="comp-k">división a la mitad</span><span class="comp-v good">exacta, sin redondeo</span></div>
+        <div class="comp-row"><span class="comp-k">aritmética mental</span><span class="comp-v good">directa</span></div>
+        <div class="comp-row"><span class="comp-k">adopción industrial</span><span class="comp-v bad">ninguna aún</span></div>
+        <div class="comp-row"><span class="comp-k">cadena de suministro</span><span class="comp-v bad">inexistente</span></div>
+        <div class="comp-row"><span class="comp-k">uso educativo</span><span class="comp-v good">excelente</span></div>
+        <div class="comp-row"><span class="comp-k">diseño digital</span><span class="comp-v good">muy adecuado</span></div>
+        <div class="comp-row"><span class="comp-k">licencia</span><span class="comp-v good">CC0 dominio público</span></div>
+      </div>
+      <div class="comp-col">
+        <span class="comp-label">iso 216 (serie a)</span>
+        <div class="comp-title">irracional, elegante, universal</div>
+        <div class="comp-row"><span class="comp-k">tamaño raíz</span><span class="comp-v">A0: 841 × 1189 mm (1 m²)</span></div>
+        <div class="comp-row"><span class="comp-k">razón de aspecto</span><span class="comp-v good">constante: 1:√2 ≈ 1.4142</span></div>
+        <div class="comp-row"><span class="comp-k">dimensiones</span><span class="comp-v bad">irracionales (redondeadas)</span></div>
+        <div class="comp-row"><span class="comp-k">división a la mitad</span><span class="comp-v neu">+0.5 mm de redondeo</span></div>
+        <div class="comp-row"><span class="comp-k">aritmética mental</span><span class="comp-v bad">requiere tabla o calculadora</span></div>
+        <div class="comp-row"><span class="comp-k">adopción industrial</span><span class="comp-v good">global (excl. norteamérica)</span></div>
+        <div class="comp-row"><span class="comp-k">cadena de suministro</span><span class="comp-v good">consolidada en décadas</span></div>
+        <div class="comp-row"><span class="comp-k">uso educativo</span><span class="comp-v neu">requiere abstracción matemática</span></div>
+        <div class="comp-row"><span class="comp-k">diseño digital</span><span class="comp-v neu">bien soportado</span></div>
+        <div class="comp-row"><span class="comp-k">licencia</span><span class="comp-v good">estándar público ISO</span></div>
+      </div>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:24px">
+      <table>
+        <thead><tr><th>estándar</th><th>tamaño raíz</th><th>razón aspecto</th><th>div. exacta</th><th>dim. enteras</th><th>región</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--accent);font-weight:700">Sistema X</td><td class="dim">2720 × 3840 mm</td><td class="neu">~1.41 (alterna)</td><td class="hi">sí (exacta)</td><td class="hi">sí (todos)</td><td>propuesto</td></tr>
+          <tr><td>ISO 216 (serie A)</td><td class="dim">841 × 1189 mm</td><td class="hi">1:√2 (constante)</td><td class="md">sí (preserva ratio)</td><td class="bad" style="color:var(--red)">no (irracional)</td><td>internacional</td></tr>
+          <tr><td>Carta norteamericana</td><td class="dim">215.9 × 279.4 mm</td><td>~1.29</td><td style="color:var(--red)">no</td><td style="color:var(--red)">no (pulgadas)</td><td>EE.UU., Canadá, México</td></tr>
+          <tr><td>JIS B (serie japonesa)</td><td class="dim">1030 × 1456 mm</td><td class="hi">1:√2 (constante)</td><td class="md">sí (preserva ratio)</td><td style="color:var(--red)">no (irracional)</td><td>Japón</td></tr>
+          <tr><td>Imperial (histórico UK)</td><td>varios</td><td>varios</td><td style="color:var(--red)">no</td><td style="color:var(--red)">no (pulgadas/fracciones)</td><td>histórico</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- calculadora nesting -->
+<section id="nesting" class="calc-section">
+  <div class="wrap">
+    <div class="section-label"><span>// 05 · calculadora de nesting y conversión</span></div>
+    <h2>¿cuántas hojas caben?<br>¿cuántos píxeles son?</h2>
+
+    <div style="display:grid;gap:48px;grid-template-columns:1fr 1fr;margin-top:32px" id="twocols">
+
+      <div>
+        <p style="margin-bottom:20px">selecciona el tamaño base y el tamaño a cortar. el sistema X garantiza que, dentro de la familia, el desperdicio es siempre <strong style="color:var(--teal)">0%</strong>.</p>
+        <div class="calc-field">
+          <span class="calc-label">tamaño base (hoja grande)</span>
+          <select class="calc-select" id="baseSize" onchange="updateNesting()">
+            <option value="0">X0 — 2720 × 3840 mm</option>
+            <option value="1">X1 — 1920 × 2720 mm</option>
+            <option value="2">X2 — 1360 × 1920 mm</option>
+            <option value="3" selected>X3 — 960 × 1360 mm</option>
+            <option value="4">X4 — 680 × 960 mm</option>
+            <option value="5">X5 — 480 × 680 mm</option>
+            <option value="6">X6 — 340 × 480 mm</option>
+            <option value="7">X7 — 240 × 340 mm</option>
+            <option value="8">X8 — 170 × 240 mm</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <span class="calc-label">tamaño a cortar (hoja pequeña)</span>
+          <select class="calc-select" id="cutSize" onchange="updateNesting()">
+            <option value="1">X1 — 1920 × 2720 mm</option>
+            <option value="2">X2 — 1360 × 1920 mm</option>
+            <option value="3">X3 — 960 × 1360 mm</option>
+            <option value="4">X4 — 680 × 960 mm</option>
+            <option value="5" selected>X5 — 480 × 680 mm</option>
+            <option value="6">X6 — 340 × 480 mm</option>
+            <option value="7">X7 — 240 × 340 mm</option>
+            <option value="8">X8 — 170 × 240 mm</option>
+            <option value="9">X9 — 120 × 170 mm</option>
+          </select>
+        </div>
+        <div class="nesting-result">
+          <div class="nr-label">hojas obtenidas</div>
+          <div class="nr-value" id="nest-count">—</div>
+          <div class="nr-unit">unidades</div>
+          <div class="nr-detail" id="nest-detail"></div>
+          <div class="nr-warn" id="nest-warn"></div>
+        </div>
+      </div>
+
+      <div>
+        <p style="margin-bottom:20px">conversión a píxeles según resolución. fórmula: <code>px = (mm × dpi) / 25.4</code></p>
+        <div class="calc-field">
+          <span class="calc-label">tamaño a convertir</span>
+          <select class="calc-select" id="pxSize" onchange="updatePx()">
+            <option value="0">X0 — 2720 × 3840 mm</option>
+            <option value="1">X1 — 1920 × 2720 mm</option>
+            <option value="2">X2 — 1360 × 1920 mm</option>
+            <option value="3">X3 — 960 × 1360 mm</option>
+            <option value="4" selected>X4 — 680 × 960 mm</option>
+            <option value="5">X5 — 480 × 680 mm</option>
+            <option value="6">X6 — 340 × 480 mm</option>
+            <option value="7">X7 — 240 × 340 mm</option>
+            <option value="8">X8 — 170 × 240 mm</option>
+            <option value="9">X9 — 120 × 170 mm</option>
+          </select>
+        </div>
+        <div class="px-grid" id="pxGrid"></div>
+      </div>
+
+    </div>
+    <style> @media(max-width:700px){#twocols{grid-template-columns:1fr}} </style>
+
+    <canvas id="nest-canvas" height="200" style="display:none"></canvas>
+  </div>
+</section>
+
+<!-- usos -->
+<section id="usos">
+  <div class="wrap">
+    <div class="section-label"><span>// 06 · casos de uso</span></div>
+    <h2>dónde tiene sentido<br>el sistema x</h2>
+
+    <div class="uses-grid">
+      <div class="use-card u1">
+        <div class="use-icon">✂️</div>
+        <h3>corte e impresión</h3>
+        <p style="font-size:11px;margin:0">cortadoras de guillotina, láser y plasma se benefician de coordenadas enteras. dos hojas Xn+1 salen exactamente de una Xn con un solo corte recto. cero residuo en cortes internos.</p>
+      </div>
+      <div class="use-card u2">
+        <div class="use-icon">📐</div>
+        <h3>diseño editorial y retículas</h3>
+        <p style="font-size:11px;margin:0">X4 (680 × 960 mm) admite 4 columnas de 170 mm sin cálculos. X5 admite 3 de 160 mm, 4 de 120 mm o 6 de 80 mm — todos enteros. retícula de 5 mm alinea con baseline tipográfico.</p>
+      </div>
+      <div class="use-card u3">
+        <div class="use-icon">🏭</div>
+        <h3>fabricación industrial</h3>
+        <p style="font-size:11px;margin:0">chapa metálica, plástico, tejido. el código G-code con coordenadas enteras elimina errores de punto flotante acumulados. compatible con tolerancias de ±0.5 mm (guillotina) y ±0.1 mm (cnc).</p>
+      </div>
+      <div class="use-card u4">
+        <div class="use-icon">🎓</div>
+        <h3>educación y cálculo manual</h3>
+        <p style="font-size:11px;margin:0">"¿cuántas hojas X9 caben en una X6?" — respuesta: 8, sin calculadora. halving sequences, series geométricas y conversión de unidades con dimensiones tangibles y verificables a mano.</p>
+      </div>
+      <div class="use-card u5">
+        <div class="use-icon">💻</div>
+        <h3>pantallas y diseño digital</h3>
+        <p style="font-size:11px;margin:0">los valores enteros se mapean directamente a coordenadas vectoriales. breakpoints CSS basados en dimensiones X. presets de artboard en Figma, InDesign, Illustrator o Affinity configurables sin fricción.</p>
+      </div>
+      <div class="use-card" style="border-top:3px solid var(--gray)">
+        <div class="use-icon">🏗️</div>
+        <h3>construcción modular</h3>
+        <p style="font-size:11px;margin:0">paneles de fachada, particiones y carpintería basados en X2 (1360 × 1920 mm) se subdividen en X3, X4 y X5 para marcos de ventana, puertas y rejas de ventilación.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:40px">
+      <h3 style="margin-bottom:16px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">ejemplo práctico: retícula editorial en X4</h3>
+      <div style="background:var(--surface);border:1px solid var(--border);padding:24px">
+        <div style="display:grid;gap:24px;grid-template-columns:1fr 1fr">
+          <div>
+            <p style="font-size:12px;margin-bottom:8px;color:var(--text)">especificaciones de página X4 (680 × 960 mm)</p>
+            <div style="font-size:11px;color:var(--muted);line-height:2">
+              márgenes: 40 mm sup/inf/ext · 60 mm inf<br>
+              área de texto: 600 × 860 mm<br>
+              4 columnas · canalillo: 20 mm<br>
+              ancho de columna: (600 − 60) ÷ 4 = <strong style="color:var(--teal)">135 mm</strong><br>
+              baseline: 5 mm · líneas: 860 ÷ 5 = <strong style="color:var(--teal)">172</strong>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:12px;margin-bottom:8px;color:var(--text)">módulos derivados de la columna de 135 mm</p>
+            <div style="font-size:11px;color:var(--muted);line-height:2">
+              3 módulos de 45 mm<br>
+              5 módulos de 27 mm<br>
+              9 módulos de 15 mm<br>
+              todo divisible por 5 → <strong style="color:var(--teal)">ritmo visual consistente</strong><br>
+              escalable a X3 (póster) y X5 (libreto)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ventajas y límites -->
+<section style="background:var(--surface)">
+  <div class="wrap">
+    <div class="section-label"><span>// 07 · ventajas y limitaciones</span></div>
+    <h2>honestidad sobre<br>lo que es y no es</h2>
+    <p>el sistema X no es una panacea. sabe muy bien lo que ofrece y reconoce sin rodeos lo que sacrifica.</p>
+
+    <div class="vs-grid">
+      <div class="vs-col pro">
+        <span class="vs-header">ventajas</span>
+        <div class="vs-item">aritmética de enteros en toda la familia — cero fracciones, cero acumulación de errores de redondeo</div>
+        <div class="vs-item">cálculo mental directo: halving de cualquier tamaño en segundos sin calculadora</div>
+        <div class="vs-item">nesting perfecto dentro de la familia — cero residuo garantizado en cortes internos</div>
+        <div class="vs-item">divisibilidad por 2, 5 y 10 — retículas, columnas y módulos siempre en enteros</div>
+        <div class="vs-item">consistencia multidominio: el mismo framework para papel, fábrica y pantalla</div>
+        <div class="vs-item">sin dependencia de irracionales — implementable en controladores CNC con aritmética entera</div>
+        <div class="vs-item">educativamente superior para enseñar proporciones y series geométricas</div>
+        <div class="vs-item">licencia CC0 — dominio público, sin restricciones de ningún tipo</div>
+      </div>
+      <div class="vs-col con">
+        <span class="vs-header">limitaciones</span>
+        <div class="vs-item">la razón de aspecto alterna ±0.18% — el contenido escala con mínima distorsión entre tamaños</div>
+        <div class="vs-item">X0 (2720 × 3840 mm) es mucho mayor que A0 — requiere equipos de corte más grandes</div>
+        <div class="vs-item">sin adopción industrial — cadena de suministro, imprentas y software optimizados para otros sistemas</div>
+        <div class="vs-item">incompatible con ISO 269 (sobres) y otros estándares derivados de ISO 216</div>
+        <div class="vs-item">impresión comercial requiere corte previo o uso de impresoras digitales de formato libre</div>
+        <div class="vs-item">razón ~1.41:1 no coincide con 16:9, 3:2 ni 4:3 — no apta para pantallas widescreen estándar</div>
+        <div class="vs-item">inapropiado para contextos regulados (documentos legales, formularios administrativos)</div>
+      </div>
+    </div>
+
+    <div style="margin-top:28px">
+      <h3 style="margin-bottom:16px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">¿para qué proyectos tiene más sentido?</h3>
+      <div class="fit-grid">
+        <div class="fit-col good">
+          <span class="fit-label">recomendado</span>
+          <div class="fit-item">proyectos sin dependencias de sistemas preexistentes</div>
+          <div class="fit-item">talleres y makerspaces con cortadoras programables</div>
+          <div class="fit-item">instituciones educativas (diseño, matemáticas, ingeniería)</div>
+          <div class="fit-item">workflows digital-first con tamaños de artboard personalizados</div>
+          <div class="fit-item">sistemas modulares donde el nesting predecible es crítico</div>
+          <div class="fit-item">publicaciones independientes y proyectos experimentales</div>
+          <div class="fit-item">arquitectura e instalaciones con paneles modulares</div>
+        </div>
+        <div class="fit-col bad">
+          <span class="fit-label">no recomendado</span>
+          <div class="fit-item">editoriales integradas en cadena ISO 216 con infraestructura consolidada</div>
+          <div class="fit-item">fotografía profesional donde se requiere ampliación sin crop exacto</div>
+          <div class="fit-item">documentos legales, administrativos o regulatorios con formato prescrito</div>
+          <div class="fit-item">diseño para pantallas widescreen (16:9 o 16:10)</div>
+          <div class="fit-item">impresión offset en prensas configuradas para ISO 216</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- técnico / apéndices -->
+<section id="tecnico">
+  <div class="wrap">
+    <div class="section-label"><span>// 08 · referencia técnica</span></div>
+    <h2>apéndices y<br>referencia completa</h2>
+    <p>derivaciones, análisis de razones de aspecto, guía de implementación y preguntas frecuentes.</p>
+
+    <div class="accordion">
+
+      <button class="acc-hdr" onclick="acc(this)">
+        derivación dimensional · tabla de halving exacto
+        <span class="acc-icon">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-inner">
+        <p>todas las divisiones dan enteros exactos — consecuencia directa de la elección de X0 = 2720 × 3840 mm.</p>
+        <div class="tbl-wrap" style="margin-top:14px">
+          <table>
+            <thead><tr><th>paso</th><th>desde</th><th>dim. larga</th><th>÷ 2</th><th>resultado</th><th>nuevo tamaño</th><th>dimensiones</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="sz" style="font-size:11px">X0</td><td class="dim">2720 × 3840</td></tr>
+              <tr><td>1</td><td>X0</td><td>3840</td><td>1920</td><td class="hi">1920</td><td class="sz" style="font-size:11px">X1</td><td class="dim">1920 × 2720</td></tr>
+              <tr><td>2</td><td>X1</td><td>2720</td><td>1360</td><td class="hi">1360</td><td class="sz" style="font-size:11px">X2</td><td class="dim">1360 × 1920</td></tr>
+              <tr><td>3</td><td>X2</td><td>1920</td><td>960</td><td class="hi">960</td><td class="sz" style="font-size:11px">X3</td><td class="dim">960 × 1360</td></tr>
+              <tr><td>4</td><td>X3</td><td>1360</td><td>680</td><td class="hi">680</td><td class="sz" style="font-size:11px">X4</td><td class="dim">680 × 960</td></tr>
+              <tr><td>5</td><td>X4</td><td>960</td><td>480</td><td class="hi">480</td><td class="sz" style="font-size:11px">X5</td><td class="dim">480 × 680</td></tr>
+              <tr><td>6</td><td>X5</td><td>680</td><td>340</td><td class="hi">340</td><td class="sz" style="font-size:11px">X6</td><td class="dim">340 × 480</td></tr>
+              <tr><td>7</td><td>X6</td><td>480</td><td>240</td><td class="hi">240</td><td class="sz" style="font-size:11px">X7</td><td class="dim">240 × 340</td></tr>
+              <tr><td>8</td><td>X7</td><td>340</td><td>170</td><td class="hi">170</td><td class="sz" style="font-size:11px">X8</td><td class="dim">170 × 240</td></tr>
+              <tr><td>9</td><td>X8</td><td>240</td><td>120</td><td class="hi">120</td><td class="sz" style="font-size:11px">X9</td><td class="dim">120 × 170</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div></div>
+
+      <button class="acc-hdr" onclick="acc(this)">
+        análisis de razones de aspecto
+        <span class="acc-icon">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-inner">
+        <p>las razones alternan entre dos valores racionales exactos: <strong>24/17</strong> (tamaños pares) y <strong>17/12</strong> (tamaños impares). ambas a menos de 0.18% de √2.</p>
+        <div class="eq">24/17 ≈ 1.41176   |   17/12 ≈ 1.41667   |   √2 ≈ 1.41421<br>desviación máxima: ±0.18% — imperceptible visualmente</div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>tamaño</th><th>razón (decimal)</th><th>razón (fracción)</th><th>desviación vs √2</th></tr></thead>
+          <tbody>
+            <tr><td class="sz" style="font-size:11px">X0</td><td>1.411764706</td><td class="hi">24/17</td><td>−0.17%</td></tr>
+            <tr><td class="sz" style="font-size:11px">X1</td><td>1.416666667</td><td class="hi">17/12</td><td>+0.18%</td></tr>
+            <tr><td class="sz" style="font-size:11px">X2</td><td>1.411764706</td><td class="hi">24/17</td><td>−0.17%</td></tr>
+            <tr><td class="sz" style="font-size:11px">X3</td><td>1.416666667</td><td class="hi">17/12</td><td>+0.18%</td></tr>
+            <tr><td class="sz" style="font-size:11px">X4</td><td>1.411764706</td><td class="hi">24/17</td><td>−0.17%</td></tr>
+            <tr><td class="sz" style="font-size:11px">X5</td><td>1.416666667</td><td class="hi">17/12</td><td>+0.18%</td></tr>
+            <tr><td class="sz" style="font-size:11px">X6</td><td>1.411764706</td><td class="hi">24/17</td><td>−0.17%</td></tr>
+            <tr><td class="sz" style="font-size:11px">X7</td><td>1.416666667</td><td class="hi">17/12</td><td>+0.18%</td></tr>
+            <tr><td class="sz" style="font-size:11px">X8</td><td>1.411764706</td><td class="hi">24/17</td><td>−0.17%</td></tr>
+            <tr><td class="sz" style="font-size:11px">X9</td><td>1.416666667</td><td class="hi">17/12</td><td>+0.18%</td></tr>
+          </tbody>
+        </table></div>
+      </div></div>
+
+      <button class="acc-hdr" onclick="acc(this)">
+        divisibilidad · referencia rápida
+        <span class="acc-icon">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-inner">
+        <p>todas las dimensiones son divisibles por 5; la mayoría por 10. ventaja clave para retículas y tolerancias de fabricación.</p>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>tamaño</th><th>ancho ÷ 5</th><th>ancho ÷ 10</th><th>alto ÷ 5</th><th>alto ÷ 10</th></tr></thead>
+          <tbody>
+            <tr><td class="sz" style="font-size:11px">X0</td><td class="hi">544</td><td class="hi">272</td><td class="hi">768</td><td class="hi">384</td></tr>
+            <tr><td class="sz" style="font-size:11px">X1</td><td class="hi">384</td><td class="hi">192</td><td class="hi">544</td><td class="hi">272</td></tr>
+            <tr><td class="sz" style="font-size:11px">X2</td><td class="hi">272</td><td class="hi">136</td><td class="hi">384</td><td class="hi">192</td></tr>
+            <tr><td class="sz" style="font-size:11px">X3</td><td class="hi">192</td><td class="hi">96</td><td class="hi">272</td><td class="hi">136</td></tr>
+            <tr><td class="sz" style="font-size:11px">X4</td><td class="hi">136</td><td class="hi">68</td><td class="hi">192</td><td class="hi">96</td></tr>
+            <tr><td class="sz" style="font-size:11px">X5</td><td class="hi">96</td><td class="hi">48</td><td class="hi">136</td><td class="hi">68</td></tr>
+            <tr><td class="sz" style="font-size:11px">X6</td><td class="hi">68</td><td class="hi">34</td><td class="hi">96</td><td class="hi">48</td></tr>
+            <tr><td class="sz" style="font-size:11px">X7</td><td class="hi">48</td><td class="hi">24</td><td class="hi">68</td><td class="hi">34</td></tr>
+            <tr><td class="sz" style="font-size:11px">X8</td><td class="hi">34</td><td class="hi">17</td><td class="hi">48</td><td class="hi">24</td></tr>
+            <tr><td class="sz" style="font-size:11px">X9</td><td class="hi">24</td><td class="hi">12</td><td class="hi">34</td><td class="hi">17</td></tr>
+          </tbody>
+        </table></div>
+      </div></div>
+
+      <button class="acc-hdr" onclick="acc(this)">
+        guía de implementación en software
+        <span class="acc-icon">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-inner">
+        <ul>
+          <li><strong>Illustrator / Inkscape:</strong> definir presets de artboard para X0–X9 en mm. snapping a cuadrícula de 5 o 10 mm.</li>
+          <li><strong>InDesign / QuarkXPress:</strong> presets de página con márgenes múltiplos de 5 mm. baseline grid de 5 mm. páginas maestras por tamaño.</li>
+          <li><strong>Figma / Sketch / XD:</strong> frames o artboards con dimensiones convertidas a px a 96 DPI. variables CSS con las dimensiones en px.</li>
+          <li><strong>AutoCAD / Fusion 360 / CNC:</strong> unidades en mm. templates de plano por tamaño. verificar que todas las cotas permanecen enteras durante export.</li>
+          <li><strong>Tolerancias:</strong> ±0.5 mm para guillotina, ±0.1 mm para CNC. verificar con calibre digital.</li>
+          <li><strong>Nomenclatura de archivos:</strong> convención recomendada: <code>nombre_X4_v1.pdf</code>, <code>plano_X2_horizontal.dxf</code></li>
+        </ul>
+      </div></div>
+
+      <button class="acc-hdr" onclick="acc(this)">
+        preguntas frecuentes
+        <span class="acc-icon">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-inner">
+        <p><strong>¿puedo usarlo para tarjetas de visita?</strong> X9 (120 × 170 mm) es mayor que el estándar ISO 7810 ID-1 (85.6 × 53.98 mm). un hipotético X10 (85 × 120 mm) encajaría mejor, aunque no alinea con estándares existentes.</p>
+        <p><strong>¿qué pasa con el sangrado (bleed)?</strong> se añade fuera del tamaño nominal. X6 con 5 mm de sangrado → documento de 350 × 490 mm, trimado a 340 × 480 mm. las marcas de corte van en las dimensiones X.</p>
+        <p><strong>¿sirve para dobles páginas (spreads)?</strong> sí. un spread de X5 = 960 × 680 mm en horizontal — que es exactamente X4 en orientación horizontal. consistencia total.</p>
+        <p><strong>¿es compatible con planos arquitectónicos?</strong> sí. a escala 1:100 en X1 (1920 × 2720 mm) se representa un área de 192 × 272 m. los factores de escala son enteros, lo que simplifica el cálculo respecto a ISO 216.</p>
+        <p><strong>¿qué pasa si escalo a un porcentaje arbitrario?</strong> se pierden las dimensiones enteras. usar solo factores que preserven enteros (50%, 200%). si es necesario redondear, documentar el DPI/factor usado.</p>
+        <p><strong>¿compatibilidad con prensas comerciales offset?</strong> requiere pre-corte del papel a medidas X, o impresión en hoja sobredimensionada con posterior corte, o impresoras digitales de formato libre (inkjet, offset digital). la impresión bajo demanda es la opción más flexible.</p>
+        <p><strong>¿los sobres?</strong> los estándares de sobre ISO 269 están basados en ISO 216 y no son compatibles directamente. un sobre para X7 (240 × 340 mm) mediaría ~250 × 350 mm. requieren fabricación a medida.</p>
+      </div></div>
+
+      <button class="acc-hdr" onclick="acc(this)">
+        nota histórica · sistemas de dimensiones enteras
+        <span class="acc-icon">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-inner">
+        <p>el uso de dimensiones enteras en sistemas de medición tiene precedentes históricos amplios. los tamaños de papel chinos y japoneses tradicionales (basados en <em>sun</em>, unidad equivalente a ~30.3 mm) empleaban múltiplos enteros de la unidad base, facilitando el cálculo mental y el trabajo artesanal. los formatos europeos medievales (folio, cuarto, octavo) usaban el plegado de hoja como operación generadora, sin relación matemática consistente entre tamaños.</p>
+        <p>la introducción del sistema métrico en los siglos XVIII y XIX permitió mayor precisión pero también habilitó el uso de ratios irracionales (como √2) por elegancia geométrica. el sistema X puede verse como una síntesis: adopta el sistema métrico y el principio de halving modular de ISO 216, mientras recupera la simplicidad entera de las tradiciones preindustriales.</p>
+        <p>precedentes conceptuales: el <em>Modulor</em> de Le Corbusier (proporciones basadas en la sección áurea y dimensiones humanas), los sistemas modulares de coordinación en construcción (ISO 1791), los estándares de mobiliario en módulos de 50 o 100 mm, y la planificación urbana en manzanas de dimensiones regulares — todos comparten el principio de que la simplicidad aritmética tiene valor práctico independiente de la elegancia geométrica.</p>
+      </div></div>
+
+      <button class="acc-hdr" onclick="acc(this)">
+        extensiones futuras previstas
+        <span class="acc-icon">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-inner">
+        <div class="roadmap" style="margin-top:0">
+          <div class="phase">
+            <span class="phase-tag">extensión de rango</span>
+            <div class="phase-title">X10 y menores</div>
+            <div class="phase-items">
+              <span>X10: 85 × 120 mm (tarjeta)</span>
+              <span>X11: 60 × 85 mm</span>
+              <span>X−1: 3840 × 5440 mm (banner)</span>
+            </div>
+          </div>
+          <div class="phase">
+            <span class="phase-tag">derivados</span>
+            <div class="phase-title">sobres y packaging</div>
+            <div class="phase-items">
+              <span>sobres con márgenes estándar</span>
+              <span>cajas y carpetas</span>
+              <span>gramajes de papel por tamaño</span>
+            </div>
+          </div>
+          <div class="phase">
+            <span class="phase-tag">software</span>
+            <div class="phase-title">plugins y tools</div>
+            <div class="phase-items">
+              <span>plugins Adobe / Affinity / Figma</span>
+              <span>templates SVG</span>
+              <span>calculadoras web open source</span>
+            </div>
+          </div>
+          <div class="phase">
+            <span class="phase-tag">normalización</span>
+            <div class="phase-title">adopción industrial</div>
+            <div class="phase-items">
+              <span>acuerdos con proveedores</span>
+              <span>definición de perfiles de color</span>
+              <span>métricas de sostenibilidad</span>
+            </div>
+          </div>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+</section>
+
+<!-- footer -->
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div class="footer-left">
+        sistema x · especificación técnica v1.0 · diciembre 2025 · cc0 dominio público · sin restricciones de uso, modificación o distribución
+      </div>
+      <div>
+        <a class="gh-link" href="https://github.com/IHTConsulting/system-x-standard/blob/main/System%20X%20Technical%20Specification.md" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          especificación completa en github
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── datos de tamaños ── */
+const SIZES = [
+  {n:'X0',w:2720,h:3840},{n:'X1',w:1920,h:2720},{n:'X2',w:1360,h:1920},
+  {n:'X3',w:960,h:1360},{n:'X4',w:680,h:960},{n:'X5',w:480,h:680},
+  {n:'X6',w:340,h:480},{n:'X7',w:240,h:340},{n:'X8',w:170,h:240},{n:'X9',w:120,h:170}
+];
+
+/* ── toggles ── */
+function tog(n,mode){
+  document.getElementById(`p${n}-s`).classList.toggle('active',mode==='s');
+  document.getElementById(`p${n}-t`).classList.toggle('active',mode==='t');
+  document.querySelectorAll(`#tog${n} .mode-btn`).forEach((b,i)=>{
+    b.classList.toggle('active',(mode==='s'&&i===0)||(mode==='t'&&i===1));
+  });
+}
+
+/* ── accordion ── */
+function acc(btn){
+  const body=btn.nextElementSibling;
+  const icon=btn.querySelector('.acc-icon');
+  const open=body.classList.contains('open');
+  document.querySelectorAll('.acc-body').forEach(b=>b.classList.remove('open'));
+  document.querySelectorAll('.acc-icon').forEach(i=>i.classList.remove('open'));
+  if(!open){body.classList.add('open');icon.classList.add('open');}
+}
+
+/* ── visualizador de tamaños ── */
+let activeSize = 4; // X4 por defecto
+const ACCENT = '#f0a020';
+const colors = ['#e84d4d','#f0a020','#2dbf8a','#4d9de8','#9b7dea','#e05ca3','#aaa','#4d9de8','#2dbf8a','#f0a020'];
+
+function initSizeViz(){
+  const btns = document.getElementById('sizeButtons');
+  const info = document.getElementById('sizeInfoPanel');
+  SIZES.forEach((s,i)=>{
+    const b = document.createElement('button');
+    b.className = 'size-btn' + (i===activeSize?' active':'');
+    b.textContent = s.n;
+    b.onclick = ()=>{ activeSize=i; drawSizes(); updateSizeBtns(); };
+    btns.appendChild(b);
+
+    const d = document.createElement('div');
+    d.className = 'sinfo';
+    d.innerHTML = `<div class="sinfo-name" style="color:${colors[i]}">${s.n}</div>
+      <div class="sinfo-dim">${s.w} × ${s.h} mm</div>
+      <div class="sinfo-area">${(s.w*s.h/1e6).toFixed(4)} m² · ${512/Math.pow(2,i)} por X9</div>`;
+    d.onclick = ()=>{ activeSize=i; drawSizes(); updateSizeBtns(); };
+    info.appendChild(d);
+  });
+  drawSizes();
+}
+
+function updateSizeBtns(){
+  document.querySelectorAll('.size-btn').forEach((b,i)=>b.classList.toggle('active',i===activeSize));
+}
+
+function drawSizes(){
+  const cv = document.getElementById('sizeCanvas');
+  const container = cv.parentElement;
+  const CW = container.clientWidth - 2;
+  const CH = container.clientHeight - 2;
+  cv.width = CW; cv.height = CH;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,CW,CH);
+
+  const maxW = SIZES[0].w, maxH = SIZES[0].h;
+  const scaleX = (CW * 0.85) / maxW;
+  const scaleY = (CH * 0.85) / maxH;
+  const scale = Math.min(scaleX, scaleY);
+  const ox = (CW - maxW*scale)/2;
+  const oy = (CH - maxH*scale)/2;
+
+  // dibuja de grande a pequeño
+  for(let i=SIZES.length-1;i>=0;i--){
+    const s=SIZES[i];
+    const sw=s.w*scale, sh=s.h*scale;
+    const sx=ox, sy=oy+(maxH-s.h)*scale/2; // centrado vertical
+    const isActive=(i===activeSize);
+    ctx.beginPath(); ctx.rect(sx,sy,sw,sh);
+    ctx.strokeStyle = isActive ? colors[i] : 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = isActive ? 2 : 1;
+    ctx.stroke();
+    if(isActive){
+      ctx.fillStyle='rgba(240,160,32,0.07)';
+      ctx.fill();
+    }
+    // etiqueta
+    if(sw > 30 && sh > 20){
+      ctx.fillStyle = isActive ? colors[i] : 'rgba(255,255,255,0.25)';
+      ctx.font = isActive ? `bold 11px Unbounded,sans-serif` : '9px Space Mono,monospace';
+      ctx.fillText(s.n, sx+6, sy+14);
+      if(isActive && sw>80){
+        ctx.font='9px Space Mono,monospace'; ctx.fillStyle='rgba(255,255,255,0.5)';
+        ctx.fillText(`${s.w}×${s.h}`, sx+6, sy+26);
+      }
+    }
+  }
+}
+window.addEventListener('resize', drawSizes);
+
+/* ── nesting calc ── */
+function updateNesting(){
+  const bi = +document.getElementById('baseSize').value;
+  const ci = +document.getElementById('cutSize').value;
+  const base = SIZES[bi], cut = SIZES[ci];
+  const countEl = document.getElementById('nest-count');
+  const detailEl = document.getElementById('nest-detail');
+  const warnEl   = document.getElementById('nest-warn');
+
+  if(ci <= bi){ countEl.textContent='—'; countEl.style.color='var(--red)'; detailEl.innerHTML=''; warnEl.textContent='selecciona un tamaño de corte mayor (número más alto) que el tamaño base.'; return; }
+
+  const cols = Math.floor(base.w / cut.w);
+  const rows = Math.floor(base.h / cut.h);
+  const count = cols * rows;
+  const used = cols*cut.w*rows*cut.h;
+  const total = base.w*base.h;
+  const waste = ((total-used)/total*100).toFixed(1);
+  const isFamily = (ci > bi);
+  const isPerfect = (total===used);
+
+  countEl.textContent = count;
+  countEl.style.color = isPerfect ? 'var(--teal)' : 'var(--amber)';
+  detailEl.innerHTML = `base: <strong>${base.n} (${base.w}×${base.h} mm)</strong><br>corte: <strong>${cut.n} (${cut.w}×${cut.h} mm)</strong><br>distribución: <strong>${cols} col × ${rows} fil</strong><br>desperdicio: <strong style="color:${isPerfect?'var(--teal)':'var(--amber)'}">${waste}%</strong>`;
+  warnEl.textContent = isPerfect ? '' : `nota: ${waste}% de desperdicio. dentro de la familia X, los tamaños a 2 o más pasos de diferencia siempre dan 0%.`;
+  drawNestCanvas(base, cut, cols, rows);
+}
+
+function drawNestCanvas(base, cut, cols, rows){
+  const cv = document.getElementById('nest-canvas');
+  cv.style.display='block';
+  const maxW = 420, maxH = 200;
+  const scaleX=maxW/base.w, scaleY=maxH/base.h;
+  const scale=Math.min(scaleX,scaleY);
+  cv.width=Math.round(base.w*scale); cv.height=Math.round(base.h*scale);
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1;
+  ctx.strokeRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='rgba(240,160,32,0.12)';
+  ctx.fillRect(0,0,cv.width,cv.height);
+
+  const cw=Math.round(cut.w*scale), ch=Math.round(cut.h*scale);
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    ctx.fillStyle='rgba(45,191,138,0.25)'; ctx.fillRect(c*cw,r*ch,cw,ch);
+    ctx.strokeStyle='rgba(45,191,138,0.6)'; ctx.lineWidth=1; ctx.strokeRect(c*cw,r*ch,cw,ch);
+  }
+}
+
+/* ── calculadora px ── */
+const DPIS = [{label:'72 dpi (mac histórico)',v:72},{label:'96 dpi (pantalla web)',v:96},{label:'150 dpi (tablet)',v:150},{label:'300 dpi (impresión)',v:300}];
+function updatePx(){
+  const si=+document.getElementById('pxSize').value;
+  const s=SIZES[si];
+  const grid=document.getElementById('pxGrid');
+  grid.innerHTML='';
+  DPIS.forEach(d=>{
+    const pw=Math.round(s.w*d.v/25.4), ph=Math.round(s.h*d.v/25.4);
+    const card=document.createElement('div'); card.className='px-card';
+    card.innerHTML=`<div class="px-dpi">${d.label}</div><div class="px-val">${pw} × ${ph} px</div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* ── init ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  initSizeViz();
+  updateNesting();
+  updatePx();
+});
+</script>
+</body>
+</html>
