@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>el problema del coche chino — gato.red</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: rgba(255,255,255,.07);
+      --border-hover: rgba(255,255,255,.18);
+      --text: #f0ece2;
+      --muted: #888;
+      --accent-red: #e84d4d;
+      --accent-amber: #f0a020;
+      --accent-teal: #2dbf8a;
+      --accent-blue: #4d9de8;
+      --accent-purple: #9b7dea;
+      --accent-pink: #e05ca3;
+      --accent-gray: #aaa;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* scanlines CRT overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,.04) 0px,
+        rgba(0,0,0,.04) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 0;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .logo-block a { text-decoration: none; }
+
+    .logo {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo .dot { color: var(--accent-red); }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      margin-top: 4px;
+    }
+
+    .header-stats {
+      display: flex;
+      gap: 32px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    .stat { text-align: right; }
+
+    .stat-num {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 900;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .stat-label {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 2px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 64px 0 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .article-category {
+      display: inline-block;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+      padding: 3px 10px;
+      margin-bottom: 20px;
+    }
+
+    .article-title {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 900;
+      font-size: clamp(28px, 5vw, 56px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      max-width: 900px;
+      margin-bottom: 20px;
+    }
+
+    .article-title .highlight-red { color: var(--accent-red); }
+
+    .article-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+
+    .article-meta {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      font-size: 10px;
+      color: #444;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .article-meta span { color: var(--muted); }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 48px 0 24px;
+    }
+
+    .section-label-text {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .section-label-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── BODY TEXT ── */
+    .article-body {
+      max-width: 720px;
+      padding: 48px 0;
+    }
+
+    .article-body p {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .article-body p:last-child { margin-bottom: 0; }
+
+    .article-body strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .article-body em {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── STAT BLOCK ── */
+    .stat-block {
+      border-left: 2px solid var(--accent-red);
+      padding: 20px 24px;
+      margin: 36px 0;
+      background: var(--surface);
+    }
+
+    .stat-block .big-num {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 900;
+      font-size: 40px;
+      letter-spacing: -0.03em;
+      color: var(--accent-red);
+      line-height: 1;
+    }
+
+    .stat-block .big-num.amber { color: var(--accent-amber); }
+    .stat-block .big-num.teal  { color: var(--accent-teal);  }
+    .stat-block .big-num.blue  { color: var(--accent-blue);  }
+    .stat-block .big-num.purple{ color: var(--accent-purple);}
+    .stat-block .big-num.pink  { color: var(--accent-pink);  }
+
+    .stat-block .stat-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* ── DATA CARDS ROW ── */
+    .cards-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin: 36px 0;
+    }
+
+    .data-card {
+      background: var(--bg);
+      padding: 20px 18px;
+      position: relative;
+      transition: background 0.15s;
+    }
+
+    .data-card:hover { background: var(--surface); }
+
+    .data-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 2px;
+    }
+
+    .data-card.red::before    { background: var(--accent-red); }
+    .data-card.amber::before  { background: var(--accent-amber); }
+    .data-card.teal::before   { background: var(--accent-teal); }
+    .data-card.blue::before   { background: var(--accent-blue); }
+    .data-card.purple::before { background: var(--accent-purple); }
+    .data-card.pink::before   { background: var(--accent-pink); }
+
+    .data-card .card-num {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 900;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .data-card.red    .card-num { color: var(--accent-red); }
+    .data-card.amber  .card-num { color: var(--accent-amber); }
+    .data-card.teal   .card-num { color: var(--accent-teal); }
+    .data-card.blue   .card-num { color: var(--accent-blue); }
+    .data-card.purple .card-num { color: var(--accent-purple); }
+    .data-card.pink   .card-num { color: var(--accent-pink); }
+
+    .data-card .card-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      line-height: 1.4;
+    }
+
+    /* ── CATEGORY HEADER ── */
+    .cat-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 48px 0 20px;
+    }
+
+    .cat-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .cat-title.red    { color: var(--accent-red); }
+    .cat-title.amber  { color: var(--accent-amber); }
+    .cat-title.teal   { color: var(--accent-teal); }
+    .cat-title.blue   { color: var(--accent-blue); }
+    .cat-title.purple { color: var(--accent-purple); }
+    .cat-title.pink   { color: var(--accent-pink); }
+
+    .cat-line { flex: 1; height: 1px; }
+
+    .cat-title.red    + .cat-line { background: linear-gradient(to right, var(--accent-red),    transparent); }
+    .cat-title.amber  + .cat-line { background: linear-gradient(to right, var(--accent-amber),  transparent); }
+    .cat-title.teal   + .cat-line { background: linear-gradient(to right, var(--accent-teal),   transparent); }
+    .cat-title.blue   + .cat-line { background: linear-gradient(to right, var(--accent-blue),   transparent); }
+    .cat-title.purple + .cat-line { background: linear-gradient(to right, var(--accent-purple), transparent); }
+    .cat-title.pink   + .cat-line { background: linear-gradient(to right, var(--accent-pink),   transparent); }
+
+    .cat-count {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    /* ── PULL QUOTE ── */
+    .pull-quote {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 0;
+      margin: 36px 0;
+    }
+
+    .pull-quote p {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 300;
+      font-size: clamp(14px, 2vw, 18px);
+      letter-spacing: -0.01em;
+      line-height: 1.5;
+      color: var(--text);
+      margin: 0 !important;
+    }
+
+    .pull-quote p em {
+      color: var(--accent-red);
+      font-style: normal;
+    }
+
+    /* ── BLOCKQUOTE ── */
+    .article-body blockquote {
+      border-left: 2px solid var(--accent-amber);
+      padding: 12px 20px;
+      margin: 24px 0;
+      background: var(--surface);
+    }
+
+    .article-body blockquote p {
+      color: var(--muted);
+      font-size: 13px;
+      font-style: italic;
+      margin: 0;
+    }
+
+    /* ── ENLACE RELACIONADO ── */
+    .related-link {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      margin: 36px 0;
+      text-decoration: none;
+      background: var(--bg);
+      transition: background 0.15s, border-color 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .related-link::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--accent-teal);
+    }
+
+    .related-link:hover {
+      background: var(--surface);
+      border-color: var(--border-hover);
+    }
+
+    .related-link-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      color: var(--accent-teal);
+    }
+
+    .related-link-text .label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-teal);
+      margin-bottom: 4px;
+    }
+
+    .related-link-text .title {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .related-link-text .desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .related-link-arrow {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* ── LAYOUT ── */
+    .article-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 0 48px;
+      align-items: start;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      padding-top: 48px;
+      position: sticky;
+      top: 24px;
+    }
+
+    .sidebar-block {
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 16px;
+      background: var(--bg);
+      transition: background 0.15s;
+    }
+
+    .sidebar-block:hover { background: var(--surface); }
+
+    .sidebar-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-fact {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .sidebar-fact strong { color: var(--accent-amber); }
+
+    .toc-item {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .toc-item:last-child { border-bottom: none; }
+
+    .toc-num {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 9px;
+      color: #444;
+      flex-shrink: 0;
+    }
+
+    /* ── FOOTNOTE ── */
+    .footnote {
+      font-size: 11px;
+      color: #444;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 36px;
+      line-height: 1.6;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      margin-top: 64px;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .footer-left  { font-size: 11px; color: #444; }
+    .footer-right { font-size: 11px; color: #444; }
+    .footer-right a { color: #666; text-decoration: none; }
+    .footer-right a:hover { color: var(--muted); }
+
+    /* ── MOBILE ── */
+    @media (max-width: 700px) {
+      .container { padding: 0 16px; }
+      .header-inner { flex-direction: column; gap: 16px; }
+      .header-stats { align-items: flex-start; gap: 20px; }
+      .article-layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; padding-top: 0; }
+      .hero { padding: 36px 0 32px; }
+      .cards-row { grid-template-columns: 1fr 1fr; }
+      .footer-inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <div class="logo-block">
+          <a href="https://gato.red">
+            <div class="logo">gato<span class="dot">.</span>red</div>
+          </a>
+          <div class="logo-sub">// artículos &amp; proyectos</div>
+        </div>
+        <div class="header-stats">
+          <div class="stat">
+            <div class="stat-num">6.1%</div>
+            <div class="stat-label">cuota china en Europa 2025</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">811k</div>
+            <div class="stat-label">unidades vendidas</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">35%</div>
+            <div class="stat-label">arancel máximo UE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="article-category">// artículos</div>
+      <h1 class="article-title">
+        El problema del<br>
+        <span class="highlight-red">coche chino</span><br>
+        no es el precio
+      </h1>
+      <p class="article-subtitle">
+        La industria automotriz china lleva años construyendo un mito de modernidad y precio imbatible. Pero detrás del precio hay subvenciones, detrás de las subvenciones hay carbón, y detrás del carbón hay una pregunta incómoda sobre qué es exactamente lo que estamos comprando.
+      </p>
+      <div class="article-meta">
+        junio 2025 &nbsp;·&nbsp; <span>lectura ~12 min</span> &nbsp;·&nbsp; <span>industria, medioambiente, economía</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- BODY -->
+  <div class="container">
+    <div class="article-layout">
+
+      <!-- COLUMNA PRINCIPAL -->
+      <article>
+
+        <!-- INTRO -->
+        <div class="section-label">
+          <span class="section-label-text">// introducción</span>
+          <div class="section-label-line"></div>
+        </div>
+
+        <div class="article-body">
+          <p>
+            En diciembre de 2025, uno de cada diez coches vendidos en Europa era de origen chino. No es un titular alarmista: son los datos de la patronal europea de fabricantes. MG superó a Cupra, Nissan y Fiat. BYD dejó atrás a Suzuki, Mini y Mazda. Chery multiplicó por siete sus ventas en doce meses. Y todo esto ocurrió mientras la UE les imponía aranceles de hasta el 35%.
+          </p>
+          <p>
+            El consumidor medio ve un coche tecnológico, bien equipado, con una pantalla enorme y un precio que los fabricantes europeos no pueden igualar. Y tiene razón en lo que ve. Lo que no ve es lo que hay detrás del precio: una maquinaria estatal que lleva décadas financiando su propia industria con dinero público, ignorando regulaciones medioambientales que en Europa hundirían a cualquier empresa en sanciones, y exportando el resultado al resto del mundo como si fuera el libre mercado.
+          </p>
+          <p>
+            Este artículo no es una defensa del proteccionismo a ciegas. Es un intento de explicar por qué la conquista del mercado automotriz europeo por parte de China no es simplemente una historia de innovación y competitividad, sino algo bastante más complicado y, en muchos sentidos, bastante más preocupante.
+          </p>
+        </div>
+
+        <!-- SECCIÓN 1: DUMPING -->
+        <div class="cat-header">
+          <span class="cat-title red">// el modelo económico</span>
+          <div class="cat-line"></div>
+          <span class="cat-count">01</span>
+        </div>
+
+        <div class="article-body">
+          <p>
+            Empecemos por lo básico: <strong>¿por qué son tan baratos los coches chinos?</strong> La respuesta directa es el dumping. El dumping, en términos de economía comercial, consiste en vender un producto en mercados exteriores a un precio inferior a su coste real de producción. La diferencia la paga alguien, y en el caso chino ese alguien es el Estado.
+          </p>
+          <p>
+            La Comisión Europea llevó a cabo una investigación exhaustiva que confirmó lo que muchos sospechaban: los fabricantes chinos de vehículos eléctricos reciben subvenciones estatales masivas que distorsionan los precios de manera artificial. No hablamos de pequeños incentivos fiscales. Hablamos de acceso a suelo barato, energía subsidiada, créditos blandos de bancos estatales, y un sistema de «plan quinquenal» que convierte a determinadas industrias —la automotriz entre ellas— en prioridad nacional, con los recursos del Estado chino detrás.
+          </p>
+
+          <div class="stat-block">
+            <div class="big-num amber">10–15%</div>
+            <div class="stat-desc">Más baratos que sus equivalentes europeos, incluso tras los aranceles. En algunas categorías la brecha es mayor. Los fabricantes europeos no pueden competir con eso en condiciones normales de mercado.</div>
+          </div>
+
+          <p>
+            El resultado es devastador para la industria local. VW, Stellantis y Renault llevan meses discutiendo cierres de plantas, recortes de plantilla y fusiones de urgencia. En Alemania, el país más dependiente del automóvil de toda Europa, el debate sobre el futuro industrial tiene un tono de pánico que antes estaba reservado para países con menor base manufacturera. Y no es exagerado: la automoción representa millones de empleos directos e indirectos en el continente.
+          </p>
+
+          <blockquote>
+            <p>«Si en la UE no se puede subsidiar a la industria, los fabricantes europeos juegan en inferioridad de condiciones.» — Eurodiputada Susana Solís, Ciudadanos</p>
+          </blockquote>
+
+          <p>
+            El problema es estructural. China no juega con las mismas reglas porque China no tiene las mismas reglas. Los fabricantes europeos operan bajo estrictas normativas laborales, medioambientales y de ayudas de Estado. Los chinos, no. Y mientras se intenta nivelar el campo de juego con aranceles —que la UE tardó años en implementar y China respondió con investigaciones antidumping contra el jamón ibérico y el coñac francés—, las plantas europeas siguen cerrando.
+          </p>
+        </div>
+
+        <!-- DATOS EN TARJETAS -->
+        <div class="cards-row">
+          <div class="data-card red">
+            <div class="card-num">811.000</div>
+            <div class="card-label">unidades chinas vendidas en Europa en 2025</div>
+          </div>
+          <div class="data-card amber">
+            <div class="card-num">+52%</div>
+            <div class="card-label">crecimiento interanual de marcas chinas en Europa (enero 2025)</div>
+          </div>
+          <div class="data-card blue">
+            <div class="card-num">12%</div>
+            <div class="card-label">cuota de mercado estimada de OEM chinos en Europa en 2031</div>
+          </div>
+          <div class="data-card purple">
+            <div class="card-num">70%</div>
+            <div class="card-label">baterías para EV vendidos en Europa procedentes de empresas chinas</div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN 2: MEDIO AMBIENTE -->
+        <div class="cat-header">
+          <span class="cat-title amber">// la ficción verde</span>
+          <div class="cat-line"></div>
+          <span class="cat-count">02</span>
+        </div>
+
+        <div class="article-body">
+          <p>
+            Aquí viene la parte que más incomoda al sector, porque obliga a sostener dos ideas a la vez. Primera: los coches eléctricos chinos se venden como producto ecológico. Segunda: el proceso de fabricarlos, en China, con la matriz energética actual de China, no es especialmente ecológico.
+          </p>
+          <p>
+            China genera aproximadamente el <strong>60% de su electricidad quemando carbón</strong>. El carbón es el combustible fósil más sucio que existe en términos de emisiones de CO₂ por kilovatio hora producido. Cuando una gigafactoría en Shanghái fabrica las baterías de litio de un BYD, esa energía viene, mayoritariamente, de centrales de carbón. Y fabricar una batería no es precisamente poco intensivo en energía.
+          </p>
+
+          <div class="pull-quote">
+            <p>Un coche eléctrico fabricado con energía de carbón <em>no es cero emisiones</em>: son emisiones diferidas, escondidas en la cadena de producción y en las minas de litio.</p>
+          </div>
+
+          <p>
+            Los datos son claros: <strong>el 80% de las emisiones de CO₂ asociadas a la batería de un vehículo eléctrico provienen de la extracción y refinado de materiales críticos</strong> —litio, níquel, cobalto, manganeso—. Estos procesos son extremadamente intensivos en energía y, en el caso chino, se realizan principalmente con la energía más sucia disponible. Un estudio de la UPM estimó que fabricar las baterías en Europa, usando tecnologías más limpias, reduciría las emisiones asociadas a la producción en más de un 30%.
+          </p>
+          <p>
+            A esto se suma la <strong>hiperproducción como filosofía de Estado</strong>. El modelo chino no premia la eficiencia productiva en términos medioambientales: premia el volumen. Más unidades, más exportaciones, más cuota de mercado. El propio presidente de SAIC, uno de los mayores fabricantes del país, reconoció públicamente que algunos fabricantes estaban produciendo coches de gran autonomía «a cualquier precio», disparando la contaminación en el proceso, con baterías cada vez más grandes y voraces en energía durante su fabricación.
+          </p>
+          <p>
+            Y luego está el problema del fin de vida. En China, donde la electrificación va décadas por delante en volumen, la gestión de las baterías agotadas ha derivado en un mercado dominado por talleres clandestinos y redes ilegales que procesan las baterías sin ningún tipo de control medioambiental. El resultado: metales pesados y electrolitos filtrándose en el suelo y el agua. Todo esto, en el país que fabrica la mayoría de los coches que el mundo llama «ecológicos».
+          </p>
+
+          <div class="stat-block">
+            <div class="big-num teal">80%</div>
+            <div class="stat-desc">De las emisiones de CO₂ de la batería de un eléctrico provienen de la extracción y refinado de materiales críticos. Si esa extracción ocurre en China, con energía de carbón, el balance ecológico real del vehículo es muy diferente al del folleto.</div>
+          </div>
+
+          <p>
+            Es importante ser justos: China está invirtiendo enormes cantidades en renovables y, según los datos de Carbon Brief, sus emisiones totales empezaron a caer en 2025 antes de lo previsto. Pero eso no cambia el hecho de que <em>hoy</em>, en 2025, la mayor parte de los coches chinos que llegan a Europa se fabrican con una huella de carbono más alta que si se fabricaran aquí.
+          </p>
+        </div>
+
+        <!-- SECCIÓN 3: USAR Y TIRAR -->
+        <div class="cat-header">
+          <span class="cat-title pink">// la cultura del usar y tirar</span>
+          <div class="cat-line"></div>
+          <span class="cat-count">03</span>
+        </div>
+
+        <div class="article-body">
+          <p>
+            Hay una dimensión del problema chino que va más allá del dumping y de la huella de carbono, y que tiene que ver con algo más profundo: la manera en que China concibe la manufactura como actividad. No se trata de un juicio cultural —es una observación económica. El modelo de negocio dominante en la industria china no está diseñado para crear productos que duren; está diseñado para crear productos que se vendan.
+          </p>
+          <p>
+            Lo vimos primero con la electrónica de consumo: móviles baratos sin actualizaciones de software más allá del primer año, auriculares que duran una temporada, cargadores que mueren a los seis meses. El mismo patrón —precio muy bajo, durabilidad muy corta, reposición continua— se ha trasladado ahora a los vehículos. Y un coche no es un auricular.
+          </p>
+
+          <div class="pull-quote">
+            <p>China no exporta coches. Exporta <em>ciclos de reposición</em>: la lógica del usar y tirar aplicada a un objeto de 20.000 euros.</p>
+          </div>
+
+          <p>
+            El ecosistema automotriz chino es un organismo que nace y muere a una velocidad sin precedentes en la industria. Desde 2015 han aparecido y desaparecido decenas de marcas de vehículos eléctricos: Byton, Aiways, Bordrin, Singulato, WM Motor, Lichi Auto. Algunas quebraron antes de entregar el primer coche. Otras cerraron dejando a sus compradores sin red de servicio, sin piezas de repuesto y, en algunos casos, con un coche al que el servidor de actualizaciones de software dejó de responder. <strong>Un coche sin soporte de software, hoy, es un ladrillo con ruedas.</strong>
+          </p>
+          <p>
+            El problema no se limita a las marcas que desaparecen. Incluso las que sobreviven operan en un ecosistema de renovación de modelos vertiginoso. Donde un fabricante europeo puede mantener una plataforma durante siete u ocho años —amortizando la inversión en ingeniería, asegurando el suministro de piezas, formando a los talleres—, los fabricantes chinos lanzan y retiran modelos en ciclos de dos o tres años. El coche que compraste hace tres años puede quedarse sin piezas de carrocería en el mercado, sin actualizaciones para su sistema de infoentretenimiento y sin soporte técnico certificado.
+          </p>
+
+          <div class="stat-block">
+            <div class="big-num pink">+50</div>
+            <div class="stat-desc">Marcas chinas de vehículos eléctricos han nacido y quebrado desde 2015. Detrás de cada quiebra hay compradores con un coche huérfano: sin piezas, sin software, sin garantía real.</div>
+          </div>
+
+          <p>
+            Esto conecta directamente con la huella medioambiental. La obsolescencia acelerada no solo es un problema para el consumidor: es un desastre ecológico. Un coche que dura ocho años tiene una huella de carbono por kilómetro recorrido mucho mejor que uno que se sustituye a los cuatro. Si el modelo chino normaliza ciclos de vida más cortos —impulsados por la moda tecnológica, la presión de precios y la falta de soporte— estaremos fabricando el doble de baterías, extrayendo el doble de litio y generando el doble de residuos para mover la misma cantidad de personas.
+          </p>
+          <p>
+            Y hay un último ángulo que suele ignorarse: las <strong>garantías de papel</strong>. Muchos vehículos chinos llegan al mercado europeo a través de importadores paralelos o distribuidores sin red de servicio consolidada. La garantía existe en el contrato, pero ejercerla puede requerir enviar el coche al país de origen, esperar meses por piezas que no se fabrican aquí, o asumir que el distribuidor habrá cerrado para cuando las necesites. No es un escenario hipotético: es lo que ya ha ocurrido con marcas como Aiways en varios mercados europeos.
+          </p>
+        </div>
+
+        <!-- SECCIÓN 4: IMPACTO ECONÓMICO -->
+        <div class="cat-header">
+          <span class="cat-title blue">// la desindustrialización</span>
+          <div class="cat-line"></div>
+          <span class="cat-count">04</span>
+        </div>
+
+        <div class="article-body">
+          <p>
+            La industria automotriz no es cualquier sector. En países como Alemania, España, Francia o Italia, representa entre el 8% y el 14% del PIB y decenas de miles de empleos directos, más una cadena de proveedores que multiplica ese número varias veces. Cuando una planta cierra, no cierra sola: cierra el proveedor de asientos, el de juntas, el de componentes de freno, el de electrónica, el taller de mecanizado del polígono de al lado.
+          </p>
+          <p>
+            La estrategia china no es nueva: es la misma que aplicaron con los paneles solares, con los semiconductores básicos, con el acero. <strong>Subsidiar hasta dominar, dominar hasta que el competidor desaparezca, y entonces fijar los precios.</strong> Con los paneles solares funcionó perfectamente: Europa invirtió en capacidad industrial de fabricación solar y China la hundió con precios de dumping. Hoy Europa no fabrica prácticamente ningún panel solar. Depende al 100% de China para una de las tecnologías clave de su transición energética.
+          </p>
+          <p>
+            Con el automóvil el riesgo es el mismo, pero las consecuencias son mayores porque el sector es más grande. La Comisión Europea tiene 14 millones de empleos en mente cuando habla de proteger la industria automotriz. No es retórica: es el cálculo de lo que está en juego si el modelo chino de subsidio y dumping consigue repetir con los coches lo que ya hizo con los paneles.
+          </p>
+
+          <blockquote>
+            <p>«La amenaza del dumping chino ha dejado de ser un concepto teórico para convertirse en una realidad palpable que golpea con dureza a industrias europeas que hasta hace poco se consideraban intocables.» — Puro Marketing</p>
+          </blockquote>
+
+          <p>
+            La ironía más brutal está en la transición verde. Europa decidió prohibir los coches de combustión para 2035. Para esa transición necesita baterías, motores eléctricos y software. Y resulta que China controla más del 70% del mercado mundial de baterías para vehículos eléctricos, acapara la mayor parte del refinado de litio y cobalto, y lleva años adelantando posiciones en la cadena de valor del eléctrico. Europa se está transformando en importadora neta precisamente en el sector que más necesita controlar para su independencia energética y económica.
+          </p>
+        </div>
+
+        <!-- SECCIÓN 5: EL ELÉCTRICO NO SIEMPRE GANA -->
+        <div class="cat-header">
+          <span class="cat-title purple">// el eléctrico no siempre gana</span>
+          <div class="cat-line"></div>
+          <span class="cat-count">05</span>
+        </div>
+
+        <div class="article-body">
+          <p>
+            Llegamos al punto más delicado, porque obliga a matizar una narrativa que se ha vuelto casi dogmática: <strong>el coche eléctrico no es automáticamente mejor para el medioambiente que el de combustión</strong>. Depende de dónde se fabrique, con qué energía, en qué contexto se usa, y durante cuánto tiempo.
+          </p>
+          <p>
+            Un vehículo eléctrico emite más CO₂ durante su fabricación que uno de gasolina equivalente, principalmente por la batería. A lo largo del ciclo de vida, ese déficit inicial se recupera si la electricidad con la que se carga es limpia. Pero si no lo es —si viene de carbón, como en China, o de gas, como ocurre en muchos países del este de Europa— el break-even puede no llegar nunca, o llegar muy tarde.
+          </p>
+          <p>
+            No es un argumento en contra del eléctrico como tecnología. Es un argumento en contra de la simplificación. «Eléctrico = verde» es marketing, no ciencia. La realidad es que depende de la fuente de energía, del tamaño de la batería, de los kilómetros recorridos al año, del país en el que se carga y del país en el que se fabricó. Un coche de combustión eficiente puede tener una huella menor durante sus primeros años que un SUV eléctrico de batería enorme fabricado en una planta china alimentada por carbón.
+          </p>
+          <p>
+            Esto conecta directamente con un análisis que escribí sobre Mallorca —un territorio con condiciones muy específicas donde la transición al eléctrico presenta paradojas que el mainstream mediático suele ignorar por completo—. Si te interesa profundizar en cómo el contexto local puede invertir completamente la ecuación ambiental del vehículo eléctrico, merece mucho la pena leerlo:
+          </p>
+        </div>
+
+        <!-- ENLACE RELACIONADO -->
+        <a href="https://gato.red/paradojaverde" class="related-link">
+          <div class="related-link-icon">↗</div>
+          <div class="related-link-text">
+            <div class="label">// artículo relacionado</div>
+            <div class="title">La paradoja verde de Mallorca</div>
+            <div class="desc">Por qué en algunos contextos el coche eléctrico puede ser menos ecológico de lo que parece — un análisis concreto desde una isla.</div>
+          </div>
+          <div class="related-link-arrow">→</div>
+        </a>
+
+        <!-- SECCIÓN 6: CONCLUSIÓN -->
+        <div class="cat-header">
+          <span class="cat-title red">// entonces, ¿qué?</span>
+          <div class="cat-line"></div>
+          <span class="cat-count">06</span>
+        </div>
+
+        <div class="article-body">
+          <p>
+            No hay una respuesta cómoda. Los coches chinos son, en muchos casos, tecnológicamente competentes y bien equipados. El consumidor que compra un MG o un BYD no está haciendo nada ilegal ni absurdo. Está comprando lo mejor que encuentra por su dinero, hoy.
+          </p>
+          <p>
+            El problema no es el consumidor. El problema es el sistema que hace posible ese precio: un sistema donde el Estado chino decide qué industrias van a dominar el mercado mundial, las financia con dinero público sin límite aparente, ignora regulaciones medioambientales que sus competidores deben cumplir bajo pena de multas millonarias, diseña productos con ciclos de vida cortos que generan residuos y dependencia, y luego vende los resultados como libre mercado.
+          </p>
+
+          <div class="pull-quote">
+            <p>No competimos en el mismo campo. Y si dejamos que ese campo se iguale <em>desmantelando la industria europea</em> en vez de exigir que China cumpla las mismas reglas, habremos perdido algo más que los empleos.</p>
+          </div>
+
+          <p>
+            La respuesta inteligente no es el proteccionismo ciego ni la nostalgia del motor de explosión. Es entender que la transición energética tiene que ser compatible con la soberanía industrial. Que subvencionar la compra de un BYD en Europa con dinero público europeo mientras las plantas de Salamanca, Rüsselsheim o Sochaux negocian expedientes de regulación de empleo es, como mínimo, una contradicción enorme que merece conversación pública.
+          </p>
+          <p>
+            Y es entender que el eléctrico, por sí solo, no salva el planeta. Lo que salva el planeta es la <em>descarbonización real de la energía</em> y de los procesos productivos, no el desplazamiento de las emisiones desde el tubo de escape hasta la chimenea de una central de carbón en la provincia de Shandong.
+          </p>
+          <p>
+            El coche chino tiene un precio muy bajo. El coste real es bastante más alto.
+          </p>
+
+          <div class="footnote">
+            Fuentes y datos: S&P Global Mobility / BasqueTrade (2024), The Objective Motor (feb. 2026), JATO Dynamics, Comisión Europea investigación antidumping vehículos eléctricos (oct. 2024), autofacil.es análisis ciclo de vida baterías, UPM ETSI Minas estudio emisiones fabricación baterías, Funcas análisis industria automotriz europea, xataka.com matriz energética China 2025.
+          </div>
+        </div>
+
+      </article>
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+
+        <div class="sidebar-block">
+          <div class="sidebar-label">// índice</div>
+          <div class="toc-item">
+            <span class="toc-num">01</span>
+            <span>el modelo económico — dumping y subsidios</span>
+          </div>
+          <div class="toc-item">
+            <span class="toc-num">02</span>
+            <span>la ficción verde — carbón y baterías</span>
+          </div>
+          <div class="toc-item">
+            <span class="toc-num">03</span>
+            <span>la cultura del usar y tirar</span>
+          </div>
+          <div class="toc-item">
+            <span class="toc-num">04</span>
+            <span>la desindustrialización de Europa</span>
+          </div>
+          <div class="toc-item">
+            <span class="toc-num">05</span>
+            <span>el eléctrico no siempre gana</span>
+          </div>
+          <div class="toc-item">
+            <span class="toc-num">06</span>
+            <span>entonces, ¿qué?</span>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <div class="sidebar-label">// cifra del día</div>
+          <div class="sidebar-fact">
+            <strong>811.000 coches chinos</strong> vendidos en Europa en 2025, con aranceles de hasta el 35% ya aplicados. Sin aranceles, la cifra sería sustancialmente mayor.
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <div class="sidebar-label">// dato clave</div>
+          <div class="sidebar-fact">
+            El 60% de la electricidad de China proviene del carbón. Fabricar una batería de coche eléctrico requiere enormes cantidades de energía. La huella real de un EV «made in China» incluye esa energía, aunque el tubo de escape sea inexistente.
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <div class="sidebar-label">// paradoja</div>
+          <div class="sidebar-fact">
+            Europa prohíbe los coches de combustión para 2035 y necesita baterías para sustituirlos. <strong>China controla más del 70% del mercado mundial de baterías.</strong> La independencia energética europea dependerá de un proveedor que compite deslealmente con su industria.
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <div class="sidebar-label">// también en gato.red</div>
+          <div class="sidebar-fact">
+            <a href="https://gato.red/paradojaverde" style="color: var(--accent-teal); text-decoration: none;">→ La paradoja verde de Mallorca</a><br>
+            <span style="color: #444; font-size: 11px;">Por qué el eléctrico no siempre es mejor en contextos insulares o con red eléctrica sucia.</span>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">gato.red — proyecto personal, sin anunciantes, sin agenda corporativa.</div>
+        <div class="footer-right"><a href="https://gato.red">← volver al inicio</a></div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
