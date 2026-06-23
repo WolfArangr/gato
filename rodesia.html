@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>el espejo de rhodesia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: rgba(255,255,255,.07);
+    --border-hover: rgba(255,255,255,.18);
+    --text: #f0ece2;
+    --muted: #888;
+    --accent-red: #e84d4d;
+    --accent-amber: #f0a020;
+    --accent-teal: #2dbf8a;
+    --accent-blue: #4d9de8;
+    --accent-purple: #9b7dea;
+    --accent-pink: #e05ca3;
+    --accent-gray: #aaa;
+    --max: 1400px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* CRT scanlines overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.04) 0px, rgba(0,0,0,.04) 1px, transparent 1px, transparent 2px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .container { max-width: var(--max); margin: 0 auto; padding: 0 40px; }
+  @media (max-width: 700px) { .container { padding: 0 20px; } }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+  .header-inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .logo span { color: var(--accent-red); }
+  .logo-sub {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 3px;
+    font-weight: 400;
+  }
+  .header-stats {
+    display: flex;
+    gap: 32px;
+    align-items: flex-end;
+  }
+  .stat-block { text-align: right; }
+  .stat-num {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    display: block;
+  }
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-top: 3px;
+  }
+  @media (max-width: 700px) {
+    .header-stats { gap: 16px; }
+    .stat-num { font-size: 16px; }
+  }
+
+  /* SECTION LABELS */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .section-label span {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* HERO */
+  .hero {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-red);
+    margin-bottom: 20px;
+    display: block;
+  }
+  .hero-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(32px, 6vw, 72px);
+    letter-spacing: -0.04em;
+    line-height: 1.0;
+    margin-bottom: 24px;
+    max-width: 900px;
+  }
+  .hero-title em {
+    color: var(--accent-red);
+    font-style: normal;
+  }
+  .hero-subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 600px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .meta-tag {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .meta-tag.red { border-color: var(--accent-red); color: var(--accent-red); }
+
+  /* NAV TABS */
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 73px;
+    background: var(--bg);
+    z-index: 90;
+  }
+  .tab-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { border-color: var(--border-hover); color: var(--text); }
+  .tab-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  /* MAIN LAYOUT */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    min-height: 80vh;
+  }
+  @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* ARTICLE CONTENT */
+  .article-content {
+    padding: 48px 40px 48px 0;
+    border-right: 1px solid var(--border);
+  }
+  @media (max-width: 900px) {
+    .article-content { padding: 32px 0; border-right: none; }
+  }
+
+  .article-section { display: none; }
+  .article-section.active { display: block; }
+
+  .prose {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+    max-width: 680px;
+  }
+  .prose p { margin-bottom: 20px; }
+  .prose p:last-child { margin-bottom: 0; }
+  .prose strong { color: var(--text); font-weight: 700; }
+  .prose em { color: var(--muted); font-style: italic; }
+
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: clamp(18px, 3vw, 28px);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+  .section-title .accent { color: var(--accent-red); }
+
+  /* BLOCKQUOTE */
+  .blockquote {
+    border-left: 2px solid var(--accent-red);
+    padding: 16px 24px;
+    margin: 32px 0;
+    background: var(--surface);
+  }
+  .blockquote p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 8px !important;
+    font-style: italic;
+  }
+  .blockquote cite {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-style: normal;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    padding: 48px 0 48px 40px;
+  }
+  @media (max-width: 900px) {
+    .sidebar { padding: 0 0 32px 0; }
+  }
+
+  /* CARDS */
+  .card {
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 16px;
+    background: var(--bg);
+    transition: background 0.2s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--card-accent, var(--border));
+    transition: background 0.2s;
+  }
+  .card:hover {
+    background: var(--surface);
+    border-color: var(--border-hover);
+  }
+  .card:hover::before { background: var(--card-accent, var(--accent-red)); }
+  .card-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .card-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .card-body {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* TIMELINE */
+  .timeline { margin: 40px 0; }
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 20px;
+    padding-bottom: 32px;
+    position: relative;
+  }
+  .timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 38px;
+    top: 28px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-item:last-child::after { display: none; }
+  .timeline-year {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 12px;
+    color: var(--accent-red);
+    letter-spacing: -0.02em;
+    text-align: right;
+    padding-top: 2px;
+    position: relative;
+    z-index: 1;
+  }
+  .timeline-dot {
+    position: absolute;
+    left: 34px;
+    top: 6px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    border: 2px solid var(--bg);
+  }
+  .timeline-content-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .timeline-content-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .timeline-content-body {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .timeline-regime {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    margin-bottom: 8px;
+  }
+  .regime-rhodesia { background: rgba(77,157,232,.15); color: var(--accent-blue); }
+  .regime-zimbabwe { background: rgba(231,76,60,.15); color: var(--accent-red); }
+  .regime-transition { background: rgba(240,160,32,.15); color: var(--accent-amber); }
+
+  /* COMPARATOR */
+  .comparator {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin: 32px 0;
+    border: 1px solid var(--border);
+  }
+  .comparator-col {
+    background: var(--bg);
+    padding: 24px;
+  }
+  .comparator-col:hover { background: var(--surface); }
+  .comparator-header {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .comparator-header.blue { color: var(--accent-blue); }
+  .comparator-header.red { color: var(--accent-red); }
+  .comp-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .comp-item::before {
+    content: '›';
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .comp-item.negative::before { color: var(--accent-red); content: '✕'; }
+  .comp-item.positive::before { color: var(--accent-teal); content: '✓'; }
+
+  /* INTERACTIVE CHART */
+  .chart-container {
+    margin: 32px 0;
+    border: 1px solid var(--border);
+    padding: 24px;
+    background: var(--surface);
+  }
+  .chart-title {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 50px;
+    gap: 10px;
+    align-items: center;
+    font-size: 11px;
+  }
+  .bar-label { color: var(--muted); text-align: right; }
+  .bar-track {
+    height: 20px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: var(--bar-color, var(--accent-red));
+    transition: width 1s cubic-bezier(.4,0,.2,1);
+    width: 0;
+  }
+  .bar-value { color: var(--text); font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 11px; }
+  .bar-fill.animated { width: var(--target-width); }
+
+  /* PARALEL INDICATOR */
+  .parallel-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: start;
+    margin: 32px 0;
+  }
+  .parallel-col { }
+  .parallel-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 24px;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 18px;
+  }
+  .parallel-item {
+    border: 1px solid var(--border);
+    padding: 14px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    position: relative;
+  }
+  .parallel-item.rhodesia { border-left: 2px solid var(--accent-blue); }
+  .parallel-item.occidente { border-left: 2px solid var(--accent-amber); }
+  .parallel-col-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .parallel-col-label.blue { color: var(--accent-blue); }
+  .parallel-col-label.amber { color: var(--accent-amber); }
+
+  /* INTERACTIVE SLIDER */
+  .slider-section {
+    margin: 32px 0;
+    padding: 24px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .slider-title {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .slider-wrap label {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    min-width: 120px;
+  }
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 2px;
+    background: var(--border-hover);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    cursor: pointer;
+    border: none;
+  }
+  .slider-value {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--accent-red);
+    min-width: 60px;
+    text-align: right;
+    letter-spacing: -0.02em;
+  }
+  .outcome-display {
+    padding: 16px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+    min-height: 80px;
+    transition: all 0.3s;
+  }
+  .outcome-display .highlight { color: var(--text); }
+
+  /* KEY CONCEPTS */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    margin: 32px 0;
+    border: 1px solid var(--border);
+  }
+  .concept-card {
+    background: var(--bg);
+    padding: 20px;
+    transition: background 0.2s;
+    cursor: default;
+  }
+  .concept-card:hover { background: var(--surface); }
+  .concept-icon {
+    font-size: 20px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .concept-name {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .concept-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+  /* HIGHLIGHT BOX */
+  .highlight-box {
+    border: 1px solid var(--accent-red);
+    padding: 20px 24px;
+    margin: 32px 0;
+    position: relative;
+  }
+  .highlight-box::before {
+    content: '// nota clave';
+    position: absolute;
+    top: -8px;
+    left: 16px;
+    background: var(--bg);
+    padding: 0 8px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-red);
+  }
+  .highlight-box p {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+    margin: 0;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-left { color: #444; font-size: 11px; }
+  .footer-right { color: #444; font-size: 11px; }
+
+  /* SOURCES */
+  .sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .source-item {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+  .source-item:hover { border-color: var(--border-hover); }
+  .source-item strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+  /* Accent color utility classes */
+  .c-red { color: var(--accent-red); }
+  .c-amber { color: var(--accent-amber); }
+  .c-teal { color: var(--accent-teal); }
+  .c-blue { color: var(--accent-blue); }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .comparator { grid-template-columns: 1fr; }
+    .parallel-grid { grid-template-columns: 1fr; }
+    .parallel-divider { flex-direction: row; padding-top: 0; }
+    .header-stats { display: none; }
+    .nav-tabs { top: 65px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <div>
+        <a href="#" class="logo">gato<span>.</span>red</a>
+        <span class="logo-sub">// análisis histórico-político</span>
+      </div>
+      <div class="header-stats">
+        <div class="stat-block">
+          <span class="stat-num c-red">15</span>
+          <span class="stat-label">años de Rhodesia</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-num" style="color:var(--accent-amber)">80K</span>
+          <span class="stat-label">muertos Gukurahundi</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-num" style="color:var(--accent-teal)">1965</span>
+          <span class="stat-label">año UDI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="container">
+  <div class="hero">
+    <span class="hero-eyebrow">// cuando la historia se convierte en profecía</span>
+    <h1 class="hero-title">el espejo de <em>rhodesia</em></h1>
+    <p class="hero-subtitle">
+      En un mundo que quiere un Zimbabwe global, todos somos Rhodesia. Un análisis del experimento político más revelador del siglo XX y sus paralelos con las tensiones raciales del occidente contemporáneo.
+    </p>
+    <div class="hero-meta">
+      <span class="meta-tag red">análisis político</span>
+      <span class="meta-tag">historia de áfrica</span>
+      <span class="meta-tag">1965–1980</span>
+      <span class="meta-tag">discurso contemporáneo</span>
+    </div>
+  </div>
+
+  <!-- NAV TABS -->
+  <nav class="nav-tabs" aria-label="Secciones del artículo">
+    <button class="tab-btn active" data-section="historia">// historia</button>
+    <button class="tab-btn" data-section="linea-tiempo">// línea de tiempo</button>
+    <button class="tab-btn" data-section="comparador">// rhodesia vs zimbabwe</button>
+    <button class="tab-btn" data-section="paralelos">// paralelos actuales</button>
+    <button class="tab-btn" data-section="dinamicas">// dinámicas</button>
+    <button class="tab-btn" data-section="conclusion">// conclusión</button>
+    <button class="tab-btn" data-section="fuentes">// fuentes</button>
+  </nav>
+
+  <div class="main-grid">
+
+    <!-- ARTICLE CONTENT -->
+    <main class="article-content">
+
+      <!-- SECCIÓN: HISTORIA -->
+      <section class="article-section active" id="historia" aria-label="Historia de Rhodesia">
+        <div class="section-label"><span>// el contexto</span></div>
+        <h2 class="section-title">La "Suiza de <span class="accent">África</span>"</h2>
+
+        <div class="prose">
+          <p>Rhodesia surgió en <strong>1965</strong> cuando Ian Smith declaró unilateralmente la independencia del Reino Unido —la Declaración Unilateral de Independencia (UDI)— negándose a aceptar el principio de "una persona, un voto" que habría entregado automáticamente el poder a la mayoría negra.</p>
+          <p>Esta decisión convirtió a Rhodesia en un paria internacional: sanciones económicas, aislamiento diplomático, condena universal. Sin embargo, durante los siguientes quince años, este pequeño país no solo sobrevivió sino que se convirtió en el <strong>segundo productor de tabaco del mundo</strong> y mantuvo una de las economías más diversificadas de África subsahariana.</p>
+          <p>El sistema era discriminatorio, pero no idéntico al apartheid sudafricano. La Constitución de 1969 establecía dos listas electorales —la "A", dominada por blancos por requisitos educativos y de propiedad, y la "B" para africanos que cumplieran ciertos criterios— pero no excluía totalmente a los africanos del poder político. Había representación negra en el parlamento, ministros negros en el gobierno, y una clase media africana creciente.</p>
+        </div>
+
+        <div class="blockquote">
+          <p>"El problema de Rhodesia no era el racismo per se, sino la creencia ingenua de que el racismo es un monopolio moral de determinados grupos étnicos."</p>
+          <cite>— Doris Lessing, Going Home (1957)</cite>
+        </div>
+
+        <div class="prose">
+          <p>La guerra civil que comenzó a finales de los años sesenta introdujo dinámicas radicalmente nuevas. Los movimientos de liberación —el ZANU de Robert Mugabe y el ZAPU de Joshua Nkomo— no luchaban simplemente contra el racismo institucional. Luchaban por el <strong>poder total</strong>, y sus métodos incluían violencia que el régimen de Smith nunca empleó: masacres de civiles, tortura sistemática, imposición de lealtad política a través del terror.</p>
+          <p>Los Acuerdos de Lancaster House en <strong>1979</strong> pusieron fin al conflicto. Mugabe ganó las elecciones de 1980 y se convirtió en el primer primer ministro del Zimbabwe independiente. Durante los primeros años, mantuvo un discurso de reconciliación y respetó relativamente los acuerdos —que incluían protecciones para la minoría blanca y garantías de propiedad.</p>
+          <p>Pero a medida que consolidó su poder, emergió algo inesperado: un racismo institucional inverso que eventualmente se volvería más sistemático y brutal que cualquier cosa que Rhodesia hubiera conocido.</p>
+        </div>
+
+        <div class="highlight-box">
+          <p>El caso de Rhodesia/Zimbabwe ilustra una verdad incómoda: el racismo institucional no es prerrogativa de ningún grupo étnico particular, y el poder político corrompe independientemente del color de quienes lo ejercen. Más aún: cuando el racismo se institucionaliza bajo el pretexto de la justicia histórica, tiende a volverse más extremo que las formas "tradicionales" de discriminación.</p>
+        </div>
+
+        <div class="prose">
+          <p>Mugabe, de etnia shona, implementó una campaña de genocidio contra los ndebele —el grupo étnico de su rival Joshua Nkomo— conocida como <strong>Gukurahundi</strong>, que resultó en entre 20.000 y 80.000 civiles muertos entre 1983 y 1987. La Quinta Brigada, entrenada por norcoreanos, empleó masacres masivas, violaciones sistemáticas y destrucción de aldeas enteras.</p>
+          <p>Las granjas comerciales fueron confiscadas sin compensación. Los blancos fueron excluidos sistemáticamente del gobierno y las fuerzas armadas. Las políticas de "indigenización" criminalizaron la propiedad blanca de empresas. El resultado: colapso económico, hiperinflación histórica, emigración masiva.</p>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-title">// evolución económica de zimbabwe — inflación y capacidad agrícola</div>
+          <div class="bar-chart" id="eco-chart">
+            <div class="bar-row">
+              <span class="bar-label">1980 (independencia)</span>
+              <div class="bar-track"><div class="bar-fill" style="--bar-color: var(--accent-teal); --target-width: 85%"></div></div>
+              <span class="bar-value c-teal">+85%</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">1990 (estabilización)</span>
+              <div class="bar-track"><div class="bar-fill" style="--bar-color: var(--accent-blue); --target-width: 60%"></div></div>
+              <span class="bar-value c-blue">+60%</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">2000 (confiscaciones)</span>
+              <div class="bar-track"><div class="bar-fill" style="--bar-color: var(--accent-amber); --target-width: 30%"></div></div>
+              <span class="bar-value c-amber">–40%</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">2008 (hiperinflación)</span>
+              <div class="bar-track"><div class="bar-fill" style="--bar-color: var(--accent-red); --target-width: 5%"></div></div>
+              <span class="bar-value c-red">–90%</span>
+            </div>
+          </div>
+          <p style="font-size:10px; color:var(--muted); margin-top:12px;">Capacidad productiva agrícola relativa respecto a 1980 (base 100%). La hiperinflación de 2008 alcanzó 89.7 sextillones por ciento anual.</p>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: LÍNEA DE TIEMPO -->
+      <section class="article-section" id="linea-tiempo" aria-label="Línea de tiempo de Rhodesia y Zimbabwe">
+        <div class="section-label"><span>// cronología</span></div>
+        <h2 class="section-title">De Rhodesia a <span class="accent">estado fallido</span></h2>
+        <p class="prose" style="margin-bottom:32px; color:var(--muted)">Quince años de Rhodesia, cuatro décadas de Zimbabwe. Una historia que comprimió todas las contradicciones de las sociedades multirraciales bajo presión.</p>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <span class="timeline-year">1965</span>
+            <div style="position:relative">
+              <div class="timeline-dot"></div>
+              <span class="timeline-regime regime-rhodesia">Rhodesia</span>
+              <div class="timeline-content-title">Declaración Unilateral de Independencia (UDI)</div>
+              <div class="timeline-content-body">Ian Smith proclama la independencia del Reino Unido. Rechazo del principio "una persona, un voto". Comienza el aislamiento internacional y las sanciones económicas.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">1969</span>
+            <div style="position:relative">
+              <div class="timeline-dot" style="background:var(--accent-blue)"></div>
+              <span class="timeline-regime regime-rhodesia">Rhodesia</span>
+              <div class="timeline-content-title">Constitución de dos listas electorales</div>
+              <div class="timeline-content-body">Lista "A" (blancos) y "B" (africanos calificados). Sistema discriminatorio pero con representación negra parcial en el parlamento y el gobierno.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">1972</span>
+            <div style="position:relative">
+              <div class="timeline-dot" style="background:var(--accent-amber)"></div>
+              <span class="timeline-regime regime-rhodesia">Rhodesia</span>
+              <div class="timeline-content-title">Inicio de la guerra civil (Chimurenga)</div>
+              <div class="timeline-content-body">El ZANU de Mugabe y el ZAPU de Nkomo intensifican la guerra de guerrillas. Ambos movimientos emplean terror contra civiles de ambas razas para imponer lealtad política.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">1979</span>
+            <div style="position:relative">
+              <div class="timeline-dot" style="background:var(--accent-amber)"></div>
+              <span class="timeline-regime regime-transition">Transición</span>
+              <div class="timeline-content-title">Acuerdos de Lancaster House</div>
+              <div class="timeline-content-body">Fin del conflicto. Se establecen garantías para la minoría blanca, derechos de propiedad y mecanismos de compensación para la redistribución de tierras. Mugabe gana las primeras elecciones libres.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">1980</span>
+            <div style="position:relative">
+              <div class="timeline-dot" style="background:var(--accent-teal)"></div>
+              <span class="timeline-regime regime-zimbabwe">Zimbabwe</span>
+              <div class="timeline-content-title">Independencia — Zimbabwe nace</div>
+              <div class="timeline-content-body">Mugabe asume como primer ministro. Discurso inicial de reconciliación nacional. "Granero de África". El país mantiene una economía relativamente sólida durante los primeros años.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">1983</span>
+            <div style="position:relative">
+              <div class="timeline-dot" style="background:var(--accent-red)"></div>
+              <span class="timeline-regime regime-zimbabwe">Zimbabwe</span>
+              <div class="timeline-content-title">Gukurahundi — genocidio ndebele</div>
+              <div class="timeline-content-body">La Quinta Brigada (entrenada por Corea del Norte) masacra entre 20.000 y 80.000 civiles ndebele. Violaciones sistemáticas, destrucción de aldeas, hambruna inducida. El régimen shona de Mugabe aplica racismo étnico extremo contra la minoría ndebele.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">2000</span>
+            <div style="position:relative">
+              <div class="timeline-dot" style="background:var(--accent-red)"></div>
+              <span class="timeline-regime regime-zimbabwe">Zimbabwe</span>
+              <div class="timeline-content-title">Confiscación masiva de granjas blancas</div>
+              <div class="timeline-content-body">Expropiación sin compensación de miles de granjas comerciales. La producción agrícola colapsa un 70% en diez años. Lo que fue "justicia histórica" destruye la base económica de todo el país, incluyendo a la mayoría negra.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">2008</span>
+            <div style="position:relative">
+              <div class="timeline-dot" style="background:var(--accent-red)"></div>
+              <span class="timeline-regime regime-zimbabwe">Zimbabwe</span>
+              <div class="timeline-content-title">Hiperinflación histórica</div>
+              <div class="timeline-content-body">Inflación de 89,7 sextillones por ciento anual. El zimbabwe dólar se vuelve inútil. Colapso del sistema bancario. Emigración masiva. El "estado fallido" hace obsoleto el experimento de justicia racial.</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-year">2017</span>
+            <div style="position:relative">
+              <div class="timeline-dot" style="background:var(--accent-purple)"></div>
+              <span class="timeline-regime regime-zimbabwe">Zimbabwe</span>
+              <div class="timeline-content-title">Golpe de estado y caída de Mugabe</div>
+              <div class="timeline-content-body">El ejército derroca a Mugabe después de 37 años en el poder. El legado: un país arruinado, una clase media destruida, una nación que sirve de advertencia histórica sobre los efectos del racismo institucional invertido.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: COMPARADOR -->
+      <section class="article-section" id="comparador" aria-label="Comparación entre regímenes">
+        <div class="section-label"><span>// análisis comparativo</span></div>
+        <h2 class="section-title">Dos regímenes, <span class="accent">la misma lógica</span></h2>
+        <p class="prose" style="margin-bottom:24px; color:var(--muted)">La paradoja central: dos sistemas opuestos en su retórica, idénticos en su estructura fundamental. Ambos organizaron el poder según líneas raciales. Ambos colapsaron.</p>
+
+        <div class="comparator">
+          <div class="comparator-col">
+            <div class="comparator-header blue">Rhodesia (Smith, 1965–1980)</div>
+            <div class="comp-item negative">Minoría blanca (4%) controla el poder político</div>
+            <div class="comp-item negative">Dos listas electorales basadas en raza</div>
+            <div class="comp-item negative">Barreras burocráticas a la movilidad africana</div>
+            <div class="comp-item positive">Economía diversificada y relativamente próspera</div>
+            <div class="comp-item positive">Clase media negra con movilidad limitada pero real</div>
+            <div class="comp-item negative">Justificación: "orden civilizatorio", "estabilidad"</div>
+            <div class="comp-item negative">Resultado: guerra civil, aislamiento, colapso político</div>
+          </div>
+          <div class="comparator-col">
+            <div class="comparator-header red">Zimbabwe (Mugabe, 1980–2017)</div>
+            <div class="comp-item negative">Élite shona controla el poder excluyendo minorías</div>
+            <div class="comp-item negative">Políticas de "indigenización" racialmente definidas</div>
+            <div class="comp-item negative">Confiscación de propiedad sin compensación</div>
+            <div class="comp-item negative">Economía destruida por ingeniería racial</div>
+            <div class="comp-item negative">Genocidio Gukurahundi contra ndebele (80K muertos)</div>
+            <div class="comp-item negative">Justificación: "justicia histórica", "desequilibrios coloniales"</div>
+            <div class="comp-item negative">Resultado: estado fallido, hiperinflación, emigración masiva</div>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <p>La diferencia crucial: Rhodesia se presentaba como <em>conservadora y represiva</em>. Zimbabwe se presentaba como <em>progresista y liberadora</em>. Esta diferencia en la presentación no altera la lógica fundamental: en ambos casos, el poder se distribuye según categorías raciales. La retórica de justicia histórica hace que el segundo modelo sea paradójicamente más difícil de criticar y corregir.</p>
+        </div>
+
+        <h3 style="font-family:'Unbounded',sans-serif; font-weight:700; font-size:14px; margin-bottom:16px; margin-top:32px;">Mecanismo de colapso compartido</h3>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <span class="concept-icon">⚙️</span>
+            <div class="concept-name">Auto-justificación</div>
+            <div class="concept-desc">Ambos sistemas descartaban las críticas como propaganda externa. Smith: "comunismo". Mugabe: "imperialismo". La inmunidad a la crítica racional impidió la corrección de rumbo hasta que fue demasiado tarde.</div>
+          </div>
+          <div class="concept-card">
+            <span class="concept-icon">📈</span>
+            <div class="concept-name">Escalada estructural</div>
+            <div class="concept-desc">Los sistemas raciales crean dinámicas de competencia que incentivan la radicalización. Cada grupo maximiza demandas, la moderación es percibida como debilidad. La escalada se vuelve inevitable.</div>
+          </div>
+          <div class="concept-card">
+            <span class="concept-icon">🏛️</span>
+            <div class="concept-name">Burocracia racial</div>
+            <div class="concept-desc">En ambos casos surgió una burocracia con incentivos para perpetuar los problemas que supuestamente resolvía. Su existencia dependía de la persistencia de las categorías raciales como organizadoras del poder.</div>
+          </div>
+          <div class="concept-card">
+            <span class="concept-icon">🔄</span>
+            <div class="concept-name">Inestabilidad intrínseca</div>
+            <div class="concept-desc">Ningún sistema de supremacía racial es sostenible a largo plazo, independientemente de qué grupo esté en el poder. Contradicen el principio de que los individuos deben ser juzgados por méritos, no por características adscritas.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: PARALELOS -->
+      <section class="article-section" id="paralelos" aria-label="Paralelos con el Occidente contemporáneo">
+        <div class="section-label"><span>// el presente</span></div>
+        <h2 class="section-title">El <span class="accent">"zimbabweísmo"</span> occidental</h2>
+        <p class="prose" style="margin-bottom:24px; color:var(--muted)">¿En qué medida las políticas contemporáneas de diversidad replican la lógica que destruyó ambos países? El artículo propone paralelos concretos —aunque en formas mucho menos violentas.</p>
+
+        <div class="parallel-grid">
+          <div class="parallel-col">
+            <span class="parallel-col-label blue">// Rhodesia/Zimbabwe</span>
+            <div class="parallel-item rhodesia">
+              Africanos educados con habilidades para participar pero impedidos por barreras raciales. Frustración que alimenta radicalización.
+            </div>
+            <div class="parallel-item rhodesia">
+              Participación condicionada a adoptar la narrativa del sistema: el africano que "colabora" puede prosperar.
+            </div>
+            <div class="parallel-item rhodesia">
+              Crítica al sistema = traición racial o agente imperialista. Debate racional imposible.
+            </div>
+            <div class="parallel-item rhodesia">
+              Políticas que se presentan como justicia y hacen que sus víctimas internalicen su discriminación como responsabilidad moral.
+            </div>
+          </div>
+          <div class="parallel-divider">
+            <span>↔</span>
+          </div>
+          <div class="parallel-col">
+            <span class="parallel-col-label amber">// Occidente contemporáneo</span>
+            <div class="parallel-item occidente">
+              Jóvenes blancos y asiáticos con oportunidades limitadas por su identidad racial. Primer grupo con discriminación institucional explícita por raza en la historia occidental moderna.
+            </div>
+            <div class="parallel-item occidente">
+              Profesionales de minorías que prosperan articulando su éxito en términos de diversidad e inclusión. El éxito condicionado a la narrativa correcta.
+            </div>
+            <div class="parallel-item occidente">
+              Criticar las políticas DEI = acusación automática de racismo. Inmunización al escrutinio empírico.
+            </div>
+            <div class="parallel-item occidente">
+              Estudiantes asiáticos discriminados en admisiones apoyan las mismas políticas que los discriminan, en nombre de la "justicia social".
+            </div>
+          </div>
+        </div>
+
+        <div class="prose" style="margin-top:32px;">
+          <p>El artículo señala que las políticas DEI —Diversidad, Equidad e Inclusión— operan bajo una lógica sorprendentemente similar a la que guió la transformación de Rhodesia en Zimbabwe: la noción de que la discriminación histórica justifica la discriminación contemporánea, siempre que sea ejercida por los grupos "correctos".</p>
+          <p>El concepto de <strong>"privilegio blanco"</strong> se señala como ejemplo: atribuye ventajas a individuos por su raza independientemente de sus circunstancias, de forma análoga a como el régimen de Smith justificaba la supremacía blanca. Ambos sistemas se basan en que la identidad racial determina la posición social legítima de los individuos.</p>
+        </div>
+
+        <div class="blockquote">
+          <p>"Una sociedad que hace de la raza su principio organizador terminará siendo organizada por la raza, y una sociedad organizada por la raza terminará siendo destruida por la raza."</p>
+          <cite>— Thomas Sowell, Ethnic America (1981)</cite>
+        </div>
+
+        <div class="prose">
+          <p>La racialización creciente de la política —partidos cada vez más homogéneos racialmente, barrios más segregados, instituciones más polarizadas— representa, según el análisis, las etapas tempranas del mismo proceso que llevó a la guerra civil en Rhodesia: la imposibilidad de formar coaliciones basadas en valores o intereses compartidos que trasciendan la identidad racial.</p>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: DINÁMICAS -->
+      <section class="article-section" id="dinamicas" aria-label="Dinámicas del racismo institucional">
+        <div class="section-label"><span>// mecánica política</span></div>
+        <h2 class="section-title">Cómo funciona la <span class="accent">espiral racial</span></h2>
+
+        <div class="slider-section">
+          <div class="slider-title">// simulador de intensidad de políticas raciales</div>
+          <p style="font-size:11px; color:var(--muted); margin-bottom:20px;">Explora cómo el artículo describe la evolución de los sistemas de categorización racial según aumenta su intensidad institucional.</p>
+
+          <div class="slider-wrap">
+            <label for="intensity-slider">Intensidad institucional</label>
+            <input type="range" id="intensity-slider" min="1" max="5" value="1" step="1">
+            <span class="slider-value" id="intensity-value">1/5</span>
+          </div>
+
+          <div class="outcome-display" id="intensity-outcome">
+            <span class="highlight">Nivel 1 — Reconocimiento histórico</span><br>
+            Reconocimiento de desigualdades históricas y medidas simbólicas de reparación. Las categorías raciales se usan para analizar el pasado, no para organizar el presente. Tensión mínima, posibilidad de consenso transracial alta.
+          </div>
+        </div>
+
+        <div class="prose" style="margin-top:32px;">
+          <p>El artículo describe una <strong>"conciencia racial total"</strong> —la creencia de que todos los problemas sociales, económicos y políticos pueden entenderse y resolverse en términos raciales. Esta mentalidad crea una espiral autorreferencial:</p>
+        </div>
+
+        <div class="concept-grid" style="margin-top:20px;">
+          <div class="concept-card">
+            <span class="concept-icon">1</span>
+            <div class="concept-name">Problema identificado</div>
+            <div class="concept-desc">Se identifica una disparidad entre grupos raciales en educación, empleo o riqueza. El diagnóstico es: discriminación racial.</div>
+          </div>
+          <div class="concept-card">
+            <span class="concept-icon">2</span>
+            <div class="concept-name">Solución racial</div>
+            <div class="concept-desc">Se implementa una política de discriminación positiva: cuotas, preferencias, exclusiones. La raza sigue siendo el organizador central.</div>
+          </div>
+          <div class="concept-card">
+            <span class="concept-icon">3</span>
+            <div class="concept-name">Nuevo problema</div>
+            <div class="concept-desc">La política genera resentimiento en los grupos no beneficiados. Emergen nuevas disparidades. Nuevas categorías de discriminación.</div>
+          </div>
+          <div class="concept-card">
+            <span class="concept-icon">4</span>
+            <div class="concept-name">Más soluciones raciales</div>
+            <div class="concept-desc">La respuesta es más ingeniería racial, más sofisticada. El sistema se vuelve más totalizante y más difícil de desmontar.</div>
+          </div>
+        </div>
+
+        <div class="prose" style="margin-top:32px;">
+          <p>El artículo señala el <strong>"efecto mismatch"</strong> como evidencia concreta: investigación académica sugiere que la acción afirmativa puede reducir el rendimiento de sus beneficiarios al colocarlos en instituciones para las cuales no están académicamente preparados. Las políticas de diversidad corporativa pueden aumentar el resentimiento racial y reducir la cohesión organizacional.</p>
+          <p>La industria de la diversidad —consultores DEI, administradores universitarios, activistas profesionales— se describe como un sector económico con incentivos para <em>perpetuar los problemas que supuestamente resuelve</em>. Al igual que la burocracia racial de Zimbabwe, tiende a expandirse independientemente de su utilidad social.</p>
+        </div>
+
+        <div class="highlight-box">
+          <p>El mecanismo psicológico más sofisticado que señala el artículo: los sistemas contemporáneos logran que sus víctimas apoyen su propia discriminación. Los estudiantes asiáticos discriminados en admisiones universitarias frecuentemente apoyan estas políticas "en nombre de la justicia social". Este fenómeno —la internalización de la discriminación como virtud moral— hace los sistemas más estables pero también más frágiles cuando la ilusión colapsa.</p>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: CONCLUSIÓN -->
+      <section class="article-section" id="conclusion" aria-label="Conclusión y alternativas">
+        <div class="section-label"><span>// la tesis central</span></div>
+        <h2 class="section-title">Más allá de la <span class="accent">supremacía racial</span></h2>
+
+        <div class="prose">
+          <p>La conclusión del análisis no es el retorno a los sistemas de supremacía blanca —"igualmente problemáticos por razones similares"— sino el reconocimiento de que la igualdad racial genuina requiere el <strong>abandono de las categorías raciales como organizadores de la vida política y social</strong>.</p>
+          <p>El artículo propone un modelo "post-racial genuino": un sistema que reconoce la diversidad individual sin reducir a las personas a sus identidades de grupo. Que reconoce diferencias culturales y desigualdades históricas sin recurrir a la discriminación racial institucionalizada como solución.</p>
+        </div>
+
+        <div class="comparator">
+          <div class="comparator-col">
+            <div class="comparator-header" style="color:var(--accent-red)">Lo que NO propone</div>
+            <div class="comp-item negative">Negar la existencia de diferencias culturales</div>
+            <div class="comp-item negative">Minimizar las injusticias históricas del colonialismo</div>
+            <div class="comp-item negative">Ignorar la persistencia de desigualdades actuales</div>
+            <div class="comp-item negative">Retornar a sistemas de supremacía blanca</div>
+            <div class="comp-item negative">Desmantelar instantáneamente todas las medidas</div>
+          </div>
+          <div class="comparator-col">
+            <div class="comparator-header" style="color:var(--accent-teal)">Lo que SÍ propone</div>
+            <div class="comp-item positive">Juzgar individuos por carácter y acciones, no por raza</div>
+            <div class="comp-item positive">Igualdad ante la ley sobre equidad de resultados</div>
+            <div class="comp-item positive">Valores compartidos que trascienden divisiones raciales</div>
+            <div class="comp-item positive">Evaluar empíricamente las políticas raciales</div>
+            <div class="comp-item positive">Permitir la crítica racional de las políticas DEI</div>
+          </div>
+        </div>
+
+        <div class="prose" style="margin-top:32px;">
+          <p>La historia de Rhodesia/Zimbabwe sugiere que el cambio generalmente ocurre solo después de que las consecuencias negativas se vuelven innegables. En Rhodesia, vino tras años de guerra civil. En Zimbabwe, tras décadas de colapso económico. La pregunta que plantea el artículo es si las sociedades occidentales pueden aprender de esta historia antes de llegar a puntos de crisis similares.</p>
+        </div>
+
+        <div class="blockquote">
+          <p>En última instancia, todos somos Rhodesia porque todos enfrentamos la misma elección: unidad basada en principios universales, o división basada en identidades particulares. Rhodesia eligió la división y se destruyó. Zimbabwe eligió la división y se destruyó. La pregunta es si Occidente tendrá la sabiduría de elegir la unidad antes de que sea demasiado tarde.</p>
+          <cite>— Argumento central del artículo</cite>
+        </div>
+
+        <div class="highlight-box">
+          <p>El espejo de Rhodesia nos muestra no solo lo que hemos sido y lo que somos, sino lo que podríamos llegar a ser. Podemos elegir el camino de Zimbabwe —radicalización racial creciente, decline institucional y colapso eventual— o un tercer camino: la construcción de sociedades verdaderamente post-raciales que honren tanto la diversidad humana como la igualdad individual.</p>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: FUENTES -->
+      <section class="article-section" id="fuentes" aria-label="Fuentes bibliográficas">
+        <div class="section-label"><span>// bibliografía</span></div>
+        <h2 class="section-title">Fuentes y <span class="accent">materiales</span></h2>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:24px;">El artículo se apoya en fuentes que abarcan desde testigos directos hasta análisis académicos contemporáneos.</p>
+
+        <div class="sources-list">
+          <div class="source-item">
+            <strong>Doris Lessing — Going Home (1957)</strong>
+            Michael Joseph. Relato personal de la autora sobre su Rhodesia natal, con observaciones sobre las dinámicas raciales que anticiparon el conflicto posterior.
+          </div>
+          <div class="source-item">
+            <strong>Thomas Sowell — Ethnic America: A History (1981)</strong>
+            Basic Books. Análisis comparativo de grupos étnicos en Estados Unidos que examina cómo las políticas raciales afectan el desarrollo económico de las comunidades.
+          </div>
+          <div class="source-item">
+            <strong>Ian Smith — The Great Betrayal (1997)</strong>
+            Blake Publishing. Memorias del primer ministro rodesiano. Fuente primaria esencial para entender la perspectiva del régimen minoritario.
+          </div>
+          <div class="source-item">
+            <strong>Martin Meredith — Mugabe: Power, Plunder and the Struggle for Zimbabwe (2007)</strong>
+            PublicAffairs. Biografía política exhaustiva del líder zimbabuense que documenta la transición del discurso de reconciliación a la represión.
+          </div>
+          <div class="source-item">
+            <strong>Heidi Holland — Dinner with Mugabe (2008)</strong>
+            Penguin Books. Perfil íntimo basado en entrevistas con Mugabe y personas de su entorno que revela la psicología del poder.
+          </div>
+          <div class="source-item">
+            <strong>Douglas Murray — The Strange Death of Europe (2017)</strong>
+            Bloomsbury. Análisis de las tensiones identitarias en Europa contemporánea y el debate sobre la gestión de la diversidad cultural.
+          </div>
+          <div class="source-item">
+            <strong>Christopher Caldwell — The Age of Entitlement (2020)</strong>
+            Simon & Schuster. Examen de cómo la legislación de derechos civiles transformó la política estadounidense y creó nuevas tensiones raciales.
+          </div>
+          <div class="source-item">
+            <strong>Coleman Hughes — The End of Race Politics (2024)</strong>
+            Philosophy of Science Press. Argumento contemporáneo para superar las políticas basadas en categorías raciales desde una perspectiva liberal.
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="section-label"><span>// contexto</span></div>
+
+      <div class="card" style="--card-accent: var(--accent-blue);">
+        <span class="card-label">// datos clave</span>
+        <div class="card-title">Rhodesia en cifras</div>
+        <div class="card-body">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px;">
+            <span style="color:var(--muted)">Población blanca</span>
+            <span style="color:var(--accent-blue)">~4%</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px;">
+            <span style="color:var(--muted)">Duración UDI</span>
+            <span style="color:var(--accent-blue)">15 años</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px;">
+            <span style="color:var(--muted)">Ranking tabaco mundial</span>
+            <span style="color:var(--accent-blue)">#2</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:11px;">
+            <span style="color:var(--muted)">Aislamiento intl.</span>
+            <span style="color:var(--accent-blue)">Total</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--accent-red);">
+        <span class="card-label">// el coste humano</span>
+        <div class="card-title">Gukurahundi 1983–1987</div>
+        <div class="card-body">
+          Campaña genocida contra la minoría ndebele. Quinta Brigada entrenada por Corea del Norte. Entre <strong style="color:var(--accent-red)">20.000 y 80.000</strong> civiles muertos. Violaciones sistemáticas, destrucción de aldeas, hambruna inducida. El régimen shona aplicó contra los ndebele una violencia étnica sin precedentes en la historia del país.
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--accent-amber);">
+        <span class="card-label">// acuerdos Lancaster House</span>
+        <div class="card-title">Las garantías que no se cumplieron</div>
+        <div class="card-body">
+          Los acuerdos de 1979 incluían protecciones para la minoría blanca y compensaciones para la redistribución de tierras. Durante los primeros años del régimen de Mugabe se respetaron. A partir de 2000, fueron completamente ignorados. Las granjas fueron confiscadas sin compensación, destruyendo la agricultura comercial del país.
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--accent-purple);">
+        <span class="card-label">// concepto central</span>
+        <div class="card-title">El "efecto mismatch"</div>
+        <div class="card-body">
+          Investigación académica sobre acción afirmativa: colocar estudiantes en instituciones para las cuales no están académicamente preparados puede <em>reducir</em> su rendimiento respecto a haber asistido a una institución de menor selectividad. Una consecuencia no intencionada que el debate político suele ignorar.
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--accent-teal);">
+        <span class="card-label">// tesis alternativa</span>
+        <div class="card-title">Principios "transcendentes al color"</div>
+        <div class="card-body">
+          El artículo distingue entre "ciego al color" (negar las diferencias raciales) y "transcendente al color" (reconocer diferencias sin organizarlas políticamente). La segunda opción, argumenta, es la única compatible con sociedades estables y prósperas a largo plazo.
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <div class="section-label"><span>// categorías</span></div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          <button class="tab-btn" style="font-size:9px; padding:4px 10px; --btn-color:var(--accent-blue)">historia</button>
+          <button class="tab-btn" style="font-size:9px; padding:4px 10px;">política racial</button>
+          <button class="tab-btn" style="font-size:9px; padding:4px 10px;">zimbabwe</button>
+          <button class="tab-btn" style="font-size:9px; padding:4px 10px;">DEI</button>
+          <button class="tab-btn" style="font-size:9px; padding:4px 10px;">África</button>
+          <button class="tab-btn" style="font-size:9px; padding:4px 10px;">análisis</button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-left">gato.red — análisis histórico-político — 2024</span>
+    <span class="footer-right">// el espejo de rhodesia</span>
+  </footer>
+</div>
+
+<script>
+  // TAB NAVIGATION
+  const tabBtns = document.querySelectorAll('.nav-tabs .tab-btn');
+  const sections = document.querySelectorAll('.article-section');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.section;
+      tabBtns.forEach(b => b.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(target).classList.add('active');
+      animateBars();
+    });
+  });
+
+  // BAR CHART ANIMATION
+  function animateBars() {
+    setTimeout(() => {
+      document.querySelectorAll('.bar-fill').forEach(bar => {
+        bar.classList.add('animated');
+      });
+    }, 100);
+  }
+  animateBars();
+
+  // INTENSITY SLIDER
+  const slider = document.getElementById('intensity-slider');
+  const intensityValue = document.getElementById('intensity-value');
+  const outcomeDisplay = document.getElementById('intensity-outcome');
+
+  const outcomes = {
+    1: {
+      title: 'Nivel 1 — Reconocimiento histórico',
+      body: 'Reconocimiento de desigualdades históricas y medidas simbólicas de reparación. Las categorías raciales se usan para analizar el pasado, no para organizar el presente. <span class="highlight">Tensión mínima, posibilidad de consenso transracial alta.</span>'
+    },
+    2: {
+      title: 'Nivel 2 — Acción afirmativa limitada',
+      body: 'Medidas temporales para grupos históricamente excluidos: programas de acceso, becas focalizadas. Las categorías raciales organizan ciertas políticas pero no toda la vida social. <span class="highlight">Debate activo, tensión manejable, legitimidad cuestionada pero presente.</span>'
+    },
+    3: {
+      title: 'Nivel 3 — DEI institucionalizado',
+      body: 'Cuotas en universidades y empresas, mandatos de diversidad, criterios raciales en contratación pública. Las categorías raciales organizan el acceso a instituciones clave. <span class="highlight">Resentimiento creciente en grupos no beneficiados. Debate racional dificultado. Zona de riesgo según el análisis.</span>'
+    },
+    4: {
+      title: 'Nivel 4 — Discriminación racial sistemática',
+      body: 'Exclusión explícita de grupos de empleos y contratos por raza. Listas separadas. Empresas obligadas a cuotas bajo pena legal. Zona equivalente al sistema de listas electorales de Rhodesia. <span class="highlight">Alta polarización, coaliciones transraciales imposibles. Comparación directa con los mecanismos que estudia el artículo.</span>'
+    },
+    5: {
+      title: 'Nivel 5 — Ingeniería racial total (caso Zimbabwe)',
+      body: 'Confiscación de propiedades por raza, exclusión total de grupos de la economía formal, eliminación de garantías legales para minorías. Equivalente al Zimbabwe de Mugabe post-2000. <span class="highlight">Colapso económico, estado fallido, violencia étnica. El artículo argumenta que esta es la lógica final de cualquier sistema que organice el poder según categorías raciales.</span>'
+    }
+  };
+
+  if (slider) {
+    slider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      intensityValue.textContent = val + '/5';
+      const outcome = outcomes[val];
+      outcomeDisplay.innerHTML = '<span class="highlight">' + outcome.title + '</span><br>' + outcome.body;
+      const colors = ['var(--accent-teal)', 'var(--accent-blue)', 'var(--accent-amber)', 'var(--accent-red)', 'var(--accent-red)'];
+      slider.style.accentColor = colors[val - 1];
+    });
+  }
+</script>
+</body>
+</html>
