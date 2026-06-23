@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>editor — gato.red</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+
+/* ── TOKENS ── */
+:root{
+  --bg:#0d0d0d;
+  --surface:#161616;
+  --surface2:#1e1e1e;
+  --surface3:#252525;
+  --border:rgba(255,255,255,.07);
+  --border-hover:rgba(255,255,255,.18);
+  --border-active:rgba(255,255,255,.32);
+  --text:#f0ece2;
+  --muted:#888;
+  --dim:#444;
+  --accent-red:#e84d4d;
+  --accent-amber:#f0a020;
+  --accent-teal:#2dbf8a;
+  --accent-blue:#4d9de8;
+  --accent-purple:#9b7dea;
+  --accent-pink:#e05ca3;
+  --accent-gray:#aaa;
+}
+
+/* ── LAYOUT ── */
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Space Mono',monospace;
+  font-size:12px;
+  display:grid;
+  grid-template-rows:44px 1fr;
+  grid-template-columns:220px 1fr 260px;
+  grid-template-areas:
+    "topbar topbar topbar"
+    "palette canvas props";
+}
+
+/* ── TOPBAR ── */
+#topbar{
+  grid-area:topbar;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  gap:16px;
+  background:var(--surface);
+  z-index:100;
+}
+.logo-small{
+  font-family:'Unbounded',sans-serif;
+  font-weight:900;
+  font-size:14px;
+  letter-spacing:-0.03em;
+  color:var(--text);
+  flex-shrink:0;
+}
+.logo-small .dot{color:var(--accent-red);}
+.logo-sep{color:var(--dim);font-size:11px;margin:0 2px;}
+#article-title-input{
+  background:transparent;
+  border:none;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+  font-family:'Space Mono',monospace;
+  font-size:12px;
+  padding:4px 8px;
+  flex:1;
+  min-width:0;
+  outline:none;
+  transition:border-color .15s;
+}
+#article-title-input:focus{border-color:var(--border-active);}
+#article-title-input::placeholder{color:var(--dim);}
+.top-actions{display:flex;gap:8px;margin-left:auto;flex-shrink:0;}
+.btn{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  padding:6px 14px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .12s;
+  white-space:nowrap;
+}
+.btn:hover{border-color:var(--border-hover);color:var(--text);}
+.btn.primary{border-color:var(--accent-teal);color:var(--accent-teal);}
+.btn.primary:hover{background:var(--accent-teal);color:var(--bg);}
+.btn.danger{border-color:var(--accent-red);color:var(--accent-red);}
+.btn.danger:hover{background:var(--accent-red);color:var(--bg);}
+
+/* ── PALETTE (left) ── */
+#palette{
+  grid-area:palette;
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  background:var(--surface);
+}
+.palette-section{
+  border-bottom:1px solid var(--border);
+  padding:12px 0 8px;
+}
+.palette-label{
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.13em;
+  color:var(--dim);
+  padding:0 14px 8px;
+}
+.palette-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 14px;
+  cursor:pointer;
+  transition:background .1s;
+  user-select:none;
+}
+.palette-item:hover{background:var(--surface2);}
+.palette-item:active{background:var(--surface3);}
+.palette-icon{
+  width:28px;height:20px;
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-weight:700;
+}
+.palette-icon.red{border-color:var(--accent-red);color:var(--accent-red);}
+.palette-icon.amber{border-color:var(--accent-amber);color:var(--accent-amber);}
+.palette-icon.teal{border-color:var(--accent-teal);color:var(--accent-teal);}
+.palette-icon.blue{border-color:var(--accent-blue);color:var(--accent-blue);}
+.palette-icon.purple{border-color:var(--accent-purple);color:var(--accent-purple);}
+.palette-icon.pink{border-color:var(--accent-pink);color:var(--accent-pink);}
+.palette-name{font-size:11px;color:var(--text);}
+.palette-desc{font-size:10px;color:var(--dim);margin-top:1px;}
+
+/* ── CANVAS (center) ── */
+#canvas-wrap{
+  grid-area:canvas;
+  overflow-y:auto;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:32px 24px 80px;
+  gap:0;
+  position:relative;
+}
+/* scanlines */
+#canvas-wrap::after{
+  content:'';
+  position:fixed;
+  top:44px;left:220px;right:260px;bottom:0;
+  background:repeating-linear-gradient(to bottom,rgba(0,0,0,.04) 0px,rgba(0,0,0,.04) 1px,transparent 1px,transparent 2px);
+  pointer-events:none;
+  z-index:1;
+}
+
+#canvas-inner{
+  width:100%;
+  max-width:760px;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+}
+
+/* ── EMPTY STATE ── */
+#empty-state{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:80px 0;
+  color:var(--dim);
+  text-align:center;
+}
+#empty-state .empty-title{
+  font-family:'Unbounded',sans-serif;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:-0.02em;
+  color:var(--muted);
+}
+#empty-state .empty-sub{font-size:11px;line-height:1.7;}
+#empty-state .empty-arrow{font-size:20px;color:var(--dim);}
+
+/* ── BLOCK WRAPPER ── */
+.block-wrapper{
+  position:relative;
+  width:100%;
+  outline:1px solid transparent;
+  transition:outline-color .1s;
+  cursor:pointer;
+}
+.block-wrapper:hover{outline-color:var(--border);}
+.block-wrapper.selected{outline-color:var(--accent-blue);}
+
+.block-controls{
+  position:absolute;
+  right:-44px;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  opacity:0;
+  transition:opacity .1s;
+  z-index:10;
+}
+.block-wrapper:hover .block-controls,
+.block-wrapper.selected .block-controls{opacity:1;}
+.bc-btn{
+  width:32px;height:24px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-size:11px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .1s;
+}
+.bc-btn:hover{background:var(--surface3);color:var(--text);border-color:var(--border-hover);}
+.bc-btn.del:hover{background:var(--accent-red);color:var(--bg);border-color:var(--accent-red);}
+
+/* ── DROP ZONE ── */
+.drop-zone{
+  height:4px;
+  width:100%;
+  transition:height .15s, background .15s;
+  position:relative;
+}
+.drop-zone.active{height:32px;background:rgba(77,157,232,.12);border:1px dashed var(--accent-blue);}
+.drop-zone.active::after{
+  content:'Soltar aquí';
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent-blue);
+}
+
+/* ── BLOCK PREVIEW STYLES (mirror article) ── */
+.prev-paragraph p{font-size:14px;line-height:1.8;color:var(--text);padding:12px 0;}
+.prev-heading .ph-text{
+  font-family:'Unbounded',sans-serif;font-weight:900;
+  letter-spacing:-0.03em;line-height:1.1;
+  color:var(--text);padding:16px 0 8px;
+}
+.prev-heading[data-size="h1"] .ph-text{font-size:clamp(24px,4vw,42px);}
+.prev-heading[data-size="h2"] .ph-text{font-size:clamp(18px,3vw,28px);}
+.prev-heading[data-size="h3"] .ph-text{font-size:16px;}
+
+.prev-section-label{
+  display:flex;align-items:center;gap:12px;padding:20px 0 8px;
+}
+.prev-section-label .sl-text{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.prev-section-label .sl-line{flex:1;height:1px;background:var(--border);}
+
+.prev-cat-header{display:flex;align-items:center;gap:12px;padding:20px 0 8px;}
+.prev-cat-header .ch-title{font-size:10px;text-transform:uppercase;letter-spacing:.15em;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.prev-cat-header .ch-line{flex:1;height:1px;}
+.prev-cat-header .ch-num{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;}
+.ch-color-red .ch-title{color:var(--accent-red);} .ch-color-red .ch-line{background:linear-gradient(to right,var(--accent-red),transparent);}
+.ch-color-amber .ch-title{color:var(--accent-amber);} .ch-color-amber .ch-line{background:linear-gradient(to right,var(--accent-amber),transparent);}
+.ch-color-teal .ch-title{color:var(--accent-teal);} .ch-color-teal .ch-line{background:linear-gradient(to right,var(--accent-teal),transparent);}
+.ch-color-blue .ch-title{color:var(--accent-blue);} .ch-color-blue .ch-line{background:linear-gradient(to right,var(--accent-blue),transparent);}
+.ch-color-purple .ch-title{color:var(--accent-purple);} .ch-color-purple .ch-line{background:linear-gradient(to right,var(--accent-purple),transparent);}
+.ch-color-pink .ch-title{color:var(--accent-pink);} .ch-color-pink .ch-line{background:linear-gradient(to right,var(--accent-pink),transparent);}
+
+.prev-stat-block{
+  border-left:2px solid var(--accent-red);
+  padding:16px 20px;margin:8px 0;
+  background:var(--surface);
+}
+.prev-stat-block .sb-num{font-family:'Unbounded',sans-serif;font-weight:900;font-size:36px;letter-spacing:-0.03em;line-height:1;}
+.prev-stat-block .sb-desc{font-size:12px;color:var(--muted);margin-top:4px;}
+.sb-red .sb-num{color:var(--accent-red);}
+.sb-amber .sb-num{color:var(--accent-amber);}
+.sb-teal .sb-num{color:var(--accent-teal);}
+.sb-blue .sb-num{color:var(--accent-blue);}
+.sb-purple .sb-num{color:var(--accent-purple);}
+.sb-pink .sb-num{color:var(--accent-pink);}
+
+.prev-pull-quote{
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:24px 0;margin:8px 0;
+}
+.prev-pull-quote p{
+  font-family:'Unbounded',sans-serif;font-weight:300;
+  font-size:clamp(13px,2vw,17px);letter-spacing:-0.01em;line-height:1.5;
+  color:var(--text);
+}
+.prev-pull-quote em{color:var(--accent-red);font-style:normal;}
+
+.prev-blockquote{
+  border-left:2px solid var(--accent-amber);
+  padding:10px 16px;margin:8px 0;
+  background:var(--surface);
+}
+.prev-blockquote p{color:var(--muted);font-size:12px;font-style:italic;}
+
+.prev-data-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:8px 0;}
+.prev-data-card{background:var(--bg);padding:14px 12px;position:relative;}
+.prev-data-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;}
+.pdc-red::before{background:var(--accent-red);} .pdc-red .dc-num{color:var(--accent-red);}
+.pdc-amber::before{background:var(--accent-amber);} .pdc-amber .dc-num{color:var(--accent-amber);}
+.pdc-teal::before{background:var(--accent-teal);} .pdc-teal .dc-num{color:var(--accent-teal);}
+.pdc-blue::before{background:var(--accent-blue);} .pdc-blue .dc-num{color:var(--accent-blue);}
+.pdc-purple::before{background:var(--accent-purple);} .pdc-purple .dc-num{color:var(--accent-purple);}
+.pdc-pink::before{background:var(--accent-pink);} .pdc-pink .dc-num{color:var(--accent-pink);}
+.dc-num{font-family:'Unbounded',sans-serif;font-weight:900;font-size:20px;letter-spacing:-0.02em;margin-bottom:2px;}
+.dc-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;line-height:1.3;}
+
+.prev-related-link{
+  display:flex;align-items:center;gap:12px;
+  padding:16px;border:1px solid var(--border);margin:8px 0;
+  text-decoration:none;background:var(--bg);position:relative;overflow:hidden;
+}
+.prev-related-link::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-teal);}
+.rl-icon{font-size:16px;flex-shrink:0;color:var(--accent-teal);}
+.rl-label{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--accent-teal);margin-bottom:3px;}
+.rl-title{font-family:'Unbounded',sans-serif;font-weight:700;font-size:12px;color:var(--text);}
+.rl-desc{font-size:10px;color:var(--muted);margin-top:2px;}
+.rl-arrow{margin-left:auto;color:var(--muted);}
+
+.prev-divider{height:1px;background:var(--border);margin:16px 0;}
+
+.prev-footnote{font-size:11px;color:var(--dim);border-top:1px solid var(--border);padding-top:10px;margin-top:8px;line-height:1.6;}
+
+.prev-hero{padding:20px 0 16px;border-bottom:1px solid var(--border);}
+.prev-hero .h-category{display:inline-block;font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--accent-blue);border:1px solid var(--accent-blue);padding:3px 10px;margin-bottom:12px;}
+.prev-hero .h-title{font-family:'Unbounded',sans-serif;font-weight:900;font-size:clamp(20px,3vw,36px);line-height:1.05;letter-spacing:-0.03em;color:var(--text);margin-bottom:10px;}
+.prev-hero .h-title .ht-red{color:var(--accent-red);}
+.prev-hero .h-subtitle{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;}
+.prev-hero .h-meta{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;}
+
+/* ── PROPS PANEL (right) ── */
+#props{
+  grid-area:props;
+  border-left:1px solid var(--border);
+  overflow-y:auto;
+  background:var(--surface);
+  display:flex;
+  flex-direction:column;
+}
+#props-header{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.13em;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+#props-header .ph-type{
+  font-family:'Unbounded',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  color:var(--text);
+  text-transform:none;
+  letter-spacing:-0.01em;
+}
+#props-body{padding:16px;display:flex;flex-direction:column;gap:14px;flex:1;}
+.prop-group{display:flex;flex-direction:column;gap:6px;}
+.prop-label{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);}
+.prop-input{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  padding:7px 10px;
+  outline:none;
+  width:100%;
+  transition:border-color .12s;
+  resize:vertical;
+}
+.prop-input:focus{border-color:var(--border-active);}
+textarea.prop-input{min-height:72px;resize:vertical;}
+
+.color-pills{display:flex;gap:5px;flex-wrap:wrap;}
+.color-pill{
+  width:24px;height:20px;
+  cursor:pointer;
+  border:2px solid transparent;
+  transition:border-color .1s, transform .1s;
+}
+.color-pill:hover{transform:scale(1.15);}
+.color-pill.active{border-color:var(--text);transform:scale(1.1);}
+.pill-red{background:var(--accent-red);}
+.pill-amber{background:var(--accent-amber);}
+.pill-teal{background:var(--accent-teal);}
+.pill-blue{background:var(--accent-blue);}
+.pill-purple{background:var(--accent-purple);}
+.pill-pink{background:var(--accent-pink);}
+.pill-gray{background:var(--accent-gray);}
+
+.size-pills{display:flex;gap:5px;}
+.size-pill{
+  padding:4px 10px;
+  font-size:10px;
+  font-family:'Space Mono',monospace;
+  font-weight:700;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .1s;
+}
+.size-pill:hover{border-color:var(--border-hover);color:var(--text);}
+.size-pill.active{border-color:var(--accent-blue);color:var(--accent-blue);}
+
+.prop-hint{font-size:9px;color:var(--dim);line-height:1.6;}
+#no-selection{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;padding:40px 16px;color:var(--dim);text-align:center;
+  font-size:11px;line-height:1.7;
+}
+.ns-icon{font-size:24px;color:var(--dim);margin-bottom:4px;}
+
+/* Cards editor */
+.cards-editor{display:flex;flex-direction:column;gap:8px;}
+.card-edit-row{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  padding:8px;
+  display:flex;flex-direction:column;gap:6px;
+  position:relative;
+}
+.card-edit-row .row-del{
+  position:absolute;top:6px;right:6px;
+  background:none;border:none;color:var(--dim);
+  cursor:pointer;font-size:12px;
+}
+.card-edit-row .row-del:hover{color:var(--accent-red);}
+.add-card-btn{
+  font-size:10px;font-family:'Space Mono',monospace;
+  background:none;border:1px dashed var(--border);
+  color:var(--dim);padding:6px;cursor:pointer;
+  transition:all .1s;width:100%;text-align:center;
+}
+.add-card-btn:hover{border-color:var(--border-hover);color:var(--text);}
+
+/* toast */
+#toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:var(--surface2);border:1px solid var(--border);
+  padding:8px 20px;font-size:11px;color:var(--text);
+  opacity:0;transition:all .25s;pointer-events:none;z-index:9999;
+  white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.ok{border-color:var(--accent-teal);color:var(--accent-teal);}
+
+/* ── TEMPLATES MODAL ── */
+#tpl-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.72);
+  z-index:500;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+#tpl-overlay.open{display:flex;}
+#tpl-modal{
+  background:var(--surface);
+  border:1px solid var(--border-hover);
+  width:100%;
+  max-width:860px;
+  max-height:88vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+#tpl-modal-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 20px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+#tpl-modal-header .mh-title{
+  font-family:'Unbounded',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:-0.01em;
+  color:var(--text);
+}
+#tpl-modal-header .mh-sub{
+  font-size:10px;
+  color:var(--dim);
+  margin-top:2px;
+}
+.tpl-close{
+  background:none;border:1px solid var(--border);
+  color:var(--muted);font-size:14px;
+  width:28px;height:28px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .1s;
+}
+.tpl-close:hover{border-color:var(--border-hover);color:var(--text);}
+#tpl-cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--border);
+  flex:1;
+  overflow:hidden;
+}
+.tpl-card{
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  cursor:pointer;
+  transition:background .12s;
+  position:relative;
+}
+.tpl-card:hover{background:var(--surface2);}
+.tpl-card-header{
+  padding:20px 20px 14px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.tpl-tag{
+  display:inline-block;
+  font-size:8px;
+  text-transform:uppercase;
+  letter-spacing:.15em;
+  padding:2px 8px;
+  border:1px solid;
+  margin-bottom:10px;
+}
+.tpl-tag.red{color:var(--accent-red);border-color:var(--accent-red);}
+.tpl-tag.blue{color:var(--accent-blue);border-color:var(--accent-blue);}
+.tpl-tag.teal{color:var(--accent-teal);border-color:var(--accent-teal);}
+.tpl-card-title{
+  font-family:'Unbounded',sans-serif;
+  font-weight:900;
+  font-size:13px;
+  letter-spacing:-0.02em;
+  color:var(--text);
+  margin-bottom:6px;
+}
+.tpl-card-desc{
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.6;
+}
+.tpl-preview{
+  padding:16px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  flex:1;
+}
+/* mini block previews inside template card */
+.mb{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--muted);}
+.mb-icon{
+  width:22px;height:14px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;font-weight:700;border:1px solid var(--border);color:var(--dim);
+}
+.mb-icon.r{border-color:var(--accent-red);color:var(--accent-red);}
+.mb-icon.a{border-color:var(--accent-amber);color:var(--accent-amber);}
+.mb-icon.t{border-color:var(--accent-teal);color:var(--accent-teal);}
+.mb-icon.b{border-color:var(--accent-blue);color:var(--accent-blue);}
+.mb-icon.p{border-color:var(--accent-purple);color:var(--accent-purple);}
+.mb-icon.k{border-color:var(--accent-pink);color:var(--accent-pink);}
+.mb-label{color:var(--muted);}
+.mb-line{flex:1;height:1px;background:var(--border);}
+.tpl-use-btn{
+  margin:0 20px 20px;
+  padding:10px;
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  background:transparent;
+  cursor:pointer;
+  transition:all .12s;
+  flex-shrink:0;
+  text-align:center;
+}
+.tpl-use-btn.red{border:1px solid var(--accent-red);color:var(--accent-red);}
+.tpl-use-btn.red:hover{background:var(--accent-red);color:var(--bg);}
+.tpl-use-btn.blue{border:1px solid var(--accent-blue);color:var(--accent-blue);}
+.tpl-use-btn.blue:hover{background:var(--accent-blue);color:var(--bg);}
+.tpl-use-btn.teal{border:1px solid var(--accent-teal);color:var(--accent-teal);}
+.tpl-use-btn.teal:hover{background:var(--accent-teal);color:var(--bg);}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="logo-small">gato<span class="dot">.</span>red</div>
+  <span class="logo-sep">/</span>
+  <input id="article-title-input" type="text" placeholder="Título del artículo..." spellcheck="false"/>
+  <div class="top-actions">
+    <button class="btn" onclick="clearAll()">Limpiar</button>
+    <button class="btn" onclick="openTemplates()">Plantillas</button>
+    <button class="btn primary" onclick="exportHTML()">Descargar HTML</button>
+  </div>
+</div>
+
+<!-- PALETTE -->
+<div id="palette">
+  <div class="palette-section">
+    <div class="palette-label">// estructura</div>
+    <div class="palette-item" onclick="addBlock('hero')">
+      <div class="palette-icon blue">H</div>
+      <div><div class="palette-name">Hero / Cabecera</div><div class="palette-desc">Título, subtítulo, meta</div></div>
+    </div>
+    <div class="palette-item" onclick="addBlock('section-label')">
+      <div class="palette-icon">// </div>
+      <div><div class="palette-name">Etiqueta de sección</div><div class="palette-desc">// así ————</div></div>
+    </div>
+    <div class="palette-item" onclick="addBlock('cat-header')">
+      <div class="palette-icon red">CAT</div>
+      <div><div class="palette-name">Cabecera categoría</div><div class="palette-desc">Con gradiente y contador</div></div>
+    </div>
+    <div class="palette-item" onclick="addBlock('divider')">
+      <div class="palette-icon">—</div>
+      <div><div class="palette-name">Separador</div><div class="palette-desc">Línea horizontal</div></div>
+    </div>
+  </div>
+
+  <div class="palette-section">
+    <div class="palette-label">// texto</div>
+    <div class="palette-item" onclick="addBlock('heading')">
+      <div class="palette-icon">H1</div>
+      <div><div class="palette-name">Titular</div><div class="palette-desc">H1, H2 o H3</div></div>
+    </div>
+    <div class="palette-item" onclick="addBlock('paragraph')">
+      <div class="palette-icon">¶</div>
+      <div><div class="palette-name">Párrafo</div><div class="palette-desc">Cuerpo del artículo</div></div>
+    </div>
+    <div class="palette-item" onclick="addBlock('pull-quote')">
+      <div class="palette-icon purple">"</div>
+      <div><div class="palette-name">Pull quote</div><div class="palette-desc">Frase destacada</div></div>
+    </div>
+    <div class="palette-item" onclick="addBlock('blockquote')">
+      <div class="palette-icon amber">«»</div>
+      <div><div class="palette-name">Cita</div><div class="palette-desc">Cita con atribución</div></div>
+    </div>
+    <div class="palette-item" onclick="addBlock('footnote')">
+      <div class="palette-icon">fn</div>
+      <div><div class="palette-name">Nota / Fuentes</div><div class="palette-desc">Texto pequeño al pie</div></div>
+    </div>
+  </div>
+
+  <div class="palette-section">
+    <div class="palette-label">// datos</div>
+    <div class="palette-item" onclick="addBlock('stat-block')">
+      <div class="palette-icon teal">42</div>
+      <div><div class="palette-name">Stat block</div><div class="palette-desc">Número grande + texto</div></div>
+    </div>
+    <div class="palette-item" onclick="addBlock('data-cards')">
+      <div class="palette-icon amber">▦</div>
+      <div><div class="palette-name">Tarjetas de datos</div><div class="palette-desc">Grid de cifras clave</div></div>
+    </div>
+    <div class="palette-item" onclick="addBlock('related-link')">
+      <div class="palette-icon teal">↗</div>
+      <div><div class="palette-name">Enlace relacionado</div><div class="palette-desc">Caja de artículo enlazado</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CANVAS -->
+<div id="canvas-wrap">
+  <div id="canvas-inner">
+    <div id="empty-state">
+      <div class="empty-arrow">←</div>
+      <div class="empty-title">Canvas vacío</div>
+      <div class="empty-sub">Elige un bloque del panel izquierdo<br>o parte de una plantilla.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROPS -->
+<div id="props">
+  <div id="props-header">
+    <span>propiedades</span>
+    <span id="ph-type-label" class="ph-type"></span>
+  </div>
+  <div id="props-body">
+    <div id="no-selection">
+      <div class="ns-icon">☰</div>
+      Selecciona un bloque<br>para editar sus propiedades
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATES MODAL -->
+<div id="tpl-overlay" onclick="if(event.target===this)closeTemplates()">
+  <div id="tpl-modal">
+    <div id="tpl-modal-header">
+      <div>
+        <div class="mh-title">Plantillas</div>
+        <div class="mh-sub">Elige una estructura de partida y personalízala</div>
+      </div>
+      <button class="tpl-close" onclick="closeTemplates()">✕</button>
+    </div>
+    <div id="tpl-cards">
+
+      <!-- PLANTILLA 1: ANÁLISIS -->
+      <div class="tpl-card">
+        <div class="tpl-card-header">
+          <div class="tpl-tag red">análisis · opinión</div>
+          <div class="tpl-card-title">Artículo argumentativo</div>
+          <div class="tpl-card-desc">Para artículos de fondo con tesis clara, datos que la sostienen y secciones numeradas. El más completo.</div>
+        </div>
+        <div class="tpl-preview">
+          <div class="mb"><div class="mb-icon b">H</div><span class="mb-label">Hero — título, subtítulo, meta</span></div>
+          <div class="mb"><div class="mb-icon">//</div><span class="mb-label">// introducción</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Párrafo de contexto</span></div>
+          <div class="mb"><div class="mb-icon r">01</div><span class="mb-label">// primera sección</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Párrafo de desarrollo</span></div>
+          <div class="mb"><div class="mb-icon a">42</div><span class="mb-label">Stat block con dato clave</span></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Párrafo de desarrollo</span></div>
+          <div class="mb"><div class="mb-icon a">02</div><span class="mb-label">// segunda sección</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Párrafo de desarrollo</span></div>
+          <div class="mb"><div class="mb-icon p">"</div><span class="mb-label">Pull quote destacado</span></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Párrafo de desarrollo</span></div>
+          <div class="mb"><div class="mb-icon a">▦</div><span class="mb-label">Tarjetas de datos</span></div>
+          <div class="mb"><div class="mb-icon t">03</div><span class="mb-label">// tercera sección</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Párrafo de desarrollo</span></div>
+          <div class="mb"><div class="mb-icon a">«»</div><span class="mb-label">Cita con atribución</span></div>
+          <div class="mb"><div class="mb-icon r">04</div><span class="mb-label">// conclusión</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Párrafo de cierre</span></div>
+          <div class="mb"><div class="mb-icon t">↗</div><span class="mb-label">Enlace relacionado</span></div>
+          <div class="mb"><div class="mb-icon">fn</div><span class="mb-label">Fuentes y notas</span></div>
+        </div>
+        <button class="tpl-use-btn red" onclick="loadTemplate('analisis')">Usar esta plantilla →</button>
+      </div>
+
+      <!-- PLANTILLA 2: RESEÑA -->
+      <div class="tpl-card">
+        <div class="tpl-card-header">
+          <div class="tpl-tag blue">reseña · review</div>
+          <div class="tpl-card-title">Reseña o review</div>
+          <div class="tpl-card-desc">Para analizar un libro, herramienta, producto o servicio. Estructura de veredicto claro.</div>
+        </div>
+        <div class="tpl-preview">
+          <div class="mb"><div class="mb-icon b">H</div><span class="mb-label">Hero — qué se reseña y por qué</span></div>
+          <div class="mb"><div class="mb-icon">//</div><span class="mb-label">// qué es</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Descripción objetiva</span></div>
+          <div class="mb"><div class="mb-icon a">▦</div><span class="mb-label">Tarjetas: precio, fecha, plataforma…</span></div>
+          <div class="mb"><div class="mb-icon t">01</div><span class="mb-label">// lo que funciona</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Punto fuerte 1</span></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Punto fuerte 2</span></div>
+          <div class="mb"><div class="mb-icon p">"</div><span class="mb-label">Pull quote positivo</span></div>
+          <div class="mb"><div class="mb-icon r">02</div><span class="mb-label">// lo que no funciona</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Punto débil o limitación</span></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Punto débil o limitación</span></div>
+          <div class="mb"><div class="mb-icon b">03</div><span class="mb-label">// para quién es</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Perfil del lector / usuario ideal</span></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Alternativas si no encaja</span></div>
+          <div class="mb"><div class="mb-icon a">«»</div><span class="mb-label">Cita o pasaje representativo</span></div>
+          <div class="mb"><div class="mb-icon b">04</div><span class="mb-label">// veredicto</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon a">42</div><span class="mb-label">Puntuación / valoración</span></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Párrafo de cierre con recomendación</span></div>
+          <div class="mb"><div class="mb-icon">fn</div><span class="mb-label">Notas y enlaces</span></div>
+        </div>
+        <button class="tpl-use-btn blue" onclick="loadTemplate('resena')">Usar esta plantilla →</button>
+      </div>
+
+      <!-- PLANTILLA 3: PROYECTO / DEVLOG -->
+      <div class="tpl-card">
+        <div class="tpl-card-header">
+          <div class="tpl-tag teal">proyecto · devlog</div>
+          <div class="tpl-card-title">Proyecto o devlog</div>
+          <div class="tpl-card-desc">Para contar un proyecto propio: contexto, problema que resuelve, cómo se construyó y qué aprendiste.</div>
+        </div>
+        <div class="tpl-preview">
+          <div class="mb"><div class="mb-icon b">H</div><span class="mb-label">Hero — nombre y tagline del proyecto</span></div>
+          <div class="mb"><div class="mb-icon a">▦</div><span class="mb-label">Tarjetas: stack, estado, fecha</span></div>
+          <div class="mb"><div class="mb-icon">//</div><span class="mb-label">// el problema</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Qué necesitabas y no existía</span></div>
+          <div class="mb"><div class="mb-icon p">"</div><span class="mb-label">Pull quote: la idea en una frase</span></div>
+          <div class="mb"><div class="mb-icon t">01</div><span class="mb-label">// cómo funciona</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Descripción técnica o funcional</span></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Decisiones de diseño relevantes</span></div>
+          <div class="mb"><div class="mb-icon b">02</div><span class="mb-label">// cómo se construyó</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Stack, herramientas, proceso</span></div>
+          <div class="mb"><div class="mb-icon a">42</div><span class="mb-label">Stat: horas, líneas, iteraciones…</span></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Lo que no salió a la primera</span></div>
+          <div class="mb"><div class="mb-icon r">03</div><span class="mb-label">// qué aprendí</span><div class="mb-line"></div></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Aprendizajes técnicos</span></div>
+          <div class="mb"><div class="mb-icon">¶</div><span class="mb-label">Aprendizajes de producto o proceso</span></div>
+          <div class="mb"><div class="mb-icon a">«»</div><span class="mb-label">Reflexión personal</span></div>
+          <div class="mb"><div class="mb-icon t">↗</div><span class="mb-label">Enlace al proyecto</span></div>
+          <div class="mb"><div class="mb-icon">fn</div><span class="mb-label">Tecnologías y recursos usados</span></div>
+        </div>
+        <button class="tpl-use-btn teal" onclick="loadTemplate('proyecto')">Usar esta plantilla →</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let blocks = [];
+let selectedId = null;
+let dragSrcId = null;
+
+function uid(){ return '_'+Math.random().toString(36).slice(2,9); }
+
+// ── BLOCK DEFAULTS ─────────────────────────────────────────────────────────
+const DEFAULTS = {
+  'hero':        { category:'// artículos', title:'El título del artículo', titleAccent:'', subtitle:'Una descripción clara y directa del artículo. Qué vas a explicar y por qué importa.', meta:'junio 2025 · lectura ~8 min · categoría' },
+  'section-label': { text:'// introducción' },
+  'cat-header':  { text:'// nombre de sección', color:'red', counter:'01' },
+  'divider':     {},
+  'heading':     { text:'Titular del bloque', size:'h2' },
+  'paragraph':   { text:'Escribe aquí el texto del párrafo. Puedes usar <strong>negrita</strong> y <em>cursiva</em>.' },
+  'pull-quote':  { text:'Una frase impactante que resuma la idea central de esta sección.' },
+  'blockquote':  { text:'«Texto de la cita aquí.»', author:'Nombre, Cargo / Fuente' },
+  'footnote':    { text:'Fuentes: ejemplo 1, ejemplo 2, ejemplo 3.' },
+  'stat-block':  { number:'42%', description:'Descripción breve del dato y su relevancia.', color:'amber' },
+  'data-cards':  { cards:[ {num:'811k', label:'Descripción del dato', color:'red'}, {num:'+52%', label:'Otro dato relevante', color:'amber'}, {num:'12%', label:'Tercer indicador', color:'blue'} ] },
+  'related-link':{ label:'// artículo relacionado', title:'Título del artículo enlazado', desc:'Descripción breve de por qué enlazas a este artículo.', url:'https://gato.red/' },
+};
+
+const TYPE_NAMES = {
+  'hero':'Hero / Cabecera','section-label':'Etiqueta de sección','cat-header':'Cabecera categoría',
+  'divider':'Separador','heading':'Titular','paragraph':'Párrafo','pull-quote':'Pull quote',
+  'blockquote':'Cita','footnote':'Nota / Fuentes','stat-block':'Stat block',
+  'data-cards':'Tarjetas de datos','related-link':'Enlace relacionado',
+};
+
+// ── ADD BLOCK ──────────────────────────────────────────────────────────────
+function addBlock(type, afterId=null){
+  const block = { id:uid(), type, ...JSON.parse(JSON.stringify(DEFAULTS[type])) };
+  if(afterId){
+    const idx = blocks.findIndex(b=>b.id===afterId);
+    blocks.splice(idx+1,0,block);
+  } else {
+    blocks.push(block);
+  }
+  render();
+  selectBlock(block.id);
+  showToast('Bloque añadido: '+TYPE_NAMES[type]);
+}
+
+function deleteBlock(id){
+  blocks = blocks.filter(b=>b.id!==id);
+  if(selectedId===id) selectedId=null;
+  render();
+  renderProps();
+}
+
+function moveBlock(id, dir){
+  const idx = blocks.findIndex(b=>b.id===id);
+  if(dir===-1 && idx===0) return;
+  if(dir===1 && idx===blocks.length-1) return;
+  const tmp = blocks[idx];
+  blocks[idx] = blocks[idx+dir];
+  blocks[idx+dir] = tmp;
+  render();
+  selectBlock(id,false);
+}
+
+function duplicateBlock(id){
+  const src = blocks.find(b=>b.id===id);
+  const clone = { ...JSON.parse(JSON.stringify(src)), id:uid() };
+  const idx = blocks.findIndex(b=>b.id===id);
+  blocks.splice(idx+1,0,clone);
+  render();
+  selectBlock(clone.id);
+}
+
+function selectBlock(id, scrollIntoView=true){
+  selectedId = id;
+  document.querySelectorAll('.block-wrapper').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.id===id);
+  });
+  if(scrollIntoView){
+    const el = document.querySelector(`.block-wrapper[data-id="${id}"]`);
+    if(el) el.scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+  renderProps();
+}
+
+// ── RENDER CANVAS ──────────────────────────────────────────────────────────
+function render(){
+  const inner = document.getElementById('canvas-inner');
+  const empty = document.getElementById('empty-state');
+  if(blocks.length===0){
+    inner.innerHTML='';
+    inner.appendChild(empty||createEmptyState());
+    document.getElementById('empty-state')?.style && (document.getElementById('empty-state').style.display='flex');
+    return;
+  }
+  const es = document.getElementById('empty-state');
+  if(es) es.style.display='none';
+
+  // build HTML
+  let html = '';
+  blocks.forEach((b,i)=>{
+    html += `<div class="drop-zone" data-drop="${i}"></div>`;
+    html += `<div class="block-wrapper" data-id="${b.id}" data-idx="${i}" draggable="true">`;
+    html += renderBlockPreview(b);
+    html += `<div class="block-controls">
+      <button class="bc-btn" title="Subir" onclick="event.stopPropagation();moveBlock('${b.id}',-1)">↑</button>
+      <button class="bc-btn" title="Bajar" onclick="event.stopPropagation();moveBlock('${b.id}',1)">↓</button>
+      <button class="bc-btn" title="Duplicar" onclick="event.stopPropagation();duplicateBlock('${b.id}')">⧉</button>
+      <button class="bc-btn del" title="Eliminar" onclick="event.stopPropagation();deleteBlock('${b.id}')">✕</button>
+    </div>`;
+    html += `</div>`;
+  });
+  html += `<div class="drop-zone" data-drop="${blocks.length}"></div>`;
+
+  inner.innerHTML = html;
+
+  // re-attach selection
+  if(selectedId){
+    const el = inner.querySelector(`.block-wrapper[data-id="${selectedId}"]`);
+    if(el) el.classList.add('selected');
+  }
+
+  // click to select
+  inner.querySelectorAll('.block-wrapper').forEach(el=>{
+    el.addEventListener('click',()=>selectBlock(el.dataset.id));
+    el.addEventListener('dragstart',e=>{ dragSrcId=el.dataset.id; e.dataTransfer.effectAllowed='move'; });
+    el.addEventListener('dragend',()=>{ dragSrcId=null; clearDropZones(); });
+  });
+
+  // drop zones
+  inner.querySelectorAll('.drop-zone').forEach(dz=>{
+    dz.addEventListener('dragover',e=>{ e.preventDefault(); dz.classList.add('active'); });
+    dz.addEventListener('dragleave',()=>dz.classList.remove('active'));
+    dz.addEventListener('drop',e=>{
+      e.preventDefault();
+      dz.classList.remove('active');
+      if(!dragSrcId) return;
+      const toIdx = parseInt(dz.dataset.drop);
+      const fromIdx = blocks.findIndex(b=>b.id===dragSrcId);
+      if(fromIdx===toIdx || fromIdx===toIdx-1) return;
+      const [moved] = blocks.splice(fromIdx,1);
+      const newIdx = fromIdx<toIdx ? toIdx-1 : toIdx;
+      blocks.splice(newIdx,0,moved);
+      render();
+      selectBlock(dragSrcId,false);
+    });
+  });
+}
+
+function clearDropZones(){
+  document.querySelectorAll('.drop-zone').forEach(d=>d.classList.remove('active'));
+}
+
+// ── RENDER BLOCK PREVIEW ───────────────────────────────────────────────────
+function renderBlockPreview(b){
+  switch(b.type){
+    case 'hero': return `
+      <div class="prev-hero">
+        <div class="h-category">${esc(b.category)}</div>
+        <div class="h-title">${esc(b.title)}</div>
+        <div class="h-subtitle">${esc(b.subtitle)}</div>
+        <div class="h-meta">${esc(b.meta)}</div>
+      </div>`;
+    case 'section-label': return `
+      <div class="prev-section-label">
+        <span class="sl-text">${esc(b.text)}</span>
+        <div class="sl-line"></div>
+      </div>`;
+    case 'cat-header': return `
+      <div class="prev-cat-header ch-color-${b.color}">
+        <span class="ch-title">${esc(b.text)}</span>
+        <div class="ch-line"></div>
+        <span class="ch-num">${esc(b.counter)}</span>
+      </div>`;
+    case 'divider': return `<div class="prev-divider"></div>`;
+    case 'heading': return `
+      <div class="prev-heading" data-size="${b.size}">
+        <div class="ph-text">${esc(b.text)}</div>
+      </div>`;
+    case 'paragraph': return `
+      <div class="prev-paragraph"><p>${b.text}</p></div>`;
+    case 'pull-quote': return `
+      <div class="prev-pull-quote"><p>${b.text}</p></div>`;
+    case 'blockquote': return `
+      <div class="prev-blockquote"><p>${esc(b.text)}<br><em style="font-style:normal;color:var(--dim)">— ${esc(b.author)}</em></p></div>`;
+    case 'footnote': return `<div class="prev-footnote">${esc(b.text)}</div>`;
+    case 'stat-block': return `
+      <div class="prev-stat-block sb-${b.color}">
+        <div class="sb-num">${esc(b.number)}</div>
+        <div class="sb-desc">${esc(b.description)}</div>
+      </div>`;
+    case 'data-cards': return `
+      <div class="prev-data-cards">
+        ${(b.cards||[]).map(c=>`
+          <div class="prev-data-card pdc-${c.color}">
+            <div class="dc-num">${esc(c.num)}</div>
+            <div class="dc-label">${esc(c.label)}</div>
+          </div>`).join('')}
+      </div>`;
+    case 'related-link': return `
+      <div class="prev-related-link">
+        <div class="rl-icon">↗</div>
+        <div>
+          <div class="rl-label">${esc(b.label)}</div>
+          <div class="rl-title">${esc(b.title)}</div>
+          <div class="rl-desc">${esc(b.desc)}</div>
+        </div>
+        <div class="rl-arrow">→</div>
+      </div>`;
+    default: return `<div style="padding:8px;color:var(--dim);font-size:11px">[bloque desconocido: ${b.type}]</div>`;
+  }
+}
+
+function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── PROPS PANEL ────────────────────────────────────────────────────────────
+function renderProps(){
+  const body = document.getElementById('props-body');
+  const typeLabel = document.getElementById('ph-type-label');
+
+  if(!selectedId){ body.innerHTML='<div id="no-selection"><div class="ns-icon">☰</div>Selecciona un bloque<br>para editar sus propiedades</div>'; typeLabel.textContent=''; return; }
+  const b = blocks.find(bl=>bl.id===selectedId);
+  if(!b){ body.innerHTML=''; return; }
+
+  typeLabel.textContent = TYPE_NAMES[b.type]||b.type;
+
+  const COLOR_NAMES = ['red','amber','teal','blue','purple','pink'];
+  const colorPills = (field,val)=>`
+    <div class="color-pills">
+      ${COLOR_NAMES.map(c=>`<div class="color-pill pill-${c} ${val===c?'active':''}" onclick="setProp('${field}','${c}')"></div>`).join('')}
+    </div>`;
+
+  let html='';
+
+  switch(b.type){
+    case 'hero':
+      html += field('Categoría (tag)', 'category', b.category);
+      html += field('Título', 'title', b.title, 'textarea');
+      html += field('Subtítulo', 'subtitle', b.subtitle, 'textarea');
+      html += field('Meta (fecha · lectura · categoría)', 'meta', b.meta);
+      break;
+    case 'section-label':
+      html += field('Texto', 'text', b.text);
+      html += hint('Escribe en minúsculas. Ejemplo: // introducción');
+      break;
+    case 'cat-header':
+      html += field('Texto', 'text', b.text);
+      html += field('Contador', 'counter', b.counter);
+      html += `<div class="prop-group"><div class="prop-label">Color</div>${colorPills('color',b.color)}</div>`;
+      break;
+    case 'heading':
+      html += field('Texto', 'text', b.text, 'textarea');
+      html += `<div class="prop-group"><div class="prop-label">Tamaño</div>
+        <div class="size-pills">
+          ${['h1','h2','h3'].map(s=>`<div class="size-pill ${b.size===s?'active':''}" onclick="setProp('size','${s}')">${s.toUpperCase()}</div>`).join('')}
+        </div></div>`;
+      break;
+    case 'paragraph':
+      html += field('Texto (HTML permitido)', 'text', b.text, 'textarea', 120);
+      html += hint('Puedes usar &lt;strong&gt;negrita&lt;/strong&gt; y &lt;em&gt;cursiva&lt;/em&gt;.');
+      break;
+    case 'pull-quote':
+      html += field('Frase destacada', 'text', b.text, 'textarea');
+      html += hint('Usa *texto* para marcar énfasis en rojo (se convierte en &lt;em&gt;).');
+      break;
+    case 'blockquote':
+      html += field('Cita', 'text', b.text, 'textarea');
+      html += field('Atribución', 'author', b.author);
+      break;
+    case 'footnote':
+      html += field('Texto de nota / fuentes', 'text', b.text, 'textarea');
+      break;
+    case 'stat-block':
+      html += field('Número / valor', 'number', b.number);
+      html += field('Descripción', 'description', b.description, 'textarea');
+      html += `<div class="prop-group"><div class="prop-label">Color del número</div>${colorPills('color',b.color)}</div>`;
+      break;
+    case 'data-cards':
+      html += `<div class="prop-group"><div class="prop-label">Tarjetas</div>
+        <div class="cards-editor" id="cards-editor">
+          ${(b.cards||[]).map((c,i)=>`
+            <div class="card-edit-row">
+              <button class="row-del" onclick="removeCard(${i})">✕</button>
+              <div class="prop-label">Número</div>
+              <input class="prop-input" value="${esc(c.num)}" oninput="setCard(${i},'num',this.value)"/>
+              <div class="prop-label">Etiqueta</div>
+              <input class="prop-input" value="${esc(c.label)}" oninput="setCard(${i},'label',this.value)"/>
+              <div class="prop-label">Color</div>
+              <div class="color-pills">${COLOR_NAMES.map(cl=>`<div class="color-pill pill-${cl} ${c.color===cl?'active':''}" onclick="setCard(${i},'color','${cl}')"></div>`).join('')}</div>
+            </div>`).join('')}
+          <button class="add-card-btn" onclick="addCard()">+ Añadir tarjeta</button>
+        </div>
+      </div>`;
+      break;
+    case 'related-link':
+      html += field('Etiqueta', 'label', b.label);
+      html += field('Título', 'title', b.title);
+      html += field('Descripción', 'desc', b.desc, 'textarea');
+      html += field('URL', 'url', b.url);
+      break;
+    case 'divider':
+      html += `<div style="color:var(--dim);font-size:11px;padding:8px 0;">El separador no tiene propiedades.</div>`;
+      break;
+  }
+
+  body.innerHTML = html;
+}
+
+function field(label, key, val, type='input', height=72){
+  if(type==='textarea'){
+    return `<div class="prop-group">
+      <div class="prop-label">${label}</div>
+      <textarea class="prop-input" style="height:${height}px" oninput="setProp('${key}',this.value)">${esc(val)}</textarea>
+    </div>`;
+  }
+  return `<div class="prop-group">
+    <div class="prop-label">${label}</div>
+    <input class="prop-input" type="text" value="${esc(val)}" oninput="setProp('${key}',this.value)"/>
+  </div>`;
+}
+
+function hint(text){
+  return `<div class="prop-hint">${text}</div>`;
+}
+
+function setProp(key, val){
+  const b = blocks.find(b=>b.id===selectedId);
+  if(!b) return;
+  b[key] = val;
+  // re-render only this block
+  const el = document.querySelector(`.block-wrapper[data-id="${selectedId}"]`);
+  if(el){
+    // replace inner content except .block-controls
+    const ctrl = el.querySelector('.block-controls');
+    el.innerHTML = renderBlockPreview(b);
+    el.appendChild(ctrl);
+    el.classList.add('selected');
+  }
+  // re-render color pills active state without full re-render
+  if(key==='color' || key==='size') renderProps();
+}
+
+function setCard(idx, key, val){
+  const b = blocks.find(b=>b.id===selectedId);
+  if(!b||!b.cards) return;
+  b.cards[idx][key] = val;
+  // re-render block preview
+  const el = document.querySelector(`.block-wrapper[data-id="${selectedId}"]`);
+  if(el){
+    const ctrl = el.querySelector('.block-controls');
+    el.innerHTML = renderBlockPreview(b);
+    el.appendChild(ctrl);
+    el.classList.add('selected');
+  }
+  if(key==='color') renderProps();
+}
+
+function addCard(){
+  const b = blocks.find(b=>b.id===selectedId);
+  if(!b) return;
+  b.cards.push({num:'00', label:'Nuevo dato', color:'teal'});
+  renderProps();
+  // re-render block
+  const el = document.querySelector(`.block-wrapper[data-id="${selectedId}"]`);
+  if(el){
+    const ctrl = el.querySelector('.block-controls');
+    el.innerHTML = renderBlockPreview(b);
+    el.appendChild(ctrl);
+    el.classList.add('selected');
+  }
+}
+
+function removeCard(idx){
+  const b = blocks.find(b=>b.id===selectedId);
+  if(!b||!b.cards) return;
+  b.cards.splice(idx,1);
+  renderProps();
+  const el = document.querySelector(`.block-wrapper[data-id="${selectedId}"]`);
+  if(el){
+    const ctrl = el.querySelector('.block-controls');
+    el.innerHTML = renderBlockPreview(b);
+    el.appendChild(ctrl);
+    el.classList.add('selected');
+  }
+}
+
+// ── EXPORT HTML ────────────────────────────────────────────────────────────
+function exportHTML(){
+  const articleTitle = document.getElementById('article-title-input').value || 'Artículo — gato.red';
+  const bodyHTML = blocks.map(b=>renderBlockExport(b)).join('\n');
+  const html = buildFullHTML(articleTitle, bodyHTML);
+  const blob = new Blob([html],{type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = slugify(articleTitle)+'.html';
+  a.click();
+  showToast('✓ HTML descargado', true);
+}
+
+function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+
+function renderBlockExport(b){
+  switch(b.type){
+    case 'hero': return `
+  <section class="hero">
+    <div class="container">
+      <div class="article-category">${b.category}</div>
+      <h1 class="article-title">${b.title}</h1>
+      <p class="article-subtitle">${b.subtitle}</p>
+      <div class="article-meta">${b.meta}</div>
+    </div>
+  </section>`;
+    case 'section-label': return `
+  <div class="section-label">
+    <span class="section-label-text">${b.text}</span>
+    <div class="section-label-line"></div>
+  </div>`;
+    case 'cat-header': return `
+  <div class="cat-header">
+    <span class="cat-title ${b.color}">${b.text}</span>
+    <div class="cat-line"></div>
+    <span class="cat-count">${b.counter}</span>
+  </div>`;
+    case 'divider': return `  <hr class="article-divider"/>`;
+    case 'heading':
+      const tag=b.size||'h2';
+      return `  <${tag} class="article-heading ah-${tag}">${b.text}</${tag}>`;
+    case 'paragraph': return `
+  <div class="article-body"><p>${b.text}</p></div>`;
+    case 'pull-quote': return `
+  <div class="pull-quote"><p>${b.text}</p></div>`;
+    case 'blockquote': return `
+  <div class="article-body"><blockquote><p>${b.text}<br>— ${b.author}</p></blockquote></div>`;
+    case 'footnote': return `  <div class="footnote">${b.text}</div>`;
+    case 'stat-block': return `
+  <div class="stat-block">
+    <div class="big-num ${b.color}">${b.number}</div>
+    <div class="stat-desc">${b.description}</div>
+  </div>`;
+    case 'data-cards': return `
+  <div class="cards-row">
+    ${(b.cards||[]).map(c=>`    <div class="data-card ${c.color}">
+      <div class="card-num">${c.num}</div>
+      <div class="card-label">${c.label}</div>
+    </div>`).join('\n')}
+  </div>`;
+    case 'related-link': return `
+  <a href="${b.url}" class="related-link">
+    <div class="related-link-icon">↗</div>
+    <div class="related-link-text">
+      <div class="label">${b.label}</div>
+      <div class="title">${b.title}</div>
+      <div class="desc">${b.desc}</div>
+    </div>
+    <div class="related-link-arrow">→</div>
+  </a>`;
+    default: return '';
+  }
+}
+
+function buildFullHTML(title, bodyHTML){
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>${title} — gato.red</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0d0d0d;--surface:#161616;--surface2:#1e1e1e;--border:rgba(255,255,255,.07);--border-hover:rgba(255,255,255,.18);--text:#f0ece2;--muted:#888;--accent-red:#e84d4d;--accent-amber:#f0a020;--accent-teal:#2dbf8a;--accent-blue:#4d9de8;--accent-purple:#9b7dea;--accent-pink:#e05ca3;--accent-gray:#aaa;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;font-size:13px;line-height:1.6;min-height:100vh;}
+    body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.04) 0px,rgba(0,0,0,.04) 1px,transparent 1px,transparent 2px);pointer-events:none;z-index:9999;}
+    .container{max-width:860px;margin:0 auto;padding:0 32px;}
+    header{border-bottom:1px solid var(--border);padding:28px 0;}
+    .header-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;}
+    .logo{font-family:'Unbounded',sans-serif;font-weight:900;font-size:22px;letter-spacing:-0.03em;color:var(--text);text-decoration:none;}
+    .logo .dot{color:var(--accent-red);}
+    .logo-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.13em;margin-top:4px;}
+    .hero{padding:64px 0 48px;border-bottom:1px solid var(--border);}
+    .article-category{display:inline-block;font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--accent-blue);border:1px solid var(--accent-blue);padding:3px 10px;margin-bottom:20px;}
+    .article-title{font-family:'Unbounded',sans-serif;font-weight:900;font-size:clamp(28px,5vw,52px);line-height:1.05;letter-spacing:-0.03em;color:var(--text);margin-bottom:20px;}
+    .article-subtitle{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px;}
+    .article-meta{font-size:10px;color:#444;text-transform:uppercase;letter-spacing:.12em;}
+    main{padding:32px 0 80px;}
+    .section-label{display:flex;align-items:center;gap:12px;margin:48px 0 24px;}
+    .section-label-text{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+    .section-label-line{flex:1;height:1px;background:var(--border);}
+    .cat-header{display:flex;align-items:center;gap:12px;margin:48px 0 20px;}
+    .cat-title{font-size:10px;text-transform:uppercase;letter-spacing:.15em;font-weight:700;white-space:nowrap;flex-shrink:0;}
+    .cat-title.red{color:var(--accent-red);} .cat-title.amber{color:var(--accent-amber);} .cat-title.teal{color:var(--accent-teal);} .cat-title.blue{color:var(--accent-blue);} .cat-title.purple{color:var(--accent-purple);} .cat-title.pink{color:var(--accent-pink);}
+    .cat-line{flex:1;height:1px;}
+    .cat-title.red+.cat-line{background:linear-gradient(to right,var(--accent-red),transparent);}
+    .cat-title.amber+.cat-line{background:linear-gradient(to right,var(--accent-amber),transparent);}
+    .cat-title.teal+.cat-line{background:linear-gradient(to right,var(--accent-teal),transparent);}
+    .cat-title.blue+.cat-line{background:linear-gradient(to right,var(--accent-blue),transparent);}
+    .cat-title.purple+.cat-line{background:linear-gradient(to right,var(--accent-purple),transparent);}
+    .cat-title.pink+.cat-line{background:linear-gradient(to right,var(--accent-pink),transparent);}
+    .cat-count{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;}
+    .article-body{max-width:680px;padding:24px 0;}
+    .article-body p{font-size:14px;line-height:1.8;color:var(--text);margin-bottom:20px;}
+    .article-body strong{font-weight:700;}
+    .article-body em{color:var(--muted);font-style:italic;}
+    .article-body blockquote{border-left:2px solid var(--accent-amber);padding:12px 20px;margin:24px 0;background:var(--surface);}
+    .article-body blockquote p{color:var(--muted);font-size:13px;font-style:italic;margin:0;}
+    .article-heading{font-family:'Unbounded',sans-serif;font-weight:900;color:var(--text);letter-spacing:-0.02em;margin:32px 0 12px;}
+    .ah-h1{font-size:clamp(24px,4vw,40px);}
+    .ah-h2{font-size:clamp(18px,3vw,26px);}
+    .ah-h3{font-size:16px;}
+    .pull-quote{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:28px 0;margin:36px 0;}
+    .pull-quote p{font-family:'Unbounded',sans-serif;font-weight:300;font-size:clamp(14px,2vw,18px);letter-spacing:-0.01em;line-height:1.5;color:var(--text);}
+    .pull-quote em{color:var(--accent-red);font-style:normal;}
+    .stat-block{border-left:2px solid var(--accent-red);padding:20px 24px;margin:36px 0;background:var(--surface);}
+    .big-num{font-family:'Unbounded',sans-serif;font-weight:900;font-size:40px;letter-spacing:-0.03em;line-height:1;}
+    .big-num.red{color:var(--accent-red);} .big-num.amber{color:var(--accent-amber);} .big-num.teal{color:var(--accent-teal);} .big-num.blue{color:var(--accent-blue);} .big-num.purple{color:var(--accent-purple);} .big-num.pink{color:var(--accent-pink);}
+    .stat-desc{font-size:13px;color:var(--muted);margin-top:6px;}
+    .cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:36px 0;}
+    .data-card{background:var(--bg);padding:20px 18px;position:relative;transition:background .15s;}
+    .data-card:hover{background:var(--surface);}
+    .data-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;}
+    .data-card.red::before{background:var(--accent-red);} .data-card.amber::before{background:var(--accent-amber);} .data-card.teal::before{background:var(--accent-teal);} .data-card.blue::before{background:var(--accent-blue);} .data-card.purple::before{background:var(--accent-purple);} .data-card.pink::before{background:var(--accent-pink);}
+    .card-num{font-family:'Unbounded',sans-serif;font-weight:900;font-size:24px;letter-spacing:-0.02em;margin-bottom:4px;}
+    .data-card.red .card-num{color:var(--accent-red);} .data-card.amber .card-num{color:var(--accent-amber);} .data-card.teal .card-num{color:var(--accent-teal);} .data-card.blue .card-num{color:var(--accent-blue);} .data-card.purple .card-num{color:var(--accent-purple);} .data-card.pink .card-num{color:var(--accent-pink);}
+    .card-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;line-height:1.4;}
+    .related-link{display:flex;align-items:center;gap:16px;padding:20px;border:1px solid var(--border);margin:36px 0;text-decoration:none;background:var(--bg);transition:background .15s,border-color .15s;position:relative;overflow:hidden;}
+    .related-link::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-teal);}
+    .related-link:hover{background:var(--surface);border-color:var(--border-hover);}
+    .related-link-icon{font-size:20px;flex-shrink:0;color:var(--accent-teal);}
+    .related-link-text .label{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--accent-teal);margin-bottom:4px;}
+    .related-link-text .title{font-family:'Unbounded',sans-serif;font-weight:700;font-size:13px;color:var(--text);}
+    .related-link-text .desc{font-size:11px;color:var(--muted);margin-top:4px;}
+    .related-link-arrow{margin-left:auto;color:var(--muted);}
+    .article-divider{border:none;border-top:1px solid var(--border);margin:32px 0;}
+    .footnote{font-size:11px;color:#444;border-top:1px solid var(--border);padding-top:12px;margin-top:36px;line-height:1.6;}
+    footer{border-top:1px solid var(--border);padding:24px 0;margin-top:64px;}
+    .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:16px;}
+    .footer-left{font-size:11px;color:#444;}
+    .footer-right a{font-size:11px;color:#666;text-decoration:none;}
+    @media(max-width:700px){.container{padding:0 16px;}.header-inner{flex-direction:column;}.hero{padding:36px 0 28px;}.cards-row{grid-template-columns:1fr 1fr;}.footer-inner{flex-direction:column;gap:8px;}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <div>
+          <a href="https://gato.red" class="logo">gato<span class="dot">.</span>red</a>
+          <div class="logo-sub">// artículos &amp; proyectos</div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="container">
+${bodyHTML}
+  </div>
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">gato.red — proyecto personal, sin anunciantes, sin agenda corporativa.</div>
+        <div class="footer-right"><a href="https://gato.red">← volver al inicio</a></div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>`;
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function showToast(msg, ok=false){
+  const t = document.getElementById('toast');
+  t.textContent=msg;
+  t.className='show'+(ok?' ok':'');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.className='',2200);
+}
+
+function clearAll(){
+  if(blocks.length && !confirm('¿Eliminar todos los bloques?')) return;
+  blocks=[];selectedId=null;
+  render();renderProps();
+}
+
+function openTemplates(){
+  document.getElementById('tpl-overlay').classList.add('open');
+}
+function closeTemplates(){
+  document.getElementById('tpl-overlay').classList.remove('open');
+}
+
+const TEMPLATES = {
+  analisis: {
+    title: 'Título del análisis',
+    blocks: [
+      {type:'hero', category:'// artículos', title:'Título del análisis', subtitle:'Una descripción clara y directa de la tesis del artículo. Qué vas a argumentar y por qué importa leerlo ahora.', meta:'mes año · lectura ~X min · categoría'},
+      {type:'section-label', text:'// introducción'},
+      {type:'paragraph', text:'El párrafo de apertura contextualiza el tema y engancha al lector. Introduce el problema o la pregunta central sin dar aún la respuesta. Puedes incluir un dato sorprendente, una contradicción o una escena concreta que ilustre el asunto.'},
+      {type:'paragraph', text:'El segundo párrafo de introducción aclara el alcance del artículo y lo que <em>no</em> pretende ser. Anticipa brevemente la estructura sin desvelar las conclusiones.'},
+      {type:'cat-header', text:'// primera sección', color:'red', counter:'01'},
+      {type:'paragraph', text:'Desarrolla el primer argumento o bloque temático. Apóyate en datos, ejemplos concretos o comparaciones. Un párrafo por idea: claro, directo, sin relleno.'},
+      {type:'stat-block', number:'X%', description:'El dato más importante de esta sección y lo que significa en contexto. Una o dos frases que lo expliquen sin jerga innecesaria.', color:'amber'},
+      {type:'paragraph', text:'Continúa el desarrollo. Conecta el dato anterior con el argumento central. Aquí es donde la tesis empieza a tomar cuerpo con evidencia concreta.'},
+      {type:'cat-header', text:'// segunda sección', color:'amber', counter:'02'},
+      {type:'paragraph', text:'Introduce el segundo bloque argumentativo. Si el primero estableció el qué, este puede abordar el por qué o el cómo. Mantén el hilo con el párrafo anterior.'},
+      {type:'pull-quote', text:'Una frase que resuma la idea más importante de esta sección. Directa, sin adornos, que el lector pueda llevársela.'},
+      {type:'paragraph', text:'Profundiza en el argumento. Anticipa y refuta la objeción más obvia. Un artículo argumentativo gana credibilidad cuando reconoce lo que sabe y lo que no.'},
+      {type:'data-cards', cards:[
+        {num:'Dato 1', label:'descripción breve del indicador', color:'red'},
+        {num:'Dato 2', label:'descripción breve del indicador', color:'amber'},
+        {num:'Dato 3', label:'descripción breve del indicador', color:'blue'},
+      ]},
+      {type:'cat-header', text:'// tercera sección', color:'blue', counter:'03'},
+      {type:'paragraph', text:'El tercer bloque puede introducir matices, excepciones o el contrapunto al argumento principal. La honestidad intelectual —reconocer lo complejo— es parte del estilo.'},
+      {type:'blockquote', text:'«Una cita que aporte autoridad o perspectiva externa al argumento. Elige una que añada algo, no que simplemente repita lo que ya dijiste.»', author:'Nombre, cargo o fuente'},
+      {type:'paragraph', text:'Cierra este bloque conectando el matiz con la tesis central. El lector debe salir de aquí con la sensación de que el tema es complejo pero manejable.'},
+      {type:'cat-header', text:'// conclusión', color:'red', counter:'04'},
+      {type:'paragraph', text:'La conclusión no resume: avanza. Toma todo lo anterior y llega a algún sitio nuevo: una consecuencia práctica, una pregunta abierta o una invitación a actuar. El final debe sentirse ganado.'},
+      {type:'related-link', label:'// artículo relacionado', title:'Título del artículo enlazado', desc:'Una frase que explique la conexión entre ambos artículos y por qué merece la pena leerlo.', url:'https://gato.red/'},
+      {type:'footnote', text:'Fuentes: autor o publicación (año), autor o publicación (año). Todos los datos citados en el texto están verificados en las fuentes indicadas.'},
+    ]
+  },
+
+  resena: {
+    title: 'Título de la reseña',
+    blocks: [
+      {type:'hero', category:'// reseñas', title:'Título de la reseña', subtitle:'Una frase que adelante tu posición y el tipo de lector al que va dirigido esto. No tienes que ser neutral: tienes que ser honesto.', meta:'mes año · lectura ~X min · reseñas'},
+      {type:'section-label', text:'// qué es'},
+      {type:'paragraph', text:'Descripción objetiva de lo que se reseña: de qué va, quién lo hace, cuándo salió y en qué contexto. Sin valoración todavía. El lector que no lo conoce debe entender de qué hablamos antes de que empieces a opinar.'},
+      {type:'data-cards', cards:[
+        {num:'—', label:'precio / coste', color:'amber'},
+        {num:'—', label:'plataforma / formato', color:'blue'},
+        {num:'—', label:'fecha de lanzamiento', color:'purple'},
+      ]},
+      {type:'cat-header', text:'// lo que funciona', color:'teal', counter:'01'},
+      {type:'paragraph', text:'Primer punto fuerte. Sé específico: no «la escritura es buena», sino qué tiene de bueno y por qué importa en el contexto de esto. Los elogios vagos no ayudan a nadie.'},
+      {type:'paragraph', text:'Segundo punto fuerte. Puede ser algo inesperado o que contraste con la percepción habitual del producto o autor. La sorpresa positiva bien explicada es lo más valioso de una reseña.'},
+      {type:'pull-quote', text:'La frase que mejor captura por qué esto merece tu tiempo. El lector que solo lee esto debería entender si le va a interesar.'},
+      {type:'cat-header', text:'// lo que no funciona', color:'red', counter:'02'},
+      {type:'paragraph', text:'Primer punto débil o limitación. La crítica concreta y razonada es más útil que la queja. Explica qué esperabas, qué encontraste y por qué la diferencia importa.'},
+      {type:'paragraph', text:'Segundo punto débil. Si solo hay uno, no lo infles. Si hay más de dos, agrúpalos o elige los más representativos. La reseña no es una lista de quejas: es un juicio ponderado.'},
+      {type:'cat-header', text:'// para quién es', color:'blue', counter:'03'},
+      {type:'paragraph', text:'Define el perfil del lector, usuario o comprador ideal. Cuanto más concreto, más útil. «Para quien ya conoce X y quiere ir más allá» es mejor que «para todo el mundo».'},
+      {type:'paragraph', text:'Menciona también para quién <em>no</em> es, si hay una alternativa clara que encaje mejor. Las recomendaciones negativas son igual de valiosas que las positivas.'},
+      {type:'blockquote', text:'«Un pasaje, fragmento o característica representativa que ilustre bien el tono o el estilo de lo reseñado.»', author:'Fuente o atribución'},
+      {type:'cat-header', text:'// veredicto', color:'amber', counter:'04'},
+      {type:'stat-block', number:'—/10', description:'La puntuación es opcional. Si la usas, explica qué significa: no es una media aritmética, es una síntesis de tu experiencia global.', color:'amber'},
+      {type:'paragraph', text:'El párrafo de cierre toma posición clara. Recomienda o no recomienda, con quién y por qué. Sin ambigüedades de cortesía: el lector te lo agradecerá.'},
+      {type:'footnote', text:'Reseña basada en: [edición / versión / plataforma]. Fecha de consulta o lectura: [fecha]. Sin relación comercial con el autor o distribuidor.'},
+    ]
+  },
+
+  proyecto: {
+    title: 'Nombre del proyecto',
+    blocks: [
+      {type:'hero', category:'// proyectos', title:'Nombre del proyecto', subtitle:'Una frase que describa qué hace y por qué lo construiste. Breve y directa: el tagline que le darías si tuvieras que explicarlo en diez segundos.', meta:'mes año · proyecto personal · stack principal'},
+      {type:'data-cards', cards:[
+        {num:'—', label:'stack / tecnologías', color:'teal'},
+        {num:'—', label:'estado actual', color:'amber'},
+        {num:'—', label:'tiempo invertido', color:'blue'},
+      ]},
+      {type:'section-label', text:'// el problema'},
+      {type:'paragraph', text:'Describe el punto de partida: qué necesitabas, por qué no existía o por qué lo que existía no te valía. El problema bien explicado hace que la solución tenga sentido. No tienes que justificar que merecía la pena construirlo: si lo construiste, merece contarse.'},
+      {type:'pull-quote', text:'La idea central del proyecto en una frase. Lo que guió cada decisión de diseño y cada línea de código.'},
+      {type:'cat-header', text:'// cómo funciona', color:'teal', counter:'01'},
+      {type:'paragraph', text:'Explica el producto o herramienta desde el punto de vista del usuario o lector, no del código. Qué entra, qué sale, qué hace en medio. Las decisiones de diseño más importantes merecen un párrafo propio.'},
+      {type:'paragraph', text:'Si hay algo contraintuitivo o que rompe con la convención habitual, explícalo aquí. Las decisiones raras bien razonadas son las más interesantes de leer.'},
+      {type:'cat-header', text:'// cómo se construyó', color:'blue', counter:'02'},
+      {type:'paragraph', text:'Stack, herramientas y proceso. No tienes que documentarlo todo: elige lo que fue más interesante o difícil. El lector técnico quiere saber las decisiones no obvias, no la lista de dependencias.'},
+      {type:'stat-block', number:'—', description:'Un número que caracterice el proyecto: líneas de código, iteraciones hasta la versión final, horas invertidas, commits… el que mejor cuente la escala del esfuerzo.', color:'teal'},
+      {type:'paragraph', text:'Lo que no salió a la primera. Los callejones sin salida y cómo saliste de ellos son la parte más valiosa de un devlog. La versión pulida sin tropiezos no enseña nada.'},
+      {type:'cat-header', text:'// qué aprendí', color:'red', counter:'03'},
+      {type:'paragraph', text:'Aprendizajes técnicos concretos. No «aprendí mucho sobre X», sino qué sabes ahora de X que no sabías antes y cómo cambió tu forma de abordar el problema.'},
+      {type:'paragraph', text:'Aprendizajes de producto, proceso o criterio. A veces el aprendizaje más importante no es técnico: es saber cuándo parar, qué cortar o qué problema no merece ser resuelto así.'},
+      {type:'blockquote', text:'«Una reflexión personal sobre el proceso. Algo que no cabrían en el resto del artículo pero que vale la pena registrar.»', author:'Tu nombre o simplemente omite la atribución'},
+      {type:'related-link', label:'// ver el proyecto', title:'Nombre del proyecto', desc:'Descripción breve: qué encontrará el lector si hace clic y qué puede hacer con ello.', url:'https://gato.red/'},
+      {type:'footnote', text:'Tecnologías usadas: lista de librerías, frameworks o herramientas relevantes. Recursos que ayudaron: artículos, docs o proyectos de referencia.'},
+    ]
+  }
+};
+
+function loadTemplate(key){
+  if(blocks.length && !confirm('¿Reemplazar el contenido actual con esta plantilla?')) return;
+  const tpl = TEMPLATES[key];
+  document.getElementById('article-title-input').value = tpl.title;
+  blocks = tpl.blocks.map(b=>({...JSON.parse(JSON.stringify(b)), id:uid()}));
+  selectedId = null;
+  render();
+  renderProps();
+  closeTemplates();
+  showToast('Plantilla cargada — empieza a editar');
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+render();
+renderProps();
+</script>
+</body>
+</html>
