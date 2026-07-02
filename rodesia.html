@@ -226,8 +226,8 @@
     .article-content { padding: 32px 0; border-right: none; }
   }
 
-  .article-section { display: none; }
-  .article-section.active { display: block; }
+  .article-section { display: block; }
+  .article-section + .article-section { border-top: 1px solid var(--border); padding-top: 48px; margin-top: 48px; }
 
   .prose {
     font-size: 14px;
@@ -754,7 +754,7 @@
     <main class="article-content">
 
       <!-- SECCIÓN: HISTORIA -->
-      <section class="article-section active" id="historia" aria-label="Historia de Rhodesia">
+      <section class="article-section" id="historia" aria-label="Historia de Rhodesia">
         <div class="section-label"><span>// el contexto</span></div>
         <h2 class="section-title">La "Suiza de <span class="accent">África</span>"</h2>
 
@@ -1246,20 +1246,46 @@
 </div>
 
 <script>
-  // TAB NAVIGATION
+  // TAB NAVIGATION — click scrolls to section
   const tabBtns = document.querySelectorAll('.nav-tabs .tab-btn');
   const sections = document.querySelectorAll('.article-section');
+
+  function setActiveTab(sectionId) {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector(`.tab-btn[data-section="${sectionId}"]`);
+    if (btn) {
+      btn.classList.add('active');
+      // scroll tab into view within its container if needed
+      btn.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    }
+  }
 
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.section;
-      tabBtns.forEach(b => b.classList.remove('active'));
-      sections.forEach(s => s.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(target).classList.add('active');
-      animateBars();
+      const el = document.getElementById(target);
+      if (!el) return;
+      // offset: header (~73px) + nav-tabs (~53px) + a little breathing room
+      const offset = 140;
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
     });
   });
+
+  // INTERSECTION OBSERVER — activates tab as section enters viewport
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        setActiveTab(entry.target.id);
+        animateBars();
+      }
+    });
+  }, {
+    rootMargin: '-30% 0px -60% 0px',
+    threshold: 0
+  });
+
+  sections.forEach(s => observer.observe(s));
 
   // BAR CHART ANIMATION
   function animateBars() {
