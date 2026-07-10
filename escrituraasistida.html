@@ -1,0 +1,4275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Novel IDE — Escritura profesional de novelas con IA</title>
+<meta name="description" content="IDE local para escribir novelas con IA: biblia, capítulos, continuidad, prompts y flujo de trabajo guiado. Funciona 100% en el navegador, sin servidor." />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* ============================================================
+   NOVEL IDE — Design Tokens
+   Tema oscuro inspirado en VS Code / Obsidian / JetBrains.
+   Paleta: fondo carbón cálido + acento "oro de manuscrito".
+   ============================================================ */
+
+
+:root {
+  /* ---- Superficies ---- */
+  --bg-void: #0b0d11;        /* fondo raíz */
+  --bg-panel: #12151b;       /* sidebars, listas */
+  --bg-elevated: #181c24;    /* editor, tarjetas, modales */
+  --bg-elevated-2: #1e222b;  /* hover sobre elevado */
+  --bg-hover: #1c212a;
+  --bg-active: #222836;
+
+  /* ---- Bordes ---- */
+  --border: #242a34;
+  --border-soft: #1a1f28;
+  --border-strong: #333b49;
+
+  /* ---- Texto ---- */
+  --text-primary: #e9e6df;   /* blanco cálido, tipo papel */
+  --text-secondary: #9ea4b0;
+  --text-muted: #5c6270;
+  --text-on-accent: #14110a;
+
+  /* ---- Acento primario: oro de manuscrito ---- */
+  --accent: #c9a35f;
+  --accent-dim: #8a7248;
+  --accent-soft: rgba(201, 163, 95, 0.12);
+  --accent-border: rgba(201, 163, 95, 0.35);
+
+  /* ---- Acento secundario: azul frío (info / enlaces) ---- */
+  --info: #5b8dd6;
+  --info-soft: rgba(91, 141, 214, 0.12);
+
+  /* ---- Semánticos ---- */
+  --success: #6fae7a;
+  --success-soft: rgba(111, 174, 122, 0.12);
+  --warning: #d6a24a;
+  --warning-soft: rgba(214, 162, 74, 0.12);
+  --danger: #d16565;
+  --danger-soft: rgba(209, 101, 101, 0.12);
+
+  /* ---- Tipografía ---- */
+  --font-display: 'Source Serif 4', Georgia, serif;
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  /* ---- Escala tipográfica ---- */
+  --text-xs: 11px;
+  --text-sm: 12.5px;
+  --text-base: 13.5px;
+  --text-md: 15px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+
+  /* ---- Espaciado ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* ---- Radios ---- */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* ---- Sombras ---- */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.55);
+
+  /* ---- Layout ---- */
+  --activity-bar-w: 52px;
+  --sidebar-w: 280px;
+  --right-panel-w: 340px;
+  --statusbar-h: 26px;
+  --topbar-h: 44px;
+  --tabbar-h: 38px;
+
+  /* ---- Transiciones ---- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 120ms var(--ease);
+  --t-med: 200ms var(--ease);
+}
+
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+
+* , *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden; /* la app gestiona su propio scroll interno */
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+p { margin: 0; }
+
+a { color: var(--info); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button {
+  font-family: var(--font-ui);
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input, textarea, select {
+  font-family: var(--font-ui);
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: var(--text-base);
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent-dim);
+}
+
+/* Scrollbars — finas, discretas, coherentes con el tema */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: #414b5c; background-clip: padding-box; }
+
+/* Foco de teclado visible — accesibilidad */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Utilidades */
+.mono { font-family: var(--font-mono); }
+.hidden { display: none !important; }
+.text-muted { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+
+.scroll-y { overflow-y: auto; overflow-x: hidden; }
+
+/* Toast notifications */
+#toast-root {
+  position: fixed;
+  bottom: calc(var(--statusbar-h) + var(--sp-4));
+  right: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  z-index: 1000;
+}
+.toast {
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-md);
+  animation: toast-in var(--t-med);
+  max-width: 320px;
+}
+.toast.success { border-left-color: var(--success); }
+.toast.warning { border-left-color: var(--warning); }
+.toast.danger { border-left-color: var(--danger); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ============================================================
+   LAYOUT — Estructura tipo IDE
+   ============================================================ */
+
+#app {
+  display: grid;
+  grid-template-columns: var(--activity-bar-w) var(--sidebar-w) 1fr var(--right-panel-w);
+  grid-template-rows: var(--topbar-h) 1fr var(--statusbar-h);
+  grid-template-areas:
+    "activity topbar   topbar topbar"
+    "activity sidebar  main   right"
+    "activity status   status status";
+  height: 100vh;
+  width: 100vw;
+  transition: grid-template-columns var(--t-med);
+}
+
+#app.sidebar-collapsed { grid-template-columns: var(--activity-bar-w) 0px 1fr var(--right-panel-w); }
+#app.right-collapsed { grid-template-columns: var(--activity-bar-w) var(--sidebar-w) 1fr 0px; }
+
+/* ---- Activity Bar (rail de iconos) ---- */
+#activity-bar {
+  grid-area: activity;
+  background: var(--bg-void);
+  border-right: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--sp-2);
+  gap: 2px;
+}
+.activity-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  transition: color var(--t-fast), background var(--t-fast);
+  position: relative;
+}
+.activity-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.activity-btn.active { color: var(--accent); }
+.activity-btn.active::before {
+  content: '';
+  position: absolute; left: -8px; top: 6px; bottom: 6px;
+  width: 2px; background: var(--accent); border-radius: 2px;
+}
+.activity-spacer { flex: 1; }
+
+/* ---- Top Bar ---- */
+#topbar {
+  grid-area: topbar;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-4);
+  gap: var(--sp-3);
+}
+#topbar .brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+#topbar .brand .brand-accent { color: var(--accent); }
+#global-search-trigger {
+  flex: 1;
+  max-width: 420px;
+  display: flex; align-items: center; gap: var(--sp-2);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  transition: border-color var(--t-fast);
+}
+#global-search-trigger:hover { border-color: var(--border-strong); }
+#global-search-trigger kbd {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--text-muted);
+}
+.topbar-actions { display: flex; align-items: center; gap: var(--sp-2); margin-left: auto; }
+
+/* ---- Sidebar (explorador) ---- */
+#sidebar {
+  grid-area: sidebar;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border-soft);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#app.sidebar-collapsed #sidebar { display: none; }
+
+.sidebar-header {
+  padding: var(--sp-3) var(--sp-4) var(--sp-2);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ---- Main content ---- */
+#main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-void);
+}
+
+#tabbar {
+  height: var(--tabbar-h);
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-soft);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.tab {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 0 var(--sp-3);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+.tab.active { background: var(--bg-void); color: var(--text-primary); }
+.tab.active::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: var(--accent);
+}
+.tab .tab-close { opacity: 0; padding: 2px; border-radius: 3px; }
+.tab:hover .tab-close { opacity: 0.6; }
+.tab .tab-close:hover { opacity: 1; background: var(--bg-active); }
+.tab .tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warning); display: none; }
+.tab.unsaved .tab-dot { display: block; }
+
+#view-root {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* ---- Right panel (Workflow Assistant + contexto) ---- */
+#right-panel {
+  grid-area: right;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border-soft);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#app.right-collapsed #right-panel { display: none; }
+
+/* ---- Status bar ---- */
+#statusbar {
+  grid-area: status;
+  background: var(--bg-void);
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  gap: var(--sp-4);
+  font-family: var(--font-mono);
+}
+#statusbar .status-item { display: flex; align-items: center; gap: 5px; }
+#statusbar .status-spacer { flex: 1; }
+#statusbar .status-item.accent { color: var(--accent); }
+
+/* ---- Responsive ---- */
+@media (max-width: 1100px) {
+  #app { grid-template-columns: var(--activity-bar-w) var(--sidebar-w) 1fr 0px; }
+  #right-panel { display: none; }
+}
+@media (max-width: 760px) {
+  #app { grid-template-columns: var(--activity-bar-w) 0px 1fr 0px; }
+  #sidebar { display: none; }
+}
+
+
+/* ============================================================
+   COMPONENTES REUTILIZABLES
+   ============================================================ */
+
+/* ---- Botones ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+.btn:hover { background: var(--bg-elevated-2); border-color: var(--border-strong); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--text-on-accent); font-weight: 600; }
+.btn-primary:hover { background: #d6b06e; border-color: #d6b06e; }
+.btn-ghost { background: transparent; border-color: transparent; }
+.btn-ghost:hover { background: var(--bg-hover); }
+.btn-danger { color: var(--danger); }
+.btn-danger:hover { background: var(--danger-soft); border-color: var(--danger); }
+.btn-sm { padding: 4px 9px; font-size: var(--text-xs); }
+.btn-icon { width: 28px; height: 28px; padding: 0; justify-content: center; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---- Iconos (SVG inline via helper, 18x18 por defecto) ---- */
+.icon { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+/* ---- Cards ---- */
+.card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-4);
+}
+.card-title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 600;
+  margin-bottom: var(--sp-3);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* ---- Badges / estados ---- */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.badge-pending     { background: var(--bg-elevated-2); color: var(--text-muted); }
+.badge-preparation { background: var(--info-soft); color: var(--info); }
+.badge-draft       { background: var(--warning-soft); color: var(--warning); }
+.badge-review      { background: rgba(180, 130, 220, 0.15); color: #b482dc; }
+.badge-rewrite     { background: var(--danger-soft); color: var(--danger); }
+.badge-final       { background: var(--success-soft); color: var(--success); }
+.badge-published   { background: var(--accent-soft); color: var(--accent); }
+
+/* ---- Árbol del explorador ---- */
+.tree { padding: var(--sp-1) var(--sp-2) var(--sp-4); overflow-y: auto; flex: 1; }
+.tree-node { user-select: none; }
+.tree-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.tree-row:hover { background: var(--bg-hover); color: var(--text-primary); }
+.tree-row.active { background: var(--accent-soft); color: var(--accent); }
+.tree-row .chevron { width: 12px; height: 12px; transition: transform var(--t-fast); flex-shrink: 0; color: var(--text-muted); }
+.tree-row.collapsed .chevron { transform: rotate(-90deg); }
+.tree-row .tree-icon { width: 14px; height: 14px; flex-shrink: 0; }
+.tree-row .tree-label { overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.tree-row .tree-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+.tree-children { margin-left: 16px; border-left: 1px solid var(--border-soft); padding-left: 4px; }
+.tree-children.collapsed { display: none; }
+.tree-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* ---- Modal ---- */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(6,7,9,0.6);
+  backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500;
+  animation: fade-in var(--t-fast);
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 560px;
+  max-width: 92vw;
+  max-height: 84vh;
+  display: flex; flex-direction: column;
+  animation: modal-in var(--t-med);
+}
+.modal.modal-lg { width: 820px; }
+@keyframes modal-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+.modal-header {
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-header h3 { font-size: var(--text-lg); }
+.modal-body { padding: var(--sp-5); overflow-y: auto; flex: 1; }
+.modal-footer { padding: var(--sp-4) var(--sp-5); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: var(--sp-2); }
+
+/* ---- Form fields ---- */
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: var(--sp-3); }
+.field label { font-size: var(--text-xs); color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.field textarea { resize: vertical; min-height: 80px; font-family: var(--font-ui); }
+.field-row { display: flex; gap: var(--sp-3); }
+.field-row .field { flex: 1; }
+
+/* ---- Empty states ---- */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: var(--sp-7) var(--sp-4);
+  color: var(--text-muted);
+  text-align: center;
+  gap: var(--sp-2);
+}
+.empty-state .icon { width: 32px; height: 32px; opacity: 0.5; margin-bottom: var(--sp-2); }
+.empty-state h4 { color: var(--text-secondary); font-size: var(--text-md); }
+.empty-state p { font-size: var(--text-sm); max-width: 320px; }
+
+/* ---- Progress bar ---- */
+.progress-bar { height: 6px; border-radius: 3px; background: var(--bg-elevated-2); overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-dim), var(--accent)); border-radius: 3px; transition: width var(--t-med); }
+
+/* ---- Grid de estadísticas (dashboard) ---- */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-3); }
+.stat-tile {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-4);
+}
+.stat-tile .stat-value { font-family: var(--font-mono); font-size: var(--text-2xl); font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+.stat-tile .stat-label { font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+.stat-tile .stat-value.accent { color: var(--accent); }
+
+/* ---- Chips / etiquetas ---- */
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; padding: 2px 8px; border-radius: 20px;
+  background: var(--bg-elevated-2); color: var(--text-secondary); border: 1px solid var(--border);
+}
+
+/* ---- Tooltip simple ---- */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  background: var(--bg-elevated-2); border: 1px solid var(--border-strong);
+  padding: 3px 8px; border-radius: var(--radius-sm);
+  font-size: 11px; white-space: nowrap; color: var(--text-primary);
+  z-index: 50; pointer-events: none;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---- Kanban ---- */
+.kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); height: 100%; padding: var(--sp-4); }
+.kanban-col { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg); display: flex; flex-direction: column; overflow: hidden; }
+.kanban-col-header { padding: var(--sp-3); font-size: var(--text-sm); font-weight: 600; border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; }
+.kanban-col-body { flex: 1; overflow-y: auto; padding: var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-2); }
+.kanban-card {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: var(--sp-3); font-size: var(--text-sm); cursor: grab;
+  transition: border-color var(--t-fast), transform var(--t-fast);
+}
+.kanban-card:hover { border-color: var(--border-strong); }
+.kanban-card.dragging { opacity: 0.4; }
+.kanban-col.drag-over { background: var(--accent-soft); }
+
+/* ---- Panel de sección genérico ---- */
+.section-header {
+  padding: var(--sp-4) var(--sp-5) var(--sp-2);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.section-header h2 { font-size: var(--text-xl); }
+.section-header .subtitle { color: var(--text-muted); font-size: var(--text-sm); margin-top: 2px; }
+.view-scroll { padding: var(--sp-2) var(--sp-5) var(--sp-6); overflow-y: auto; height: 100%; }
+
+/* ---- Lista de entidades (personajes/lugares/objetos) ---- */
+.entity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-3); }
+.entity-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-3); cursor: pointer; transition: border-color var(--t-fast), transform var(--t-fast); }
+.entity-card:hover { border-color: var(--accent-border); transform: translateY(-1px); }
+.entity-card h4 { font-size: var(--text-md); margin-bottom: 4px; }
+.entity-card p { font-size: var(--text-xs); color: var(--text-muted); }
+.entity-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--bg-elevated-2); display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 600; color: var(--accent);
+  margin-bottom: var(--sp-2); border: 1px solid var(--border);
+}
+
+
+/* ============================================================
+   EDITOR MARKDOWN
+   ============================================================ */
+
+.editor-view { display: flex; flex-direction: column; height: 100%; }
+
+.editor-toolbar {
+  height: 38px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 2px;
+  padding: 0 var(--sp-3);
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-panel);
+}
+.editor-toolbar .divider { width: 1px; height: 18px; background: var(--border); margin: 0 6px; }
+.editor-toolbar .spacer { flex: 1; }
+.editor-toolbar .save-indicator { font-size: var(--text-xs); color: var(--text-muted); font-family: var(--font-mono); display: flex; align-items: center; gap: 5px; }
+.editor-toolbar .save-indicator .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+.editor-toolbar .save-indicator.saving .dot { background: var(--warning); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: 0.3; } }
+
+.editor-body { flex: 1; display: flex; overflow: hidden; }
+.editor-pane, .preview-pane { flex: 1; height: 100%; overflow-y: auto; min-width: 0; }
+.editor-pane { border-right: 1px solid var(--border-soft); }
+.editor-body.preview-only .editor-pane { display: none; }
+.editor-body.edit-only .preview-pane { display: none; }
+
+#markdown-textarea {
+  width: 100%; height: 100%;
+  border: none; border-radius: 0;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.7;
+  padding: var(--sp-5);
+  resize: none;
+}
+#markdown-textarea:focus { border: none; }
+
+.preview-pane { background: var(--bg-void); padding: var(--sp-5) var(--sp-6); }
+.preview-content { max-width: 720px; margin: 0 auto; font-family: var(--font-display); font-size: 16.5px; line-height: 1.75; color: var(--text-primary); }
+.preview-content h1, .preview-content h2, .preview-content h3 { margin-top: 1.4em; margin-bottom: 0.5em; }
+.preview-content h1 { font-size: 1.7em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+.preview-content h2 { font-size: 1.35em; color: var(--accent); }
+.preview-content h3 { font-size: 1.1em; }
+.preview-content p { margin: 0.9em 0; }
+.preview-content strong { color: var(--text-primary); font-weight: 700; }
+.preview-content em { color: var(--text-secondary); }
+.preview-content blockquote { border-left: 3px solid var(--accent); margin: 1em 0; padding: 0.2em 1em; color: var(--text-secondary); font-style: italic; }
+.preview-content code { font-family: var(--font-mono); background: var(--bg-elevated); padding: 2px 5px; border-radius: 3px; font-size: 0.85em; }
+.preview-content pre { background: var(--bg-elevated); padding: var(--sp-3); border-radius: var(--radius-md); overflow-x: auto; border: 1px solid var(--border); }
+.preview-content pre code { background: none; padding: 0; }
+.preview-content ul, .preview-content ol { padding-left: 1.4em; margin: 0.8em 0; }
+.preview-content li { margin: 0.3em 0; }
+.preview-content hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+.preview-content a { color: var(--info); }
+
+.editor-statusline {
+  height: 26px; flex-shrink: 0;
+  display: flex; align-items: center; gap: var(--sp-4);
+  padding: 0 var(--sp-4);
+  border-top: 1px solid var(--border-soft);
+  background: var(--bg-panel);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* Meta / frontmatter panel (estado, etiquetas) sobre el editor */
+.editor-meta-bar { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--border-soft); background: var(--bg-panel); flex-wrap: wrap; }
+.editor-title-input { background: transparent; border: none; font-family: var(--font-display); font-size: var(--text-lg); font-weight: 600; padding: 2px 4px; flex: 1; min-width: 160px; }
+.editor-title-input:focus { border: none; background: var(--bg-hover); border-radius: var(--radius-sm); }
+
+/* Comparador tipo diff */
+.diff-view { display: flex; height: 100%; }
+.diff-pane { flex: 1; overflow-y: auto; padding: var(--sp-4); font-family: var(--font-mono); font-size: 13px; line-height: 1.7; }
+.diff-pane + .diff-pane { border-left: 1px solid var(--border-soft); }
+.diff-line { padding: 1px var(--sp-2); white-space: pre-wrap; word-break: break-word; border-radius: 3px; }
+.diff-line.added { background: var(--success-soft); color: #a7d3ae; }
+.diff-line.removed { background: var(--danger-soft); color: #e3a3a3; text-decoration: line-through; opacity: 0.75; }
+.diff-line.unchanged { color: var(--text-muted); }
+
+
+/* ============================================================
+   WORKFLOW ASSISTANT — elemento firma de la aplicación
+   Tarjeta tipo "nota fijada del editor jefe": borde dorado,
+   numeración de paso en mono, sensación de instrucción manuscrita.
+   ============================================================ */
+
+#right-panel-header {
+  padding: var(--sp-4) var(--sp-4) var(--sp-2);
+  display: flex; align-items: center; justify-content: space-between;
+}
+#right-panel-header h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  display: flex; align-items: center; gap: 8px;
+}
+#right-panel-header h3 .icon { color: var(--accent); width: 16px; height: 16px; }
+
+#right-panel-body { flex: 1; overflow-y: auto; padding: 0 var(--sp-4) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.wf-card {
+  position: relative;
+  background: linear-gradient(180deg, var(--bg-elevated), var(--bg-elevated-2));
+  border: 1px solid var(--accent-border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-4);
+  box-shadow: 0 6px 24px rgba(201, 163, 95, 0.06);
+}
+.wf-step-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: var(--sp-3);
+}
+.wf-title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.wf-meta {
+  display: flex; align-items: center; gap: 6px;
+  font-size: var(--text-xs); color: var(--text-muted);
+  margin-bottom: var(--sp-3);
+}
+.wf-docs {
+  display: flex; flex-direction: column; gap: 5px;
+  margin-bottom: var(--sp-4);
+}
+.wf-doc-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: var(--text-sm); color: var(--text-secondary);
+  padding: 4px 6px; border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.wf-doc-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.wf-doc-item .icon { width: 13px; height: 13px; color: var(--success); flex-shrink: 0; }
+.wf-doc-item.missing .icon { color: var(--warning); }
+
+.wf-actions { display: flex; gap: var(--sp-2); }
+.wf-actions .btn { flex: 1; justify-content: center; }
+
+.wf-copied-flash {
+  position: absolute; inset: 0;
+  background: var(--accent-soft);
+  border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: var(--text-sm); color: var(--accent);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--t-fast);
+}
+.wf-copied-flash.show { opacity: 1; }
+
+/* Historial de pasos completados (mini timeline vertical) */
+.wf-history { display: flex; flex-direction: column; gap: 2px; }
+.wf-history-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 4px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  position: relative;
+}
+.wf-history-item::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success); margin-top: 4px; flex-shrink: 0;
+}
+.wf-history-title { color: var(--text-secondary); }
+
+/* Notas rápidas (panel siempre visible, parte inferior del rail derecho) */
+.quicknotes { border-top: 1px solid var(--border-soft); padding: var(--sp-3) var(--sp-4); flex-shrink: 0; }
+.quicknotes textarea {
+  width: 100%; min-height: 90px; background: var(--bg-elevated);
+  font-size: var(--text-sm); font-family: var(--font-ui);
+}
+.quicknotes-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.quicknotes-header span { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); font-weight: 600; }
+
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--sp-4);
+  align-items: start;
+}
+.dashboard-col { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.progress-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-2); }
+.progress-header .big-pct { font-family: var(--font-mono); font-size: var(--text-2xl); color: var(--accent); font-weight: 600; }
+
+.mini-list { display: flex; flex-direction: column; }
+.mini-list-item {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-2) 4px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: var(--text-sm);
+}
+.mini-list-item:last-child { border-bottom: none; }
+.mini-list-item .mli-title { flex: 1; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-list-item .mli-meta { color: var(--text-muted); font-size: var(--text-xs); font-family: var(--font-mono); }
+
+.alert-item {
+  display: flex; gap: var(--sp-2); align-items: flex-start;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-md);
+  background: var(--warning-soft);
+  font-size: var(--text-sm); color: var(--text-secondary);
+  margin-bottom: var(--sp-2);
+}
+.alert-item .icon { color: var(--warning); width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; }
+.alert-item.danger { background: var(--danger-soft); }
+.alert-item.danger .icon { color: var(--danger); }
+
+.chapter-strip { display: flex; gap: 3px; flex-wrap: wrap; margin-top: var(--sp-2); }
+.chapter-dot {
+  width: 20px; height: 20px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-family: var(--font-mono); color: var(--text-muted);
+  background: var(--bg-elevated-2); border: 1px solid var(--border);
+  cursor: pointer;
+}
+.chapter-dot[data-status="final"], .chapter-dot[data-status="published"] { background: var(--success-soft); border-color: var(--success); color: var(--success); }
+.chapter-dot[data-status="draft"] { background: var(--warning-soft); border-color: var(--warning); color: var(--warning); }
+.chapter-dot[data-status="review"], .chapter-dot[data-status="rewrite"] { background: rgba(180,130,220,0.15); border-color: #b482dc; color: #b482dc; }
+.chapter-dot[data-status="preparation"] { background: var(--info-soft); border-color: var(--info); color: var(--info); }
+
+.streak-row { display: flex; gap: 4px; margin-top: var(--sp-2); }
+.streak-cell { width: 14px; height: 14px; border-radius: 3px; background: var(--bg-elevated-2); }
+.streak-cell.active { background: var(--accent); }
+
+
+/* ============================================================
+   BIBLIOTECA DE PROMPTS + BUSCADOR GLOBAL
+   ============================================================ */
+
+.prompts-toolbar { display: flex; gap: var(--sp-2); align-items: center; margin-bottom: var(--sp-4); flex-wrap: wrap; }
+.prompts-toolbar input[type="search"] { flex: 1; min-width: 200px; }
+.category-filter { display: flex; gap: 4px; flex-wrap: wrap; }
+.category-filter .chip { cursor: pointer; transition: all var(--t-fast); }
+.category-filter .chip.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-border); }
+
+.prompt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--sp-3); }
+.prompt-card {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2);
+  transition: border-color var(--t-fast);
+}
+.prompt-card:hover { border-color: var(--border-strong); }
+.prompt-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-2); }
+.prompt-card-head h4 { font-size: var(--text-md); font-family: var(--font-display); }
+.prompt-card .fav-btn { color: var(--text-muted); flex-shrink: 0; }
+.prompt-card .fav-btn.active { color: var(--accent); }
+.prompt-card .desc { font-size: var(--text-sm); color: var(--text-secondary); flex: 1; }
+.prompt-card .tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.prompt-card-actions { display: flex; gap: 6px; margin-top: var(--sp-2); }
+.prompt-card-actions .btn { flex: 1; justify-content: center; }
+
+/* Command palette / buscador global */
+.cmdk-backdrop {
+  position: fixed; inset: 0; background: rgba(6,7,9,0.55);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 12vh; z-index: 600;
+  animation: fade-in var(--t-fast);
+}
+.cmdk {
+  width: 600px; max-width: 90vw;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: modal-in var(--t-med);
+}
+.cmdk-input-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--border); }
+.cmdk-input-row input { flex: 1; border: none; background: transparent; font-size: var(--text-md); padding: 4px 0; }
+.cmdk-results { max-height: 400px; overflow-y: auto; padding: var(--sp-2); }
+.cmdk-item { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-md); cursor: pointer; }
+.cmdk-item:hover, .cmdk-item.selected { background: var(--bg-hover); }
+.cmdk-item .icon { color: var(--text-muted); width: 15px; height: 15px; flex-shrink: 0; }
+.cmdk-item .cmdk-title { flex: 1; font-size: var(--text-sm); }
+.cmdk-item .cmdk-type { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase; }
+.cmdk-empty { padding: var(--sp-5); text-align: center; color: var(--text-muted); font-size: var(--text-sm); }
+
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div id="toast-root"></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ============================================================
+   utils/format.js
+   ============================================================ */
+/** format.js — Escapes compartidos por todos los módulos que insertan
+ * texto de usuario en HTML (evita XSS accidental y evita duplicar esta
+ * función en cada módulo). */
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeAttr(str) {
+  return String(str || '').replace(/"/g, '&quot;');
+}
+
+
+/* ============================================================
+   utils/icons.js
+   ============================================================ */
+/**
+ * icons.js — Iconografía consistente para toda la app.
+ * Iconos de línea, 24x24 viewBox, trazo uniforme (estilo Lucide),
+ * incrustados como funciones para no depender de una librería externa.
+ */
+
+const paths = {
+  dashboard: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+  book: '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5"/><path d="M4 4.5v15A2.5 2.5 0 0 0 6.5 22H20"/>',
+  file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+  users: '<circle cx="9" cy="8" r="3.2"/><path d="M2.5 21c0-3.5 2.9-6 6.5-6s6.5 2.5 6.5 6"/><circle cx="17.5" cy="9" r="2.6"/><path d="M15 21c0-3-1.2-4.7-2.7-5.6"/>',
+  map: '<path d="M3 6.5 9 4l6 2.5 6-2.5v14l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v14M15 6.5v14"/>',
+  box: '<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+  shield: '<path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5z"/>',
+  message: '<path d="M21 11.5a8.5 8.5 0 0 1-9 8.48A9 9 0 0 1 3 12a9 9 0 1 1 18-.5z"/>',
+  export: '<path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
+  trash: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  chevronDown: '<path d="M6 9l6 6 6-6"/>',
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  star: '<path d="M12 2.5l3 6.5 7 .7-5.3 4.7L18 21l-6-3.6L6 21l1.3-6.6L2 9.7l7-.7z"/>',
+  panelRight: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>',
+  panelLeft: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>',
+  arrowRight: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+  alertTriangle: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  kanban: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 7v6M12 7v10M16 7v3"/>',
+  timeline: '<path d="M3 12h18"/><circle cx="7" cy="12" r="1.8"/><circle cx="14" cy="12" r="1.8"/><circle cx="20" cy="12" r="1.8"/>',
+  flag: '<path d="M4 3v18"/><path d="M4 4h13l-2.5 4L17 12H4"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  layers: '<path d="M12 2 2 7l10 5 10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>',
+  link: '<path d="M9 17H7a5 5 0 0 1 0-10h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/>',
+  eye: '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>',
+  split: '<rect x="3" y="4" width="8" height="16" rx="1.5"/><rect x="13" y="4" width="8" height="16" rx="1.5"/>',
+  maximize: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M7 3v6h9V3"/><path d="M7 21v-9h10v9"/>',
+  history: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 5v6h6"/><path d="M12 8v4l3 2"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  wand: '<path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 6.2l1.4-1.4M12.2 11.8 3 21M17.8 11.8l1.4 1.4"/>',
+  sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+};
+
+function icon(name, cls = 'icon') {
+  const p = paths[name] || paths.file;
+  return `<svg class="${cls}" viewBox="0 0 24 24">${p}</svg>`;
+}
+
+
+/* ============================================================
+   utils/id.js
+   ============================================================ */
+/** Genera un id único razonable sin dependencias externas. */
+function uid(prefix = '') {
+  const rand = Math.random().toString(36).slice(2, 9);
+  const time = Date.now().toString(36);
+  return `${prefix ? prefix + '_' : ''}${time}${rand}`;
+}
+
+
+/* ============================================================
+   utils/date.js
+   ============================================================ */
+/** Formatea una fecha ISO a "hace X" en español. */
+function timeAgo(iso) {
+  if (!iso) return '—';
+  const diff = Date.now() - new Date(iso).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return 'ahora mismo';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `hace ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `hace ${h} h`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `hace ${d} d`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `hace ${mo} mes${mo > 1 ? 'es' : ''}`;
+  const y = Math.floor(mo / 12);
+  return `hace ${y} año${y > 1 ? 's' : ''}`;
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
+function isoToday() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function daysBetween(iso1, iso2) {
+  const a = new Date(iso1).setHours(0, 0, 0, 0);
+  const b = new Date(iso2).setHours(0, 0, 0, 0);
+  return Math.round((b - a) / 86400000);
+}
+
+
+/* ============================================================
+   utils/wordcount.js
+   ============================================================ */
+/** Cuenta palabras de un texto markdown (ignora sintaxis básica). */
+function countWords(text = '') {
+  const clean = text
+    .replace(/```[\s\S]*?```/g, ' ')      // bloques de código
+    .replace(/[#>*_`~\-]/g, ' ')          // marcas markdown sueltas
+    .trim();
+  if (!clean) return 0;
+  return clean.split(/\s+/).filter(Boolean).length;
+}
+
+function countChars(text = '') {
+  return text.length;
+}
+
+/** Tiempo estimado de lectura en minutos (200 palabras/min en español). */
+function readingTime(text = '', wpm = 200) {
+  const words = countWords(text);
+  return Math.max(1, Math.round(words / wpm));
+}
+
+
+/* ============================================================
+   utils/markdown.js
+   ============================================================ */
+
+/**
+ * markdown.js — Conversor Markdown → HTML minimalista, sin dependencias.
+ * Cubre el subconjunto habitual para manuscritos: encabezados, negrita,
+ * cursiva, citas, listas, código, reglas horizontales, enlaces y párrafos.
+ * No pretende ser un parser CommonMark completo; prioriza velocidad y
+ * cero dependencias para que la app siga siendo 100% estática.
+ */
+
+function inline(text) {
+  let t = escapeHtml(text);
+  t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+  t = t.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  t = t.replace(/__(.+?)__/g, '<strong>$1</strong>');
+  t = t.replace(/_(.+?)_/g, '<em>$1</em>');
+  t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return t;
+}
+
+function renderMarkdown(src = '') {
+  const lines = src.replace(/\r\n/g, '\n').split('\n');
+  const out = [];
+  let inCode = false, codeBuf = [];
+  let listBuf = [], listType = null;
+  let quoteBuf = [];
+
+  const flushList = () => {
+    if (listBuf.length) {
+      const tag = listType === 'ol' ? 'ol' : 'ul';
+      out.push(`<${tag}>${listBuf.map((li) => `<li>${inline(li)}</li>`).join('')}</${tag}>`);
+      listBuf = []; listType = null;
+    }
+  };
+  const flushQuote = () => {
+    if (quoteBuf.length) {
+      out.push(`<blockquote>${quoteBuf.map((l) => `<p>${inline(l)}</p>`).join('')}</blockquote>`);
+      quoteBuf = [];
+    }
+  };
+
+  for (const raw of lines) {
+    const line = raw;
+
+    if (line.trim().startsWith('```')) {
+      if (inCode) {
+        out.push(`<pre><code>${escapeHtml(codeBuf.join('\n'))}</code></pre>`);
+        codeBuf = []; inCode = false;
+      } else {
+        flushList(); flushQuote();
+        inCode = true;
+      }
+      continue;
+    }
+    if (inCode) { codeBuf.push(raw); continue; }
+
+    if (/^\s*$/.test(line)) { flushList(); flushQuote(); continue; }
+
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) {
+      flushList(); flushQuote();
+      const level = h[1].length;
+      out.push(`<h${level}>${inline(h[2])}</h${level}>`);
+      continue;
+    }
+
+    if (/^\s*(---|\*\*\*|___)\s*$/.test(line)) {
+      flushList(); flushQuote();
+      out.push('<hr>');
+      continue;
+    }
+
+    const bq = line.match(/^>\s?(.*)$/);
+    if (bq) { flushList(); quoteBuf.push(bq[1]); continue; }
+
+    const ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
+    if (ol) { flushQuote(); listType = 'ol'; listBuf.push(ol[1]); continue; }
+
+    const ul = line.match(/^\s*[-*+]\s+(.*)$/);
+    if (ul) { flushQuote(); listType = 'ul'; listBuf.push(ul[1]); continue; }
+
+    flushList(); flushQuote();
+    out.push(`<p>${inline(line)}</p>`);
+  }
+  flushList(); flushQuote();
+  if (inCode && codeBuf.length) out.push(`<pre><code>${escapeHtml(codeBuf.join('\n'))}</code></pre>`);
+
+  return out.join('\n');
+}
+
+
+/* ============================================================
+   utils/diff.js
+   ============================================================ */
+/**
+ * diff.js — Diferencia línea a línea entre dos textos usando LCS
+ * (subsecuencia común más larga). Suficiente para manuscritos/documentos
+ * de tamaño moderado; evita cargar una librería externa.
+ *
+ * Devuelve un array de { type: 'added'|'removed'|'unchanged', text }.
+ */
+function diffLines(oldText = '', newText = '') {
+  const a = oldText.replace(/\r\n/g, '\n').split('\n');
+  const b = newText.replace(/\r\n/g, '\n').split('\n');
+  const n = a.length, m = b.length;
+
+  // Tabla LCS (n+1) x (m+1)
+  const lcs = Array.from({ length: n + 1 }, () => new Uint32Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      lcs[i][j] = a[i] === b[j] ? lcs[i + 1][j + 1] + 1 : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
+    }
+  }
+
+  const result = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) {
+      result.push({ type: 'unchanged', text: a[i] });
+      i++; j++;
+    } else if (lcs[i + 1][j] >= lcs[i][j + 1]) {
+      result.push({ type: 'removed', text: a[i] });
+      i++;
+    } else {
+      result.push({ type: 'added', text: b[j] });
+      j++;
+    }
+  }
+  while (i < n) { result.push({ type: 'removed', text: a[i] }); i++; }
+  while (j < m) { result.push({ type: 'added', text: b[j] }); j++; }
+  return result;
+}
+
+/** Resumen rápido: cuántas líneas se añadieron/quitaron. */
+function diffSummary(oldText, newText) {
+  const d = diffLines(oldText, newText);
+  return {
+    added: d.filter((l) => l.type === 'added').length,
+    removed: d.filter((l) => l.type === 'removed').length,
+    lines: d,
+  };
+}
+
+
+/* ============================================================
+   utils/zip.js
+   ============================================================ */
+/**
+ * zip.js — Generador de archivos .zip en el navegador sin librerías.
+ * Usa el método STORED (sin compresión): produce un ZIP 100% válido,
+ * legible por cualquier descompresor, a cambio de no comprimir.
+ * Suficiente para exportar el proyecto (texto markdown, pesa poco).
+ */
+
+function crc32(buf) {
+  let c, crc = 0xffffffff;
+  for (let i = 0; i < buf.length; i++) {
+    c = (crc ^ buf[i]) & 0xff;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    crc = (crc >>> 8) ^ c;
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function strToBytes(str) {
+  return new TextEncoder().encode(str);
+}
+
+function dosDateTime(date = new Date()) {
+  const time = ((date.getHours() & 0x1f) << 11) | ((date.getMinutes() & 0x3f) << 5) | ((date.getSeconds() >> 1) & 0x1f);
+  const dosDate = (((date.getFullYear() - 1980) & 0x7f) << 9) | (((date.getMonth() + 1) & 0xf) << 5) | (date.getDate() & 0x1f);
+  return { time, dosDate };
+}
+
+class ZipWriter {
+  constructor() {
+    this.files = []; // { name, data: Uint8Array }
+  }
+
+  addFile(name, content) {
+    const data = typeof content === 'string' ? strToBytes(content) : content;
+    this.files.push({ name, data });
+  }
+
+  /** Genera el Blob final del zip. */
+  build() {
+    const chunks = [];
+    const central = [];
+    let offset = 0;
+    const { time, dosDate } = dosDateTime();
+
+    for (const file of this.files) {
+      const nameBytes = strToBytes(file.name);
+      const crc = crc32(file.data);
+      const size = file.data.length;
+
+      // Local file header
+      const local = new DataView(new ArrayBuffer(30));
+      local.setUint32(0, 0x04034b50, true);
+      local.setUint16(4, 20, true);       // version needed
+      local.setUint16(6, 0, true);        // flags
+      local.setUint16(8, 0, true);        // method = 0 (stored)
+      local.setUint16(10, time, true);
+      local.setUint16(12, dosDate, true);
+      local.setUint32(14, crc, true);
+      local.setUint32(18, size, true);    // compressed size
+      local.setUint32(22, size, true);    // uncompressed size
+      local.setUint16(26, nameBytes.length, true);
+      local.setUint16(28, 0, true);       // extra length
+
+      chunks.push(new Uint8Array(local.buffer), nameBytes, file.data);
+
+      // Central directory entry
+      const centralHeader = new DataView(new ArrayBuffer(46));
+      centralHeader.setUint32(0, 0x02014b50, true);
+      centralHeader.setUint16(4, 20, true);
+      centralHeader.setUint16(6, 20, true);
+      centralHeader.setUint16(8, 0, true);
+      centralHeader.setUint16(10, 0, true);
+      centralHeader.setUint16(12, time, true);
+      centralHeader.setUint16(14, dosDate, true);
+      centralHeader.setUint32(16, crc, true);
+      centralHeader.setUint32(20, size, true);
+      centralHeader.setUint32(24, size, true);
+      centralHeader.setUint16(28, nameBytes.length, true);
+      centralHeader.setUint16(30, 0, true);
+      centralHeader.setUint16(32, 0, true);
+      centralHeader.setUint16(34, 0, true);
+      centralHeader.setUint16(36, 0, true);
+      centralHeader.setUint32(38, 0, true);
+      centralHeader.setUint32(42, offset, true);
+
+      central.push(new Uint8Array(centralHeader.buffer), nameBytes);
+
+      offset += 30 + nameBytes.length + size;
+    }
+
+    const centralSize = central.reduce((s, c) => s + c.length, 0);
+    const centralOffset = offset;
+
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true);
+    end.setUint16(4, 0, true);
+    end.setUint16(6, 0, true);
+    end.setUint16(8, this.files.length, true);
+    end.setUint16(10, this.files.length, true);
+    end.setUint32(12, centralSize, true);
+    end.setUint32(16, centralOffset, true);
+    end.setUint16(20, 0, true);
+
+    const all = [...chunks, ...central, new Uint8Array(end.buffer)];
+    return new Blob(all, { type: 'application/zip' });
+  }
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+
+/* ============================================================
+   core/eventBus.js
+   ============================================================ */
+/**
+ * eventBus.js — Pub/Sub simple para desacoplar módulos.
+ * Cada módulo puede emitir eventos ("chapter:imported", "doc:saved"...)
+ * y otros módulos (sobre todo el Workflow Assistant) se suscriben sin
+ * que exista una dependencia directa entre ellos.
+ */
+class EventBus {
+  constructor() { this._listeners = new Map(); }
+
+  on(event, handler) {
+    if (!this._listeners.has(event)) this._listeners.set(event, new Set());
+    this._listeners.get(event).add(handler);
+    return () => this.off(event, handler);
+  }
+
+  off(event, handler) {
+    this._listeners.get(event)?.delete(handler);
+  }
+
+  emit(event, payload) {
+    this._listeners.get(event)?.forEach((h) => {
+      try { h(payload); } catch (err) { console.error(`[eventBus] error en handler de "${event}"`, err); }
+    });
+    // Wildcard listener para depuración / logging global
+    this._listeners.get('*')?.forEach((h) => h({ event, payload }));
+  }
+}
+
+const bus = new EventBus();
+
+
+/* ============================================================
+   core/toast.js
+   ============================================================ */
+/** toast.js — Notificaciones no intrusivas en la esquina inferior derecha. */
+function toast(message, type = 'default', duration = 3200) {
+  const root = document.getElementById('toast-root');
+  if (!root) return;
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = message;
+  root.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(6px)';
+    el.style.transition = 'all 180ms ease';
+    setTimeout(() => el.remove(), 200);
+  }, duration);
+}
+
+
+/* ============================================================
+   core/modal.js
+   ============================================================ */
+
+/**
+ * openModal — crea un modal genérico.
+ * @param {Object} opts { title, bodyHtml, footerButtons: [{label, className, onClick, closeOnClick}], size }
+ * @returns {Object} { close, root } el elemento raíz para poder engancharle listeners
+ */
+function openModal({ title, bodyHtml, footerButtons = [], size = '' }) {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal ${size}">
+      <div class="modal-header">
+        <h3>${title}</h3>
+        <button class="btn btn-icon btn-ghost" data-close>${icon('x')}</button>
+      </div>
+      <div class="modal-body">${bodyHtml}</div>
+      <div class="modal-footer"></div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+
+  const footer = backdrop.querySelector('.modal-footer');
+  footerButtons.forEach((btn) => {
+    const b = document.createElement('button');
+    b.className = `btn ${btn.className || ''}`;
+    b.textContent = btn.label;
+    b.onclick = () => {
+      btn.onClick?.();
+      if (btn.closeOnClick !== false) close();
+    };
+    footer.appendChild(b);
+  });
+
+  function close() { backdrop.remove(); }
+
+  backdrop.querySelector('[data-close]').onclick = close;
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
+  const escHandler = (e) => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escHandler); } };
+  document.addEventListener('keydown', escHandler);
+
+  return { close, root: backdrop };
+}
+
+function confirmDialog({ title = '¿Confirmar?', message, confirmLabel = 'Confirmar', danger = true }) {
+  return new Promise((resolve) => {
+    openModal({
+      title,
+      bodyHtml: `<p style="color:var(--text-secondary); font-size: var(--text-sm); line-height:1.6;">${message}</p>`,
+      footerButtons: [
+        { label: 'Cancelar', className: 'btn-ghost', onClick: () => resolve(false) },
+        { label: confirmLabel, className: danger ? 'btn-danger' : 'btn-primary', onClick: () => resolve(true) },
+      ],
+    });
+  });
+}
+
+
+/* ============================================================
+   core/db.js
+   ============================================================ */
+/**
+ * db.js — Capa de persistencia sobre IndexedDB.
+ *
+ * Expone un wrapper mínimo pero completo (open/get/getAll/put/delete/
+ * query por índice/clear) para cada "store" (equivalente a una tabla).
+ * Ningún otro módulo debe tocar IndexedDB directamente: todos pasan
+ * por aquí, para que el modelo de datos viva en un único sitio.
+ *
+ * Stores:
+ *  - project        (1 registro): metadatos y configuración del proyecto
+ *  - documents       : capítulos, biblia, cronología, continuidad, notas...
+ *  - characters      : fichas de personajes
+ *  - places          : fichas de lugares
+ *  - objects         : fichas de objetos/inventario
+ *  - mysteries       : misterios / foreshadowing
+ *  - prompts         : biblioteca de prompts (por defecto + personalizados)
+ *  - conversations   : historial de conversaciones con la IA
+ *  - tasks           : tareas (kanban)
+ *  - history         : snapshots de versiones de documentos
+ *  - templates       : plantillas para crear nuevos documentos/fichas
+ *  - trash           : papelera (elementos borrados recuperables)
+ *  - workflowLog      : histórico de pasos completados del Workflow Assistant
+ *  - activity        : registro de actividad (para "últimos modificados", rachas...)
+ */
+
+const DB_NAME = 'novel-ide-db';
+const DB_VERSION = 1;
+
+const STORE_DEFS = [
+  { name: 'project',       keyPath: 'id' },
+  { name: 'documents',     keyPath: 'id', indexes: [['type', 'type'], ['status', 'status'], ['updatedAt', 'updatedAt']] },
+  { name: 'characters',    keyPath: 'id', indexes: [['updatedAt', 'updatedAt']] },
+  { name: 'places',        keyPath: 'id', indexes: [['updatedAt', 'updatedAt']] },
+  { name: 'objects',       keyPath: 'id', indexes: [['updatedAt', 'updatedAt']] },
+  { name: 'mysteries',     keyPath: 'id', indexes: [['status', 'status']] },
+  { name: 'prompts',       keyPath: 'id', indexes: [['category', 'category'], ['favorite', 'favorite']] },
+  { name: 'conversations', keyPath: 'id', indexes: [['date', 'date']] },
+  { name: 'tasks',         keyPath: 'id', indexes: [['status', 'status']] },
+  { name: 'history',       keyPath: 'id', indexes: [['documentId', 'documentId'], ['timestamp', 'timestamp']] },
+  { name: 'templates',     keyPath: 'id', indexes: [['type', 'type']] },
+  { name: 'trash',         keyPath: 'id', indexes: [['deletedAt', 'deletedAt']] },
+  { name: 'backups',       keyPath: 'id', indexes: [['timestamp', 'timestamp']] },
+  { name: 'workflowLog',   keyPath: 'id', indexes: [['timestamp', 'timestamp']] },
+  { name: 'activity',      keyPath: 'id', indexes: [['timestamp', 'timestamp']] },
+];
+
+class Database {
+  constructor() {
+    this._db = null;
+    this._ready = null;
+  }
+
+  /** Abre (o crea) la base de datos. Idempotente. */
+  open() {
+    if (this._ready) return this._ready;
+    this._ready = new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+
+      req.onupgradeneeded = (evt) => {
+        const db = evt.target.result;
+        STORE_DEFS.forEach((def) => {
+          if (!db.objectStoreNames.contains(def.name)) {
+            const store = db.createObjectStore(def.name, { keyPath: def.keyPath });
+            (def.indexes || []).forEach(([idxName, keyPath]) => {
+              store.createIndex(idxName, keyPath, { unique: false });
+            });
+          }
+        });
+      };
+
+      req.onsuccess = (evt) => {
+        this._db = evt.target.result;
+        resolve(this._db);
+      };
+
+      req.onerror = () => reject(req.error);
+    });
+    return this._ready;
+  }
+
+  async _tx(storeName, mode = 'readonly') {
+    const db = await this.open();
+    const tx = db.transaction(storeName, mode);
+    return { tx, store: tx.objectStore(storeName) };
+  }
+
+  async get(storeName, id) {
+    const { store } = await this._tx(storeName);
+    return new Promise((resolve, reject) => {
+      const req = store.get(id);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async getAll(storeName) {
+    const { store } = await this._tx(storeName);
+    return new Promise((resolve, reject) => {
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async getAllByIndex(storeName, indexName, value) {
+    const { store } = await this._tx(storeName);
+    return new Promise((resolve, reject) => {
+      const idx = store.index(indexName);
+      const req = idx.getAll(value);
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async put(storeName, value) {
+    const { tx, store } = await this._tx(storeName, 'readwrite');
+    return new Promise((resolve, reject) => {
+      const req = store.put(value);
+      req.onsuccess = () => resolve(value);
+      req.onerror = () => reject(req.error);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async bulkPut(storeName, values) {
+    const { tx, store } = await this._tx(storeName, 'readwrite');
+    return new Promise((resolve, reject) => {
+      values.forEach((v) => store.put(v));
+      tx.oncomplete = () => resolve(values);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async delete(storeName, id) {
+    const { tx, store } = await this._tx(storeName, 'readwrite');
+    return new Promise((resolve, reject) => {
+      store.delete(id);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async clear(storeName) {
+    const { tx, store } = await this._tx(storeName, 'readwrite');
+    return new Promise((resolve, reject) => {
+      store.clear();
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  /** Vuelca TODA la base de datos a un objeto plano (para exportar). */
+  async exportAll() {
+    const dump = {};
+    for (const def of STORE_DEFS) {
+      dump[def.name] = await this.getAll(def.name);
+    }
+    return dump;
+  }
+
+  /** Restaura la base de datos completa desde un objeto plano (importar). */
+  async importAll(dump, { merge = false } = {}) {
+    for (const def of STORE_DEFS) {
+      if (!dump[def.name]) continue;
+      if (!merge) await this.clear(def.name);
+      await this.bulkPut(def.name, dump[def.name]);
+    }
+  }
+
+  get storeNames() {
+    return STORE_DEFS.map((d) => d.name);
+  }
+}
+
+const db = new Database();
+
+
+/* ============================================================
+   core/state.js
+   ============================================================ */
+/**
+ * state.js — Estado central de la aplicación.
+ *
+ * Mantiene una caché en memoria de todas las colecciones (para que la UI
+ * sea instantánea) sincronizada con IndexedDB, y concentra la lógica de
+ * negocio: crear/actualizar documentos, transiciones de estado de
+ * capítulo, cálculo de estadísticas, etc. La UI nunca llama a `db`
+ * directamente: siempre pasa por `state`, y `state` emite eventos por
+ * el `bus` para que el resto de módulos (sobre todo el Workflow
+ * Assistant) reaccionen.
+ */
+
+// Orden lógico de estados de un capítulo — usado por el Workflow Assistant
+const CHAPTER_STATES = ['pending', 'preparation', 'draft', 'review', 'rewrite', 'final', 'published'];
+
+const CHAPTER_STATE_LABELS = {
+  pending: 'Pendiente',
+  preparation: 'Preparación',
+  draft: 'Primer borrador',
+  review: 'Revisión',
+  rewrite: 'Reescritura',
+  final: 'Final',
+  published: 'Publicado',
+};
+
+// Documentos "de biblia" que la app reconoce por convención de tipo
+const DOC_TYPES = ['bible', 'chapter', 'character', 'place', 'object', 'timeline', 'continuity', 'mystery', 'note', 'template'];
+
+class AppState {
+  constructor() {
+    this.project = null;
+    this.documents = [];
+    this.characters = [];
+    this.places = [];
+    this.objects = [];
+    this.mysteries = [];
+    this.prompts = [];
+    this.conversations = [];
+    this.tasks = [];
+    this.templates = [];
+    this.ready = false;
+  }
+
+  // ---------------------------------------------------------------
+  // Carga inicial
+  // ---------------------------------------------------------------
+  async load() {
+    await db.open();
+    const [project, documents, characters, places, objects, mysteries, prompts, conversations, tasks, templates] = await Promise.all([
+      db.getAll('project'),
+      db.getAll('documents'),
+      db.getAll('characters'),
+      db.getAll('places'),
+      db.getAll('objects'),
+      db.getAll('mysteries'),
+      db.getAll('prompts'),
+      db.getAll('conversations'),
+      db.getAll('tasks'),
+      db.getAll('templates'),
+    ]);
+    this.project = project[0] || null;
+    this.documents = documents;
+    this.characters = characters;
+    this.places = places;
+    this.objects = objects;
+    this.mysteries = mysteries;
+    this.prompts = prompts;
+    this.conversations = conversations;
+    this.tasks = tasks;
+    this.templates = templates;
+    this.ready = true;
+    bus.emit('state:loaded', this);
+    return this;
+  }
+
+  async ensureProject() {
+    if (this.project) return this.project;
+    this.project = {
+      id: 'main',
+      title: 'Mi novela',
+      author: '',
+      genre: '',
+      dailyWordGoal: 1000,
+      createdAt: new Date().toISOString(),
+      settings: { theme: 'dark' },
+      writingLog: {}, // { 'YYYY-MM-DD': wordsWritten }
+    };
+    await db.put('project', this.project);
+    return this.project;
+  }
+
+  async saveProject(patch) {
+    this.project = { ...this.project, ...patch };
+    await db.put('project', this.project);
+    bus.emit('project:updated', this.project);
+    return this.project;
+  }
+
+  // ---------------------------------------------------------------
+  // Documentos genéricos (capítulos, biblia, cronología, continuidad, notas)
+  // ---------------------------------------------------------------
+  getDocuments(type) {
+    return type ? this.documents.filter((d) => d.type === type) : this.documents;
+  }
+
+  getChapters() {
+    return this.documents
+      .filter((d) => d.type === 'chapter')
+      .sort((a, b) => (a.chapterNumber || 0) - (b.chapterNumber || 0));
+  }
+
+  getDocument(id) {
+    return this.documents.find((d) => d.id === id) || null;
+  }
+
+  async createDocument({ type, title, content = '', chapterNumber = null, tags = [] }) {
+    const now = new Date().toISOString();
+    const doc = {
+      id: uid('doc'),
+      type,
+      title,
+      content,
+      tags,
+      chapterNumber,
+      status: type === 'chapter' ? 'pending' : null,
+      checklist: type === 'chapter' ? defaultChapterChecklist() : null,
+      wordCount: countWords(content),
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.documents.push(doc);
+    await db.put('documents', doc);
+    await this._logActivity('document:created', doc.id, doc.title);
+    bus.emit('document:created', doc);
+    return doc;
+  }
+
+  async updateDocument(id, patch) {
+    const doc = this.getDocument(id);
+    if (!doc) return null;
+    Object.assign(doc, patch, { updatedAt: new Date().toISOString() });
+    if (patch.content !== undefined) doc.wordCount = countWords(patch.content);
+    await db.put('documents', doc);
+    bus.emit('document:updated', doc);
+    return doc;
+  }
+
+  async setChapterStatus(id, status) {
+    const doc = await this.updateDocument(id, { status });
+    bus.emit('chapter:status-changed', doc);
+    return doc;
+  }
+
+  async toggleChecklistItem(id, key) {
+    const doc = this.getDocument(id);
+    if (!doc || !doc.checklist) return null;
+    doc.checklist[key] = !doc.checklist[key];
+    await this.updateDocument(id, { checklist: doc.checklist });
+    return doc;
+  }
+
+  async deleteDocument(id) {
+    const doc = this.getDocument(id);
+    if (!doc) return;
+    this.documents = this.documents.filter((d) => d.id !== id);
+    await db.delete('documents', id);
+    await this._toTrash('documents', doc);
+    bus.emit('document:deleted', doc);
+  }
+
+  nextChapterNumber() {
+    const chapters = this.getChapters();
+    return chapters.length ? Math.max(...chapters.map((c) => c.chapterNumber || 0)) + 1 : 1;
+  }
+
+  // ---------------------------------------------------------------
+  // Entidades narrativas (personajes / lugares / objetos / misterios)
+  // ---------------------------------------------------------------
+  _entityStoreFor(kind) {
+    return { character: 'characters', place: 'places', object: 'objects', mystery: 'mysteries' }[kind];
+  }
+  _entityListFor(kind) {
+    return { character: this.characters, place: this.places, object: this.objects, mystery: this.mysteries }[kind];
+  }
+
+  async createEntity(kind, data) {
+    const now = new Date().toISOString();
+    const entity = { id: uid(kind), createdAt: now, updatedAt: now, chapters: [], ...data };
+    this._entityListFor(kind).push(entity);
+    await db.put(this._entityStoreFor(kind), entity);
+    bus.emit(`${kind}:created`, entity);
+    return entity;
+  }
+
+  async updateEntity(kind, id, patch) {
+    const list = this._entityListFor(kind);
+    const entity = list.find((e) => e.id === id);
+    if (!entity) return null;
+    Object.assign(entity, patch, { updatedAt: new Date().toISOString() });
+    await db.put(this._entityStoreFor(kind), entity);
+    bus.emit(`${kind}:updated`, entity);
+    return entity;
+  }
+
+  async deleteEntity(kind, id) {
+    const store = this._entityStoreFor(kind);
+    const list = this._entityListFor(kind);
+    const entity = list.find((e) => e.id === id);
+    if (!entity) return;
+    this[store] = list.filter((e) => e.id !== id);
+    await db.delete(store, id);
+    await this._toTrash(store, entity);
+    bus.emit(`${kind}:deleted`, entity);
+  }
+
+  // ---------------------------------------------------------------
+  // Prompts
+  // ---------------------------------------------------------------
+  async seedPromptsIfEmpty(defaultPrompts) {
+    if (this.prompts.length) return;
+    const now = new Date().toISOString();
+    const withIds = defaultPrompts.map((p) => ({ id: uid('prompt'), favorite: false, usageCount: 0, createdAt: now, updatedAt: now, ...p }));
+    this.prompts = withIds;
+    await db.bulkPut('prompts', withIds);
+  }
+
+  async toggleFavoritePrompt(id) {
+    const p = this.prompts.find((x) => x.id === id);
+    if (!p) return;
+    p.favorite = !p.favorite;
+    await db.put('prompts', p);
+    bus.emit('prompt:updated', p);
+  }
+
+  async registerPromptUsage(id) {
+    const p = this.prompts.find((x) => x.id === id);
+    if (!p) return;
+    p.usageCount = (p.usageCount || 0) + 1;
+    p.lastUsed = new Date().toISOString();
+    await db.put('prompts', p);
+  }
+
+  async savePrompt(promptData) {
+    const now = new Date().toISOString();
+    let p;
+    if (promptData.id) {
+      p = this.prompts.find((x) => x.id === promptData.id);
+      Object.assign(p, promptData, { updatedAt: now });
+    } else {
+      p = { id: uid('prompt'), favorite: false, usageCount: 0, createdAt: now, updatedAt: now, ...promptData };
+      this.prompts.push(p);
+    }
+    await db.put('prompts', p);
+    bus.emit('prompt:updated', p);
+    return p;
+  }
+
+  async deletePrompt(id) {
+    this.prompts = this.prompts.filter((p) => p.id !== id);
+    await db.delete('prompts', id);
+  }
+
+  // ---------------------------------------------------------------
+  // Conversaciones
+  // ---------------------------------------------------------------
+  async logConversation(data) {
+    const conv = { id: uid('conv'), date: new Date().toISOString(), status: 'completada', ...data };
+    this.conversations.unshift(conv);
+    await db.put('conversations', conv);
+    bus.emit('conversation:logged', conv);
+    return conv;
+  }
+
+  // ---------------------------------------------------------------
+  // Tareas (kanban)
+  // ---------------------------------------------------------------
+  async createTask(data) {
+    const task = { id: uid('task'), status: 'pending', createdAt: new Date().toISOString(), ...data };
+    this.tasks.push(task);
+    await db.put('tasks', task);
+    bus.emit('task:created', task);
+    return task;
+  }
+
+  async updateTask(id, patch) {
+    const task = this.tasks.find((t) => t.id === id);
+    if (!task) return null;
+    Object.assign(task, patch);
+    await db.put('tasks', task);
+    bus.emit('task:updated', task);
+    return task;
+  }
+
+  async deleteTask(id) {
+    this.tasks = this.tasks.filter((t) => t.id !== id);
+    await db.delete('tasks', id);
+  }
+
+  // ---------------------------------------------------------------
+  // Actividad / estadísticas
+  // ---------------------------------------------------------------
+  async _logActivity(type, refId, label) {
+    const entry = { id: uid('act'), type, refId, label, timestamp: new Date().toISOString() };
+    await db.put('activity', entry);
+    return entry;
+  }
+
+  async _toTrash(originalStore, data) {
+    const entry = { id: uid('trash'), originalStore, data, deletedAt: new Date().toISOString() };
+    await db.put('trash', entry);
+  }
+
+  async recordWordsToday(delta) {
+    const project = await this.ensureProject();
+    const key = new Date().toISOString().slice(0, 10);
+    project.writingLog = project.writingLog || {};
+    project.writingLog[key] = (project.writingLog[key] || 0) + delta;
+    await this.saveProject({ writingLog: project.writingLog });
+  }
+
+  stats() {
+    const chapters = this.getChapters();
+    const totalWords = chapters.reduce((s, c) => s + (c.wordCount || 0), 0);
+    const written = chapters.filter((c) => ['final', 'published'].includes(c.status));
+    const pending = chapters.filter((c) => !['final', 'published'].includes(c.status));
+    const avg = chapters.length ? Math.round(totalWords / chapters.length) : 0;
+    return {
+      totalChapters: chapters.length,
+      writtenChapters: written.length,
+      pendingChapters: pending.length,
+      totalWords,
+      avgWordsPerChapter: avg,
+      completionPct: chapters.length ? Math.round((written.length / chapters.length) * 100) : 0,
+      totalCharacters: this.characters.length,
+      totalPlaces: this.places.length,
+      totalObjects: this.objects.length,
+      openMysteries: this.mysteries.filter((m) => m.status !== 'resuelto').length,
+    };
+  }
+}
+
+function defaultChapterChecklist() {
+  return {
+    escrito: false,
+    revisado: false,
+    continuidadActualizada: false,
+    personajesActualizados: false,
+    cronologiaActualizada: false,
+    objetosActualizados: false,
+    lugaresActualizados: false,
+    auditoriaRealizada: false,
+    resumenGenerado: false,
+    finalizado: false,
+  };
+}
+
+const state = new AppState();
+
+
+/* ============================================================
+   core/router.js
+   ============================================================ */
+/**
+ * router.js — Gestiona las "pestañas" abiertas (al estilo VS Code) y
+ * delega el renderizado del área principal al módulo correspondiente.
+ * No usa hash routing porque la app es una herramienta de escritorio
+ * local, no un sitio con URLs que compartir.
+ */
+
+const registry = new Map(); // type -> { render(container, tab), icon, getTitle(tab) }
+
+function registerView(type, def) {
+  registry.set(type, def);
+}
+
+class Router {
+  constructor() {
+    this.tabs = [];       // { id, type, refId, title, closable }
+    this.activeId = null;
+  }
+
+  openTab({ type, refId = null, title, closable = true, singleton = true }) {
+    const tabId = singleton ? `${type}:${refId || 'single'}` : `${type}:${refId}:${Date.now()}`;
+    let tab = this.tabs.find((t) => t.id === tabId);
+    if (!tab) {
+      tab = { id: tabId, type, refId, title, closable };
+      this.tabs.push(tab);
+    } else {
+      tab.title = title; // refrescar título por si el doc cambió de nombre
+    }
+    this.activeId = tabId;
+    this.render();
+    return tab;
+  }
+
+  closeTab(tabId) {
+    const idx = this.tabs.findIndex((t) => t.id === tabId);
+    if (idx === -1) return;
+    this.tabs.splice(idx, 1);
+    if (this.activeId === tabId) {
+      const fallback = this.tabs[idx] || this.tabs[idx - 1];
+      this.activeId = fallback ? fallback.id : null;
+    }
+    this.render();
+  }
+
+  setActive(tabId) {
+    this.activeId = tabId;
+    this.render();
+  }
+
+  markUnsaved(tabId, unsaved) {
+    const tab = this.tabs.find((t) => t.id === tabId);
+    if (tab) { tab.unsaved = unsaved; this.renderTabBar(); }
+  }
+
+  get activeTab() {
+    return this.tabs.find((t) => t.id === this.activeId) || null;
+  }
+
+  renderTabBar() {
+    const bar = document.getElementById('tabbar');
+    if (!bar) return;
+    bar.innerHTML = this.tabs.map((t) => `
+      <div class="tab ${t.id === this.activeId ? 'active' : ''} ${t.unsaved ? 'unsaved' : ''}" data-tab="${t.id}">
+        <span class="tab-dot"></span>
+        <span class="tab-label">${t.title}</span>
+        ${t.closable ? `<span class="tab-close" data-close-tab="${t.id}">${icon('x', 'icon')}</span>` : ''}
+      </div>
+    `).join('');
+
+    bar.querySelectorAll('[data-tab]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('[data-close-tab]')) return;
+        this.setActive(el.dataset.tab);
+      });
+    });
+    bar.querySelectorAll('[data-close-tab]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.closeTab(el.dataset.closeTab);
+      });
+    });
+  }
+
+  render() {
+    this.renderTabBar();
+    const root = document.getElementById('view-root');
+    if (!root) return;
+    const tab = this.activeTab;
+    if (!tab) {
+      root.innerHTML = `<div class="empty-state" style="height:100%;justify-content:center;">
+        ${icon('book')}<h4>Ninguna pestaña abierta</h4><p>Selecciona un elemento del explorador o abre el panel de bienvenida.</p>
+      </div>`;
+      bus.emit('router:no-tab');
+      return;
+    }
+    const def = registry.get(tab.type);
+    if (!def) {
+      root.innerHTML = `<div class="empty-state">Vista desconocida: ${tab.type}</div>`;
+      return;
+    }
+    root.innerHTML = '';
+    def.render(root, tab);
+    bus.emit('router:navigated', tab);
+  }
+}
+
+const router = new Router();
+
+
+/* ============================================================
+   data/defaultPrompts.js
+   ============================================================ */
+/**
+ * defaultPrompts.js — Biblioteca de prompts que se siembra la primera
+ * vez que se abre la app. Cada prompt usa placeholders {{variable}}
+ * que workflowAssistant.js sustituye con datos reales del proyecto
+ * cuando se copia desde el panel "¿Qué hago ahora?". Si se copian
+ * desde la Biblioteca de Prompts directamente, se copian tal cual
+ * (el usuario puede rellenar los huecos a mano).
+ */
+const DEFAULT_PROMPTS = [
+  {
+    title: 'Escribir un capítulo',
+    category: 'Escritura',
+    tags: ['capítulo', 'redacción', 'principal'],
+    description: 'El prompt que más se usa: escribe el siguiente capítulo respetando toda la documentación y la continuidad.',
+    slug: 'write-chapter',
+    content: `Lee toda la documentación relevante del proyecto antes de empezar.
+Como mínimo consulta:
+- 01_Estilo.md
+- 03_Cronologia.md
+- 04_Personajes.md
+- 09_Misterios.md
+- 11_Continuidad.md
+- El capítulo anterior ({{previousChapterTitle}}).
+
+Después escribe el Capítulo {{chapterNumber}} ({{chapterTitle}}) en formato Markdown.
+Respeta absolutamente toda la continuidad.
+No resumas escenas importantes.
+No aceleres la historia.
+Mantén el estilo establecido.
+Al finalizar añade el bloque "Resumen para continuidad".`,
+  },
+  {
+    title: 'Actualizar la documentación',
+    category: 'Continuidad',
+    tags: ['documentación', 'después de capítulo'],
+    description: 'Después de escribir cada capítulo: actualiza solo los documentos afectados con la información nueva.',
+    slug: 'update-docs',
+    content: `Después de escribir el Capítulo {{chapterNumber}} ({{chapterTitle}}).
+Actualiza la documentación del proyecto utilizando exclusivamente la información introducida en el capítulo recién escrito.
+Actualiza únicamente los documentos necesarios.
+No modifiques hechos ya establecidos.
+Si detectas una contradicción, indícala antes de actualizar.
+Genera las nuevas versiones completas de los documentos modificados.`,
+  },
+  {
+    title: 'Auditoría de continuidad',
+    category: 'Auditoría',
+    tags: ['auditoría', 'continuidad', 'cada 5-6 capítulos'],
+    description: 'Cada cinco o seis capítulos: revisión completa de cronología, edades, heridas, objetos, lugares y relaciones.',
+    slug: 'continuity-audit',
+    content: `Realiza una auditoría completa de la novela hasta el Capítulo {{chapterNumber}}.
+Comprueba:
+- cronología
+- edades
+- heridas
+- objetos
+- lugares
+- relaciones
+- evolución emocional
+- reglas del mundo
+
+Busca cualquier contradicción o posible problema futuro.
+No reescribas capítulos.
+Genera únicamente un informe editorial.`,
+  },
+  {
+    title: 'Revisión literaria',
+    category: 'Edición',
+    tags: ['revisión', 'edición', 'calidad'],
+    description: 'Cuando un capítulo ya esté terminado: análisis de ritmo, tensión, diálogos y calidad narrativa.',
+    slug: 'literary-review',
+    content: `Actúa como editor literario profesional.
+Analiza exclusivamente el Capítulo {{chapterNumber}} ({{chapterTitle}}).
+Evalúa:
+- ritmo
+- tensión
+- diálogos
+- naturalidad
+- descripciones
+- redundancias
+- exposición
+- calidad narrativa
+
+No reescribas nada todavía.
+Haz únicamente un informe editorial.`,
+  },
+  {
+    title: 'Reescribir un capítulo',
+    category: 'Edición',
+    tags: ['reescritura', 'edición'],
+    description: 'Después de la revisión: reescribe incorporando las mejoras propuestas sin tocar hechos ni continuidad.',
+    slug: 'rewrite-chapter',
+    content: `Reescribe el Capítulo {{chapterNumber}} ({{chapterTitle}}) incorporando todas las mejoras propuestas en la revisión literaria.
+Mantén exactamente:
+- acontecimientos
+- continuidad
+- personajes
+- tono
+
+El objetivo es mejorar únicamente la calidad literaria.`,
+  },
+  {
+    title: 'Actualizar la planificación',
+    category: 'Planificación',
+    tags: ['planificación', 'cambios importantes'],
+    description: 'Cuando decides cambiar algo importante en la historia y hay que propagar el cambio a la documentación.',
+    slug: 'update-planning',
+    content: `He realizado cambios importantes en la historia.
+Actualiza:
+- Cronología
+- Arcos
+- Capítulos
+- Personajes
+- Continuidad
+
+No modifiques nada que no se vea afectado.`,
+  },
+  {
+    title: 'Detectar foreshadowing',
+    category: 'Análisis',
+    tags: ['foreshadowing', 'misterios', 'análisis'],
+    description: 'Analiza todos los capítulos escritos en busca de pistas sembradas, misterios abiertos y elementos olvidados.',
+    slug: 'detect-foreshadowing',
+    content: `Analiza todos los capítulos escritos hasta el {{chapterNumber}}.
+Indica:
+- pistas sembradas
+- misterios abiertos
+- elementos olvidados
+- objetos que deberían reaparecer
+- conversaciones con potencial narrativo
+
+Propón dónde podrían recuperarse de forma natural.`,
+  },
+  {
+    title: 'Preparar el siguiente capítulo',
+    category: 'Planificación',
+    tags: ['preparación', 'antes de escribir'],
+    description: 'Prepara el objetivo, conflicto y escenas del próximo capítulo antes de escribir una sola línea.',
+    slug: 'prepare-next-chapter',
+    content: `Sin escribir todavía el capítulo.
+Prepara el Capítulo {{chapterNumber}} ({{chapterTitle}}).
+Incluye:
+- objetivo narrativo
+- conflicto
+- personajes
+- emociones
+- ritmo
+- revelaciones
+- escenas
+- transición desde el capítulo anterior ({{previousChapterTitle}})
+
+No escribas la narración.`,
+  },
+  {
+    title: 'Resumen para memoria',
+    category: 'Continuidad',
+    tags: ['resumen', 'memoria', 'compresión'],
+    description: 'El más importante cuando la novela crece: un resumen extremadamente compacto de todo lo publicado hasta ahora.',
+    slug: 'memory-summary',
+    content: `Genera un resumen extremadamente compacto de toda la novela hasta el Capítulo {{chapterNumber}}.
+Debe incluir únicamente la información necesaria para mantener la continuidad.
+Organízalo por:
+- cronología
+- personajes
+- relaciones
+- objetos
+- lugares
+- misterios
+- estado actual
+
+Debe ocupar el menor espacio posible sin perder información importante.`,
+  },
+  {
+    title: 'Comprobación de realismo',
+    category: 'Auditoría',
+    tags: ['realismo', 'verosimilitud'],
+    description: 'Analiza el capítulo desde el punto de vista del realismo: leyes, procedimientos, tiempos, medicina, armas...',
+    slug: 'realism-check',
+    content: `Analiza el Capítulo {{chapterNumber}} ({{chapterTitle}}) desde el punto de vista del realismo.
+Comprueba:
+- leyes españolas
+- procedimientos policiales
+- tiempos de desplazamiento
+- funcionamiento de armas
+- medicina
+- arquitectura
+- combate
+- consecuencias legales
+
+Marca cualquier aspecto poco creíble.`,
+  },
+  {
+    title: 'Editor jefe',
+    category: 'Auditoría',
+    tags: ['editor jefe', 'cada 10 capítulos', 'informe global'],
+    description: 'Cada 10 capítulos: lectura completa como si fueras el editor jefe de una gran editorial, sin piedad.',
+    slug: 'chief-editor',
+    content: `Quiero que actúes como el editor jefe de una gran editorial.
+Olvida que has participado en escribir esta novela.
+Léela como si fuera el manuscrito de un autor profesional, hasta el Capítulo {{chapterNumber}}.
+Haz un informe completamente sincero.
+Indica:
+- puntos fuertes
+- puntos débiles
+- capítulos demasiado largos
+- capítulos innecesarios
+- problemas de ritmo
+- evolución de personajes
+- calidad del conflicto
+- calidad del final previsto
+- posibilidades comerciales
+
+No tengas miedo de ser crítico.`,
+  },
+  {
+    title: 'Generar biblia inicial',
+    category: 'Planificación',
+    tags: ['biblia', 'inicio de proyecto'],
+    description: 'Punto de partida del proyecto: genera la biblia narrativa completa a partir de la idea inicial.',
+    slug: 'generate-bible',
+    content: `Actúa como editor jefe y diseñador de historias.
+A partir de la idea que te voy a dar, genera una biblia narrativa completa:
+- Premisa y logline
+- Estilo y voz narrativa
+- Personajes principales y secundarios
+- Lugares
+- Cronología inicial
+- Arcos narrativos principales
+- Misterios y foreshadowing planeado
+- Estructura de capítulos prevista
+
+Sé exhaustivo pero organizado por secciones en Markdown.`,
+  },
+];
+
+
+/* ============================================================
+   modules/continuity.js
+   ============================================================ */
+/**
+ * continuity.js — Motor de detección de inconsistencias.
+ *
+ * Trabaja sobre datos ESTRUCTURADOS (estados de capítulo, checklist,
+ * nombres duplicados, fechas de misterios) porque analizar prosa libre
+ * en busca de contradicciones requeriría un LLM — precisamente lo que
+ * el Workflow Assistant delega en la IA a través de la auditoría de
+ * continuidad. Esta capa cubre lo que SÍ se puede verificar de forma
+ * determinista y barata, dejando el resto al prompt de auditoría.
+ */
+
+function detectContinuityAlerts() {
+  const alerts = [];
+  const chapters = state.getChapters();
+
+  // 1. Capítulos finalizados con checklist incompleto
+  chapters.filter((c) => ['final', 'published'].includes(c.status)).forEach((c) => {
+    const cl = c.checklist || {};
+    const missing = Object.entries(cl).filter(([, v]) => !v).map(([k]) => k);
+    if (missing.length) {
+      alerts.push({ severity: 'warning', message: `Capítulo ${c.chapterNumber} marcado como final pero con ${missing.length} tarea(s) de checklist sin completar.`, chapterId: c.id });
+    }
+  });
+
+  // 2. Nombres duplicados entre personajes / lugares / objetos
+  ['characters', 'places', 'objects'].forEach((kind) => {
+    const names = state[kind].map((e) => (e.name || '').trim().toLowerCase()).filter(Boolean);
+    const dupes = names.filter((n, i) => names.indexOf(n) !== i);
+    [...new Set(dupes)].forEach((n) => {
+      alerts.push({ severity: 'danger', message: `Nombre duplicado en ${kind === 'characters' ? 'personajes' : kind === 'places' ? 'lugares' : 'objetos'}: "${n}".` });
+    });
+  });
+
+  // 3. Misterios cuyo capítulo de resolución previsto ya ha pasado y siguen abiertos
+  const lastChapterNum = chapters.length ? Math.max(...chapters.map((c) => c.chapterNumber || 0)) : 0;
+  state.mysteries.forEach((m) => {
+    if (m.status !== 'resuelto' && m.expectedResolutionChapter && Number(m.expectedResolutionChapter) < lastChapterNum) {
+      alerts.push({ severity: 'warning', message: `El misterio "${m.title}" debía resolverse antes del capítulo ${m.expectedResolutionChapter} y sigue abierto.`, mysteryId: m.id });
+    }
+  });
+
+  // 4. Huecos en la numeración de capítulos
+  const numbers = chapters.map((c) => c.chapterNumber).sort((a, b) => a - b);
+  for (let i = 1; i < numbers.length; i++) {
+    if (numbers[i] - numbers[i - 1] > 1) {
+      alerts.push({ severity: 'warning', message: `Salto en la numeración de capítulos: falta entre el ${numbers[i - 1]} y el ${numbers[i]}.` });
+    }
+  }
+
+  // 5. Personajes sin ninguna aparición registrada tras 3+ capítulos desde su creación
+  state.characters.forEach((ch) => {
+    if ((!ch.chapters || ch.chapters.length === 0) && lastChapterNum >= 3) {
+      alerts.push({ severity: 'default', message: `El personaje "${ch.name}" no tiene capítulos de aparición registrados.` });
+    }
+  });
+
+  return alerts;
+}
+
+function renderContinuity(container) {
+  const alerts = detectContinuityAlerts();
+  const bySeverity = { danger: [], warning: [], default: [] };
+  alerts.forEach((a) => bySeverity[a.severity === 'danger' ? 'danger' : a.severity === 'warning' ? 'warning' : 'default'].push(a));
+
+  container.innerHTML = `
+    <div class="section-header">
+      <div><h2>Control de continuidad</h2><div class="subtitle">Comprobaciones automáticas deterministas + auditorías con IA para todo lo demás</div></div>
+    </div>
+    <div class="view-scroll">
+      <div class="stat-grid" style="margin-bottom:var(--sp-4);">
+        <div class="stat-tile"><div class="stat-value" style="color:var(--danger)">${bySeverity.danger.length}</div><div class="stat-label">Críticas</div></div>
+        <div class="stat-tile"><div class="stat-value" style="color:var(--warning)">${bySeverity.warning.length}</div><div class="stat-label">Advertencias</div></div>
+        <div class="stat-tile"><div class="stat-value">${bySeverity.default.length}</div><div class="stat-label">Informativas</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">${icon('shield', 'icon')} Todas las alertas</div>
+        ${alerts.length ? alerts.map((a) => `<div class="alert-item ${a.severity === 'default' ? '' : a.severity}">${icon('alertTriangle')}<span>${a.message}</span></div>`).join('') : '<p class="text-muted" style="font-size:var(--text-sm);">No se ha detectado ninguna inconsistencia estructural. Recuerda que las contradicciones de trama solo las detecta la auditoría con IA (biblioteca de prompts → "Auditoría de continuidad").</p>'}
+      </div>
+    </div>
+  `;
+}
+
+registerView('continuity', { render: renderContinuity });
+
+
+/* ============================================================
+   modules/workflowAssistant.js
+   ============================================================ */
+/**
+ * workflowAssistant.js — El "editor jefe" de la aplicación.
+ *
+ * Analiza el estado del proyecto (capítulos y sus estados, contadores
+ * desde la última auditoría / revisión de editor jefe) y decide SIEMPRE
+ * cuál es el siguiente paso lógico, con su prompt ya relleno con los
+ * datos reales del proyecto. Se renderiza en el panel derecho, visible
+ * permanentemente, y también sirve de widget principal del Dashboard.
+ *
+ * Máquina de estados por capítulo (reutiliza CHAPTER_STATES de state.js):
+ *   pending      → preparar capítulo            (prompt: prepare-next-chapter)
+ *   preparation  → escribir capítulo             (prompt: write-chapter)
+ *   draft        → actualizar documentación      (prompt: update-docs)
+ *   review       → revisión literaria             (prompt: literary-review)
+ *   rewrite      → reescribir capítulo            (prompt: rewrite-chapter)
+ *   final        → (dispara auditorías periódicas o pasa al siguiente capítulo)
+ *
+ * Disparadores periódicos:
+ *   - Auditoría de continuidad cada 5 capítulos finalizados.
+ *   - Revisión de editor jefe cada 10 capítulos finalizados.
+ */
+
+const AUDIT_EVERY = 5;
+const CHIEF_EDITOR_EVERY = 10;
+
+const NEXT_STATUS = {
+  pending: 'preparation',
+  preparation: 'draft',
+  draft: 'review',
+  review: 'rewrite',
+  rewrite: 'final',
+};
+
+const ESTIMATES = {
+  bible: '20-30 min', prepare: '10-15 min', write: '45-60 min', update_docs: '10-15 min',
+  review: '15-20 min', rewrite: '30-45 min', audit: '20-30 min', chief_editor: '40-60 min', publish: '5 min',
+};
+
+function findPrompt(slug) {
+  return state.prompts.find((p) => p.slug === slug) || null;
+}
+
+function fillTemplate(tpl, vars) {
+  return tpl.replace(/\{\{(\w+)\}\}/g, (_, key) => (vars[key] !== undefined ? vars[key] : `{{${key}}}`));
+}
+
+function docExists(type) {
+  return state.getDocuments(type).length > 0;
+}
+
+/** Calcula cuál es la recomendación actual. Devuelve un objeto "step" descriptivo. */
+function computeCurrentStep() {
+  const chapters = state.getChapters();
+  const project = state.project || {};
+  const meta = project.workflowMeta || { lastAuditChapter: 0, lastChiefEditorChapter: 0 };
+
+  // 0. Sin biblia y sin capítulos: arrancar el proyecto
+  if (!docExists('bible') && chapters.length === 0) {
+    return buildStep({
+      key: 'bible',
+      title: 'Genera la biblia narrativa inicial',
+      badge: 'Paso 0 · Arranque del proyecto',
+      estimate: ESTIMATES.bible,
+      promptSlug: 'generate-bible',
+      docs: [],
+      onComplete: async () => toast('Cuando pegues el resultado, impórtalo como documento de Biblia.', 'default'),
+    });
+  }
+
+  const finalizedCount = chapters.filter((c) => ['final', 'published'].includes(c.status)).length;
+
+  // 1. Auditoría de continuidad pendiente
+  if (finalizedCount > 0 && finalizedCount - meta.lastAuditChapter >= AUDIT_EVERY) {
+    return buildStep({
+      key: 'audit',
+      title: `Auditoría de continuidad (hasta el capítulo ${finalizedCount})`,
+      badge: `Cada ${AUDIT_EVERY} capítulos · Auditoría`,
+      estimate: ESTIMATES.audit,
+      promptSlug: 'continuity-audit',
+      vars: { chapterNumber: finalizedCount },
+      docs: ['timeline', 'continuity', 'character', 'place', 'object'],
+      onComplete: async () => {
+        await state.saveProject({ workflowMeta: { ...meta, lastAuditChapter: finalizedCount } });
+      },
+    });
+  }
+
+  // 2. Revisión de editor jefe pendiente
+  if (finalizedCount > 0 && finalizedCount - meta.lastChiefEditorChapter >= CHIEF_EDITOR_EVERY) {
+    return buildStep({
+      key: 'chief_editor',
+      title: `Informe de Editor Jefe (hasta el capítulo ${finalizedCount})`,
+      badge: `Cada ${CHIEF_EDITOR_EVERY} capítulos · Editor Jefe`,
+      estimate: ESTIMATES.chief_editor,
+      promptSlug: 'chief-editor',
+      vars: { chapterNumber: finalizedCount },
+      docs: [],
+      onComplete: async () => {
+        await state.saveProject({ workflowMeta: { ...meta, lastChiefEditorChapter: finalizedCount } });
+      },
+    });
+  }
+
+  // 3. Buscar el primer capítulo no finalizado
+  const active = chapters.find((c) => !['final', 'published'].includes(c.status));
+
+  if (active) {
+    return stepForChapter(active);
+  }
+
+  // 4. Todos los capítulos existentes están finalizados → preparar el siguiente
+  const nextNum = state.nextChapterNumber();
+  return buildStep({
+    key: 'new_chapter',
+    title: `Preparar el Capítulo ${nextNum}`,
+    badge: `Paso siguiente · Capítulo ${nextNum}`,
+    estimate: ESTIMATES.prepare,
+    promptSlug: 'prepare-next-chapter',
+    vars: { chapterNumber: nextNum, chapterTitle: `Capítulo ${nextNum}`, previousChapterTitle: chapters.length ? chapters[chapters.length - 1].title : '—' },
+    docs: ['timeline', 'continuity', 'character'],
+    onComplete: async () => {
+      await state.createDocument({ type: 'chapter', title: `Capítulo ${nextNum}`, chapterNumber: nextNum, content: '' });
+    },
+    createsChapter: true,
+  });
+}
+
+function stepForChapter(chapter) {
+  const chapters = state.getChapters();
+  const idx = chapters.findIndex((c) => c.id === chapter.id);
+  const prev = chapters[idx - 1];
+  const vars = {
+    chapterNumber: chapter.chapterNumber,
+    chapterTitle: chapter.title,
+    previousChapterTitle: prev ? prev.title : '—',
+  };
+
+  const CONFIG = {
+    pending: { title: `Preparar el Capítulo ${chapter.chapterNumber}`, promptSlug: 'prepare-next-chapter', estimate: ESTIMATES.prepare, docs: ['timeline', 'continuity', 'character'] },
+    preparation: { title: `Escribir el Capítulo ${chapter.chapterNumber}`, promptSlug: 'write-chapter', estimate: ESTIMATES.write, docs: ['bible', 'timeline', 'character', 'mystery', 'continuity'] },
+    draft: { title: `Actualizar documentación tras el Capítulo ${chapter.chapterNumber}`, promptSlug: 'update-docs', estimate: ESTIMATES.update_docs, docs: ['character', 'timeline', 'continuity'] },
+    review: { title: `Revisión literaria del Capítulo ${chapter.chapterNumber}`, promptSlug: 'literary-review', estimate: ESTIMATES.review, docs: [] },
+    rewrite: { title: `Reescribir el Capítulo ${chapter.chapterNumber}`, promptSlug: 'rewrite-chapter', estimate: ESTIMATES.rewrite, docs: [] },
+  };
+
+  const cfg = CONFIG[chapter.status];
+  if (!cfg) {
+    // Estado desconocido → tratar como pendiente por seguridad
+    return buildStep({ key: 'pending', title: `Preparar el Capítulo ${chapter.chapterNumber}`, badge: 'Paso siguiente', estimate: ESTIMATES.prepare, promptSlug: 'prepare-next-chapter', vars, docs: [], onComplete: async () => {} });
+  }
+
+  return buildStep({
+    key: chapter.status,
+    title: cfg.title,
+    badge: `Capítulo ${chapter.chapterNumber} · ${CHAPTER_STATE_LABELS[chapter.status]} → ${CHAPTER_STATE_LABELS[NEXT_STATUS[chapter.status]]}`,
+    estimate: cfg.estimate,
+    promptSlug: cfg.promptSlug,
+    vars,
+    docs: cfg.docs,
+    chapterId: chapter.id,
+    onComplete: async () => {
+      await state.setChapterStatus(chapter.id, NEXT_STATUS[chapter.status]);
+    },
+  });
+}
+
+function buildStep({ key, title, badge, estimate, promptSlug, vars = {}, docs = [], onComplete, chapterId = null, createsChapter = false }) {
+  const prompt = findPrompt(promptSlug);
+  const filled = prompt ? fillTemplate(prompt.content, vars) : '(Prompt no encontrado en la biblioteca)';
+  const docLabels = { bible: 'Biblia', timeline: 'Cronología', continuity: 'Continuidad', character: 'Personajes', place: 'Lugares', object: 'Objetos', mystery: 'Misterios' };
+  return {
+    key, title, badge, estimate, promptSlug, promptId: prompt?.id, filledPrompt: filled,
+    docs: docs.map((d) => ({ type: d, label: docLabels[d] || d, exists: docExists(d) })),
+    onComplete, chapterId, createsChapter,
+  };
+}
+
+// ---------------------------------------------------------------
+// Render del panel derecho
+// ---------------------------------------------------------------
+async function renderWorkflowPanel(container) {
+  const step = computeCurrentStep();
+  const recentLog = (await db.getAll('workflowLog')).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 6);
+
+  container.innerHTML = `
+    <div class="wf-card" id="wf-card">
+      <div class="wf-copied-flash" id="wf-flash">${icon('check')} Prompt copiado al portapapeles</div>
+      <div class="wf-step-badge">${icon('sparkle', 'icon')} ${step.badge}</div>
+      <div class="wf-title">${step.title}</div>
+      <div class="wf-meta">${icon('clock', 'icon')} Duración estimada: ${step.estimate}</div>
+      ${step.docs.length ? `
+        <div class="wf-docs">
+          ${step.docs.map((d) => `
+            <div class="wf-doc-item ${d.exists ? '' : 'missing'}" data-open-doctype="${d.type}">
+              ${icon(d.exists ? 'check' : 'alertTriangle')}
+              <span>${d.label}${d.exists ? '' : ' (no encontrado)'}</span>
+            </div>
+          `).join('')}
+        </div>` : ''}
+      <div class="wf-actions">
+        <button class="btn btn-primary" id="wf-copy-btn">${icon('copy')} Copiar Prompt</button>
+        <button class="btn btn-ghost btn-icon" id="wf-done-btn" data-tip="Marcar como completado">${icon('check')}</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card-title" style="font-size:var(--text-sm); margin-bottom:var(--sp-2);">
+        ${icon('history', 'icon')} Últimos pasos completados
+      </div>
+      <div class="wf-history">
+        ${recentLog.length ? recentLog.map((h) => `
+          <div class="wf-history-item">
+            <div><div class="wf-history-title">${h.title}</div><div>${timeAgo(h.timestamp)}</div></div>
+          </div>
+        `).join('') : '<p class="text-muted" style="font-size:var(--text-xs);">Todavía no se ha completado ningún paso.</p>'}
+      </div>
+    </div>
+  `;
+
+  container.querySelector('#wf-copy-btn').addEventListener('click', async () => {
+    await copyStep(step);
+  });
+  container.querySelector('#wf-done-btn').addEventListener('click', async () => {
+    await completeStep(step);
+  });
+  container.querySelectorAll('[data-open-doctype]').forEach((el) => {
+    el.addEventListener('click', () => bus.emit('workflow:open-doctype', el.dataset.openDoctype));
+  });
+}
+
+async function copyStep(step) {
+  try {
+    await navigator.clipboard.writeText(step.filledPrompt);
+  } catch {
+    // Fallback para navegadores sin permiso de portapapeles
+    const ta = document.createElement('textarea');
+    ta.value = step.filledPrompt;
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  }
+  if (step.promptId) state.registerPromptUsage(step.promptId);
+  const flash = document.getElementById('wf-flash');
+  if (flash) { flash.classList.add('show'); setTimeout(() => flash.classList.remove('show'), 900); }
+  toast('Prompt copiado. Pégalo en tu conversación con la IA.', 'success');
+}
+
+async function completeStep(step) {
+  await step.onComplete?.();
+  await db.put('workflowLog', { id: uid('wlog'), title: step.title, key: step.key, timestamp: new Date().toISOString() });
+  toast('Paso marcado como completado. Calculando el siguiente…', 'success');
+  bus.emit('workflow:step-completed', step);
+}
+
+// Recalcula el panel cada vez que cambia algo relevante del estado
+['document:updated', 'document:created', 'chapter:status-changed', 'workflow:step-completed', 'state:loaded'].forEach((evt) => {
+  bus.on(evt, () => {
+    const el = document.getElementById('right-panel-body-workflow');
+    if (el) renderWorkflowPanel(el);
+    bus.emit('dashboard:refresh-request');
+  });
+});
+
+
+/* ============================================================
+   modules/dashboard.js
+   ============================================================ */
+/**
+ * dashboard.js — Pantalla principal: progreso general, estadísticas,
+ * últimas modificaciones, alertas de continuidad y recomendación
+ * del Workflow Assistant en tamaño grande.
+ */
+
+function lastModified(list, n = 5) {
+  return [...list].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, n);
+}
+
+function streakDays() {
+  const log = state.project?.writingLog || {};
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    days.push({ key, active: (log[key] || 0) > 0 });
+  }
+  return days;
+}
+
+function renderDashboard(container) {
+  const s = state.stats();
+  const chapters = state.getChapters();
+  const recentDocs = lastModified(state.documents, 5);
+  const alerts = detectContinuityAlerts();
+  const today = new Date().toISOString().slice(0, 10);
+  const wordsToday = state.project?.writingLog?.[today] || 0;
+  const goal = state.project?.dailyWordGoal || 1000;
+
+  container.innerHTML = `
+    <div class="section-header">
+      <div>
+        <h2>${state.project?.title || 'Mi novela'}</h2>
+        <div class="subtitle">Panel general del proyecto</div>
+      </div>
+    </div>
+    <div class="view-scroll">
+      <div class="dashboard-grid">
+
+        <div class="dashboard-col">
+          <div class="card">
+            <div class="progress-header">
+              <div class="card-title" style="margin-bottom:0;">Progreso de la novela</div>
+              <div class="big-pct">${s.completionPct}%</div>
+            </div>
+            <div class="progress-bar"><div class="progress-bar-fill" style="width:${s.completionPct}%"></div></div>
+            <div class="chapter-strip">
+              ${chapters.map((c) => `<div class="chapter-dot" data-status="${c.status}" data-tip="Cap. ${c.chapterNumber}: ${CHAPTER_STATE_LABELS[c.status]}" data-open-chapter="${c.id}">${c.chapterNumber}</div>`).join('') || '<span class="text-muted" style="font-size:var(--text-sm);">Todavía no hay capítulos.</span>'}
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-tile"><div class="stat-value accent">${s.totalWords.toLocaleString('es-ES')}</div><div class="stat-label">Palabras totales</div></div>
+            <div class="stat-tile"><div class="stat-value">${s.writtenChapters}/${s.totalChapters}</div><div class="stat-label">Capítulos escritos</div></div>
+            <div class="stat-tile"><div class="stat-value">${s.avgWordsPerChapter.toLocaleString('es-ES')}</div><div class="stat-label">Media / capítulo</div></div>
+            <div class="stat-tile"><div class="stat-value">${s.totalCharacters}</div><div class="stat-label">Personajes</div></div>
+            <div class="stat-tile"><div class="stat-value">${s.totalPlaces}</div><div class="stat-label">Lugares</div></div>
+            <div class="stat-tile"><div class="stat-value">${s.openMysteries}</div><div class="stat-label">Misterios abiertos</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">${icon('sparkle', 'icon')} Productividad de hoy</div>
+            <div class="progress-header" style="margin-bottom:6px;">
+              <span class="text-secondary" style="font-size:var(--text-sm);">${wordsToday} / ${goal} palabras</span>
+              <span class="mono text-muted" style="font-size:var(--text-xs);">${Math.min(100, Math.round((wordsToday / goal) * 100))}%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-bar-fill" style="width:${Math.min(100, Math.round((wordsToday / goal) * 100))}%"></div></div>
+            <div class="streak-row">
+              ${streakDays().map((d) => `<div class="streak-cell ${d.active ? 'active' : ''}" data-tip="${d.key}"></div>`).join('')}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">${icon('alertTriangle', 'icon')} Alertas de continuidad</div>
+            ${alerts.length ? alerts.map((a) => `<div class="alert-item ${a.severity}">${icon('alertTriangle')}<span>${a.message}</span></div>`).join('') : '<p class="text-muted" style="font-size:var(--text-sm);">Sin inconsistencias detectadas por ahora.</p>'}
+          </div>
+        </div>
+
+        <div class="dashboard-col">
+          <div class="card">
+            <div class="card-title">${icon('sparkle', 'icon')} ¿Qué hago ahora?</div>
+            <div id="dashboard-workflow-slot"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">${icon('file', 'icon')} Últimos documentos modificados</div>
+            <div class="mini-list">
+              ${recentDocs.length ? recentDocs.map((d) => `
+                <div class="mini-list-item" data-open-doc="${d.id}" style="cursor:pointer;">
+                  <span class="mli-title">${d.title}</span>
+                  <span class="mli-meta">${timeAgo(d.updatedAt)}</span>
+                </div>`).join('') : '<p class="text-muted" style="font-size:var(--text-sm);">Todavía no hay documentos.</p>'}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">${icon('message', 'icon')} Últimos prompts utilizados</div>
+            <div class="mini-list">
+              ${state.prompts.filter((p) => p.lastUsed).sort((a, b) => new Date(b.lastUsed) - new Date(a.lastUsed)).slice(0, 5).map((p) => `
+                <div class="mini-list-item"><span class="mli-title">${p.title}</span><span class="mli-meta">${timeAgo(p.lastUsed)}</span></div>
+              `).join('') || '<p class="text-muted" style="font-size:var(--text-sm);">Ningún prompt usado todavía.</p>'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const slot = container.querySelector('#dashboard-workflow-slot');
+  slot.id = 'right-panel-body-workflow-dash';
+  renderWorkflowPanel(slot);
+
+  container.querySelectorAll('[data-open-doc]').forEach((el) => {
+    el.addEventListener('click', () => bus.emit('explorer:open-document', el.dataset.openDoc));
+  });
+  container.querySelectorAll('[data-open-chapter]').forEach((el) => {
+    el.addEventListener('click', () => bus.emit('explorer:open-document', el.dataset.openChapter));
+  });
+}
+
+registerView('dashboard', { render: renderDashboard });
+
+bus.on('dashboard:refresh-request', () => {
+  if (router.activeTab?.type === 'dashboard') router.render();
+});
+
+
+/* ============================================================
+   modules/editor.js
+   ============================================================ */
+/**
+ * editor.js — Editor Markdown integrado.
+ * Pantalla dividida / solo edición / solo previsualización, contador de
+ * palabras y caracteres, tiempo de lectura, autoguardado con debounce,
+ * historial de versiones (snapshots) y recuperación automática.
+ */
+
+const AUTOSAVE_DELAY = 900;
+let saveTimers = {};
+
+function renderEditor(container, tab) {
+  const doc = state.getDocument(tab.refId);
+  if (!doc) {
+    container.innerHTML = `<div class="empty-state" style="height:100%;justify-content:center;">${icon('file')}<h4>Documento no encontrado</h4></div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="editor-view">
+      <div class="editor-meta-bar">
+        <input class="editor-title-input" id="ed-title" value="${escapeAttr(doc.title)}" />
+        ${doc.type === 'chapter' ? `
+          <select id="ed-status" class="mono" style="font-size:var(--text-xs);">
+            ${CHAPTER_STATES.map((s) => `<option value="${s}" ${s === doc.status ? 'selected' : ''}>${CHAPTER_STATE_LABELS[s]}</option>`).join('')}
+          </select>
+        ` : ''}
+        <button class="btn btn-sm btn-ghost" id="ed-history-btn">${icon('history', 'icon')} Historial</button>
+      </div>
+      <div class="editor-toolbar">
+        <button class="btn btn-icon btn-ghost" data-mode="edit" data-tip="Solo edición">${icon('edit')}</button>
+        <button class="btn btn-icon btn-ghost" data-mode="split" data-tip="Pantalla dividida">${icon('split')}</button>
+        <button class="btn btn-icon btn-ghost" data-mode="preview" data-tip="Vista previa">${icon('eye')}</button>
+        <div class="divider"></div>
+        <button class="btn btn-icon btn-ghost" id="ed-fullscreen" data-tip="Pantalla completa">${icon('maximize')}</button>
+        <div class="spacer"></div>
+        <div class="save-indicator" id="ed-save-indicator"><span class="dot"></span><span id="ed-save-text">Guardado</span></div>
+      </div>
+      <div class="editor-body split" id="ed-body">
+        <div class="editor-pane"><textarea id="markdown-textarea" spellcheck="false">${escapeHtml(doc.content || '')}</textarea></div>
+        <div class="preview-pane"><div class="preview-content" id="ed-preview">${renderMarkdown(doc.content || '')}</div></div>
+      </div>
+      <div class="editor-statusline">
+        <span id="ed-words">0 palabras</span>
+        <span id="ed-chars">0 caracteres</span>
+        <span id="ed-time">0 min de lectura</span>
+        <span class="status-spacer"></span>
+        <span>Última edición: ${timeAgo(doc.updatedAt)}</span>
+      </div>
+      ${doc.type === 'chapter' ? renderChecklist(doc) : ''}
+    </div>
+  `;
+
+  const textarea = container.querySelector('#markdown-textarea');
+  const preview = container.querySelector('#ed-preview');
+  const body = container.querySelector('#ed-body');
+  const wordsEl = container.querySelector('#ed-words');
+  const charsEl = container.querySelector('#ed-chars');
+  const timeEl = container.querySelector('#ed-time');
+  const saveIndicator = container.querySelector('#ed-save-indicator');
+  const saveText = container.querySelector('#ed-save-text');
+
+  function updateCounts(text) {
+    wordsEl.textContent = `${countWords(text)} palabras`;
+    charsEl.textContent = `${countChars(text)} caracteres`;
+    timeEl.textContent = `${readingTime(text)} min de lectura`;
+  }
+  updateCounts(doc.content || '');
+
+  container.querySelectorAll('[data-mode]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      body.className = `editor-body ${btn.dataset.mode === 'split' ? '' : btn.dataset.mode + '-only'}`;
+      container.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b === btn));
+    });
+  });
+
+  container.querySelector('#ed-fullscreen').addEventListener('click', () => {
+    document.getElementById('app').classList.toggle('sidebar-collapsed');
+    document.getElementById('app').classList.toggle('right-collapsed');
+  });
+
+  let debounceTimer = null;
+  textarea.addEventListener('input', () => {
+    const text = textarea.value;
+    preview.innerHTML = renderMarkdown(text);
+    updateCounts(text);
+    saveIndicator.classList.add('saving');
+    saveText.textContent = 'Guardando…';
+    router.markUnsaved(tab.id, true);
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => persist(doc, textarea.value, saveIndicator, saveText, tab), AUTOSAVE_DELAY);
+    // Recuperación automática: guarda en localStorage-free fallback (memoria de sesión)
+    window.__novelIdeRecovery = window.__novelIdeRecovery || {};
+    window.__novelIdeRecovery[doc.id] = text;
+  });
+
+  container.querySelector('#ed-title').addEventListener('change', async (e) => {
+    await state.updateDocument(doc.id, { title: e.target.value });
+    tab.title = e.target.value;
+    router.render();
+  });
+
+  const statusSelect = container.querySelector('#ed-status');
+  if (statusSelect) {
+    statusSelect.addEventListener('change', async (e) => {
+      await state.setChapterStatus(doc.id, e.target.value);
+      toast(`Capítulo marcado como "${CHAPTER_STATE_LABELS[e.target.value]}"`, 'success');
+    });
+  }
+
+  container.querySelector('#ed-history-btn').addEventListener('click', () => openHistoryModal(doc.id));
+
+  container.querySelectorAll('[data-checklist]').forEach((cb) => {
+    cb.addEventListener('change', async () => {
+      await state.toggleChecklistItem(doc.id, cb.dataset.checklist);
+    });
+  });
+}
+
+async function persist(doc, content, indicator, textEl, tab) {
+  await state.updateDocument(doc.id, { content });
+  // snapshot de historial (máximo cada guardado; se podría limitar, se deja simple)
+  await db.put('history', { id: uid('hist'), documentId: doc.id, timestamp: new Date().toISOString(), content });
+  indicator.classList.remove('saving');
+  textEl.textContent = 'Guardado';
+  router.markUnsaved(tab.id, false);
+  bus.emit('document:content-saved', doc);
+}
+
+function renderChecklist(doc) {
+  const cl = doc.checklist || {};
+  const labels = {
+    escrito: 'Escrito', revisado: 'Revisado', continuidadActualizada: 'Continuidad actualizada',
+    personajesActualizados: 'Personajes actualizados', cronologiaActualizada: 'Cronología actualizada',
+    objetosActualizados: 'Objetos actualizados', lugaresActualizados: 'Lugares actualizados',
+    auditoriaRealizada: 'Auditoría realizada', resumenGenerado: 'Resumen generado', finalizado: 'Finalizado',
+  };
+  return `
+    <div style="padding: var(--sp-3) var(--sp-4); border-top:1px solid var(--border-soft); display:flex; flex-wrap:wrap; gap: var(--sp-3); background:var(--bg-panel);">
+      ${Object.entries(labels).map(([key, label]) => `
+        <label style="display:flex; align-items:center; gap:6px; font-size:var(--text-xs); color:var(--text-secondary); cursor:pointer;">
+          <input type="checkbox" data-checklist="${key}" ${cl[key] ? 'checked' : ''} style="width:14px;height:14px;" />
+          ${label}
+        </label>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function openHistoryModal(documentId) {
+  const all = await db.getAllByIndex('history', 'documentId', documentId);
+  const sorted = all.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  openModal({
+    title: 'Historial de versiones',
+    size: 'modal-lg',
+    bodyHtml: sorted.length ? `
+      <div class="mini-list">
+        ${sorted.slice(0, 30).map((h) => `
+          <div class="mini-list-item" data-hist-id="${h.id}" style="cursor:pointer;">
+            <span class="mli-title">${formatDateTime(h.timestamp)}</span>
+            <span class="mli-meta">${countWords(h.content)} palabras</span>
+          </div>
+        `).join('')}
+      </div>
+      <p class="text-muted" style="font-size:var(--text-xs); margin-top:var(--sp-3);">Haz clic en una versión para comparar contra la actual.</p>
+      <div id="hist-diff-container" style="margin-top:var(--sp-3);"></div>
+    ` : '<p class="text-muted">Todavía no hay versiones guardadas de este documento.</p>',
+    footerButtons: [{ label: 'Cerrar', className: 'btn-ghost' }],
+  });
+
+  document.querySelectorAll('[data-hist-id]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const version = sorted.find((h) => h.id === el.dataset.histId);
+      const current = state.getDocument(documentId);
+      const diffContainer = document.getElementById('hist-diff-container');
+      const d = diffLines(version.content, current.content);
+      diffContainer.innerHTML = `<div style="max-height:260px; overflow-y:auto; font-family:var(--font-mono); font-size:12px; background:var(--bg-void); border-radius:var(--radius-md); padding:var(--sp-3);">
+        ${d.map((l) => `<div class="diff-line ${l.type}">${l.type === 'added' ? '+ ' : l.type === 'removed' ? '- ' : '  '}${escapeHtml(l.text)}</div>`).join('')}
+      </div>
+      <button class="btn btn-sm btn-primary" style="margin-top:var(--sp-2);" id="hist-restore">${icon('history')} Restaurar esta versión</button>`;
+      document.getElementById('hist-restore').addEventListener('click', async () => {
+        await state.updateDocument(documentId, { content: version.content });
+        toast('Versión restaurada', 'success');
+        router.render();
+      });
+    });
+  });
+}
+
+registerView('document', { render: renderEditor });
+
+bus.on('explorer:open-document', (docId) => {
+  const doc = state.getDocument(docId);
+  if (!doc) return;
+  router.openTab({ type: 'document', refId: doc.id, title: doc.title });
+});
+
+
+/* ============================================================
+   modules/entities.js
+   ============================================================ */
+/**
+ * entities.js — Módulo genérico para las cuatro "entidades narrativas":
+ * personajes, lugares, objetos y misterios. Comparten estructura (ficha +
+ * listado + visor de dependencias) para no duplicar código por tipo.
+ */
+
+const KIND_META = {
+  character: { label: 'Personajes', singular: 'Personaje', iconName: 'users', listType: 'characters' },
+  place: { label: 'Lugares', singular: 'Lugar', iconName: 'map', listType: 'places' },
+  object: { label: 'Objetos', singular: 'Objeto', iconName: 'box', listType: 'objects' },
+  mystery: { label: 'Misterios', singular: 'Misterio', iconName: 'target', listType: 'mysteries' },
+};
+
+function initials(name = '') {
+  return name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || '?';
+}
+
+// ---------------------------------------------------------------
+// Listado
+// ---------------------------------------------------------------
+function renderList(container, kind) {
+  const meta = KIND_META[kind];
+  const list = state[meta.listType];
+
+  container.innerHTML = `
+    <div class="section-header">
+      <div><h2>${meta.label}</h2><div class="subtitle">${list.length} en total</div></div>
+      <button class="btn btn-primary" id="ent-new-btn">${icon('plus')} Nuevo ${meta.singular.toLowerCase()}</button>
+    </div>
+    <div class="view-scroll">
+      ${list.length ? `<div class="entity-grid">
+        ${list.map((e) => `
+          <div class="entity-card" data-open="${e.id}">
+            <div class="entity-avatar">${initials(e.name || e.title)}</div>
+            <h4>${e.name || e.title}</h4>
+            <p>${(e.description || e.notes || 'Sin descripción todavía').slice(0, 90)}</p>
+            <p style="margin-top:6px;">${timeAgo(e.updatedAt)}</p>
+          </div>
+        `).join('')}
+      </div>` : `<div class="empty-state">${icon(meta.iconName)}<h4>Todavía no hay ${meta.label.toLowerCase()}</h4><p>Créalos manualmente o impórtalos desde un documento Markdown.</p></div>`}
+    </div>
+  `;
+
+  container.querySelector('#ent-new-btn').addEventListener('click', async () => {
+    const entity = await state.createEntity(kind, kind === 'mystery' ? { title: `Nuevo ${meta.singular}`, status: 'abierto' } : { name: `Nuevo ${meta.singular}` });
+    router.openTab({ type: 'entity', refId: `${kind}:${entity.id}`, title: entity.name || entity.title });
+  });
+
+  container.querySelectorAll('[data-open]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const entity = list.find((e) => e.id === el.dataset.open);
+      router.openTab({ type: 'entity', refId: `${kind}:${entity.id}`, title: entity.name || entity.title });
+    });
+  });
+}
+
+// ---------------------------------------------------------------
+// Ficha de detalle
+// ---------------------------------------------------------------
+function renderDetail(container, tab) {
+  const [kind, id] = tab.refId.split(':');
+  const meta = KIND_META[kind];
+  const entity = state[meta.listType].find((e) => e.id === id);
+  if (!entity) { container.innerHTML = `<div class="empty-state">${icon('users')}<h4>No encontrado</h4></div>`; return; }
+
+  const chaptersLinked = state.getChapters().filter((c) => (entity.chapters || []).includes(c.id));
+
+  container.innerHTML = `
+    <div class="view-scroll">
+      <div class="card" style="margin-bottom:var(--sp-4);">
+        <div class="field-row">
+          <div class="field" style="flex:2;">
+            <label>${kind === 'mystery' ? 'Título' : 'Nombre'}</label>
+            <input id="f-name" value="${escapeAttr(entity.name || entity.title || '')}" />
+          </div>
+          ${kind !== 'mystery' ? `
+          <div class="field">
+            <label>Estado</label>
+            <input id="f-status" value="${escapeAttr(entity.status || '')}" placeholder="Vivo / Herido / Desaparecido…" />
+          </div>` : `
+          <div class="field">
+            <label>Estado</label>
+            <select id="f-status">
+              <option value="abierto" ${entity.status !== 'resuelto' ? 'selected' : ''}>Abierto</option>
+              <option value="resuelto" ${entity.status === 'resuelto' ? 'selected' : ''}>Resuelto</option>
+            </select>
+          </div>`}
+        </div>
+        <div class="field">
+          <label>Descripción</label>
+          <textarea id="f-desc" rows="4">${escapeHtml(entity.description || '')}</textarea>
+        </div>
+        ${kind === 'character' ? `
+        <div class="field-row">
+          <div class="field"><label>Relaciones</label><input id="f-relations" value="${escapeAttr(entity.relations || '')}" placeholder="Hermano de X, enemigo de Y…" /></div>
+          <div class="field"><label>Objetos asociados</label><input id="f-objects" value="${escapeAttr(entity.relatedObjects || '')}" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Última aparición</label><input id="f-last" value="${escapeAttr(entity.lastAppearance || '')}" placeholder="Cap. 12" /></div>
+          <div class="field"><label>Próxima aparición prevista</label><input id="f-next" value="${escapeAttr(entity.nextAppearance || '')}" placeholder="Cap. 15" /></div>
+        </div>` : ''}
+        ${kind === 'object' ? `
+        <div class="field-row">
+          <div class="field"><label>Propietario</label><input id="f-owner" value="${escapeAttr(entity.owner || '')}" /></div>
+          <div class="field"><label>Ubicación</label><input id="f-location" value="${escapeAttr(entity.location || '')}" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Primera aparición</label><input id="f-first" value="${escapeAttr(entity.firstAppearance || '')}" /></div>
+          <div class="field"><label>Última aparición</label><input id="f-last" value="${escapeAttr(entity.lastAppearance || '')}" /></div>
+        </div>` : ''}
+        ${kind === 'place' ? `
+        <div class="field"><label>Personajes relacionados</label><input id="f-relchars" value="${escapeAttr(entity.relatedCharacters || '')}" /></div>
+        ` : ''}
+        ${kind === 'mystery' ? `
+        <div class="field-row">
+          <div class="field"><label>Pistas / foreshadowing</label><input id="f-clues" value="${escapeAttr(entity.clues || '')}" /></div>
+          <div class="field"><label>Capítulo previsto de resolución</label><input id="f-expected" type="number" value="${escapeAttr(entity.expectedResolutionChapter || '')}" /></div>
+        </div>
+        <div class="field"><label>Resolución</label><textarea id="f-resolution" rows="3">${escapeHtml(entity.resolution || '')}</textarea></div>
+        ` : ''}
+        <div class="field"><label>Notas</label><textarea id="f-notes" rows="3">${escapeHtml(entity.notes || '')}</textarea></div>
+        <div style="display:flex; gap:var(--sp-2); margin-top:var(--sp-3);">
+          <button class="btn btn-primary" id="f-save">${icon('save')} Guardar</button>
+          <button class="btn btn-danger" id="f-delete">${icon('trash')} Eliminar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">${icon('link', 'icon')} Dependencias</div>
+        <p class="text-muted" style="font-size:var(--text-sm); margin-bottom:var(--sp-2);">Capítulos donde aparece (edítalos desde el capítulo, sección "Personajes/Lugares/Objetos relacionados").</p>
+        <div class="tags">
+          ${chaptersLinked.length ? chaptersLinked.map((c) => `<span class="chip" style="cursor:pointer;" data-open-chapter="${c.id}">Cap. ${c.chapterNumber}</span>`).join('') : '<span class="text-muted" style="font-size:var(--text-sm);">Sin capítulos vinculados todavía.</span>'}
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.querySelector('#f-save').addEventListener('click', async () => {
+    const patch = { name: container.querySelector('#f-name')?.value };
+    if (kind === 'mystery') { patch.title = patch.name; delete patch.name; }
+    patch.status = container.querySelector('#f-status')?.value;
+    patch.description = container.querySelector('#f-desc')?.value;
+    patch.notes = container.querySelector('#f-notes')?.value;
+    const map = { 'f-relations': 'relations', 'f-objects': 'relatedObjects', 'f-last': 'lastAppearance', 'f-next': 'nextAppearance',
+      'f-owner': 'owner', 'f-location': 'location', 'f-first': 'firstAppearance', 'f-relchars': 'relatedCharacters',
+      'f-clues': 'clues', 'f-expected': 'expectedResolutionChapter', 'f-resolution': 'resolution' };
+    Object.entries(map).forEach(([elId, field]) => {
+      const el = container.querySelector('#' + elId);
+      if (el) patch[field] = el.value;
+    });
+    await state.updateEntity(kind, id, patch);
+    tab.title = patch.name || patch.title;
+    router.render();
+    toast(`${meta.singular} guardado`, 'success');
+  });
+
+  container.querySelector('#f-delete').addEventListener('click', async () => {
+    const ok = await confirmDialog({ title: `Eliminar ${meta.singular.toLowerCase()}`, message: `Se moverá a la papelera. ¿Continuar?` });
+    if (!ok) return;
+    await state.deleteEntity(kind, id);
+    router.closeTab(tab.id);
+    toast(`${meta.singular} movido a la papelera`, 'default');
+  });
+
+  container.querySelectorAll('[data-open-chapter]').forEach((el) => {
+    el.addEventListener('click', () => bus.emit('explorer:open-document', el.dataset.openChapter));
+  });
+}
+
+registerView('characters', { render: (c) => renderList(c, 'character') });
+registerView('places', { render: (c) => renderList(c, 'place') });
+registerView('objects', { render: (c) => renderList(c, 'object') });
+registerView('mysteries', { render: (c) => renderList(c, 'mystery') });
+registerView('entity', { render: renderDetail });
+
+bus.on('explorer:open-entity', ({ kind, id }) => {
+  const meta = KIND_META[kind];
+  const entity = state[meta.listType].find((e) => e.id === id);
+  if (!entity) return;
+  router.openTab({ type: 'entity', refId: `${kind}:${id}`, title: entity.name || entity.title });
+});
+
+
+
+
+/* ============================================================
+   modules/importExport.js
+   ============================================================ */
+/**
+ * importExport.js — Todo lo relacionado con entrada/salida de datos:
+ *  - Importar archivos/carpetas Markdown (drag&drop, selector, pegar texto)
+ *    con reconocimiento automático de tipo de documento.
+ *  - Fusión inteligente cuando ya existe un documento con ese nombre/tipo.
+ *  - Exportación completa del proyecto (Markdown suelto, ZIP, JSON) y
+ *    copias de seguridad.
+ *  - Vista de "Exportaciones" y vista de "Papelera".
+ */
+
+// ---------------------------------------------------------------
+// Reconocimiento automático de tipo por nombre de archivo
+// ---------------------------------------------------------------
+const TYPE_PATTERNS = [
+  { type: 'chapter', re: /(cap[ií]tulo|chapter|cap)[\s_-]*0*(\d+)/i, hasNumber: true },
+  { type: 'bible', re: /(biblia|bible)/i },
+  { type: 'timeline', re: /(cronolog[ií]a|timeline)/i },
+  { type: 'continuity', re: /(continuidad|continuity)/i },
+  { type: 'note', re: /(nota|note)/i },
+];
+
+function detectType(filename, content) {
+  for (const p of TYPE_PATTERNS) {
+    const m = filename.match(p.re) || content.slice(0, 200).match(p.re);
+    if (m) return { type: p.type, chapterNumber: p.hasNumber ? parseInt(m[2], 10) : null };
+  }
+  return { type: 'note', chapterNumber: null };
+}
+
+function titleFromFilename(filename) {
+  return filename.replace(/\.md$/i, '').replace(/[_-]+/g, ' ').trim();
+}
+
+// ---------------------------------------------------------------
+// Manejo de archivos soltados / seleccionados
+// ---------------------------------------------------------------
+async function handleDroppedFiles(fileList) {
+  const files = Array.from(fileList).filter((f) => f.name.endsWith('.md') || f.type === 'text/markdown' || f.type === 'text/plain');
+  if (!files.length) { toast('No se han encontrado archivos Markdown en lo soltado', 'warning'); return; }
+  for (const file of files) {
+    const content = await file.text();
+    await importSingleMarkdown(file.name, content);
+  }
+}
+
+async function importSingleMarkdown(filename, content) {
+  const { type, chapterNumber } = detectType(filename, content);
+  const title = chapterNumber ? `Capítulo ${chapterNumber}` : titleFromFilename(filename);
+
+  // Buscar posible duplicado (mismo tipo + mismo título, o mismo número de capítulo)
+  const existing = type === 'chapter'
+    ? state.getChapters().find((c) => c.chapterNumber === chapterNumber)
+    : state.getDocuments(type).find((d) => d.title.toLowerCase() === title.toLowerCase());
+
+  if (existing && existing.content && existing.content.trim() && existing.content.trim() !== content.trim()) {
+    openMergeModal(existing, content, title);
+    return;
+  }
+
+  if (existing) {
+    await state.updateDocument(existing.id, { content, title });
+    toast(`"${title}" actualizado`, 'success');
+  } else {
+    const doc = await state.createDocument({ type, title, content, chapterNumber });
+    if (type === 'chapter') await state.setChapterStatus(doc.id, 'draft'); // un capítulo importado con contenido ya es un borrador
+    toast(`"${title}" importado correctamente`, 'success');
+  }
+  bus.emit('import:completed', { type, title });
+}
+
+// ---------------------------------------------------------------
+// Fusión inteligente
+// ---------------------------------------------------------------
+function openMergeModal(existing, newContent, title) {
+  const d = diffLines(existing.content, newContent);
+  const added = d.filter((l) => l.type === 'added').length;
+  const removed = d.filter((l) => l.type === 'removed').length;
+
+  const { close } = openModal({
+    title: `Ya existe "${title}" — fusión inteligente`,
+    size: 'modal-lg',
+    bodyHtml: `
+      <p class="text-secondary" style="font-size:var(--text-sm); margin-bottom:var(--sp-3);">
+        Se han detectado cambios: <strong style="color:var(--success)">+${added} líneas</strong> · <strong style="color:var(--danger)">-${removed} líneas</strong>.
+      </p>
+      <div class="diff-view" style="height:320px; border:1px solid var(--border); border-radius:var(--radius-md);">
+        <div class="diff-pane">${d.map((l) => `<div class="diff-line ${l.type}">${l.type === 'added' ? '+ ' : l.type === 'removed' ? '- ' : '  '}${escapeHtml(l.text)}</div>`).join('')}</div>
+      </div>
+    `,
+    footerButtons: [
+      { label: 'Mantener versión antigua', className: 'btn-ghost', onClick: () => toast('Se ha mantenido la versión existente', 'default') },
+      { label: 'Fusionar manualmente', className: 'btn-ghost', onClick: () => { router.openTab({ type: 'document', refId: existing.id, title: existing.title }); toast('Edita el documento manualmente para combinar ambas versiones', 'default'); } },
+      { label: 'Fusionar automáticamente', className: 'btn', onClick: async () => {
+        const merged = autoMerge(existing.content, newContent);
+        await state.updateDocument(existing.id, { content: merged });
+        toast('Fusión automática aplicada — revísala en el editor', 'success');
+      } },
+      { label: 'Aceptar nueva versión', className: 'btn-primary', onClick: async () => {
+        await state.updateDocument(existing.id, { content: newContent, title });
+        toast('Documento reemplazado por la nueva versión', 'success');
+      } },
+    ],
+  });
+}
+
+/** Fusión automática ingenua: nueva versión + apéndice con párrafos antiguos que ya no aparecen. */
+function autoMerge(oldContent, newContent) {
+  const oldParas = oldContent.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const newParas = new Set(newContent.split(/\n{2,}/).map((p) => p.trim()));
+  const lost = oldParas.filter((p) => !newParas.has(p));
+  if (!lost.length) return newContent;
+  return `${newContent}\n\n---\n## ⚠️ Contenido de la versión anterior no presente en la nueva (revisar)\n\n${lost.join('\n\n')}`;
+}
+
+// ---------------------------------------------------------------
+// Pegar texto Markdown directamente
+// ---------------------------------------------------------------
+function openPasteImportModal() {
+  openModal({
+    title: 'Pegar Markdown para importar',
+    size: 'modal-lg',
+    bodyHtml: `
+      <div class="field"><label>Nombre del documento</label><input id="paste-name" placeholder="Capitulo018.md" /></div>
+      <div class="field"><label>Contenido</label><textarea id="paste-content" rows="12" style="font-family:var(--font-mono); font-size:13px;" placeholder="Pega aquí el Markdown…"></textarea></div>
+    `,
+    footerButtons: [
+      { label: 'Cancelar', className: 'btn-ghost' },
+      { label: 'Importar', className: 'btn-primary', onClick: async () => {
+        const name = document.getElementById('paste-name').value || 'Documento.md';
+        const content = document.getElementById('paste-content').value;
+        if (content.trim()) await importSingleMarkdown(name, content);
+      } },
+    ],
+  });
+}
+
+// ---------------------------------------------------------------
+// Exportación
+// ---------------------------------------------------------------
+function allExportableDocs() {
+  return [
+    ...state.documents.map((d) => ({ name: fileNameFor(d), content: d.content || '' })),
+    ...state.characters.map((c) => ({ name: `Personajes/${safe(c.name)}.md`, content: entityToMarkdown(c) })),
+    ...state.places.map((c) => ({ name: `Lugares/${safe(c.name)}.md`, content: entityToMarkdown(c) })),
+    ...state.objects.map((c) => ({ name: `Objetos/${safe(c.name)}.md`, content: entityToMarkdown(c) })),
+    ...state.mysteries.map((c) => ({ name: `Misterios/${safe(c.title)}.md`, content: entityToMarkdown(c) })),
+  ];
+}
+function fileNameFor(d) {
+  const folder = { chapter: 'Capitulos', bible: 'Biblia', timeline: 'Cronologia', continuity: 'Continuidad', note: 'Notas' }[d.type] || 'Otros';
+  return `${folder}/${safe(d.title)}.md`;
+}
+function safe(str) { return (str || 'sin-titulo').replace(/[\\/:*?"<>|]/g, '-'); }
+function entityToMarkdown(e) {
+  return Object.entries(e).filter(([k]) => !['id', 'createdAt', 'updatedAt'].includes(k))
+    .map(([k, v]) => `**${k}**: ${Array.isArray(v) ? v.join(', ') : v}`).join('\n');
+}
+
+async function exportMarkdownZip() {
+  const zip = new ZipWriter();
+  allExportableDocs().forEach((f) => zip.addFile(f.name, f.content));
+  downloadBlob(zip.build(), `${safe(state.project?.title || 'novela')}-markdown.zip`);
+  toast('Exportación Markdown (.zip) descargada', 'success');
+}
+
+async function exportJson() {
+  const dump = await db.exportAll();
+  const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, `${safe(state.project?.title || 'novela')}-proyecto.json`);
+  toast('Proyecto exportado como JSON', 'success');
+}
+
+async function exportChaptersOnly() {
+  const zip = new ZipWriter();
+  state.getChapters().forEach((c) => zip.addFile(`${safe(c.title)}.md`, c.content || ''));
+  downloadBlob(zip.build(), `${safe(state.project?.title || 'novela')}-capitulos.zip`);
+  toast('Capítulos exportados', 'success');
+}
+
+async function exportDocsOnly() {
+  const zip = new ZipWriter();
+  state.documents.filter((d) => d.type !== 'chapter').forEach((d) => zip.addFile(fileNameFor(d).split('/').pop(), d.content || ''));
+  downloadBlob(zip.build(), `${safe(state.project?.title || 'novela')}-documentacion.zip`);
+  toast('Documentación exportada', 'success');
+}
+
+async function createBackup() {
+  const dump = await db.exportAll();
+  const backup = { id: uid('backup'), timestamp: new Date().toISOString(), data: dump };
+  await db.put('backups', backup);
+  toast('Copia de seguridad creada', 'success');
+  bus.emit('backup:created');
+}
+
+// ---------------------------------------------------------------
+// Vista: Exportaciones
+// ---------------------------------------------------------------
+function renderExports(container) {
+  container.innerHTML = `
+    <div class="section-header"><div><h2>Exportaciones</h2><div class="subtitle">Descarga tu proyecto en distintos formatos</div></div></div>
+    <div class="view-scroll">
+      <div class="entity-grid">
+        <div class="entity-card" id="exp-md"><h4>${icon('export')} Markdown (.zip)</h4><p>Todos los documentos organizados en carpetas, listos para abrir en cualquier editor.</p></div>
+        <div class="entity-card" id="exp-chapters"><h4>${icon('book')} Solo capítulos</h4><p>Únicamente los archivos de capítulos, en un .zip.</p></div>
+        <div class="entity-card" id="exp-docs"><h4>${icon('shield')} Solo documentación</h4><p>Biblia, cronología, continuidad y notas — sin capítulos.</p></div>
+        <div class="entity-card" id="exp-json"><h4>${icon('file')} Proyecto completo (.json)</h4><p>Volcado íntegro de la base de datos, para importar de nuevo o migrar de equipo.</p></div>
+        <div class="entity-card" id="exp-backup"><h4>${icon('history')} Crear copia de seguridad</h4><p>Guarda un snapshot interno recuperable desde Ajustes.</p></div>
+        <div class="entity-card" id="exp-import"><h4>${icon('plus')} Importar proyecto (.json)</h4><p>Restaura un proyecto exportado previamente.</p></div>
+      </div>
+      <input type="file" id="import-json-input" accept="application/json" style="display:none;" />
+    </div>
+  `;
+  container.querySelector('#exp-md').addEventListener('click', exportMarkdownZip);
+  container.querySelector('#exp-chapters').addEventListener('click', exportChaptersOnly);
+  container.querySelector('#exp-docs').addEventListener('click', exportDocsOnly);
+  container.querySelector('#exp-json').addEventListener('click', exportJson);
+  container.querySelector('#exp-backup').addEventListener('click', createBackup);
+  container.querySelector('#exp-import').addEventListener('click', () => container.querySelector('#import-json-input').click());
+  container.querySelector('#import-json-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const ok = await confirmDialog({ title: 'Importar proyecto', message: 'Esto reemplazará TODOS los datos actuales por los del archivo importado. ¿Continuar?' });
+    if (!ok) return;
+    const text = await file.text();
+    try {
+      const dump = JSON.parse(text);
+      await db.importAll(dump, { merge: false });
+      await state.load();
+      toast('Proyecto importado correctamente', 'success');
+      bus.emit('state:loaded', state);
+      router.render();
+    } catch (err) {
+      toast('El archivo no es un proyecto JSON válido', 'danger');
+    }
+  });
+}
+
+// ---------------------------------------------------------------
+// Vista: Papelera
+// ---------------------------------------------------------------
+async function renderTrash(container) {
+  const items = (await db.getAll('trash')).sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
+  container.innerHTML = `
+    <div class="section-header"><div><h2>Papelera</h2><div class="subtitle">${items.length} elementos eliminados</div></div></div>
+    <div class="view-scroll">
+      ${items.length ? `<div class="mini-list">
+        ${items.map((it) => `
+          <div class="mini-list-item" style="padding:var(--sp-3) 4px;">
+            <span class="mli-title">${it.data.title || it.data.name || 'Elemento sin título'} <span class="text-muted mono" style="font-size:10px;">(${it.originalStore})</span></span>
+            <span class="mli-meta">${timeAgo(it.deletedAt)}</span>
+            <button class="btn btn-sm" data-restore="${it.id}" style="margin-left:var(--sp-2);">Restaurar</button>
+          </div>
+        `).join('')}
+      </div>` : `<div class="empty-state">${icon('trash')}<h4>La papelera está vacía</h4></div>`}
+    </div>
+  `;
+  container.querySelectorAll('[data-restore]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const entry = items.find((i) => i.id === btn.dataset.restore);
+      await db.put(entry.originalStore, entry.data);
+      await db.delete('trash', entry.id);
+      await state.load();
+      toast('Elemento restaurado', 'success');
+      router.render();
+    });
+  });
+}
+
+registerView('exports', { render: renderExports });
+registerView('trash', { render: renderTrash });
+
+
+/* ============================================================
+   modules/explorer.js
+   ============================================================ */
+/**
+ * explorer.js — Árbol lateral de navegación (estilo VS Code).
+ * Agrupa: Biblia, Capítulos, Personajes, Lugares, Objetos, Cronología,
+ * Continuidad, Misterios, Prompts, Conversaciones, Tareas, Exportaciones,
+ * Papelera. Doble clic abre; clic derecho da opciones rápidas.
+ */
+
+const STATUS_COLORS = {
+  pending: 'var(--text-muted)', preparation: 'var(--info)', draft: 'var(--warning)',
+  review: '#b482dc', rewrite: 'var(--danger)', final: 'var(--success)', published: 'var(--accent)',
+};
+
+let collapsedGroups = new Set();
+
+function group(title, iconName, items, opts = {}) {
+  const isCollapsed = collapsedGroups.has(title);
+  return `
+    <div class="tree-node">
+      <div class="tree-row ${isCollapsed ? 'collapsed' : ''}" data-group="${title}">
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        ${icon(iconName, 'tree-icon')}
+        <span class="tree-label">${title}</span>
+        <span class="tree-count">${items.length}</span>
+        ${opts.addable ? `<button class="btn btn-icon btn-ghost" style="width:18px;height:18px;" data-add-to="${opts.addKind}" data-tip="Nuevo">${icon('plus')}</button>` : ''}
+      </div>
+      <div class="tree-children ${isCollapsed ? 'collapsed' : ''}">
+        ${items.length ? items.join('') : '<div class="tree-row text-muted" style="cursor:default;">Vacío</div>'}
+      </div>
+    </div>
+  `;
+}
+
+function docRow(doc, extraLabel = '') {
+  return `<div class="tree-row" data-open-doc="${doc.id}">
+    ${doc.type === 'chapter' ? `<span class="tree-status-dot" style="background:${STATUS_COLORS[doc.status]}"></span>` : icon('file', 'tree-icon')}
+    <span class="tree-label">${doc.title}${extraLabel}</span>
+  </div>`;
+}
+
+function entityRow(entity, kind) {
+  return `<div class="tree-row" data-open-entity="${kind}:${entity.id}">
+    ${icon(kind === 'character' ? 'users' : kind === 'place' ? 'map' : kind === 'object' ? 'box' : 'target', 'tree-icon')}
+    <span class="tree-label">${entity.name || entity.title}</span>
+  </div>`;
+}
+
+function renderExplorer(container) {
+  const chapters = state.getChapters();
+  const bible = state.getDocuments('bible');
+  const timeline = state.getDocuments('timeline');
+  const continuity = state.getDocuments('continuity');
+  const notes = state.getDocuments('note');
+
+  container.innerHTML = `
+    <div class="sidebar-header">
+      <span>Explorador</span>
+      <button class="btn btn-icon btn-ghost" id="explorer-collapse-all" data-tip="Colapsar todo">${icon('panelLeft')}</button>
+    </div>
+    <div class="tree" id="tree-root">
+      ${group('Biblia', 'book', bible.map((d) => docRow(d)), { addable: true, addKind: 'bible' })}
+      ${group('Capítulos', 'file', chapters.map((c) => docRow(c, ` <span class="mono" style="color:var(--text-muted);font-size:10px;">#${c.chapterNumber}</span>`)), { addable: true, addKind: 'chapter' })}
+      ${group('Personajes', 'users', state.characters.map((e) => entityRow(e, 'character')), { addable: true, addKind: 'character' })}
+      ${group('Lugares', 'map', state.places.map((e) => entityRow(e, 'place')), { addable: true, addKind: 'place' })}
+      ${group('Objetos', 'box', state.objects.map((e) => entityRow(e, 'object')), { addable: true, addKind: 'object' })}
+      ${group('Cronología', 'timeline', timeline.map((d) => docRow(d)), { addable: true, addKind: 'timeline' })}
+      ${group('Continuidad', 'shield', continuity.map((d) => docRow(d)), { addable: true, addKind: 'continuity' })}
+      ${group('Misterios', 'target', state.mysteries.map((e) => entityRow(e, 'mystery')), { addable: true, addKind: 'mystery' })}
+      ${group('Notas', 'edit', notes.map((d) => docRow(d)), { addable: true, addKind: 'note' })}
+      ${group('Prompts', 'message', [`<div class="tree-row" data-open-view="prompts">${icon('message', 'tree-icon')}<span class="tree-label">Biblioteca de prompts</span></div>`])}
+      ${group('Conversaciones', 'message', [`<div class="tree-row" data-open-view="conversations">${icon('message', 'tree-icon')}<span class="tree-label">Registro de conversaciones</span></div>`])}
+      ${group('Tareas', 'kanban', [`<div class="tree-row" data-open-view="tasks">${icon('kanban', 'tree-icon')}<span class="tree-label">Panel Kanban</span></div>`])}
+      ${group('Exportaciones', 'export', [`<div class="tree-row" data-open-view="exports">${icon('export', 'tree-icon')}<span class="tree-label">Exportar proyecto</span></div>`])}
+      ${group('Papelera', 'trash', [`<div class="tree-row" data-open-view="trash">${icon('trash', 'tree-icon')}<span class="tree-label">Elementos eliminados</span></div>`])}
+    </div>
+    <div id="explorer-dropzone" style="display:none; position:absolute; inset:0; background:var(--accent-soft); border:2px dashed var(--accent); align-items:center; justify-content:center; z-index:20; font-size:var(--text-sm); color:var(--accent);">
+      Suelta archivos Markdown para importarlos
+    </div>
+  `;
+
+  container.querySelectorAll('[data-group]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('[data-add-to]')) return;
+      const title = el.dataset.group;
+      if (collapsedGroups.has(title)) collapsedGroups.delete(title); else collapsedGroups.add(title);
+      renderExplorer(container);
+    });
+  });
+
+  container.querySelectorAll('[data-open-doc]').forEach((el) => {
+    el.addEventListener('click', (e) => { e.stopPropagation(); bus.emit('explorer:open-document', el.dataset.openDoc); });
+  });
+  container.querySelectorAll('[data-open-entity]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const [kind, id] = el.dataset.openEntity.split(':');
+      bus.emit('explorer:open-entity', { kind, id });
+    });
+  });
+  container.querySelectorAll('[data-open-view]').forEach((el) => {
+    el.addEventListener('click', (e) => { e.stopPropagation(); bus.emit('explorer:open-view', el.dataset.openView); });
+  });
+  container.querySelectorAll('[data-add-to]').forEach((el) => {
+    el.addEventListener('click', (e) => { e.stopPropagation(); bus.emit('explorer:create', el.dataset.addTo); });
+  });
+
+  // Drag & drop de archivos Markdown sobre todo el explorador
+  const dz = container.querySelector('#explorer-dropzone');
+  container.style.position = 'relative';
+  ['dragenter', 'dragover'].forEach((evt) => container.addEventListener(evt, (e) => { e.preventDefault(); dz.style.display = 'flex'; }));
+  ['dragleave', 'drop'].forEach((evt) => container.addEventListener(evt, (e) => { e.preventDefault(); if (evt === 'drop' || !container.contains(e.relatedTarget)) dz.style.display = 'none'; }));
+  container.addEventListener('drop', (e) => {
+    e.preventDefault();
+    handleDroppedFiles(e.dataTransfer.files);
+  });
+}
+
+// Refrescar el explorador cuando cambie cualquier colección relevante
+['document:created', 'document:updated', 'document:deleted', 'character:created', 'character:updated', 'character:deleted',
+  'place:created', 'place:updated', 'place:deleted', 'object:created', 'object:updated', 'object:deleted',
+  'mystery:created', 'mystery:updated', 'mystery:deleted', 'state:loaded'].forEach((evt) => {
+  bus.on(evt, () => {
+    const el = document.getElementById('sidebar');
+    if (el) renderExplorer(el);
+  });
+});
+
+
+/* ============================================================
+   modules/prompts.js
+   ============================================================ */
+/**
+ * prompts.js — Biblioteca de prompts del proyecto. Todos los prompts
+ * (por defecto + personalizados) viven aquí, con categoría, etiquetas,
+ * copiar/editar/duplicar/favoritos y buscador propio.
+ */
+
+let activeCategory = 'Todas';
+let query = '';
+
+function categories() {
+  return ['Todas', ...new Set(state.prompts.map((p) => p.category))];
+}
+
+function renderPrompts(container) {
+  container.innerHTML = `
+    <div class="section-header">
+      <div><h2>Biblioteca de prompts</h2><div class="subtitle">${state.prompts.length} prompts disponibles</div></div>
+      <button class="btn btn-primary" id="prompt-new-btn">${icon('plus')} Nuevo prompt</button>
+    </div>
+    <div class="view-scroll">
+      <div class="prompts-toolbar">
+        <input type="search" id="prompt-search" placeholder="Buscar prompts por título, etiqueta o contenido…" value="${query}" />
+      </div>
+      <div class="category-filter" id="prompt-categories" style="margin-bottom:var(--sp-4);">
+        ${categories().map((c) => `<span class="chip ${c === activeCategory ? 'active' : ''}" data-cat="${c}">${c}</span>`).join('')}
+      </div>
+      <div class="prompt-grid" id="prompt-grid"></div>
+    </div>
+  `;
+
+  renderGrid(container);
+
+  container.querySelector('#prompt-search').addEventListener('input', (e) => { query = e.target.value.toLowerCase(); renderGrid(container); });
+  container.querySelectorAll('[data-cat]').forEach((el) => {
+    el.addEventListener('click', () => { activeCategory = el.dataset.cat; renderPrompts(container); });
+  });
+  container.querySelector('#prompt-new-btn').addEventListener('click', () => openPromptEditor());
+}
+
+function renderGrid(container) {
+  const grid = container.querySelector('#prompt-grid');
+  let list = state.prompts;
+  if (activeCategory !== 'Todas') list = list.filter((p) => p.category === activeCategory);
+  if (query) {
+    list = list.filter((p) => `${p.title} ${p.description} ${(p.tags || []).join(' ')} ${p.content}`.toLowerCase().includes(query));
+  }
+  list = [...list].sort((a, b) => (b.favorite - a.favorite) || (b.usageCount || 0) - (a.usageCount || 0));
+
+  grid.innerHTML = list.length ? list.map((p) => `
+    <div class="prompt-card">
+      <div class="prompt-card-head">
+        <h4>${p.title}</h4>
+        <button class="btn btn-icon btn-ghost fav-btn ${p.favorite ? 'active' : ''}" data-fav="${p.id}">${icon('star')}</button>
+      </div>
+      <p class="desc">${p.description || ''}</p>
+      <div class="tags">
+        <span class="chip">${p.category}</span>
+        ${(p.tags || []).slice(0, 3).map((t) => `<span class="chip">${t}</span>`).join('')}
+      </div>
+      <div class="prompt-card-actions">
+        <button class="btn btn-sm" data-copy="${p.id}">${icon('copy')} Copiar</button>
+        <button class="btn btn-sm btn-ghost" data-edit="${p.id}">${icon('edit')} Editar</button>
+        <button class="btn btn-sm btn-ghost btn-icon" data-dup="${p.id}" data-tip="Duplicar">${icon('layers')}</button>
+      </div>
+    </div>
+  `).join('') : `<div class="empty-state">${icon('message')}<h4>Sin resultados</h4><p>Prueba con otra búsqueda o categoría.</p></div>`;
+
+  grid.querySelectorAll('[data-copy]').forEach((el) => el.addEventListener('click', () => copyPrompt(el.dataset.copy)));
+  grid.querySelectorAll('[data-fav]').forEach((el) => el.addEventListener('click', async () => { await state.toggleFavoritePrompt(el.dataset.fav); renderGrid(container); }));
+  grid.querySelectorAll('[data-edit]').forEach((el) => el.addEventListener('click', () => openPromptEditor(state.prompts.find((p) => p.id === el.dataset.edit))));
+  grid.querySelectorAll('[data-dup]').forEach((el) => el.addEventListener('click', async () => {
+    const orig = state.prompts.find((p) => p.id === el.dataset.dup);
+    await state.savePrompt({ ...orig, id: undefined, title: orig.title + ' (copia)', usageCount: 0, favorite: false, slug: undefined });
+    toast('Prompt duplicado', 'success');
+    renderGrid(container);
+  }));
+}
+
+async function copyPrompt(id) {
+  const p = state.prompts.find((x) => x.id === id);
+  if (!p) return;
+  try { await navigator.clipboard.writeText(p.content); }
+  catch { const ta = document.createElement('textarea'); ta.value = p.content; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  await state.registerPromptUsage(id);
+  toast('Prompt copiado al portapapeles', 'success');
+}
+
+function openPromptEditor(prompt = null) {
+  const isNew = !prompt;
+  const { close } = openModal({
+    title: isNew ? 'Nuevo prompt' : 'Editar prompt',
+    size: 'modal-lg',
+    bodyHtml: `
+      <div class="field"><label>Título</label><input id="p-title" value="${escapeAttr(prompt?.title || '')}" /></div>
+      <div class="field-row">
+        <div class="field"><label>Categoría</label><input id="p-category" value="${escapeAttr(prompt?.category || 'General')}" /></div>
+        <div class="field"><label>Etiquetas (separadas por coma)</label><input id="p-tags" value="${escapeAttr((prompt?.tags || []).join(', '))}" /></div>
+      </div>
+      <div class="field"><label>Descripción</label><input id="p-desc" value="${escapeAttr(prompt?.description || '')}" /></div>
+      <div class="field"><label>Contenido del prompt</label><textarea id="p-content" rows="10" style="font-family:var(--font-mono); font-size:13px;">${escapeHtml(prompt?.content || '')}</textarea></div>
+    `,
+    footerButtons: [
+      { label: 'Cancelar', className: 'btn-ghost' },
+      ...(isNew ? [] : [{ label: 'Eliminar', className: 'btn-danger', onClick: async () => {
+        const ok = await confirmDialog({ title: 'Eliminar prompt', message: `¿Seguro que quieres eliminar "${prompt.title}"? Esta acción no se puede deshacer.` });
+        if (ok) { await state.deletePrompt(prompt.id); toast('Prompt eliminado', 'default'); router.render(); }
+      } }]),
+      { label: isNew ? 'Crear' : 'Guardar', className: 'btn-primary', onClick: async () => {
+        const data = {
+          id: prompt?.id,
+          title: document.getElementById('p-title').value || 'Sin título',
+          category: document.getElementById('p-category').value || 'General',
+          tags: document.getElementById('p-tags').value.split(',').map((t) => t.trim()).filter(Boolean),
+          description: document.getElementById('p-desc').value,
+          content: document.getElementById('p-content').value,
+        };
+        await state.savePrompt(data);
+        toast(isNew ? 'Prompt creado' : 'Prompt actualizado', 'success');
+        router.render();
+      } },
+    ],
+  });
+}
+
+registerView('prompts', { render: renderPrompts });
+
+
+/* ============================================================
+   modules/conversations.js
+   ============================================================ */
+/**
+ * conversations.js — Historial de conversaciones con la IA: fecha,
+ * modelo, objetivo, prompt utilizado, resultado, documentos usados,
+ * notas y estado. Permite reabrir rápidamente cualquier conversación.
+ */
+
+function renderConversations(container) {
+  const list = [...state.conversations].sort((a, b) => new Date(b.date) - new Date(a.date));
+  container.innerHTML = `
+    <div class="section-header">
+      <div><h2>Conversaciones</h2><div class="subtitle">${list.length} registradas</div></div>
+      <button class="btn btn-primary" id="conv-new">${icon('plus')} Registrar conversación</button>
+    </div>
+    <div class="view-scroll">
+      ${list.length ? `<div class="mini-list">
+        ${list.map((c) => `
+          <div class="mini-list-item" data-open="${c.id}" style="cursor:pointer; align-items:flex-start; padding:var(--sp-3) 4px;">
+            <div style="flex:1;">
+              <div class="mli-title" style="font-weight:600;">${c.objective || 'Sin objetivo'}</div>
+              <div class="text-muted" style="font-size:var(--text-xs); margin-top:2px;">${c.model || 'Modelo no especificado'} · ${formatDateTime(c.date)}</div>
+            </div>
+            <span class="badge badge-${statusClass(c.status)}">${c.status}</span>
+          </div>
+        `).join('')}
+      </div>` : `<div class="empty-state">${icon('message')}<h4>Sin conversaciones registradas</h4><p>Cada vez que copies un prompt del Workflow Assistant, considera registrar aquí el resultado para tener memoria completa del proyecto.</p></div>`}
+    </div>
+  `;
+
+  container.querySelector('#conv-new').addEventListener('click', () => openConvEditor());
+  container.querySelectorAll('[data-open]').forEach((el) => {
+    el.addEventListener('click', () => openConvEditor(list.find((c) => c.id === el.dataset.open)));
+  });
+}
+
+function statusClass(status) {
+  return { 'completada': 'final', 'en curso': 'draft', 'descartada': 'pending' }[status] || 'pending';
+}
+
+function openConvEditor(conv = null) {
+  const isNew = !conv;
+  openModal({
+    title: isNew ? 'Registrar conversación' : 'Editar conversación',
+    size: 'modal-lg',
+    bodyHtml: `
+      <div class="field-row">
+        <div class="field"><label>Objetivo</label><input id="c-objective" value="${escapeAttr(conv?.objective || '')}" placeholder="Escribir el Capítulo 14" /></div>
+        <div class="field"><label>Modelo</label><input id="c-model" value="${escapeAttr(conv?.model || 'Claude')}" /></div>
+      </div>
+      <div class="field"><label>Prompt utilizado</label><textarea id="c-prompt" rows="4">${escapeHtml(conv?.promptUsed || '')}</textarea></div>
+      <div class="field"><label>Resultado / resumen</label><textarea id="c-result" rows="4">${escapeHtml(conv?.result || '')}</textarea></div>
+      <div class="field-row">
+        <div class="field"><label>Documentos utilizados</label><input id="c-docs" value="${escapeAttr((conv?.documentsUsed || []).join(', '))}" placeholder="Continuidad, Personajes…" /></div>
+        <div class="field"><label>Estado</label>
+          <select id="c-status">
+            <option ${conv?.status === 'completada' || !conv ? 'selected' : ''}>completada</option>
+            <option ${conv?.status === 'en curso' ? 'selected' : ''}>en curso</option>
+            <option ${conv?.status === 'descartada' ? 'selected' : ''}>descartada</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Notas</label><textarea id="c-notes" rows="2">${escapeHtml(conv?.notes || '')}</textarea></div>
+    `,
+    footerButtons: [
+      { label: 'Cancelar', className: 'btn-ghost' },
+      ...(isNew ? [] : [{ label: 'Eliminar', className: 'btn-danger', onClick: async () => {
+        const ok = await confirmDialog({ title: 'Eliminar conversación', message: '¿Seguro que quieres eliminarla?' });
+        if (ok) { state.conversations = state.conversations.filter((c) => c.id !== conv.id); await db.delete('conversations', conv.id); router.render(); }
+      } }]),
+      { label: isNew ? 'Guardar' : 'Actualizar', className: 'btn-primary', onClick: async () => {
+        const data = {
+          objective: document.getElementById('c-objective').value,
+          model: document.getElementById('c-model').value,
+          promptUsed: document.getElementById('c-prompt').value,
+          result: document.getElementById('c-result').value,
+          documentsUsed: document.getElementById('c-docs').value.split(',').map((s) => s.trim()).filter(Boolean),
+          status: document.getElementById('c-status').value,
+          notes: document.getElementById('c-notes').value,
+        };
+        if (isNew) { await state.logConversation(data); toast('Conversación registrada', 'success'); }
+        else { Object.assign(conv, data); await db.put('conversations', conv); toast('Conversación actualizada', 'success'); }
+        router.render();
+      } },
+    ],
+  });
+}
+
+registerView('conversations', { render: renderConversations });
+
+
+/* ============================================================
+   modules/tasks.js
+   ============================================================ */
+/**
+ * tasks.js — Panel Kanban (Pendiente / En progreso / Bloqueado / Completado).
+ * Las tareas pueden crearse manualmente o automáticamente desde el
+ * Workflow Assistant (por ejemplo, al completar una auditoría se puede
+ * generar una tarea "Revisar hallazgos de la auditoría").
+ */
+
+const COLUMNS = [
+  { key: 'pending', label: 'Pendiente' },
+  { key: 'inprogress', label: 'En progreso' },
+  { key: 'blocked', label: 'Bloqueado' },
+  { key: 'done', label: 'Completado' },
+];
+
+let draggedId = null;
+
+function renderTasks(container) {
+  container.innerHTML = `
+    <div class="section-header">
+      <div><h2>Tareas</h2><div class="subtitle">${state.tasks.length} tareas en el proyecto</div></div>
+      <button class="btn btn-primary" id="task-new">${icon('plus')} Nueva tarea</button>
+    </div>
+    <div class="kanban" id="kanban-root">
+      ${COLUMNS.map((col) => `
+        <div class="kanban-col" data-col="${col.key}">
+          <div class="kanban-col-header"><span>${col.label}</span><span class="text-muted mono">${state.tasks.filter((t) => t.status === col.key).length}</span></div>
+          <div class="kanban-col-body" data-col-body="${col.key}"></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  container.querySelector('#task-new').addEventListener('click', () => openTaskEditor());
+  renderCards(container);
+  setupDnD(container);
+}
+
+function renderCards(container) {
+  COLUMNS.forEach((col) => {
+    const body = container.querySelector(`[data-col-body="${col.key}"]`);
+    const tasks = state.tasks.filter((t) => t.status === col.key);
+    body.innerHTML = tasks.map((t) => `
+      <div class="kanban-card" draggable="true" data-task="${t.id}">
+        <div style="font-weight:500;">${t.title}</div>
+        ${t.relatedDoc ? `<div class="text-muted" style="font-size:var(--text-xs); margin-top:4px;">${t.relatedDoc}</div>` : ''}
+      </div>
+    `).join('');
+    body.querySelectorAll('[data-task]').forEach((card) => {
+      card.addEventListener('click', () => openTaskEditor(state.tasks.find((t) => t.id === card.dataset.task)));
+      card.addEventListener('dragstart', () => { draggedId = card.dataset.task; card.classList.add('dragging'); });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    });
+  });
+}
+
+function setupDnD(container) {
+  container.querySelectorAll('.kanban-col').forEach((col) => {
+    col.addEventListener('dragover', (e) => { e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    col.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      if (!draggedId) return;
+      await state.updateTask(draggedId, { status: col.dataset.col });
+      renderTasks(container);
+    });
+  });
+}
+
+function openTaskEditor(task = null) {
+  const isNew = !task;
+  openModal({
+    title: isNew ? 'Nueva tarea' : 'Editar tarea',
+    bodyHtml: `
+      <div class="field"><label>Título</label><input id="t-title" value="${escapeAttr(task?.title || '')}" placeholder="Actualizar cronología" /></div>
+      <div class="field"><label>Documento relacionado (opcional)</label><input id="t-doc" value="${escapeAttr(task?.relatedDoc || '')}" /></div>
+      <div class="field"><label>Estado</label>
+        <select id="t-status">${COLUMNS.map((c) => `<option value="${c.key}" ${task?.status === c.key ? 'selected' : ''}>${c.label}</option>`).join('')}</select>
+      </div>
+    `,
+    footerButtons: [
+      { label: 'Cancelar', className: 'btn-ghost' },
+      ...(isNew ? [] : [{ label: 'Eliminar', className: 'btn-danger', onClick: async () => { await state.deleteTask(task.id); router.render(); } }]),
+      { label: isNew ? 'Crear' : 'Guardar', className: 'btn-primary', onClick: async () => {
+        const data = { title: document.getElementById('t-title').value || 'Sin título', relatedDoc: document.getElementById('t-doc').value, status: document.getElementById('t-status').value };
+        if (isNew) await state.createTask(data); else await state.updateTask(task.id, data);
+        toast(isNew ? 'Tarea creada' : 'Tarea actualizada', 'success');
+        router.render();
+      } },
+    ],
+  });
+}
+
+registerView('tasks', { render: renderTasks });
+
+
+/* ============================================================
+   modules/search.js
+   ============================================================ */
+/**
+ * search.js — Buscador global tipo "command palette" (Ctrl+K / Ctrl+P).
+ * Indexa en caliente todas las colecciones en memoria (ya cacheadas en
+ * `state`), sin necesidad de un índice invertido persistente: el volumen
+ * de datos de una novela cabe de sobra en memoria.
+ */
+
+function buildIndex() {
+  const items = [];
+  state.documents.forEach((d) => items.push({ kind: d.type, iconName: d.type === 'chapter' ? 'file' : 'book', title: d.title, sub: d.type, text: `${d.title} ${d.content || ''}`, open: () => bus.emit('explorer:open-document', d.id) }));
+  state.characters.forEach((e) => items.push({ kind: 'character', iconName: 'users', title: e.name, sub: 'Personaje', text: `${e.name} ${e.description || ''}`, open: () => bus.emit('explorer:open-entity', { kind: 'character', id: e.id }) }));
+  state.places.forEach((e) => items.push({ kind: 'place', iconName: 'map', title: e.name, sub: 'Lugar', text: `${e.name} ${e.description || ''}`, open: () => bus.emit('explorer:open-entity', { kind: 'place', id: e.id }) }));
+  state.objects.forEach((e) => items.push({ kind: 'object', iconName: 'box', title: e.name, sub: 'Objeto', text: `${e.name} ${e.description || ''}`, open: () => bus.emit('explorer:open-entity', { kind: 'object', id: e.id }) }));
+  state.mysteries.forEach((e) => items.push({ kind: 'mystery', iconName: 'target', title: e.title, sub: 'Misterio', text: `${e.title} ${e.description || ''}`, open: () => bus.emit('explorer:open-entity', { kind: 'mystery', id: e.id }) }));
+  state.prompts.forEach((p) => items.push({ kind: 'prompt', iconName: 'message', title: p.title, sub: 'Prompt · ' + p.category, text: `${p.title} ${p.description} ${p.content}`, open: () => router.openTab({ type: 'prompts', title: 'Biblioteca de prompts' }) }));
+  state.conversations.forEach((c) => items.push({ kind: 'conversation', iconName: 'message', title: c.objective || 'Conversación', sub: 'Conversación', text: `${c.objective} ${c.result}`, open: () => router.openTab({ type: 'conversations', title: 'Conversaciones' }) }));
+  items.push({ kind: 'view', iconName: 'dashboard', title: 'Dashboard', sub: 'Ir a', text: 'dashboard inicio panel', open: () => router.openTab({ type: 'dashboard', title: 'Dashboard', closable: false }) });
+  items.push({ kind: 'view', iconName: 'kanban', title: 'Tareas', sub: 'Ir a', text: 'tareas kanban', open: () => router.openTab({ type: 'tasks', title: 'Tareas' }) });
+  items.push({ kind: 'view', iconName: 'shield', title: 'Continuidad', sub: 'Ir a', text: 'continuidad auditoria', open: () => router.openTab({ type: 'continuity', title: 'Continuidad' }) });
+  return items;
+}
+
+let selectedIdx = 0;
+
+function openCommandPalette() {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'cmdk-backdrop';
+  backdrop.innerHTML = `
+    <div class="cmdk">
+      <div class="cmdk-input-row">${icon('search')}<input id="cmdk-input" placeholder="Buscar capítulos, personajes, lugares, prompts…" autocomplete="off" /></div>
+      <div class="cmdk-results" id="cmdk-results"></div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+  const input = backdrop.querySelector('#cmdk-input');
+  const results = backdrop.querySelector('#cmdk-results');
+  const index = buildIndex();
+  selectedIdx = 0;
+
+  function close() { backdrop.remove(); }
+
+  function paint(list) {
+    results.innerHTML = list.length ? list.slice(0, 40).map((it, i) => `
+      <div class="cmdk-item ${i === selectedIdx ? 'selected' : ''}" data-idx="${i}">
+        ${icon(it.iconName)}<span class="cmdk-title">${it.title}</span><span class="cmdk-type">${it.sub}</span>
+      </div>
+    `).join('') : `<div class="cmdk-empty">Sin resultados</div>`;
+    results.querySelectorAll('[data-idx]').forEach((el) => {
+      el.addEventListener('click', () => { list[Number(el.dataset.idx)].open(); close(); });
+    });
+  }
+
+  let filtered = index;
+  paint(filtered);
+
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase().trim();
+    filtered = q ? index.filter((it) => it.text.toLowerCase().includes(q)) : index;
+    selectedIdx = 0;
+    paint(filtered);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, filtered.length - 1); paint(filtered); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); paint(filtered); }
+    if (e.key === 'Enter' && filtered[selectedIdx]) { filtered[selectedIdx].open(); close(); }
+    if (e.key === 'Escape') close();
+  });
+
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
+  setTimeout(() => input.focus(), 20);
+}
+
+
+/* ============================================================
+   modules/settings.js
+   ============================================================ */
+/**
+ * settings.js — Metadatos del proyecto (título, autor, género, objetivo
+ * diario de palabras) e historial de copias de seguridad con opción de
+ * restaurar cualquiera de ellas.
+ */
+
+async function renderSettings(container) {
+  const backups = (await db.getAll('backups')).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const p = state.project || {};
+
+  container.innerHTML = `
+    <div class="section-header"><div><h2>Ajustes</h2><div class="subtitle">Configuración del proyecto y copias de seguridad</div></div></div>
+    <div class="view-scroll">
+      <div class="card" style="margin-bottom:var(--sp-4); max-width:520px;">
+        <div class="card-title">Proyecto</div>
+        <div class="field"><label>Título de la novela</label><input id="s-title" value="${escapeAttr(p.title || '')}" /></div>
+        <div class="field-row">
+          <div class="field"><label>Autor</label><input id="s-author" value="${escapeAttr(p.author || '')}" /></div>
+          <div class="field"><label>Género</label><input id="s-genre" value="${escapeAttr(p.genre || '')}" /></div>
+        </div>
+        <div class="field"><label>Objetivo diario de palabras</label><input id="s-goal" type="number" value="${p.dailyWordGoal || 1000}" /></div>
+        <button class="btn btn-primary" id="s-save">${icon('save')} Guardar ajustes</button>
+      </div>
+
+      <div class="card" style="max-width:640px;">
+        <div class="card-title">${icon('history', 'icon')} Copias de seguridad (${backups.length})</div>
+        ${backups.length ? `<div class="mini-list">
+          ${backups.slice(0, 15).map((b) => `
+            <div class="mini-list-item" style="padding:var(--sp-2) 4px;">
+              <span class="mli-title">${formatDateTime(b.timestamp)}</span>
+              <button class="btn btn-sm" data-restore-backup="${b.id}">Restaurar</button>
+            </div>
+          `).join('')}
+        </div>` : '<p class="text-muted" style="font-size:var(--text-sm);">Todavía no has creado ninguna copia de seguridad. Puedes crear una desde "Exportaciones".</p>'}
+      </div>
+    </div>
+  `;
+
+  container.querySelector('#s-save').addEventListener('click', async () => {
+    await state.saveProject({
+      title: document.getElementById('s-title').value,
+      author: document.getElementById('s-author').value,
+      genre: document.getElementById('s-genre').value,
+      dailyWordGoal: parseInt(document.getElementById('s-goal').value, 10) || 1000,
+    });
+    toast('Ajustes guardados', 'success');
+  });
+
+  container.querySelectorAll('[data-restore-backup]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const ok = await confirmDialog({ title: 'Restaurar copia de seguridad', message: 'Se reemplazarán todos los datos actuales por los de esta copia. ¿Continuar?' });
+      if (!ok) return;
+      const backup = backups.find((b) => b.id === btn.dataset.restoreBackup);
+      await db.importAll(backup.data, { merge: false });
+      await state.load();
+      toast('Copia de seguridad restaurada', 'success');
+      router.render();
+    });
+  });
+}
+
+registerView('settings', { render: renderSettings });
+
+
+/* ============================================================
+   app.js
+   ============================================================ */
+/**
+ * app.js — Punto de entrada de la aplicación.
+ * Construye el layout de la shell (activity bar, topbar, sidebar,
+ * panel derecho, statusbar), carga el estado desde IndexedDB, siembra
+ * los prompts por defecto la primera vez, registra los atajos de
+ * teclado globales y deja la app lista con el Dashboard abierto.
+ */
+
+// Importar módulos: cada uno se auto-registra en el router al importarse
+
+const ACTIVITY_ITEMS = [
+  { type: 'dashboard', iconName: 'dashboard', label: 'Dashboard', closable: false },
+  { type: 'prompts', iconName: 'message', label: 'Prompts' },
+  { type: 'conversations', iconName: 'message', label: 'Conversaciones' },
+  { type: 'tasks', iconName: 'kanban', label: 'Tareas' },
+  { type: 'continuity', iconName: 'shield', label: 'Continuidad' },
+  { type: 'settings', iconName: 'settings', label: 'Ajustes' },
+];
+
+async function buildShell() {
+  document.getElementById('app').innerHTML = `
+    <div id="activity-bar">
+      ${ACTIVITY_ITEMS.map((it) => `<button class="activity-btn" data-activity="${it.type}" data-tip="${it.label}">${icon(it.iconName)}</button>`).join('')}
+      <div class="activity-spacer"></div>
+      <button class="activity-btn" id="toggle-sidebar" data-tip="Alternar explorador">${icon('panelLeft')}</button>
+      <button class="activity-btn" id="toggle-right" data-tip="Alternar panel derecho">${icon('panelRight')}</button>
+    </div>
+
+    <div id="topbar">
+      <div class="brand">Novel<span class="brand-accent">IDE</span></div>
+      <div id="global-search-trigger">${icon('search')}<span>Buscar en todo el proyecto…</span><kbd>Ctrl K</kbd></div>
+      <div class="topbar-actions">
+        <button class="btn btn-sm" id="topbar-paste-import">${icon('plus')} Importar Markdown</button>
+      </div>
+    </div>
+
+    <div id="sidebar"></div>
+
+    <div id="main">
+      <div id="tabbar"></div>
+      <div id="view-root"></div>
+    </div>
+
+    <div id="right-panel">
+      <div id="right-panel-header">
+        <h3>${icon('sparkle')} ¿Qué hago ahora?</h3>
+      </div>
+      <div id="right-panel-body">
+        <div id="right-panel-body-workflow"></div>
+      </div>
+      <div class="quicknotes">
+        <div class="quicknotes-header"><span>Notas rápidas</span></div>
+        <textarea id="quicknotes-textarea" placeholder="Ideas sueltas, recordatorios, ganchos para el próximo capítulo…"></textarea>
+      </div>
+    </div>
+
+    <div id="statusbar">
+      <div class="status-item accent">${icon('book', 'icon')} <span id="status-project-title"></span></div>
+      <div class="status-item" id="status-words"></div>
+      <div class="status-item" id="status-chapters"></div>
+      <div class="status-spacer"></div>
+      <div class="status-item" id="status-saved">${icon('check', 'icon')} Guardado localmente en IndexedDB</div>
+    </div>
+  `;
+
+  document.querySelectorAll('[data-activity]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const item = ACTIVITY_ITEMS.find((i) => i.type === btn.dataset.activity);
+      router.openTab({ type: item.type, title: item.label, closable: item.closable !== false });
+      document.querySelectorAll('[data-activity]').forEach((b) => b.classList.toggle('active', b === btn));
+    });
+  });
+
+  document.getElementById('toggle-sidebar').addEventListener('click', () => document.getElementById('app').classList.toggle('sidebar-collapsed'));
+  document.getElementById('toggle-right').addEventListener('click', () => document.getElementById('app').classList.toggle('right-collapsed'));
+  document.getElementById('global-search-trigger').addEventListener('click', openCommandPalette);
+  document.getElementById('topbar-paste-import').addEventListener('click', openPasteImportModal);
+
+  const notesArea = document.getElementById('quicknotes-textarea');
+  notesArea.value = state.project?.quickNotes || '';
+  let notesTimer = null;
+  notesArea.addEventListener('input', () => {
+    clearTimeout(notesTimer);
+    notesTimer = setTimeout(() => state.saveProject({ quickNotes: notesArea.value }), 600);
+  });
+}
+
+function updateStatusBar() {
+  const s = state.stats();
+  document.getElementById('status-project-title').textContent = state.project?.title || 'Sin título';
+  document.getElementById('status-words').textContent = `${s.totalWords.toLocaleString('es-ES')} palabras`;
+  document.getElementById('status-chapters').textContent = `${s.writtenChapters}/${s.totalChapters} capítulos`;
+}
+
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    const ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl && (e.key === 'k' || e.key === 'p')) { e.preventDefault(); openCommandPalette(); }
+    if (ctrl && e.key === '/') { e.preventDefault(); document.getElementById('app').classList.toggle('sidebar-collapsed'); }
+    if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); toast('El proyecto se guarda automáticamente al escribir', 'default'); }
+  });
+}
+
+async function seedExampleContentIfEmpty() {
+  // Si el proyecto está completamente vacío, no forzamos nada: el
+  // Dashboard y el Workflow Assistant ya guían al usuario a crear la
+  // biblia inicial como primer paso. No se generan capítulos de ejemplo
+  // para no ensuciar un proyecto real.
+}
+
+const VIEW_TITLES = {
+  characters: 'Personajes', places: 'Lugares', objects: 'Objetos', mysteries: 'Misterios',
+  prompts: 'Biblioteca de prompts', conversations: 'Conversaciones', tasks: 'Tareas',
+  exports: 'Exportaciones', trash: 'Papelera', continuity: 'Continuidad', settings: 'Ajustes',
+};
+bus.on('explorer:open-view', (view) => {
+  if (VIEW_TITLES[view]) router.openTab({ type: view, title: VIEW_TITLES[view] });
+});
+
+bus.on('explorer:create', async (kind) => {
+  if (['character', 'place', 'object', 'mystery'].includes(kind)) {
+    bus.emit('explorer:open-view', kind === 'character' ? 'characters' : kind === 'place' ? 'places' : kind === 'object' ? 'objects' : 'mysteries');
+    return;
+  }
+  const titles = { bible: 'Nueva Biblia', chapter: `Capítulo ${state.nextChapterNumber()}`, timeline: 'Nueva Cronología', continuity: 'Nueva Continuidad', note: 'Nueva nota' };
+  const doc = await state.createDocument({ type: kind, title: titles[kind] || 'Nuevo documento', chapterNumber: kind === 'chapter' ? state.nextChapterNumber() : null });
+  router.openTab({ type: 'document', refId: doc.id, title: doc.title });
+});
+
+async function main() {
+  await db.open();
+  await state.load();
+  await state.ensureProject();
+  await state.seedPromptsIfEmpty(DEFAULT_PROMPTS);
+  await seedExampleContentIfEmpty();
+
+  await buildShell();
+  renderExplorer(document.getElementById('sidebar'));
+  await renderWorkflowPanel(document.getElementById('right-panel-body-workflow'));
+  updateStatusBar();
+  setupKeyboardShortcuts();
+
+  router.openTab({ type: 'dashboard', title: 'Dashboard', closable: false });
+  document.querySelector('[data-activity="dashboard"]')?.classList.add('active');
+
+  bus.on('document:updated', updateStatusBar);
+  bus.on('document:created', updateStatusBar);
+  bus.on('document:deleted', updateStatusBar);
+  bus.on('chapter:status-changed', updateStatusBar);
+  bus.on('project:updated', updateStatusBar);
+}
+
+main().catch((err) => {
+  console.error('Error crítico iniciando NovelIDE:', err);
+  document.getElementById('app').innerHTML = `<div style="padding:40px; color:#e9e6df; font-family:sans-serif;">
+    <h2>No se pudo iniciar la aplicación</h2><p>${err.message}</p><p>Comprueba que tu navegador soporta IndexedDB y que no estás en modo incógnito con almacenamiento bloqueado.</p>
+  </div>`;
+});
+
+})();
+
+</script>
+</body>
+</html>
