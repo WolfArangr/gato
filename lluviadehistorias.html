@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="night">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Lluvia de Historias</title>
+<meta name="description" content="Testimonios en primera persona. Historias reales de lo inexplicable." />
+
+<script>
+  /* Fijamos tema y tamaño de letra ANTES de pintar, para evitar parpadeos */
+  (function () {
+    var theme = localStorage.getItem("ldh-theme") ||
+      (window.matchMedia("(prefers-color-scheme: light)").matches ? "day" : "night");
+    document.documentElement.setAttribute("data-theme", theme);
+
+    var sizes = [0.95, 1.0625, 1.125, 1.25, 1.4375];
+    var idx = parseInt(localStorage.getItem("ldh-font-index"), 10);
+    if (isNaN(idx)) idx = 2;
+    document.documentElement.style.setProperty("--reading-size", sizes[idx] + "rem");
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Literata:ital,opsz,wght@0,18..144,400;0,18..144,500;1,18..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+/* =========================================================
+   LLUVIA DE HISTORIAS — un único archivo
+   Día: papel envejecido, tinta casi negra, acento vino
+   Noche: carbón cálido, texto hueso, acento dorado vela
+   ========================================================= */
+:root {
+  --serif: "Literata", Georgia, "Times New Roman", serif;
+  --mono-display: "Special Elite", "Courier New", monospace;
+  --ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --radius: 3px;
+  --max-w: 640px;
+  --reading-size: 1.125rem;
+  --reading-leading: 1.85;
+}
+html[data-theme="day"] {
+  --bg: #ece7da; --bg-elevated: #f5f1e6; --bg-elevated-hover: #efe9d9;
+  --text: #201d18; --text-dim: #6b6255; --text-faint: rgba(32,29,24,.38);
+  --accent: #7a2620; --accent-soft: rgba(122,38,32,.14);
+  --hairline: rgba(32,29,24,.14);
+  --shadow: 0 1px 2px rgba(32,29,24,.08), 0 8px 24px rgba(32,29,24,.06);
+}
+html[data-theme="night"] {
+  --bg: #15130f; --bg-elevated: #1d1a15; --bg-elevated-hover: #24201a;
+  --text: #e9e2d1; --text-dim: #a89e8c; --text-faint: rgba(233,226,209,.32);
+  --accent: #c9a15a; --accent-soft: rgba(201,161,90,.16);
+  --hairline: rgba(233,226,209,.12);
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text); font-family: var(--serif);
+  transition: background-color .25s ease, color .25s ease; min-height: 100vh;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+a { color: inherit; }
+button { font-family: var(--ui); cursor: pointer; border: none; background: none; color: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+::selection { background: var(--accent-soft); }
+
+.rain-veil {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .35;
+  background-image: repeating-linear-gradient(100deg, transparent 0, transparent 68px, var(--hairline) 68px, var(--hairline) 69px);
+}
+
+/* ---- topbar ---- */
+.topbar {
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center;
+  justify-content: space-between; gap: 12px; padding: 14px 20px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--hairline);
+}
+.brand {
+  display: flex; align-items: baseline; gap: 8px; font-family: var(--mono-display);
+  font-size: .95rem; letter-spacing: .02em; text-decoration: none; color: var(--text);
+}
+.brand__mark { color: var(--accent); }
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px;
+  border-radius: 50%; color: var(--text-dim); transition: background-color .15s ease, color .15s ease;
+}
+.icon-btn:hover { background: var(--bg-elevated-hover); color: var(--text); }
+.controls { display: flex; align-items: center; gap: 4px; }
+.font-controls { display: flex; align-items: center; gap: 2px; border: 1px solid var(--hairline); border-radius: 20px; padding: 2px; }
+.font-controls button { width: 30px; height: 30px; border-radius: 50%; font-weight: 600; color: var(--text-dim); }
+.font-controls button:first-child { font-size: .75rem; }
+.font-controls button:last-child { font-size: 1rem; }
+.font-controls button:hover { background: var(--bg-elevated-hover); color: var(--text); }
+.reader-topbar__title {
+  font-family: var(--ui); font-size: .8rem; color: var(--text-dim); flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: none;
+}
+@media (min-width: 640px) { .reader-topbar__title.is-visible { display: block; } }
+
+/* ---- library ---- */
+.library { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 48px 20px 100px; }
+.library__intro { margin-bottom: 40px; }
+.eyebrow { font-family: var(--mono-display); font-size: .8rem; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; margin: 0 0 10px; }
+.library__intro h1 { font-family: var(--mono-display); font-weight: 400; font-size: clamp(1.6rem,4vw,2.3rem); line-height: 1.3; margin: 0 0 12px; }
+.library__intro p { color: var(--text-dim); font-size: 1.05rem; max-width: 46ch; margin: 0; }
+.search-row { margin: 28px 0 36px; }
+.search-row input {
+  width: 100%; font-family: var(--serif); font-style: italic; font-size: 1rem; padding: 12px 16px;
+  background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: var(--radius); color: var(--text);
+}
+.search-row input::placeholder { color: var(--text-faint); }
+.story-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 18px; }
+.story-card {
+  display: block; text-decoration: none; color: inherit; background: var(--bg-elevated);
+  border: 1px solid var(--hairline); border-radius: var(--radius); padding: 22px 20px;
+  box-shadow: var(--shadow); position: relative; transition: transform .18s ease, border-color .18s ease;
+}
+.story-card::before {
+  content: ""; position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+  background: repeating-linear-gradient(90deg, var(--hairline) 0, var(--hairline) 5px, transparent 5px, transparent 10px);
+}
+.story-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.story-card__title { font-family: var(--mono-display); font-size: 1.05rem; line-height: 1.4; margin: 6px 0 10px; }
+.story-card__excerpt {
+  color: var(--text-dim); font-size: .95rem; line-height: 1.55; margin: 0 0 16px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.story-card__meta { font-family: var(--ui); font-size: .75rem; letter-spacing: .03em; color: var(--text-faint); text-transform: uppercase; }
+.empty-state, .error-state {
+  font-family: var(--ui); color: var(--text-dim); border: 1px dashed var(--hairline);
+  border-radius: var(--radius); padding: 28px; font-size: .95rem; line-height: 1.6; grid-column: 1/-1;
+}
+.error-state code { background: var(--bg-elevated); padding: 2px 6px; border-radius: 3px; }
+.skeleton { background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: var(--radius); height: 148px; position: relative; overflow: hidden; }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, var(--bg-elevated-hover), transparent); animation: shimmer 1.6s infinite;
+}
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+/* ---- reader ---- */
+.progress-line { position: fixed; top: 0; left: 0; height: 2px; background: var(--accent); width: 0%; z-index: 30; transition: width .1s linear; }
+.reader-mobile-whisper {
+  font-family: var(--mono-display); font-size: .72rem; letter-spacing: .04em; color: var(--text-faint);
+  text-align: center; padding: 10px 20px 0; min-height: 1.4em; transition: color .4s ease;
+}
+.reader-mobile-whisper.is-active { color: var(--accent); }
+.reader-shell { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr; max-width: 1100px; margin: 0 auto; }
+article.story { max-width: var(--max-w); margin: 0 auto; padding: 40px 22px 140px; font-size: var(--reading-size); line-height: var(--reading-leading); }
+article.story h1.story__title { font-family: var(--mono-display); font-weight: 400; font-size: clamp(1.5rem,5vw,2rem); line-height: 1.35; margin: 0 0 6px; }
+.story__byline { font-family: var(--ui); font-size: .8rem; color: var(--text-faint); letter-spacing: .03em; margin: 0 0 40px; text-transform: uppercase; }
+article.story p { margin: 0 0 1.3em; }
+article.story p:first-of-type::first-letter { font-family: var(--mono-display); font-size: 2.6em; float: left; line-height: .85; padding: .05em .08em 0 0; color: var(--accent); }
+article.story blockquote { margin: 0 0 1.3em; padding-left: 18px; border-left: 2px solid var(--accent); color: var(--text-dim); font-style: italic; }
+article.story em { color: var(--text); }
+.section-anchor { display: block; height: 0; margin-top: 2.2em; }
+.story-end {
+  margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--hairline); display: flex;
+  align-items: center; gap: 14px; font-family: var(--ui); font-size: .85rem; color: var(--text-dim);
+}
+.story-end::before { content: "❖"; color: var(--accent); }
+.ghost-nav { display: none; }
+@media (min-width: 980px) {
+  .reader-shell { grid-template-columns: 1fr 200px; align-items: start; }
+  .ghost-nav { display: block; position: sticky; top: 90px; padding: 40px 24px 40px 0; max-height: calc(100vh - 90px); }
+  .ghost-nav ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--hairline); }
+  .ghost-nav li { padding: 7px 0 7px 16px; margin-bottom: 2px; }
+  .ghost-nav button { font-family: var(--mono-display); font-size: .78rem; line-height: 1.4; text-align: left; color: var(--text-faint); opacity: .55; transition: opacity .6s ease, color .4s ease; display: block; }
+  .ghost-nav li.is-active button { opacity: 1; color: var(--accent); }
+  .ghost-nav li.is-near button { opacity: .85; color: var(--text-dim); }
+  .ghost-nav button:hover { opacity: 1; color: var(--text); }
+}
+.site-footer { position: relative; z-index: 1; text-align: center; font-family: var(--ui); font-size: .75rem; color: var(--text-faint); padding: 30px 20px 50px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="rain-veil" aria-hidden="true"></div>
+<div class="progress-line" id="progress-line"></div>
+
+<header class="topbar">
+  <a href="#/" class="brand" id="brand-link"><span class="brand__mark">☂</span> <span id="brand-text">Lluvia de Historias</span></a>
+  <span class="reader-topbar__title" id="reader-topbar-title"></span>
+  <div class="controls">
+    <div class="font-controls" id="font-controls" hidden>
+      <button id="font-minus" aria-label="Reducir tamaño de letra" title="Letra más pequeña">A</button>
+      <button id="font-plus" aria-label="Aumentar tamaño de letra" title="Letra más grande">A</button>
+    </div>
+    <button class="icon-btn" id="theme-toggle" aria-label="Cambiar entre modo día y modo noche" title="Modo día / noche">
+      <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    </button>
+  </div>
+</header>
+
+<p class="reader-mobile-whisper" id="mobile-whisper" hidden aria-hidden="true"></p>
+
+<main id="view-library" class="library">
+  <div class="library__intro">
+    <p class="eyebrow">Testimonios reales</p>
+    <h1>Historias que alguien decidió contar</h1>
+    <p>Relatos en primera persona sobre lo que no tiene explicación. O sí la tiene, y eso es peor.</p>
+  </div>
+  <div class="search-row">
+    <input type="search" id="search-input" placeholder="Buscar una historia…" aria-label="Buscar una historia" />
+  </div>
+  <div id="story-grid" class="story-grid" aria-live="polite">
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  </div>
+</main>
+
+<div id="view-reader" class="reader-shell" hidden>
+  <article class="story" id="story-content"></article>
+  <nav class="ghost-nav" id="ghost-nav" aria-label="Secciones de la historia">
+    <ol id="ghost-nav-list"></ol>
+  </nav>
+</div>
+
+<footer class="site-footer">gato.red · lluviadehistorias</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =======================================================
+     CONFIGURACIÓN — lo único que tienes que tocar
+     Los archivos deben llamarse 1.md, 2.md, 3.md... sin huecos,
+     dentro de la carpeta storiesPath del repositorio.
+     ======================================================= */
+  var CONFIG = {
+    githubUser: "WolfArangr",
+    githubRepo: "gato",
+    branch: "main",
+    storiesPath: "lluviadehistorias",
+  };
+
+  function rawUrl(n) {
+    return "https://raw.githubusercontent.com/" + CONFIG.githubUser + "/" + CONFIG.githubRepo +
+      "/" + CONFIG.branch + "/" + CONFIG.storiesPath + "/" + n + ".md";
+  }
+
+  /* =======================================================
+     Utilidades
+     ======================================================= */
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function inline(s) {
+    return s
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/_(.+?)_/g, "<em>$1</em>");
+  }
+
+  /* Convierte el markdown de una historia a { title, html, toc } sin
+     depender de ninguna librería externa. Soporta: # título, ## secciones
+     (que nunca se pintan como texto, solo alimentan la navegación ghost),
+     párrafos, citas con ">" y negrita/cursiva. */
+  function parseMarkdown(raw) {
+    var lines = raw.replace(/\r\n/g, "\n").split("\n");
+    var title = null;
+    var bodyLines = [];
+    var titleFound = false;
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (!titleFound && /^#\s+/.test(line)) {
+        title = line.replace(/^#\s+/, "").trim();
+        titleFound = true;
+        continue;
+      }
+      bodyLines.push(line);
+    }
+
+    var blocks = bodyLines.join("\n").split(/\n{2,}/).map(function (b) { return b.trim(); }).filter(Boolean);
+    var html = "";
+    var toc = [];
+    var sectionIndex = 0;
+
+    blocks.forEach(function (block) {
+      if (/^##\s+/.test(block)) {
+        sectionIndex++;
+        var label = block.replace(/^##\s+/, "").trim();
+        var id = "section-" + sectionIndex;
+        toc.push({ id: id, text: label });
+        html += '<span id="' + id + '" class="section-anchor"></span>';
+        return;
+      }
+      if (/^>/.test(block)) {
+        var quote = block.split("\n").map(function (l) { return inline(escapeHtml(l.replace(/^>\s?/, ""))); }).join("<br>");
+        html += "<blockquote>" + quote + "</blockquote>";
+        return;
+      }
+      var para = block.split("\n").map(function (l) { return inline(escapeHtml(l)); }).join("<br>");
+      html += "<p>" + para + "</p>";
+    });
+
+    return { title: title || null, html: html, toc: toc };
+  }
+
+  function excerptFrom(raw, titleLineConsumed) {
+    var lines = raw.replace(/\r\n/g, "\n").split("\n");
+    var pastTitle = !titleLineConsumed;
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i].trim();
+      if (!pastTitle) {
+        if (/^#\s+/.test(l)) pastTitle = true;
+        continue;
+      }
+      if (!l || /^#{1,6}\s+/.test(l)) continue;
+      return l.replace(/^#{1,6}\s+/, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*(.+?)\*/g, "$1").replace(/^>\s?/, "");
+    }
+    return "";
+  }
+
+  /* =======================================================
+     Carga y caché de historias — sin API, prueba 1.md, 2.md...
+     ======================================================= */
+  var cache = {};       // n -> { n, title, excerpt, minutes, parsed, raw }
+  var libraryList = null;
+  var libraryPromise = null;
+
+  function loadStory(n) {
+    if (cache[n]) return Promise.resolve(cache[n]);
+    return fetch(rawUrl(n)).then(function (res) {
+      if (!res.ok) throw new Error("missing");
+      return res.text();
+    }).then(function (raw) {
+      var parsed = parseMarkdown(raw);
+      var wordCount = raw.split(/\s+/).filter(Boolean).length;
+      var entry = {
+        n: n,
+        title: parsed.title || ("Historia " + n),
+        excerpt: excerptFrom(raw, !!parsed.title),
+        minutes: Math.max(1, Math.round(wordCount / 165)),
+        parsed: parsed,
+      };
+      cache[n] = entry;
+      return entry;
+    });
+  }
+
+  function discoverLibrary() {
+    if (libraryPromise) return libraryPromise;
+    libraryPromise = (function () {
+      var found = [];
+      var BATCH = 6, MAX = 500;
+
+      function step(n) {
+        if (n > MAX) return Promise.resolve(found);
+        var batch = [];
+        for (var i = 0; i < BATCH; i++) batch.push(n + i);
+        return Promise.all(batch.map(function (num) {
+          return loadStory(num).catch(function () { return null; });
+        })).then(function (results) {
+          var gap = false;
+          for (var j = 0; j < results.length; j++) {
+            if (results[j]) found.push(results[j]);
+            else { gap = true; break; }
+          }
+          if (gap) return found;
+          return step(n + BATCH);
+        });
+      }
+
+      return step(1).then(function (list) {
+        libraryList = list;
+        return list;
+      });
+    })();
+    return libraryPromise;
+  }
+
+  /* =======================================================
+     Tema y tamaño de letra
+     ======================================================= */
+  var themeBtn = document.getElementById("theme-toggle");
+  var themeIcon = document.getElementById("theme-icon");
+  function paintThemeIcon(theme) {
+    themeIcon.innerHTML = theme === "night"
+      ? '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>'
+      : '<path d="M21 12.5A8.5 8.5 0 1 1 11.5 3 7 7 0 0 0 21 12.5z"></path>';
+  }
+  paintThemeIcon(document.documentElement.getAttribute("data-theme"));
+  themeBtn.addEventListener("click", function () {
+    var next = document.documentElement.getAttribute("data-theme") === "night" ? "day" : "night";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("ldh-theme", next);
+    paintThemeIcon(next);
+  });
+
+  var FONT_SIZES = [0.95, 1.0625, 1.125, 1.25, 1.4375];
+  var fontIndex = parseInt(localStorage.getItem("ldh-font-index"), 10);
+  if (isNaN(fontIndex)) fontIndex = 2;
+  function applyFontSize() {
+    document.documentElement.style.setProperty("--reading-size", FONT_SIZES[fontIndex] + "rem");
+    localStorage.setItem("ldh-font-index", fontIndex);
+  }
+  document.getElementById("font-minus").addEventListener("click", function () {
+    fontIndex = Math.max(0, fontIndex - 1); applyFontSize();
+  });
+  document.getElementById("font-plus").addEventListener("click", function () {
+    fontIndex = Math.min(FONT_SIZES.length - 1, fontIndex + 1); applyFontSize();
+  });
+
+  /* =======================================================
+     Vistas
+     ======================================================= */
+  var viewLibrary = document.getElementById("view-library");
+  var viewReader = document.getElementById("view-reader");
+  var brandText = document.getElementById("brand-text");
+  var brandMark = document.querySelector(".brand__mark");
+  var topbarTitle = document.getElementById("reader-topbar-title");
+  var fontControls = document.getElementById("font-controls");
+  var mobileWhisper = document.getElementById("mobile-whisper");
+  var progressLine = document.getElementById("progress-line");
+  var grid = document.getElementById("story-grid");
+  var searchInput = document.getElementById("search-input");
+  var storyContent = document.getElementById("story-content");
+  var ghostNav = document.getElementById("ghost-nav");
+  var ghostList = document.getElementById("ghost-nav-list");
+
+  var scrollObserver = null;
+
+  function escapeText(str) {
+    var div = document.createElement("div");
+    div.textContent = str || "";
+    return div.innerHTML;
+  }
+
+  function showLibrary() {
+    viewReader.hidden = true;
+    viewLibrary.hidden = false;
+    brandText.textContent = "Lluvia de Historias";
+    brandMark.textContent = "☂";
+    topbarTitle.textContent = "";
+    topbarTitle.classList.remove("is-visible");
+    fontControls.hidden = true;
+    mobileWhisper.hidden = true;
+    progressLine.style.width = "0%";
+    document.title = "Lluvia de Historias";
+    window.scrollTo(0, 0);
+
+    if (!CONFIG.githubUser || CONFIG.githubUser === "TU_USUARIO") {
+      grid.innerHTML = '<div class="error-state">Falta configurar el sitio. Abre este archivo con un editor de texto y rellena <code>githubUser</code> y <code>githubRepo</code> al principio del &lt;script&gt;.</div>';
+      return;
+    }
+
+    if (libraryList) {
+      renderGrid(libraryList);
+      return;
+    }
+    grid.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+    discoverLibrary().then(function (list) {
+      if (!list.length) {
+        grid.innerHTML = '<div class="empty-state">Todavía no hay historias en <code>' + CONFIG.storiesPath + '/1.md</code>. Sube la primera y recarga.</div>';
+        return;
+      }
+      renderGrid(list);
+    }).catch(function (err) {
+      grid.innerHTML = '<div class="error-state">No se han podido cargar las historias.<br><small>' + escapeText(err.message) + '</small></div>';
+    });
+  }
+
+  function renderGrid(list) {
+    var q = (searchInput.value || "").trim().toLowerCase();
+    var filtered = !q ? list : list.filter(function (s) {
+      return s.title.toLowerCase().indexOf(q) !== -1 || s.excerpt.toLowerCase().indexOf(q) !== -1;
+    });
+    if (!filtered.length) {
+      grid.innerHTML = '<div class="empty-state">No hay ninguna historia que coincida con tu búsqueda.</div>';
+      return;
+    }
+    grid.innerHTML = "";
+    filtered.forEach(function (story) {
+      var a = document.createElement("a");
+      a.className = "story-card";
+      a.href = "#/historia/" + story.n;
+      a.innerHTML =
+        '<p class="story-card__title">' + escapeText(story.title) + '</p>' +
+        '<p class="story-card__excerpt">' + escapeText(story.excerpt) + '</p>' +
+        '<p class="story-card__meta">' + story.minutes + ' min de lectura</p>';
+      grid.appendChild(a);
+    });
+  }
+  searchInput.addEventListener("input", function () {
+    if (libraryList) renderGrid(libraryList);
+  });
+
+  function showReader(n) {
+    viewLibrary.hidden = true;
+    viewReader.hidden = false;
+    fontControls.hidden = false;
+    topbarTitle.classList.add("is-visible");
+    brandText.textContent = "Volver";
+    brandMark.textContent = "←";
+    window.scrollTo(0, 0);
+
+    if (scrollObserver) { scrollObserver.disconnect(); scrollObserver = null; }
+    storyContent.innerHTML = '<p style="color:var(--text-dim); font-family: var(--ui); font-size:.9rem;">Cargando historia…</p>';
+    ghostList.innerHTML = "";
+    ghostNav.style.display = "none";
+    mobileWhisper.hidden = false;
+    mobileWhisper.textContent = "";
+
+    loadStory(n).then(function (entry) {
+      var titleText = entry.title;
+      document.title = titleText + " · Lluvia de Historias";
+      topbarTitle.textContent = titleText;
+
+      storyContent.innerHTML =
+        '<h1 class="story__title">' + escapeText(titleText) + '</h1>' +
+        '<p class="story__byline">Lluvia de Historias</p>' +
+        entry.parsed.html +
+        '<p class="story-end">Fin del relato</p>';
+
+      buildGhostNav(entry.parsed.toc);
+      setupScrollSpy(entry.parsed.toc);
+    }).catch(function () {
+      storyContent.innerHTML = '<div class="error-state">No se ha podido cargar esta historia. <a href="#/">Vuelve a la biblioteca</a>.</div>';
+    });
+  }
+
+  function buildGhostNav(toc) {
+    if (!toc.length) { ghostNav.style.display = "none"; return; }
+    ghostNav.style.display = "";
+    ghostList.innerHTML = "";
+    toc.forEach(function (section) {
+      var li = document.createElement("li");
+      li.dataset.id = section.id;
+      var btn = document.createElement("button");
+      btn.textContent = section.text;
+      btn.addEventListener("click", function () {
+        var target = document.getElementById(section.id);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      li.appendChild(btn);
+      ghostList.appendChild(li);
+    });
+  }
+
+  function setupScrollSpy(toc) {
+    if (!toc.length) return;
+    var anchors = toc.map(function (s) { return document.getElementById(s.id); });
+    var current = null;
+    var hideTimer = null;
+
+    function setActive(id, text) {
+      if (id === current) return;
+      current = id;
+      var items = ghostList.querySelectorAll("li");
+      items.forEach(function (li) { li.classList.remove("is-active", "is-near"); });
+      var activeLi = ghostList.querySelector('li[data-id="' + id + '"]');
+      if (activeLi) {
+        activeLi.classList.add("is-active");
+        if (activeLi.previousElementSibling) activeLi.previousElementSibling.classList.add("is-near");
+        if (activeLi.nextElementSibling) activeLi.nextElementSibling.classList.add("is-near");
+      }
+      mobileWhisper.textContent = text;
+      mobileWhisper.classList.add("is-active");
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(function () { mobileWhisper.classList.remove("is-active"); }, 1600);
+    }
+
+    scrollObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          var idx = anchors.indexOf(entry.target);
+          if (idx !== -1) setActive(toc[idx].id, toc[idx].text);
+        }
+      });
+    }, { rootMargin: "-15% 0px -75% 0px", threshold: 0 });
+
+    anchors.forEach(function (a) { if (a) scrollObserver.observe(a); });
+    if (toc[0]) setActive(toc[0].id, toc[0].text);
+  }
+
+  window.addEventListener("scroll", function () {
+    if (viewReader.hidden) return;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressLine.style.width = (docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0) + "%";
+  }, { passive: true });
+
+  /* =======================================================
+     Enrutado por hash — todo en una sola página
+     ======================================================= */
+  function route() {
+    var hash = window.location.hash || "#/";
+    var storyMatch = hash.match(/^#\/historia\/(\d+)/);
+    if (storyMatch) {
+      showReader(parseInt(storyMatch[1], 10));
+    } else {
+      showLibrary();
+    }
+  }
+  window.addEventListener("hashchange", route);
+  applyFontSize();
+  route();
+})();
+</script>
+</body>
+</html>
