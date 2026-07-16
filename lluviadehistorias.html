@@ -7,7 +7,6 @@
 <meta name="description" content="Testimonios en primera persona. Historias reales de lo inexplicable." />
 
 <script>
-  /* Fijamos tema y tamaño de letra ANTES de pintar, para evitar parpadeos */
   (function () {
     var theme = localStorage.getItem("ldh-theme") ||
       (window.matchMedia("(prefers-color-scheme: light)").matches ? "day" : "night");
@@ -17,6 +16,9 @@
     var idx = parseInt(localStorage.getItem("ldh-font-index"), 10);
     if (isNaN(idx)) idx = 2;
     document.documentElement.style.setProperty("--reading-size", sizes[idx] + "rem");
+
+    if (localStorage.getItem("ldh-weather") === "off") document.documentElement.classList.add("weather-off");
+    if (localStorage.getItem("ldh-flatbg") === "off") document.documentElement.classList.add("flatbg-off");
   })();
 </script>
 
@@ -25,11 +27,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Literata:ital,opsz,wght@0,18..144,400;0,18..144,500;1,18..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
 <style>
-/* =========================================================
-   LLUVIA DE HISTORIAS — un único archivo
-   Día: papel envejecido, tinta casi negra, acento vino
-   Noche: carbón cálido, texto hueso, acento dorado vela
-   ========================================================= */
 :root {
   --serif: "Literata", Georgia, "Times New Roman", serif;
   --mono-display: "Special Elite", "Courier New", monospace;
@@ -45,6 +42,9 @@ html[data-theme="day"] {
   --accent: #7a2620; --accent-soft: rgba(122,38,32,.14);
   --hairline: rgba(32,29,24,.14);
   --shadow: 0 1px 2px rgba(32,29,24,.08), 0 8px 24px rgba(32,29,24,.06);
+  --sky-top: #b9c2c9; --sky-bottom: var(--bg);
+  --cloud-far: #929ba3; --cloud-mid: #b7bfc4; --cloud-near: #e4e8ea;
+  --rain-rgb: 82,92,102;
 }
 html[data-theme="night"] {
   --bg: #15130f; --bg-elevated: #1d1a15; --bg-elevated-hover: #24201a;
@@ -52,6 +52,9 @@ html[data-theme="night"] {
   --accent: #c9a15a; --accent-soft: rgba(201,161,90,.16);
   --hairline: rgba(233,226,209,.12);
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  --sky-top: #05060a; --sky-bottom: var(--bg);
+  --cloud-far: #201f29; --cloud-mid: #2c2a37; --cloud-near: #3d3a4a;
+  --rain-rgb: 176,188,214;
 }
 * { box-sizing: border-box; }
 body {
@@ -59,137 +62,230 @@ body {
   transition: background-color .25s ease, color .25s ease; min-height: 100vh;
 }
 @media (prefers-reduced-motion: reduce) {
-  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  .puff-instance, .puff-layer { animation: none !important; transition: none !important; }
 }
 a { color: inherit; }
 button { font-family: var(--ui); cursor: pointer; border: none; background: none; color: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 ::selection { background: var(--accent-soft); }
+[hidden] { display: none !important; }
 
-.rain-veil {
-  position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .35;
-  background-image: repeating-linear-gradient(100deg, transparent 0, transparent 68px, var(--hairline) 68px, var(--hairline) 69px);
+/* =========================================================
+   CLIMA — cielo, nubes esponjosas por capas y lluvia real
+   ========================================================= */
+.weather { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+html.weather-off .weather { display: none; }
+
+.weather__sky {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-top) 12%, var(--sky-bottom) 68%);
 }
 
-/* ---- topbar ---- */
+.puff-layer { position: absolute; inset: 0; }
+.puff-instance { position: absolute; display: block; }
+
+.puff-layer--far .puff-instance  { color: var(--cloud-far); opacity: .5;  filter: blur(1.5px) drop-shadow(0 10px 16px rgba(0,0,0,.10)); }
+.puff-layer--mid .puff-instance  { color: var(--cloud-mid); opacity: .78; filter: drop-shadow(0 16px 22px rgba(0,0,0,.15)); }
+.puff-layer--near .puff-instance { color: var(--cloud-near); opacity: .98; filter: drop-shadow(0 22px 30px rgba(0,0,0,.22)); }
+
+@keyframes driftA { 0% { transform: translateX(0); } 50% { transform: translateX(44px); } 100% { transform: translateX(0); } }
+@keyframes driftB { 0% { transform: translateX(0); } 50% { transform: translateX(-56px); } 100% { transform: translateX(0); } }
+
+.rain-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
 .topbar {
   position: sticky; top: 0; z-index: 20; display: flex; align-items: center;
-  justify-content: space-between; gap: 12px; padding: 14px 20px;
+  justify-content: space-between; gap: 10px; padding: 14px 20px;
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(8px); border-bottom: 1px solid var(--hairline);
 }
-.brand {
-  display: flex; align-items: baseline; gap: 8px; font-family: var(--mono-display);
-  font-size: .95rem; letter-spacing: .02em; text-decoration: none; color: var(--text);
-}
-.brand__mark { color: var(--accent); }
-.icon-btn {
-  display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px;
-  border-radius: 50%; color: var(--text-dim); transition: background-color .15s ease, color .15s ease;
-}
+.brand { display: flex; align-items: center; gap: 9px; font-family: var(--mono-display); font-size: .95rem; letter-spacing: .02em; text-decoration: none; color: var(--text); white-space: nowrap; }
+.brand__mark { display: inline-flex; color: var(--accent); flex-shrink: 0; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; color: var(--text-dim); transition: background-color .15s ease, color .15s ease; flex-shrink: 0; }
+.icon-btn.is-off { color: var(--text-faint); }
 .icon-btn:hover { background: var(--bg-elevated-hover); color: var(--text); }
-.controls { display: flex; align-items: center; gap: 4px; }
+.controls { display: flex; align-items: center; gap: 2px; }
 .font-controls { display: flex; align-items: center; gap: 2px; border: 1px solid var(--hairline); border-radius: 20px; padding: 2px; }
 .font-controls button { width: 30px; height: 30px; border-radius: 50%; font-weight: 600; color: var(--text-dim); }
 .font-controls button:first-child { font-size: .75rem; }
 .font-controls button:last-child { font-size: 1rem; }
 .font-controls button:hover { background: var(--bg-elevated-hover); color: var(--text); }
-.reader-topbar__title {
-  font-family: var(--ui); font-size: .8rem; color: var(--text-dim); flex: 1;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: none;
-}
+.reader-topbar__title { font-family: var(--ui); font-size: .8rem; color: var(--text-dim); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: none; }
 @media (min-width: 640px) { .reader-topbar__title.is-visible { display: block; } }
 
-/* ---- library ---- */
-.library { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 48px 20px 100px; }
+/* =========================================================
+   LIBRARY
+   ========================================================= */
+.library { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 48px 20px 100px; }
 .library__intro { margin-bottom: 40px; }
 .eyebrow { font-family: var(--mono-display); font-size: .8rem; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; margin: 0 0 10px; }
-.library__intro h1 { font-family: var(--mono-display); font-weight: 400; font-size: clamp(1.6rem,4vw,2.3rem); line-height: 1.3; margin: 0 0 12px; }
+.library__intro h1 { font-family: var(--mono-display); font-weight: 400; font-size: clamp(1.6rem,4vw,2.3rem); line-height: 1.3; margin: 0 0 12px; text-shadow: 0 1px 0 color-mix(in srgb, var(--bg) 60%, transparent); }
 .library__intro p { color: var(--text-dim); font-size: 1.05rem; max-width: 46ch; margin: 0; }
-.search-row { margin: 28px 0 36px; }
+
+.search-row { margin: 28px 0 44px; display: flex; justify-content: center; }
 .search-row input {
-  width: 100%; font-family: var(--serif); font-style: italic; font-size: 1rem; padding: 12px 16px;
-  background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: var(--radius); color: var(--text);
+  width: 100%; max-width: 440px; font-family: var(--serif); font-style: italic; font-size: 1rem;
+  padding: 14px 24px; background: var(--bg-elevated); border: 1px solid var(--hairline);
+  border-radius: 999px; color: var(--text); text-align: center;
+  box-shadow: 0 10px 22px rgba(0,0,0,.10), inset 0 1px 0 color-mix(in srgb, var(--text) 6%, transparent);
 }
 .search-row input::placeholder { color: var(--text-faint); }
-.story-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 18px; }
+
+.story-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 24px 22px; }
+
 .story-card {
-  display: block; text-decoration: none; color: inherit; background: var(--bg-elevated);
-  border: 1px solid var(--hairline); border-radius: var(--radius); padding: 22px 20px;
-  box-shadow: var(--shadow); position: relative; transition: transform .18s ease, border-color .18s ease;
+  display: block; text-decoration: none; color: inherit;
+  background: radial-gradient(120% 140% at 28% 15%, var(--bg-elevated-hover), var(--bg-elevated) 62%);
+  border: 1px solid var(--hairline); border-radius: 26px; padding: 24px 22px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.06), 0 18px 34px rgba(0,0,0,.12), inset 0 1px 0 color-mix(in srgb, var(--text) 5%, transparent);
+  position: relative; transition: transform .22s ease, box-shadow .22s ease;
 }
 .story-card::before {
-  content: ""; position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+  content: ""; position: absolute; top: 0; left: 22px; right: 22px; height: 1px;
   background: repeating-linear-gradient(90deg, var(--hairline) 0, var(--hairline) 5px, transparent 5px, transparent 10px);
 }
-.story-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.story-card:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,.08), 0 24px 42px rgba(0,0,0,.16), inset 0 1px 0 color-mix(in srgb, var(--text) 5%, transparent); }
+
 .story-card__title { font-family: var(--mono-display); font-size: 1.05rem; line-height: 1.4; margin: 6px 0 10px; }
-.story-card__excerpt {
-  color: var(--text-dim); font-size: .95rem; line-height: 1.55; margin: 0 0 16px;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-}
+.story-card__excerpt { color: var(--text-dim); font-size: .95rem; line-height: 1.55; margin: 0 0 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .story-card__meta { font-family: var(--ui); font-size: .75rem; letter-spacing: .03em; color: var(--text-faint); text-transform: uppercase; }
-.empty-state, .error-state {
-  font-family: var(--ui); color: var(--text-dim); border: 1px dashed var(--hairline);
-  border-radius: var(--radius); padding: 28px; font-size: .95rem; line-height: 1.6; grid-column: 1/-1;
-}
-.error-state code { background: var(--bg-elevated); padding: 2px 6px; border-radius: 3px; }
-.skeleton { background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: var(--radius); height: 148px; position: relative; overflow: hidden; }
-.skeleton::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, var(--bg-elevated-hover), transparent); animation: shimmer 1.6s infinite;
-}
+
+.empty-state, .error-state { font-family: var(--ui); color: var(--text-dim); border: 1px dashed var(--hairline); border-radius: var(--radius); padding: 28px; font-size: .95rem; line-height: 1.6; grid-column: 1/-1; background: var(--bg-elevated); }
+.error-state code { background: var(--bg); padding: 2px 6px; border-radius: 3px; }
+.skeleton { background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: 26px; height: 148px; position: relative; overflow: hidden; }
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--bg-elevated-hover), transparent); animation: shimmer 1.6s infinite; }
 @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 
-/* ---- reader ---- */
-.progress-line { position: fixed; top: 0; left: 0; height: 2px; background: var(--accent); width: 0%; z-index: 30; transition: width .1s linear; }
-.reader-mobile-whisper {
-  font-family: var(--mono-display); font-size: .72rem; letter-spacing: .04em; color: var(--text-faint);
-  text-align: center; padding: 10px 20px 0; min-height: 1.4em; transition: color .4s ease;
-}
-.reader-mobile-whisper.is-active { color: var(--accent); }
-.reader-shell { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr; max-width: 1100px; margin: 0 auto; }
+/* =========================================================
+   READER
+   ========================================================= */
+.progress-line { position: fixed; top: 0; left: 0; height: 2px; background: var(--accent); width: 0%; z-index: 30; transition: width .1s linear; box-shadow: 0 0 8px var(--accent); }
+.reader-mobile-whisper { position: relative; z-index: 1; font-family: var(--mono-display); font-size: .82rem; letter-spacing: .04em; color: var(--text-faint); text-align: center; padding: 12px 20px 0; min-height: 1.6em; transition: color .5s ease, text-shadow .5s ease; }
+.reader-mobile-whisper.is-active { color: var(--accent); text-shadow: 0 0 12px var(--accent-soft); }
+.reader-shell { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr; max-width: 1140px; margin: 0 auto; }
+
 article.story { max-width: var(--max-w); margin: 0 auto; padding: 40px 22px 140px; font-size: var(--reading-size); line-height: var(--reading-leading); }
+html:not(.flatbg-off) article.story { background: color-mix(in srgb, var(--bg-elevated) 94%, transparent); border-radius: 18px; margin-top: 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
+
 article.story h1.story__title { font-family: var(--mono-display); font-weight: 400; font-size: clamp(1.5rem,5vw,2rem); line-height: 1.35; margin: 0 0 6px; }
 .story__byline { font-family: var(--ui); font-size: .8rem; color: var(--text-faint); letter-spacing: .03em; margin: 0 0 40px; text-transform: uppercase; }
 article.story p { margin: 0 0 1.3em; }
-article.story p:first-of-type::first-letter { font-family: var(--mono-display); font-size: 2.6em; float: left; line-height: .85; padding: .05em .08em 0 0; color: var(--accent); }
+.story__body p:first-of-type::first-letter { font-family: var(--mono-display); font-size: 2.6em; float: left; line-height: .85; padding: .05em .08em 0 0; color: var(--accent); }
 article.story blockquote { margin: 0 0 1.3em; padding-left: 18px; border-left: 2px solid var(--accent); color: var(--text-dim); font-style: italic; }
 article.story em { color: var(--text); }
 .section-anchor { display: block; height: 0; margin-top: 2.2em; }
-.story-end {
-  margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--hairline); display: flex;
-  align-items: center; gap: 14px; font-family: var(--ui); font-size: .85rem; color: var(--text-dim);
-}
+.story-end { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--hairline); display: flex; align-items: center; gap: 14px; font-family: var(--ui); font-size: .85rem; color: var(--text-dim); }
 .story-end::before { content: "❖"; color: var(--accent); }
+
 .ghost-nav { display: none; }
 @media (min-width: 980px) {
-  .reader-shell { grid-template-columns: 1fr 200px; align-items: start; }
-  .ghost-nav { display: block; position: sticky; top: 90px; padding: 40px 24px 40px 0; max-height: calc(100vh - 90px); }
-  .ghost-nav ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--hairline); }
-  .ghost-nav li { padding: 7px 0 7px 16px; margin-bottom: 2px; }
-  .ghost-nav button { font-family: var(--mono-display); font-size: .78rem; line-height: 1.4; text-align: left; color: var(--text-faint); opacity: .55; transition: opacity .6s ease, color .4s ease; display: block; }
-  .ghost-nav li.is-active button { opacity: 1; color: var(--accent); }
-  .ghost-nav li.is-near button { opacity: .85; color: var(--text-dim); }
-  .ghost-nav button:hover { opacity: 1; color: var(--text); }
+  .reader-shell { grid-template-columns: 1fr 260px; align-items: start; }
+  .ghost-nav { display: block; position: sticky; top: 90px; padding: 48px 26px 40px 26px; max-height: calc(100vh - 90px); }
+  .ghost-nav ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--hairline); position: relative; }
+  .ghost-nav li { padding: 11px 0 11px 22px; margin-bottom: 4px; }
+  .ghost-nav button { font-family: var(--mono-display); font-size: .95rem; line-height: 1.45; text-align: left; color: var(--text-faint); opacity: .32; filter: blur(1.4px); transform: translateX(0); transition: opacity .55s ease, filter .55s ease, color .45s ease, text-shadow .45s ease, transform .45s ease; display: block; }
+  .ghost-nav li.is-near button { opacity: .68; filter: blur(.4px); color: var(--text-dim); }
+  .ghost-nav li.is-active button { opacity: 1; filter: blur(0); color: var(--accent); transform: translateX(4px); text-shadow: 0 0 14px var(--accent-soft), 0 0 4px var(--accent-soft); }
+  .ghost-nav button:hover { opacity: 1; filter: blur(0); color: var(--text); }
+  .ghost-nav__flame { position: absolute; left: -2px; width: 4px; height: 20px; border-radius: 3px; background: var(--accent); box-shadow: 0 0 10px 2px var(--accent), 0 0 22px 4px var(--accent-soft); transition: top .5s cubic-bezier(.3,.8,.3,1); opacity: 0; }
+  .ghost-nav__flame.is-visible { opacity: 1; }
 }
+
 .site-footer { position: relative; z-index: 1; text-align: center; font-family: var(--ui); font-size: .75rem; color: var(--text-faint); padding: 30px 20px 50px; }
-[hidden] { display: none !important; }
 </style>
 </head>
 <body>
 
-<div class="rain-veil" aria-hidden="true"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="puffGoo" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
+      <feColorMatrix in="blur" mode="matrix"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" result="goo" />
+    </filter>
+    <filter id="puffHighlightBlur" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="9" />
+    </filter>
+    <symbol id="puffA" viewBox="0 0 240 140">
+      <g filter="url(#puffGoo)" fill="currentColor">
+        <circle cx="40" cy="97" r="34" />
+        <circle cx="78" cy="101" r="40" />
+        <circle cx="128" cy="99" r="46" />
+        <circle cx="178" cy="97" r="40" />
+        <circle cx="207" cy="90" r="30" />
+        <circle cx="62" cy="59" r="32" />
+        <circle cx="102" cy="43" r="38" />
+        <circle cx="148" cy="39" r="41" />
+        <circle cx="188" cy="53" r="32" />
+      </g>
+      <ellipse cx="118" cy="46" rx="58" ry="24" fill="#fff" opacity=".2" filter="url(#puffHighlightBlur)" />
+    </symbol>
+    <symbol id="puffB" viewBox="0 0 240 140">
+      <g filter="url(#puffGoo)" fill="currentColor">
+        <circle cx="28" cy="101" r="28" />
+        <circle cx="68" cy="106" r="36" />
+        <circle cx="114" cy="103" r="42" />
+        <circle cx="160" cy="99" r="38" />
+        <circle cx="200" cy="95" r="32" />
+        <circle cx="228" cy="89" r="24" />
+        <circle cx="50" cy="65" r="28" />
+        <circle cx="94" cy="49" r="34" />
+        <circle cx="140" cy="40" r="38" />
+        <circle cx="180" cy="47" r="34" />
+        <circle cx="212" cy="60" r="26" />
+      </g>
+      <ellipse cx="148" cy="42" rx="60" ry="22" fill="#fff" opacity=".22" filter="url(#puffHighlightBlur)" />
+    </symbol>
+  </defs>
+</svg>
+
+<div class="weather" id="weather-layer" aria-hidden="true">
+  <div class="weather__sky"></div>
+
+  <div class="puff-layer puff-layer--far" id="layer-far">
+    <svg class="puff-instance" style="left:2%; top:4%; width:230px; animation:driftA 200s ease-in-out infinite;"><use href="#puffB"></use></svg>
+    <svg class="puff-instance" style="left:60%; top:1%; width:200px; animation:driftB 240s ease-in-out infinite;"><use href="#puffA"></use></svg>
+  </div>
+
+  <div class="puff-layer puff-layer--mid" id="layer-mid">
+    <svg class="puff-instance" style="left:24%; top:11%; width:280px; animation:driftA 140s ease-in-out infinite;"><use href="#puffA"></use></svg>
+    <svg class="puff-instance" style="left:67%; top:8%; width:250px; animation:driftB 165s ease-in-out infinite;"><use href="#puffB"></use></svg>
+    <svg class="puff-instance" style="left:-6%; top:17%; width:230px; animation:driftA 185s ease-in-out infinite;"><use href="#puffA"></use></svg>
+  </div>
+
+  <div class="puff-layer puff-layer--near" id="layer-near">
+    <svg class="puff-instance" style="left:8%; top:20%; width:340px; animation:driftB 100s ease-in-out infinite;"><use href="#puffB"></use></svg>
+    <svg class="puff-instance" style="left:50%; top:16%; width:300px; animation:driftA 115s ease-in-out infinite;"><use href="#puffA"></use></svg>
+    <svg class="puff-instance" style="left:78%; top:22%; width:280px; animation:driftB 105s ease-in-out infinite;"><use href="#puffB"></use></svg>
+  </div>
+
+  <canvas class="rain-canvas" id="rain-canvas"></canvas>
+</div>
+
 <div class="progress-line" id="progress-line"></div>
 
 <header class="topbar">
-  <a href="#/" class="brand" id="brand-link"><span class="brand__mark">☂</span> <span id="brand-text">Lluvia de Historias</span></a>
+  <a href="#/" class="brand" id="brand-link">
+    <span class="brand__mark" id="brand-mark">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 18.5H6.4a4 4 0 1 1 .9-7.9 5.5 5.5 0 0 1 10.6 1.9h.1a4 4 0 0 1 0 8z"/><path d="M9 21v-2M13 22v-2.5M17 21v-2"/></svg>
+    </span>
+    <span id="brand-text">Lluvia de Historias</span>
+  </a>
   <span class="reader-topbar__title" id="reader-topbar-title"></span>
   <div class="controls">
     <div class="font-controls" id="font-controls" hidden>
       <button id="font-minus" aria-label="Reducir tamaño de letra" title="Letra más pequeña">A</button>
       <button id="font-plus" aria-label="Aumentar tamaño de letra" title="Letra más grande">A</button>
     </div>
+    <button class="icon-btn" id="flatbg-toggle" aria-label="Fondo plano para lectura" title="Fondo plano para mejorar la legibilidad">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 13h5"></path></svg>
+    </button>
+    <button class="icon-btn" id="weather-toggle" aria-label="Activar o desactivar el efecto de lluvia" title="Efecto de lluvia">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15.5H6.4a4 4 0 1 1 .9-7.9 5.5 5.5 0 0 1 10.6 1.9h.1a4 4 0 0 1 0 8z"/><path d="M9 19v1M13 20v1.5M17 19v1"></path></svg>
+    </button>
     <button class="icon-btn" id="theme-toggle" aria-label="Cambiar entre modo día y modo noche" title="Modo día / noche">
       <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
     </button>
@@ -227,11 +323,6 @@ article.story em { color: var(--text); }
 (function () {
   "use strict";
 
-  /* =======================================================
-     CONFIGURACIÓN — lo único que tienes que tocar
-     Los archivos deben llamarse 1.md, 2.md, 3.md... sin huecos,
-     dentro de la carpeta storiesPath del repositorio.
-     ======================================================= */
   var CONFIG = {
     githubUser: "WolfArangr",
     githubRepo: "gato",
@@ -244,9 +335,6 @@ article.story em { color: var(--text); }
       "/" + CONFIG.branch + "/" + CONFIG.storiesPath + "/" + n + ".md";
   }
 
-  /* =======================================================
-     Utilidades
-     ======================================================= */
   function escapeHtml(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
@@ -257,16 +345,11 @@ article.story em { color: var(--text); }
       .replace(/_(.+?)_/g, "<em>$1</em>");
   }
 
-  /* Convierte el markdown de una historia a { title, html, toc } sin
-     depender de ninguna librería externa. Soporta: # título, ## secciones
-     (que nunca se pintan como texto, solo alimentan la navegación ghost),
-     párrafos, citas con ">" y negrita/cursiva. */
   function parseMarkdown(raw) {
     var lines = raw.replace(/\r\n/g, "\n").split("\n");
     var title = null;
     var bodyLines = [];
     var titleFound = false;
-
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
       if (!titleFound && /^#\s+/.test(line)) {
@@ -276,12 +359,10 @@ article.story em { color: var(--text); }
       }
       bodyLines.push(line);
     }
-
     var blocks = bodyLines.join("\n").split(/\n{2,}/).map(function (b) { return b.trim(); }).filter(Boolean);
     var html = "";
     var toc = [];
     var sectionIndex = 0;
-
     blocks.forEach(function (block) {
       if (/^##\s+/.test(block)) {
         sectionIndex++;
@@ -299,7 +380,6 @@ article.story em { color: var(--text); }
       var para = block.split("\n").map(function (l) { return inline(escapeHtml(l)); }).join("<br>");
       html += "<p>" + para + "</p>";
     });
-
     return { title: title || null, html: html, toc: toc };
   }
 
@@ -318,10 +398,7 @@ article.story em { color: var(--text); }
     return "";
   }
 
-  /* =======================================================
-     Carga y caché de historias — sin API, prueba 1.md, 2.md...
-     ======================================================= */
-  var cache = {};       // n -> { n, title, excerpt, minutes, parsed, raw }
+  var cache = {};
   var libraryList = null;
   var libraryPromise = null;
 
@@ -350,7 +427,6 @@ article.story em { color: var(--text); }
     libraryPromise = (function () {
       var found = [];
       var BATCH = 6, MAX = 500;
-
       function step(n) {
         if (n > MAX) return Promise.resolve(found);
         var batch = [];
@@ -367,17 +443,13 @@ article.story em { color: var(--text); }
           return step(n + BATCH);
         });
       }
-
-      return step(1).then(function (list) {
-        libraryList = list;
-        return list;
-      });
+      return step(1).then(function (list) { libraryList = list; return list; });
     })();
     return libraryPromise;
   }
 
   /* =======================================================
-     Tema y tamaño de letra
+     Tema / tamaño de letra / clima / fondo plano
      ======================================================= */
   var themeBtn = document.getElementById("theme-toggle");
   var themeIcon = document.getElementById("theme-icon");
@@ -392,6 +464,26 @@ article.story em { color: var(--text); }
     document.documentElement.setAttribute("data-theme", next);
     localStorage.setItem("ldh-theme", next);
     paintThemeIcon(next);
+    Weather.refreshColor();
+  });
+
+  var weatherBtn = document.getElementById("weather-toggle");
+  function paintWeatherBtn() { weatherBtn.classList.toggle("is-off", document.documentElement.classList.contains("weather-off")); }
+  paintWeatherBtn();
+  weatherBtn.addEventListener("click", function () {
+    var off = document.documentElement.classList.toggle("weather-off");
+    localStorage.setItem("ldh-weather", off ? "off" : "on");
+    paintWeatherBtn();
+    if (off) Weather.stop(); else Weather.start();
+  });
+
+  var flatbgBtn = document.getElementById("flatbg-toggle");
+  function paintFlatbgBtn() { flatbgBtn.classList.toggle("is-off", document.documentElement.classList.contains("flatbg-off")); }
+  paintFlatbgBtn();
+  flatbgBtn.addEventListener("click", function () {
+    var off = document.documentElement.classList.toggle("flatbg-off");
+    localStorage.setItem("ldh-flatbg", off ? "off" : "on");
+    paintFlatbgBtn();
   });
 
   var FONT_SIZES = [0.95, 1.0625, 1.125, 1.25, 1.4375];
@@ -401,12 +493,129 @@ article.story em { color: var(--text); }
     document.documentElement.style.setProperty("--reading-size", FONT_SIZES[fontIndex] + "rem");
     localStorage.setItem("ldh-font-index", fontIndex);
   }
-  document.getElementById("font-minus").addEventListener("click", function () {
-    fontIndex = Math.max(0, fontIndex - 1); applyFontSize();
-  });
-  document.getElementById("font-plus").addEventListener("click", function () {
-    fontIndex = Math.min(FONT_SIZES.length - 1, fontIndex + 1); applyFontSize();
-  });
+  document.getElementById("font-minus").addEventListener("click", function () { fontIndex = Math.max(0, fontIndex - 1); applyFontSize(); });
+  document.getElementById("font-plus").addEventListener("click", function () { fontIndex = Math.min(FONT_SIZES.length - 1, fontIndex + 1); applyFontSize(); });
+
+  /* =======================================================
+     WEATHER — lluvia real en canvas + parallax de nubes
+     ======================================================= */
+  var Weather = (function () {
+    var canvas = document.getElementById("rain-canvas");
+    var ctx = canvas.getContext("2d");
+    var drops = [];
+    var rafId = null;
+    var w = 0, h = 0, dpr = 1;
+    var rainRGB = "200,200,200";
+
+    var LAYERS = [
+      { count: 46, lenMin: 7,  lenMax: 13, speedMin: 4,  speedMax: 6.2, wind: 1.1, width: 1,   opMin: .10, opMax: .22 },
+      { count: 58, lenMin: 12, lenMax: 20, speedMin: 7,  speedMax: 10,  wind: 1.7, width: 1.3, opMin: .18, opMax: .32 },
+      { count: 46, lenMin: 18, lenMax: 30, speedMin: 11, speedMax: 15,  wind: 2.4, width: 1.7, opMin: .28, opMax: .46 },
+    ];
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    function resize() {
+      var rect = canvas.getBoundingClientRect();
+      dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+      w = rect.width; h = rect.height;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      buildDrops();
+    }
+
+    function buildDrops() {
+      drops = [];
+      var scale = Math.max(.7, Math.min(1.6, w / 1100));
+      LAYERS.forEach(function (cfg) {
+        var n = Math.round(cfg.count * scale);
+        for (var i = 0; i < n; i++) {
+          drops.push({
+            x: rand(0, w),
+            y: rand(-h, h),
+            length: rand(cfg.lenMin, cfg.lenMax),
+            speed: rand(cfg.speedMin, cfg.speedMax),
+            wind: cfg.wind,
+            width: cfg.width,
+            opacity: rand(cfg.opMin, cfg.opMax),
+          });
+        }
+      });
+    }
+
+    function refreshColor() {
+      rainRGB = getComputedStyle(document.documentElement).getPropertyValue("--rain-rgb").trim() || rainRGB;
+    }
+
+    function frame() {
+      ctx.clearRect(0, 0, w, h);
+      for (var i = 0; i < drops.length; i++) {
+        var d = drops[i];
+        d.y += d.speed;
+        d.x += d.wind * 0.28;
+        if (d.y - d.length > h) {
+          d.y = -d.length - rand(0, 60);
+          d.x = rand(0, w);
+        }
+        var x2 = d.x + d.wind * 2.2;
+        var y2 = d.y + d.length;
+        var grad = ctx.createLinearGradient(d.x, d.y, x2, y2);
+        grad.addColorStop(0, "rgba(" + rainRGB + ",0)");
+        grad.addColorStop(1, "rgba(" + rainRGB + "," + d.opacity + ")");
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = d.width;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      rafId = requestAnimationFrame(frame);
+    }
+
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function start() {
+      if (document.documentElement.classList.contains("weather-off")) return;
+      if (reduceMotion) return;
+      if (rafId) return;
+      refreshColor();
+      resize();
+      rafId = requestAnimationFrame(frame);
+    }
+    function stop() {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    window.addEventListener("resize", function () { if (rafId) resize(); });
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) stop(); else start();
+    });
+
+    var parallaxLayers = [
+      { el: document.getElementById("layer-far"), factor: 0.015 },
+      { el: document.getElementById("layer-mid"), factor: 0.03 },
+      { el: document.getElementById("layer-near"), factor: 0.05 },
+    ];
+    var ticking = false;
+    window.addEventListener("scroll", function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        var y = window.scrollY;
+        parallaxLayers.forEach(function (l) {
+          if (l.el) l.el.style.transform = "translateY(" + (y * l.factor) + "px)";
+        });
+        ticking = false;
+      });
+    }, { passive: true });
+
+    return { start: start, stop: stop, refreshColor: refreshColor };
+  })();
+
+  if (!document.documentElement.classList.contains("weather-off")) Weather.start();
 
   /* =======================================================
      Vistas
@@ -414,7 +623,7 @@ article.story em { color: var(--text); }
   var viewLibrary = document.getElementById("view-library");
   var viewReader = document.getElementById("view-reader");
   var brandText = document.getElementById("brand-text");
-  var brandMark = document.querySelector(".brand__mark");
+  var brandMark = document.getElementById("brand-mark");
   var topbarTitle = document.getElementById("reader-topbar-title");
   var fontControls = document.getElementById("font-controls");
   var mobileWhisper = document.getElementById("mobile-whisper");
@@ -426,6 +635,10 @@ article.story em { color: var(--text); }
   var ghostList = document.getElementById("ghost-nav-list");
 
   var scrollObserver = null;
+  var flameEl = null;
+
+  var BACK_ICON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>';
+  var CLOUD_ICON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 18.5H6.4a4 4 0 1 1 .9-7.9 5.5 5.5 0 0 1 10.6 1.9h.1a4 4 0 0 1 0 8z"/><path d="M9 21v-2M13 22v-2.5M17 21v-2"/></svg>';
 
   function escapeText(str) {
     var div = document.createElement("div");
@@ -436,8 +649,8 @@ article.story em { color: var(--text); }
   function showLibrary() {
     viewReader.hidden = true;
     viewLibrary.hidden = false;
+    brandMark.innerHTML = CLOUD_ICON;
     brandText.textContent = "Lluvia de Historias";
-    brandMark.textContent = "☂";
     topbarTitle.textContent = "";
     topbarTitle.classList.remove("is-visible");
     fontControls.hidden = true;
@@ -447,14 +660,10 @@ article.story em { color: var(--text); }
     window.scrollTo(0, 0);
 
     if (!CONFIG.githubUser || CONFIG.githubUser === "TU_USUARIO") {
-      grid.innerHTML = '<div class="error-state">Falta configurar el sitio. Abre este archivo con un editor de texto y rellena <code>githubUser</code> y <code>githubRepo</code> al principio del &lt;script&gt;.</div>';
+      grid.innerHTML = '<div class="error-state">Falta configurar el sitio. Rellena <code>githubUser</code> y <code>githubRepo</code> al principio del &lt;script&gt;.</div>';
       return;
     }
-
-    if (libraryList) {
-      renderGrid(libraryList);
-      return;
-    }
+    if (libraryList) { renderGrid(libraryList); return; }
     grid.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
     discoverLibrary().then(function (list) {
       if (!list.length) {
@@ -472,10 +681,7 @@ article.story em { color: var(--text); }
     var filtered = !q ? list : list.filter(function (s) {
       return s.title.toLowerCase().indexOf(q) !== -1 || s.excerpt.toLowerCase().indexOf(q) !== -1;
     });
-    if (!filtered.length) {
-      grid.innerHTML = '<div class="empty-state">No hay ninguna historia que coincida con tu búsqueda.</div>';
-      return;
-    }
+    if (!filtered.length) { grid.innerHTML = '<div class="empty-state">No hay ninguna historia que coincida con tu búsqueda.</div>'; return; }
     grid.innerHTML = "";
     filtered.forEach(function (story) {
       var a = document.createElement("a");
@@ -488,22 +694,21 @@ article.story em { color: var(--text); }
       grid.appendChild(a);
     });
   }
-  searchInput.addEventListener("input", function () {
-    if (libraryList) renderGrid(libraryList);
-  });
+  searchInput.addEventListener("input", function () { if (libraryList) renderGrid(libraryList); });
 
   function showReader(n) {
     viewLibrary.hidden = true;
     viewReader.hidden = false;
     fontControls.hidden = false;
     topbarTitle.classList.add("is-visible");
+    brandMark.innerHTML = BACK_ICON;
     brandText.textContent = "Volver";
-    brandMark.textContent = "←";
     window.scrollTo(0, 0);
 
     if (scrollObserver) { scrollObserver.disconnect(); scrollObserver = null; }
     storyContent.innerHTML = '<p style="color:var(--text-dim); font-family: var(--ui); font-size:.9rem;">Cargando historia…</p>';
     ghostList.innerHTML = "";
+    flameEl = null;
     ghostNav.style.display = "none";
     mobileWhisper.hidden = false;
     mobileWhisper.textContent = "";
@@ -512,13 +717,11 @@ article.story em { color: var(--text); }
       var titleText = entry.title;
       document.title = titleText + " · Lluvia de Historias";
       topbarTitle.textContent = titleText;
-
       storyContent.innerHTML =
         '<h1 class="story__title">' + escapeText(titleText) + '</h1>' +
         '<p class="story__byline">Lluvia de Historias</p>' +
-        entry.parsed.html +
+        '<div class="story__body">' + entry.parsed.html + '</div>' +
         '<p class="story-end">Fin del relato</p>';
-
       buildGhostNav(entry.parsed.toc);
       setupScrollSpy(entry.parsed.toc);
     }).catch(function () {
@@ -542,6 +745,16 @@ article.story em { color: var(--text); }
       li.appendChild(btn);
       ghostList.appendChild(li);
     });
+    flameEl = document.createElement("div");
+    flameEl.className = "ghost-nav__flame";
+    ghostNav.appendChild(flameEl);
+  }
+
+  function moveFlame(li) {
+    if (!flameEl || !li) return;
+    var top = li.offsetTop + li.offsetHeight / 2 - flameEl.offsetHeight / 2;
+    flameEl.style.top = top + "px";
+    flameEl.classList.add("is-visible");
   }
 
   function setupScrollSpy(toc) {
@@ -560,6 +773,7 @@ article.story em { color: var(--text); }
         activeLi.classList.add("is-active");
         if (activeLi.previousElementSibling) activeLi.previousElementSibling.classList.add("is-near");
         if (activeLi.nextElementSibling) activeLi.nextElementSibling.classList.add("is-near");
+        moveFlame(activeLi);
       }
       mobileWhisper.textContent = text;
       mobileWhisper.classList.add("is-active");
@@ -586,17 +800,10 @@ article.story em { color: var(--text); }
     progressLine.style.width = (docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0) + "%";
   }, { passive: true });
 
-  /* =======================================================
-     Enrutado por hash — todo en una sola página
-     ======================================================= */
   function route() {
     var hash = window.location.hash || "#/";
     var storyMatch = hash.match(/^#\/historia\/(\d+)/);
-    if (storyMatch) {
-      showReader(parseInt(storyMatch[1], 10));
-    } else {
-      showLibrary();
-    }
+    if (storyMatch) showReader(parseInt(storyMatch[1], 10)); else showLibrary();
   }
   window.addEventListener("hashchange", route);
   applyFontSize();
