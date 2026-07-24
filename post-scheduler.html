@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Sheet — Post Scheduler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#17181a;
+    --bg-panel:#1c1d1f;
+    --bg-raised:#232427;
+    --ink-strip:#0f0f10;
+    --paper:#ede6d6;
+    --paper-dim:#e1d7c0;
+    --ink:#2a2622;
+    --ink-soft:#6e6659;
+    --cream:#ede6d6;
+    --dim:#8b8778;
+    --border:rgba(237,230,214,0.10);
+    --border-strong:rgba(237,230,214,0.18);
+    --accent:#d9542e;
+    --accent-dark:#a83c1f;
+    --accent-soft:rgba(217,84,46,0.16);
+    --gold:#d9a73e;
+    --gold-soft:rgba(217,167,62,0.16);
+    --sage:#7a9a6e;
+    --sage-soft:rgba(122,154,110,0.16);
+    --radius:3px;
+    --font-display:'Bebas Neue', sans-serif;
+    --font-body:'Work Sans', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--cream);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;}
+  ::selection{background:var(--accent-soft);color:var(--cream);}
+  a{color:inherit;}
+
+  /* ---------- layout ---------- */
+  #app{display:flex;min-height:100vh;}
+  .sidebar{
+    width:216px;flex-shrink:0;
+    background:var(--bg-panel);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    padding:22px 16px;
+    position:sticky;top:0;height:100vh;
+  }
+  .brand{margin-bottom:28px;padding:0 4px;}
+  .brand-mark{
+    font-family:var(--font-display);
+    font-size:30px;letter-spacing:0.5px;line-height:0.9;
+    color:var(--cream);
+  }
+  .brand-sub{
+    font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;
+    color:var(--accent);text-transform:uppercase;margin-top:4px;
+  }
+  .nav{display:flex;flex-direction:column;gap:2px;}
+  .nav-btn{
+    display:flex;align-items:center;gap:10px;
+    background:transparent;border:none;color:var(--dim);
+    text-align:left;padding:10px 10px;border-radius:var(--radius);
+    font-size:14px;font-weight:500;cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  .nav-btn:hover{background:var(--bg-raised);color:var(--cream);}
+  .nav-btn.active{background:var(--accent-soft);color:var(--cream);}
+  .nav-btn .count{
+    margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--dim);
+  }
+  .nav-icon{width:16px;text-align:center;font-size:14px;flex-shrink:0;}
+  .sidebar-foot{margin-top:auto;padding:12px 10px 0;border-top:1px solid var(--border);}
+  .stat-row{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--dim);padding:4px 0;}
+  .stat-row b{color:var(--cream);font-weight:600;}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{
+    padding:22px 30px 16px;
+    display:flex;align-items:flex-end;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;
+    border-bottom:1px solid var(--border);
+  }
+  .view-title{font-family:var(--font-display);font-size:28px;letter-spacing:0.4px;}
+  .view-sub{font-family:var(--font-mono);font-size:11px;color:var(--dim);margin-top:2px;letter-spacing:0.3px;}
+  .topbar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+
+  .btn{
+    font-family:var(--font-body);font-weight:600;font-size:13px;
+    padding:9px 16px;border-radius:var(--radius);border:1px solid var(--border-strong);
+    background:var(--bg-raised);color:var(--cream);cursor:pointer;
+    transition:transform .1s, background .15s, border-color .15s;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn:hover{border-color:var(--dim);}
+  .btn:active{transform:scale(0.97);}
+  .btn-accent{background:var(--accent-dark);border-color:var(--accent-dark);color:var(--cream);}
+  .btn-accent:hover{background:var(--accent);border-color:var(--accent);}
+  .btn-ghost{background:transparent;border-color:transparent;color:var(--dim);}
+  .btn-ghost:hover{color:var(--cream);background:var(--bg-raised);}
+  .btn-danger{color:#e2836f;}
+  .btn-danger:hover{background:rgba(226,131,111,0.12);border-color:rgba(226,131,111,0.3);}
+  .btn-sm{padding:6px 10px;font-size:12px;}
+  .btn:focus-visible, .nav-btn:focus-visible, .tab:focus-visible, .card:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, .day-cell:focus-visible{
+    outline:2px solid var(--accent);outline-offset:2px;
+  }
+
+  .filter-tabs{display:flex;gap:4px;padding:14px 30px 0;}
+  .tab{
+    font-family:var(--font-mono);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;
+    padding:8px 14px;border-radius:var(--radius) var(--radius) 0 0;
+    background:transparent;border:none;color:var(--dim);cursor:pointer;
+    border-bottom:2px solid transparent;
+  }
+  .tab:hover{color:var(--cream);}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  #viewport{padding:20px 30px 60px;flex:1;}
+
+  /* film strip motif */
+  .film-strip{
+    height:16px;
+    background-color:var(--ink-strip);
+    background-image:radial-gradient(circle at center, var(--bg) 0 3px, transparent 3.6px);
+    background-size:26px 16px;
+    background-position:13px center;
+    border-radius:2px;
+    margin:0 0 18px;
+  }
+
+  /* ---------- library ---------- */
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+    gap:18px;
+  }
+  .empty-state{
+    text-align:center;padding:80px 20px;color:var(--dim);
+  }
+  .empty-state .em-title{font-family:var(--font-display);font-size:26px;color:var(--cream);margin-bottom:6px;}
+  .empty-state p{font-size:14px;max-width:360px;margin:0 auto 20px;}
+
+  .card{
+    background:var(--paper);color:var(--ink);border-radius:var(--radius);
+    overflow:hidden;cursor:pointer;border:1px solid transparent;
+    display:flex;flex-direction:column;
+    transition:transform .12s, box-shadow .12s;
+  }
+  .card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.35);}
+  .card-thumb-wrap{position:relative;aspect-ratio:1/1;background:var(--paper-dim);overflow:hidden;}
+  .card-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+  .frame-no{
+    position:absolute;top:6px;left:6px;background:rgba(23,24,26,0.72);color:var(--cream);
+    font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:2px;letter-spacing:0.5px;
+  }
+  .card-body{padding:10px 12px 12px;}
+  .card-name{font-size:13px;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:20px;}
+  .chip{
+    font-family:var(--font-mono);font-size:10px;letter-spacing:0.3px;
+    padding:3px 7px;border-radius:20px;text-transform:uppercase;
+    display:inline-flex;align-items:center;gap:4px;cursor:pointer;
+    border:1px solid transparent;
+  }
+  .chip-draft{background:rgba(110,102,89,0.16);color:var(--ink-soft);}
+  .chip-scheduled{background:var(--gold-soft);color:#8a6a1f;}
+  .chip-posted{background:var(--sage-soft);color:#3f5c37;}
+  .card-add{
+    width:100%;padding:6px 0;border-radius:2px;border:1px dashed var(--ink-soft);
+    background:transparent;color:var(--ink-soft);font-size:11px;font-family:var(--font-mono);
+    cursor:pointer;text-transform:uppercase;letter-spacing:0.4px;
+  }
+  .card-add:hover{border-color:var(--accent-dark);color:var(--accent-dark);}
+
+  /* ---------- modal base ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(10,10,11,0.72);backdrop-filter:blur(2px);
+    display:flex;align-items:center;justify-content:center;z-index:100;padding:24px;
+  }
+  .modal{
+    background:var(--bg-panel);border:1px solid var(--border-strong);border-radius:6px;
+    max-width:960px;width:100%;max-height:90vh;overflow:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-sm{max-width:420px;}
+  .modal-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-panel);z-index:2;
+  }
+  .modal-head h2{font-family:var(--font-display);font-size:22px;font-weight:400;margin:0;letter-spacing:0.3px;}
+  .modal-close{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;line-height:1;padding:4px;}
+  .modal-close:hover{color:var(--cream);}
+  .modal-body{padding:20px;}
+
+  /* preview modal */
+  .preview-wrap{display:flex;gap:0;align-items:stretch;}
+  .preview-img-col{flex:1;background:var(--ink-strip);display:flex;align-items:center;justify-content:center;position:relative;min-height:420px;}
+  .preview-img-col img{max-width:100%;max-height:70vh;object-fit:contain;}
+  .nav-arrow{
+    position:absolute;top:50%;transform:translateY(-50%);
+    background:rgba(23,24,26,0.6);border:1px solid var(--border-strong);color:var(--cream);
+    width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:16px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .nav-arrow:hover{background:var(--accent-dark);}
+  .nav-arrow.prev{left:14px;}
+  .nav-arrow.next{right:14px;}
+  .preview-side{width:280px;flex-shrink:0;padding:20px;border-left:1px solid var(--border);}
+  .preview-frameno{font-family:var(--font-mono);color:var(--dim);font-size:11px;margin-bottom:6px;}
+  .preview-name{font-weight:600;margin-bottom:16px;word-break:break-word;}
+  .post-attach{
+    border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:8px;cursor:pointer;
+  }
+  .post-attach:hover{border-color:var(--dim);}
+  .post-attach-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .post-attach-title{font-size:13px;font-weight:600;}
+
+  /* forms */
+  label{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:0.6px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
+  .field{margin-bottom:16px;}
+  input[type=text], input[type=date], textarea, select{
+    width:100%;background:var(--bg-raised);border:1px solid var(--border-strong);
+    color:var(--cream);padding:10px 12px;border-radius:var(--radius);font-family:var(--font-body);font-size:14px;
+  }
+  textarea{resize:vertical;min-height:80px;line-height:1.5;font-family:var(--font-body);}
+  .hint{font-size:11px;color:var(--dim);margin-top:5px;line-height:1.4;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .platform-toggles{display:flex;gap:10px;margin-bottom:16px;}
+  .ptoggle{
+    flex:1;border:1px solid var(--border-strong);border-radius:var(--radius);padding:12px;
+    cursor:pointer;text-align:center;transition:border-color .15s,background .15s;
+  }
+  .ptoggle.on{border-color:var(--accent);background:var(--accent-soft);}
+  .ptoggle-label{font-weight:600;font-size:13px;}
+  .ptoggle-sub{font-family:var(--font-mono);font-size:10px;color:var(--dim);margin-top:2px;}
+  .divider{height:1px;background:var(--border);margin:20px 0;}
+  .preview-box{
+    background:var(--paper);color:var(--ink);border-radius:var(--radius);padding:14px;
+    font-size:13px;line-height:1.55;white-space:pre-wrap;margin-bottom:10px;max-height:200px;overflow:auto;
+  }
+  .platform-block{margin-bottom:20px;}
+  .platform-block-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .platform-block-head h4{font-family:var(--font-display);font-weight:400;font-size:18px;margin:0;}
+  .modal-foot{
+    display:flex;justify-content:space-between;align-items:center;padding:16px 20px;
+    border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--bg-panel);
+  }
+
+  /* queue */
+  .queue-section{margin-bottom:26px;}
+  .queue-section-title{
+    font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--dim);
+    margin-bottom:10px;display:flex;align-items:center;gap:8px;
+  }
+  .queue-row{
+    display:flex;align-items:center;gap:14px;background:var(--bg-panel);border:1px solid var(--border);
+    border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;
+  }
+  .queue-thumb{width:48px;height:48px;border-radius:2px;object-fit:cover;flex-shrink:0;background:var(--paper-dim);}
+  .queue-mid{flex:1;min-width:0;}
+  .queue-title{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .queue-meta{font-family:var(--font-mono);font-size:11px;color:var(--dim);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;}
+  .queue-actions{display:flex;gap:6px;flex-shrink:0;}
+  .icon-btn{
+    background:transparent;border:1px solid var(--border-strong);color:var(--dim);
+    width:28px;height:28px;border-radius:var(--radius);cursor:pointer;font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .icon-btn:hover{color:var(--cream);border-color:var(--dim);}
+
+  /* calendar */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .cal-month{font-family:var(--font-display);font-size:24px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-dow{font-family:var(--font-mono);font-size:10px;color:var(--dim);text-align:center;padding-bottom:4px;text-transform:uppercase;}
+  .day-cell{
+    aspect-ratio:1/0.85;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:6px;cursor:pointer;display:flex;flex-direction:column;gap:4px;overflow:hidden;
+  }
+  .day-cell:hover{border-color:var(--dim);}
+  .day-cell.today{border-color:var(--accent);}
+  .day-cell.other-month{opacity:0.35;}
+  .day-num{font-family:var(--font-mono);font-size:11px;color:var(--dim);}
+  .day-dots{display:flex;flex-wrap:wrap;gap:3px;}
+  .day-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+  .day-thumb-strip{display:flex;gap:2px;margin-top:auto;}
+  .day-thumb-strip img{width:18px;height:18px;object-fit:cover;border-radius:2px;}
+
+  /* templates */
+  .tpl-wrap{max-width:680px;}
+  .tpl-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;}
+  @media (max-width:700px){.tpl-preview-grid{grid-template-columns:1fr;}}
+
+  /* toast */
+  #toastRoot{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+  .toast{
+    background:var(--bg-raised);border:1px solid var(--border-strong);color:var(--cream);
+    padding:11px 16px;border-radius:var(--radius);font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    animation:toastin .18s ease-out;
+  }
+  @keyframes toastin{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .imgpicker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;max-height:360px;overflow:auto;}
+  .imgpicker-item{cursor:pointer;border-radius:2px;overflow:hidden;border:2px solid transparent;aspect-ratio:1/1;}
+  .imgpicker-item:hover{border-color:var(--accent);}
+  .imgpicker-item img{width:100%;height:100%;object-fit:cover;display:block;}
+
+  .spinner{
+    width:16px;height:16px;border-radius:50%;border:2px solid rgba(237,230,214,0.25);
+    border-top-color:var(--cream);animation:spin .7s linear infinite;display:inline-block;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .spinner{animation:none;}
+    .card, .toast{animation:none;transition:none;}
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  @media (max-width:820px){
+    #app{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;flex-direction:row;align-items:center;padding:14px 16px;gap:16px;overflow-x:auto;}
+    .brand{margin-bottom:0;}
+    .nav{flex-direction:row;}
+    .sidebar-foot{display:none;}
+    .preview-wrap{flex-direction:column;}
+    .preview-side{width:100%;border-left:none;border-top:1px solid var(--border);}
+    .topbar{padding:16px 16px 10px;}
+    #viewport{padding:16px 16px 50px;}
+    .filter-tabs{padding:12px 16px 0;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">CONTACT<br>SHEET</div>
+      <div class="brand-sub">Post Scheduler</div>
+    </div>
+    <nav class="nav" id="navList"></nav>
+    <div class="sidebar-foot" id="sidebarStats"></div>
+  </aside>
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="filter-tabs" id="filterTabs"></div>
+    <div id="viewport"></div>
+  </main>
+</div>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+<input type="file" id="fileInput" accept="image/*" multiple hidden>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- state ---------------- */
+  const state = {
+    images: [],
+    posts: [],
+    template: { sharedBody:"{title}\n\n{notes}\n\nTags: {hashtags}", deviantartExtra:"", patreonExtra:"Full resolution available now for {tier} patrons and above.", defaultTags:"" },
+    view: "library",
+    libraryFilter: "all",
+    calMonth: new Date().getMonth(),
+    calYear: new Date().getFullYear(),
+    showPostedInQueue: false,
+    loaded: false
+  };
+
+  const $viewport = document.getElementById('viewport');
+  const $topbar = document.getElementById('topbar');
+  const $filterTabs = document.getElementById('filterTabs');
+  const $navList = document.getElementById('navList');
+  const $sidebarStats = document.getElementById('sidebarStats');
+  const $modalRoot = document.getElementById('modalRoot');
+  const $toastRoot = document.getElementById('toastRoot');
+  const $fileInput = document.getElementById('fileInput');
+
+  /* ---------------- utils ---------------- */
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+  function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function formatDate(iso){
+    if(!iso) return '';
+    const d = new Date(iso+'T00:00:00');
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+  }
+  function todayISO(){
+    const d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function toast(msg){
+    const el = document.createElement('div');
+    el.className='toast';
+    el.textContent = msg;
+    $toastRoot.appendChild(el);
+    setTimeout(()=>{ el.remove(); }, 3200);
+  }
+  function statusOf(post){
+    if(post.posted) return 'posted';
+    if(post.scheduledDate) return 'scheduled';
+    return 'draft';
+  }
+  function statusLabel(post){
+    const s = statusOf(post);
+    if(s==='posted') return 'Posted';
+    if(s==='scheduled') return 'Scheduled · '+formatDate(post.scheduledDate);
+    return 'Draft';
+  }
+  function platformLabel(post){
+    const p=[];
+    if(post.platforms.deviantart) p.push('DeviantArt');
+    if(post.platforms.patreon) p.push('Patreon');
+    return p.join(' + ')||'No platform';
+  }
+  function postsForImage(imageId){
+    return state.posts.filter(p=>p.imageId===imageId);
+  }
+  function imageById(id){ return state.images.find(i=>i.id===id); }
+  function postById(id){ return state.posts.find(p=>p.id===id); }
+
+  /* ---------------- storage ---------------- */
+  async function loadAll(){
+    try{
+      const imgList = await window.storage.list('img_', false);
+      if(imgList && imgList.keys){
+        for(const k of imgList.keys){
+          try{
+            const r = await window.storage.get(k, false);
+            if(r && r.value) state.images.push(JSON.parse(r.value));
+          }catch(e){ /* skip missing */ }
+        }
+      }
+    }catch(e){ console.error('load images failed', e); }
+
+    try{
+      const postList = await window.storage.list('post_', false);
+      if(postList && postList.keys){
+        for(const k of postList.keys){
+          try{
+            const r = await window.storage.get(k, false);
+            if(r && r.value) state.posts.push(JSON.parse(r.value));
+          }catch(e){}
+        }
+      }
+    }catch(e){ console.error('load posts failed', e); }
+
+    try{
+      const t = await window.storage.get('template_main', false);
+      if(t && t.value) state.template = JSON.parse(t.value);
+    }catch(e){ /* use default */ }
+
+    state.images.sort((a,b)=> (a.createdAt||0)-(b.createdAt||0));
+    state.loaded = true;
+  }
+
+  async function saveImageRecord(rec){
+    try{
+      const res = await window.storage.set('img_'+rec.id, JSON.stringify(rec), false);
+      if(!res) toast('Could not save that photo — it may be too large.');
+      return !!res;
+    }catch(e){ console.error(e); toast('Could not save that photo — it may be too large.'); return false; }
+  }
+  async function deleteImageRecord(id){
+    try{ await window.storage.delete('img_'+id, false); }catch(e){ console.error(e); }
+  }
+  async function savePostRecord(post){
+    try{
+      const res = await window.storage.set('post_'+post.id, JSON.stringify(post), false);
+      if(!res) toast('Could not save the post.');
+      return !!res;
+    }catch(e){ console.error(e); toast('Could not save the post.'); return false; }
+  }
+  async function deletePostRecord(id){
+    try{ await window.storage.delete('post_'+id, false); }catch(e){ console.error(e); }
+  }
+  async function saveTemplateRecord(){
+    try{
+      const res = await window.storage.set('template_main', JSON.stringify(state.template), false);
+      if(!res) toast('Could not save the template.');
+      return !!res;
+    }catch(e){ console.error(e); toast('Could not save the template.'); return false; }
+  }
+
+  /* ---------------- image processing ---------------- */
+  function resizeImageFile(file){
+    return new Promise((resolve,reject)=>{
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = ()=>{
+        const maxDim = 1600;
+        let {width,height} = img;
+        if(width>maxDim || height>maxDim){
+          if(width>=height){ height = Math.round(height*(maxDim/width)); width = maxDim; }
+          else { width = Math.round(width*(maxDim/height)); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img,0,0,width,height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        URL.revokeObjectURL(url);
+        resolve({dataUrl, width, height});
+      };
+      img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('image load failed')); };
+      img.src = url;
+    });
+  }
+
+  async function handleFiles(fileList){
+    const files = Array.from(fileList).filter(f=>f.type.startsWith('image/'));
+    if(!files.length) return;
+    let ok=0, fail=0;
+    for(let i=0;i<files.length;i++){
+      const f = files[i];
+      toast('Processing photo '+(i+1)+' of '+files.length+'…');
+      try{
+        const {dataUrl,width,height} = await resizeImageFile(f);
+        const rec = { id: uid(), name: f.name.replace(/\.[a-zA-Z0-9]+$/,''), dataUrl, width, height, createdAt: Date.now()+i };
+        const saved = await saveImageRecord(rec);
+        if(saved){ state.images.push(rec); ok++; } else fail++;
+      }catch(e){ fail++; }
+    }
+    toast(ok+' photo'+(ok===1?'':'s')+' added'+(fail?', '+fail+' failed':'')+'.');
+    render();
+  }
+
+  /* ---------------- template fill ---------------- */
+  function fillTemplate(str, post){
+    const tagArr = (post.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+    const hashtags = tagArr.map(t=>'#'+t.replace(/\s+/g,'')).join(' ');
+    return (str||'')
+      .split('{title}').join(post.title||'')
+      .split('{notes}').join(post.notes||'')
+      .split('{tags}').join(tagArr.join(', '))
+      .split('{hashtags}').join(hashtags)
+      .split('{tier}').join(post.patreonTier||'')
+      .split('{date}').join(post.scheduledDate? formatDate(post.scheduledDate): '');
+  }
+  function generateFinalText(post, platform){
+    const extraRaw = platform==='deviantart' ? state.template.deviantartExtra : state.template.patreonExtra;
+    const body = fillTemplate(state.template.sharedBody, post);
+    const extra = fillTemplate(extraRaw, post);
+    return (body + (extra.trim() ? '\n\n'+extra : '')).trim();
+  }
+
+  /* ---------------- render: shell ---------------- */
+  const NAV_ITEMS = [
+    {id:'library', icon:'▦', label:'Library'},
+    {id:'queue', icon:'☰', label:'Queue'},
+    {id:'calendar', icon:'▤', label:'Calendar'},
+    {id:'templates', icon:'✎', label:'Template'}
+  ];
+
+  function renderShell(){
+    $navList.innerHTML = NAV_ITEMS.map(n=>{
+      let count='';
+      if(n.id==='library') count = state.images.length;
+      if(n.id==='queue') count = state.posts.filter(p=>!p.posted).length;
+      return `<button class="nav-btn ${state.view===n.id?'active':''}" data-action="setview" data-view="${n.id}">
+        <span class="nav-icon">${n.icon}</span><span>${n.label}</span>
+        ${count!==''?`<span class="count">${count}</span>`:''}
+      </button>`;
+    }).join('');
+
+    const scheduled = state.posts.filter(p=>statusOf(p)==='scheduled').length;
+    const posted = state.posts.filter(p=>p.posted).length;
+    $sidebarStats.innerHTML = `
+      <div class="stat-row"><span>Photos</span><b>${state.images.length}</b></div>
+      <div class="stat-row"><span>Scheduled</span><b>${scheduled}</b></div>
+      <div class="stat-row"><span>Posted</span><b>${posted}</b></div>
+    `;
+
+    renderTopbar();
+    renderView();
+  }
+
+  function renderTopbar(){
+    const titles = {
+      library:['Library','Every frame you\'ve loaded onto the light table'],
+      queue:['Queue','What\'s next, in order'],
+      calendar:['Calendar','Your posting schedule at a glance'],
+      templates:['Template','One shared draft, tuned per platform']
+    };
+    const [title,sub] = titles[state.view];
+    $topbar.innerHTML = `
+      <div>
+        <div class="view-title">${title}</div>
+        <div class="view-sub">${sub}</div>
+      </div>
+      <div class="topbar-actions">
+        ${state.view==='library' ? `<button class="btn btn-accent" data-action="addphotos">+ Add photos</button>` : ''}
+        ${state.view==='queue' ? `<button class="btn btn-ghost" data-action="toggle-posted">${state.showPostedInQueue?'Hide posted':'Show posted'}</button>` : ''}
+      </div>
+    `;
+
+    if(state.view==='library'){
+      const counts = {
+        all: state.images.length,
+        draft: state.posts.filter(p=>statusOf(p)==='draft').length,
+        scheduled: state.posts.filter(p=>statusOf(p)==='scheduled').length,
+        posted: state.posts.filter(p=>statusOf(p)==='posted').length
+      };
+      $filterTabs.innerHTML = `
+        <button class="tab ${state.libraryFilter==='all'?'active':''}" data-action="setfilter" data-filter="all">All frames · ${counts.all}</button>
+        <button class="tab ${state.libraryFilter==='draft'?'active':''}" data-action="setfilter" data-filter="draft">Drafts · ${counts.draft}</button>
+        <button class="tab ${state.libraryFilter==='scheduled'?'active':''}" data-action="setfilter" data-filter="scheduled">Scheduled · ${counts.scheduled}</button>
+        <button class="tab ${state.libraryFilter==='posted'?'active':''}" data-action="setfilter" data-filter="posted">Posted · ${counts.posted}</button>
+      `;
+      $filterTabs.style.display='flex';
+    } else {
+      $filterTabs.innerHTML='';
+      $filterTabs.style.display='none';
+    }
+  }
+
+  function renderView(){
+    if(state.view==='library') return renderLibrary();
+    if(state.view==='queue') return renderQueue();
+    if(state.view==='calendar') return renderCalendar();
+    if(state.view==='templates') return renderTemplates();
+  }
+
+  /* ---------------- library view ---------------- */
+  function filteredImages(){
+    if(state.libraryFilter==='all') return state.images;
+    return state.images.filter(img=>{
+      const posts = postsForImage(img.id);
+      if(state.libraryFilter==='draft') return posts.length===0 || posts.some(p=>statusOf(p)==='draft');
+      if(state.libraryFilter==='scheduled') return posts.some(p=>statusOf(p)==='scheduled');
+      if(state.libraryFilter==='posted') return posts.some(p=>statusOf(p)==='posted');
+      return true;
+    });
+  }
+
+  function renderLibrary(){
+    if(!state.images.length){
+      $viewport.innerHTML = `
+        <div class="empty-state">
+          <div class="em-title">The light table is empty</div>
+          <p>Add photos from your computer to start building posts for DeviantArt and Patreon. Everything you add is saved right here in this tool.</p>
+          <button class="btn btn-accent" data-action="addphotos">+ Add photos</button>
+        </div>`;
+      return;
+    }
+    const imgs = filteredImages();
+    let body;
+    if(!imgs.length){
+      body = `<div class="empty-state"><div class="em-title">No frames match this filter</div><p>Try a different tab, or add a post to one of your photos.</p></div>`;
+    } else {
+      body = `<div class="film-strip"></div><div class="grid">` + imgs.map((img)=>{
+        const idx = state.images.indexOf(img);
+        const posts = postsForImage(img.id);
+        return `
+        <div class="card" tabindex="0" data-action="openpreview" data-id="${img.id}">
+          <div class="card-thumb-wrap">
+            <img src="${img.dataUrl}" alt="${esc(img.name)}" loading="lazy">
+            <div class="frame-no">No. ${String(idx+1).padStart(3,'0')}</div>
+          </div>
+          <div class="card-body">
+            <div class="card-name">${esc(img.name)}</div>
+            <div class="chips">
+              ${posts.length? posts.map(p=>`<span class="chip chip-${statusOf(p)}" data-action="editpost" data-id="${p.id}" data-stop="1">${platformLabel(p)}</span>`).join('') : `<span class="chip chip-draft">No post yet</span>`}
+            </div>
+            <button class="card-add" data-action="newpost" data-imgid="${img.id}" data-stop="1">+ New post</button>
+          </div>
+        </div>`;
+      }).join('') + `</div><div class="film-strip"></div>`;
+    }
+    $viewport.innerHTML = body;
+  }
+
+  /* ---------------- queue view ---------------- */
+  function renderQueue(){
+    if(!state.posts.length){
+      $viewport.innerHTML = `<div class="empty-state"><div class="em-title">Nothing queued yet</div><p>Open a photo in your library and create a post to add it here.</p></div>`;
+      return;
+    }
+    const scheduled = state.posts.filter(p=>!p.posted && p.scheduledDate).sort((a,b)=> a.scheduledDate.localeCompare(b.scheduledDate) || (a.order||0)-(b.order||0));
+    const drafts = state.posts.filter(p=>!p.posted && !p.scheduledDate).sort((a,b)=>(a.order||0)-(b.order||0));
+    const posted = state.posts.filter(p=>p.posted).sort((a,b)=>(b.postedAt||0)-(a.postedAt||0));
+
+    function rowHtml(p, groupList){
+      const img = imageById(p.imageId);
+      const gi = groupList.indexOf(p);
+      return `
+      <div class="queue-row">
+        <img class="queue-thumb" src="${img?img.dataUrl:''}" alt="">
+        <div class="queue-mid" data-action="editpost" data-id="${p.id}" style="cursor:pointer;">
+          <div class="queue-title">${esc(p.title||'Untitled post')}</div>
+          <div class="queue-meta">
+            <span>${platformLabel(p)}</span>
+            <span>${statusLabel(p)}</span>
+          </div>
+        </div>
+        <div class="queue-actions">
+          ${!p.posted?`<button class="icon-btn" title="Move up" data-action="moveq" data-id="${p.id}" data-dir="-1" ${gi<=0?'disabled':''}>↑</button>
+          <button class="icon-btn" title="Move down" data-action="moveq" data-id="${p.id}" data-dir="1" ${gi>=groupList.length-1?'disabled':''}>↓</button>`:''}
+          <button class="icon-btn" title="${p.posted?'Mark not posted':'Mark posted'}" data-action="togglepost" data-id="${p.id}">${p.posted?'↺':'✓'}</button>
+          <button class="icon-btn" title="Edit" data-action="editpost" data-id="${p.id}">✎</button>
+          <button class="icon-btn" title="Delete" data-action="deletepostask" data-id="${p.id}">✕</button>
+        </div>
+      </div>`;
+    }
+
+    let html='';
+    html += `<div class="queue-section"><div class="queue-section-title">Scheduled — ${scheduled.length}</div>`;
+    html += scheduled.length ? scheduled.map(p=>rowHtml(p,scheduled)).join('') : `<div class="hint">No dated posts yet — add a date from the calendar or the post editor.</div>`;
+    html += `</div>`;
+    html += `<div class="queue-section"><div class="queue-section-title">Unscheduled drafts — ${drafts.length}</div>`;
+    html += drafts.length ? drafts.map(p=>rowHtml(p,drafts)).join('') : `<div class="hint">Nothing waiting here.</div>`;
+    html += `</div>`;
+    if(state.showPostedInQueue){
+      html += `<div class="queue-section"><div class="queue-section-title">Posted — ${posted.length}</div>`;
+      html += posted.length ? posted.map(p=>rowHtml(p,posted)).join('') : `<div class="hint">Nothing posted yet.</div>`;
+      html += `</div>`;
+    }
+    $viewport.innerHTML = html;
+  }
+
+  /* ---------------- calendar view ---------------- */
+  function renderCalendar(){
+    const y = state.calYear, m = state.calMonth;
+    const first = new Date(y,m,1);
+    const startDow = first.getDay();
+    const daysInMonth = new Date(y,m+1,0).getDate();
+    const daysInPrevMonth = new Date(y,m,0).getDate();
+    const monthName = first.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+    const today = todayISO();
+
+    const cells = [];
+    for(let i=0;i<startDow;i++){
+      const dnum = daysInPrevMonth - startDow + 1 + i;
+      cells.push({dnum, iso:null, otherMonth:true});
+    }
+    for(let d=1; d<=daysInMonth; d++){
+      const iso = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      cells.push({dnum:d, iso, otherMonth:false});
+    }
+    while(cells.length % 7 !== 0){
+      const idx = cells.length - (startDow+daysInMonth);
+      cells.push({dnum: idx+1, iso:null, otherMonth:true});
+    }
+
+    const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let html = `
+      <div class="cal-head">
+        <button class="btn btn-ghost" data-action="calprev">← Prev</button>
+        <div class="cal-month">${monthName}</div>
+        <button class="btn btn-ghost" data-action="calnext">Next →</button>
+      </div>
+      <div class="film-strip"></div>
+      <div class="cal-grid">
+        ${dows.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+        ${cells.map(c=>{
+          if(c.otherMonth) return `<div class="day-cell other-month"><div class="day-num">${c.dnum}</div></div>`;
+          const posts = state.posts.filter(p=>p.scheduledDate===c.iso);
+          const thumbs = posts.slice(0,3).map(p=>{
+            const img = imageById(p.imageId);
+            return img? `<img src="${img.dataUrl}" alt="">` : '';
+          }).join('');
+          return `<div class="day-cell ${c.iso===today?'today':''}" tabindex="0" data-action="opendaypanel" data-iso="${c.iso}">
+            <div class="day-num">${c.dnum}</div>
+            ${posts.length? `<div class="day-thumb-strip">${thumbs}${posts.length>3?`<span style="font-family:var(--font-mono);font-size:9px;color:var(--dim);align-self:center;">+${posts.length-3}</span>`:''}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="film-strip" style="margin-top:18px;"></div>
+    `;
+    $viewport.innerHTML = html;
+  }
+
+  /* ---------------- templates view ---------------- */
+  function renderTemplates(){
+    const t = state.template;
+    const sample = {
+      title:'Ashes & Embers — final piece',
+      notes:'Digital painting, roughly 30 hours across two weeks. Wanted to push warm/cool contrast further than usual.',
+      tags: t.defaultTags || 'digitalart, fantasy, wip',
+      patreonTier:'Sketchbook',
+      scheduledDate: todayISO()
+    };
+    const daText = generateFinalText(sample,'deviantart');
+    const patText = generateFinalText(sample,'patreon');
+
+    $viewport.innerHTML = `
+      <div class="tpl-wrap">
+        <div class="field">
+          <label>Shared caption body</label>
+          <textarea id="tplShared" rows="5">${esc(t.sharedBody)}</textarea>
+          <div class="hint">Placeholders: {title} {notes} {tags} {hashtags} {tier} {date} — filled in per post.</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>DeviantArt addition</label>
+            <textarea id="tplDA" rows="4">${esc(t.deviantartExtra)}</textarea>
+            <div class="hint">Appended only when a post is toggled for DeviantArt.</div>
+          </div>
+          <div class="field">
+            <label>Patreon addition</label>
+            <textarea id="tplPat" rows="4">${esc(t.patreonExtra)}</textarea>
+            <div class="hint">Appended only when a post is toggled for Patreon. Use {tier} for the post's tier.</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Default tags</label>
+          <input type="text" id="tplTags" value="${esc(t.defaultTags)}" placeholder="comma, separated, tags">
+          <div class="hint">Pre-fills the tags field on new posts.</div>
+        </div>
+        <button class="btn btn-accent" data-action="savetemplate">Save template</button>
+
+        <div class="divider"></div>
+        <div class="view-sub" style="margin-bottom:10px;">Preview with sample post data</div>
+        <div class="tpl-preview-grid">
+          <div>
+            <div class="platform-block-head"><h4>DeviantArt</h4></div>
+            <div class="preview-box">${esc(daText)}</div>
+          </div>
+          <div>
+            <div class="platform-block-head"><h4>Patreon</h4></div>
+            <div class="preview-box">${esc(patText)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ---------------- preview modal ---------------- */
+  let previewIndex = 0;
+  function openPreview(imgId){
+    const list = filteredImages().length ? filteredImages() : state.images;
+    previewIndex = list.findIndex(i=>i.id===imgId);
+    if(previewIndex<0) previewIndex=0;
+    renderPreviewModal(list);
+  }
+  function renderPreviewModal(list){
+    const img = list[previewIndex];
+    if(!img){ closeModal(); return; }
+    const globalIdx = state.images.indexOf(img);
+    const posts = postsForImage(img.id);
+    $modalRoot.innerHTML = `
+      <div class="overlay" data-action="closemodal">
+        <div class="modal" style="max-width:1040px;" data-stop="1">
+          <div class="modal-head">
+            <h2>${esc(img.name)}</h2>
+            <button class="modal-close" data-action="closemodal">✕</button>
+          </div>
+          <div class="preview-wrap">
+            <div class="preview-img-col">
+              ${previewIndex>0?`<button class="nav-arrow prev" data-action="prevpreview">←</button>`:''}
+              <img src="${img.dataUrl}" alt="${esc(img.name)}">
+              ${previewIndex<list.length-1?`<button class="nav-arrow next" data-action="nextpreview">→</button>`:''}
+            </div>
+            <div class="preview-side">
+              <div class="preview-frameno">No. ${String(globalIdx+1).padStart(3,'0')} · ${img.width}×${img.height} · ${previewIndex+1} of ${list.length}</div>
+              <div class="preview-name">${esc(img.name)}</div>
+              <label style="margin-bottom:8px;">Posts from this frame</label>
+              ${posts.length? posts.map(p=>`
+                <div class="post-attach" data-action="editpost" data-id="${p.id}">
+                  <div class="post-attach-top">
+                    <span class="post-attach-title">${esc(p.title||'Untitled post')}</span>
+                    <span class="chip chip-${statusOf(p)}">${statusOf(p)}</span>
+                  </div>
+                  <div class="hint">${platformLabel(p)}</div>
+                </div>
+              `).join('') : `<div class="hint" style="margin-bottom:12px;">No posts yet from this frame.</div>`}
+              <button class="btn btn-accent" style="width:100%;margin-top:8px;" data-action="newpost" data-imgid="${img.id}">+ New post from this frame</button>
+              <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:16px;" data-action="deleteimageask" data-id="${img.id}">Delete this photo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    window.__previewList = list;
+  }
+
+  /* ---------------- post editor modal ---------------- */
+  let editingPost = null;
+  function openNewPost(imageId, prefillDate){
+    editingPost = {
+      id: uid(), imageId,
+      title:'', notes:'', tags: state.template.defaultTags||'',
+      platforms:{deviantart:true, patreon:false},
+      patreonTier:'',
+      scheduledDate: prefillDate||'',
+      posted:false, postedAt:null,
+      order: state.posts.length,
+      createdAt: Date.now(),
+      isNew:true
+    };
+    renderPostEditor();
+  }
+  function openEditPost(postId){
+    const p = postById(postId);
+    if(!p) return;
+    editingPost = JSON.parse(JSON.stringify(p));
+    editingPost.isNew=false;
+    renderPostEditor();
+  }
+
+  function renderPostEditor(){
+    const p = editingPost;
+    const img = imageById(p.imageId);
+    const daText = generateFinalText(p,'deviantart');
+    const patText = generateFinalText(p,'patreon');
+    $modalRoot.innerHTML = `
+      <div class="overlay" data-action="closemodal">
+        <div class="modal" data-stop="1">
+          <div class="modal-head">
+            <h2>${p.isNew?'New post':'Edit post'}</h2>
+            <button class="modal-close" data-action="closemodal">✕</button>
+          </div>
+          <div class="modal-body">
+            <div style="display:flex;gap:16px;margin-bottom:18px;align-items:center;">
+              <img src="${img?img.dataUrl:''}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:3px;">
+              <div class="hint">Posting: <b style="color:var(--cream);">${img?esc(img.name):'(photo removed)'}</b></div>
+            </div>
+
+            <div class="field">
+              <label>Title</label>
+              <input type="text" id="peTitle" value="${esc(p.title)}" placeholder="Piece title">
+            </div>
+            <div class="field">
+              <label>Caption notes</label>
+              <textarea id="peNotes" rows="3" placeholder="Process notes, story behind the piece, whatever you want in the body">${esc(p.notes)}</textarea>
+            </div>
+            <div class="field">
+              <label>Tags</label>
+              <input type="text" id="peTags" value="${esc(p.tags)}" placeholder="comma, separated, tags">
+            </div>
+
+            <label>Post to</label>
+            <div class="platform-toggles">
+              <div class="ptoggle ${p.platforms.deviantart?'on':''}" data-action="toggleplat" data-plat="deviantart">
+                <div class="ptoggle-label">DeviantArt</div>
+                <div class="ptoggle-sub">${p.platforms.deviantart?'Included':'Off'}</div>
+              </div>
+              <div class="ptoggle ${p.platforms.patreon?'on':''}" data-action="toggleplat" data-plat="patreon">
+                <div class="ptoggle-label">Patreon</div>
+                <div class="ptoggle-sub">${p.platforms.patreon?'Included':'Off'}</div>
+              </div>
+            </div>
+
+            ${p.platforms.patreon?`
+            <div class="field">
+              <label>Patreon tier</label>
+              <input type="text" id="peTier" value="${esc(p.patreonTier)}" placeholder="e.g. Sketchbook, $10+">
+            </div>`:''}
+
+            <div class="row2">
+              <div class="field">
+                <label>Schedule date</label>
+                <input type="date" id="peDate" value="${p.scheduledDate||''}">
+              </div>
+              <div class="field">
+                <label>Status</label>
+                <div style="padding-top:8px;">
+                  <span class="chip chip-${statusOf(p)}">${statusLabel(p)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="view-sub" style="margin-bottom:12px;">Ready-to-post text</div>
+
+            ${p.platforms.deviantart?`
+            <div class="platform-block">
+              <div class="platform-block-head">
+                <h4>DeviantArt</h4>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-sm" data-action="copytext" data-text="da">Copy</button>
+                  <a class="btn btn-sm" href="https://www.deviantart.com/submit" target="_blank" rel="noopener">Open DeviantArt ↗</a>
+                </div>
+              </div>
+              <div class="preview-box" id="daPreviewBox">${esc(daText)}</div>
+            </div>`:''}
+
+            ${p.platforms.patreon?`
+            <div class="platform-block">
+              <div class="platform-block-head">
+                <h4>Patreon</h4>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-sm" data-action="copytext" data-text="pat">Copy</button>
+                  <a class="btn btn-sm" href="https://www.patreon.com/posts/new" target="_blank" rel="noopener">Open Patreon ↗</a>
+                </div>
+              </div>
+              <div class="preview-box" id="patPreviewBox">${esc(patText)}</div>
+            </div>`:''}
+
+            ${(!p.platforms.deviantart && !p.platforms.patreon) ? `<div class="hint">Toggle a platform above to generate ready-to-post text.</div>`:''}
+          </div>
+          <div class="modal-foot">
+            <div style="display:flex;gap:8px;">
+              ${!p.isNew?`<button class="btn btn-ghost" data-action="${p.posted?'togglepost':'togglepost'}" data-id="${p.id}">${p.posted?'Mark not posted':'Mark posted'}</button>
+              <button class="btn btn-danger" data-action="deletepostask" data-id="${p.id}">Delete</button>`:''}
+            </div>
+            <button class="btn btn-accent" data-action="savepost">Save post</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function readEditorFields(){
+    const p = editingPost;
+    p.title = document.getElementById('peTitle')?.value ?? p.title;
+    p.notes = document.getElementById('peNotes')?.value ?? p.notes;
+    p.tags = document.getElementById('peTags')?.value ?? p.tags;
+    const tierEl = document.getElementById('peTier');
+    if(tierEl) p.patreonTier = tierEl.value;
+    const dateEl = document.getElementById('peDate');
+    if(dateEl) p.scheduledDate = dateEl.value;
+  }
+
+  /* ---------------- day panel modal ---------------- */
+  function openDayPanel(iso){
+    const posts = state.posts.filter(p=>p.scheduledDate===iso);
+    $modalRoot.innerHTML = `
+      <div class="overlay" data-action="closemodal">
+        <div class="modal modal-sm" data-stop="1">
+          <div class="modal-head">
+            <h2>${formatDate(iso)}</h2>
+            <button class="modal-close" data-action="closemodal">✕</button>
+          </div>
+          <div class="modal-body">
+            ${posts.length? posts.map(p=>{
+              const img = imageById(p.imageId);
+              return `<div class="post-attach" data-action="editpost" data-id="${p.id}">
+                <div class="post-attach-top">
+                  <span class="post-attach-title">${esc(p.title||'Untitled post')}</span>
+                  <span class="chip chip-${statusOf(p)}">${statusOf(p)}</span>
+                </div>
+                <div class="hint">${platformLabel(p)}${img?' · '+esc(img.name):''}</div>
+              </div>`;
+            }).join('') : `<div class="hint" style="margin-bottom:14px;">Nothing scheduled this day yet.</div>`}
+            <button class="btn btn-accent" style="width:100%;margin-top:10px;" data-action="pickimagefordate" data-iso="${iso}">+ Schedule a post</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ---------------- image picker modal (for calendar quick-add) ---------------- */
+  function openImagePicker(iso){
+    if(!state.images.length){
+      closeModal();
+      toast('Add some photos to your library first.');
+      return;
+    }
+    $modalRoot.innerHTML = `
+      <div class="overlay" data-action="closemodal">
+        <div class="modal modal-sm" data-stop="1">
+          <div class="modal-head">
+            <h2>Choose a photo</h2>
+            <button class="modal-close" data-action="closemodal">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="imgpicker-grid">
+              ${state.images.map(img=>`
+                <div class="imgpicker-item" data-action="pickedimage" data-id="${img.id}" data-iso="${iso}">
+                  <img src="${img.dataUrl}" alt="${esc(img.name)}">
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ---------------- confirm modal ---------------- */
+  let pendingConfirm = null;
+  function askConfirm(message, onYes){
+    pendingConfirm = onYes;
+    $modalRoot.innerHTML += `
+      <div class="overlay" data-action="cancelconfirm" style="z-index:150;">
+        <div class="modal modal-sm" data-stop="1">
+          <div class="modal-body" style="padding-top:24px;">
+            <p style="margin:0 0 20px;font-size:14px;">${esc(message)}</p>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <button class="btn btn-ghost" data-action="cancelconfirm">Cancel</button>
+              <button class="btn btn-danger" data-action="doconfirm">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function closeModal(){
+    $modalRoot.innerHTML='';
+    editingPost = null;
+    pendingConfirm = null;
+  }
+
+  /* ---------------- render dispatcher ---------------- */
+  function render(){ renderShell(); }
+
+  /* ---------------- event delegation ---------------- */
+  document.addEventListener('click', async function(e){
+    const overlay = e.target.closest('.overlay');
+    const stopEl = e.target.closest('[data-stop]');
+    if(overlay && !e.target.closest('[data-stop]')){
+      const act = overlay.getAttribute('data-action');
+      if(act==='closemodal'){ closeModal(); return; }
+      if(act==='cancelconfirm'){
+        // remove just the confirm overlay (last child) if present, else close all
+        const overlays = document.querySelectorAll('#modalRoot .overlay');
+        if(overlays.length>1){ overlays[overlays.length-1].remove(); }
+        pendingConfirm=null;
+        return;
+      }
+    }
+
+    const t = e.target.closest('[data-action]');
+    if(!t) return;
+    const action = t.getAttribute('data-action');
+
+    switch(action){
+      case 'setview':
+        state.view = t.getAttribute('data-view');
+        render();
+        break;
+      case 'setfilter':
+        state.libraryFilter = t.getAttribute('data-filter');
+        renderTopbar(); renderView();
+        break;
+      case 'addphotos':
+        $fileInput.click();
+        break;
+      case 'toggle-posted':
+        state.showPostedInQueue = !state.showPostedInQueue;
+        renderTopbar(); renderView();
+        break;
+      case 'openpreview':
+        openPreview(t.getAttribute('data-id'));
+        break;
+      case 'prevpreview':
+        if(previewIndex>0){ previewIndex--; renderPreviewModal(window.__previewList); }
+        break;
+      case 'nextpreview':
+        if(previewIndex<window.__previewList.length-1){ previewIndex++; renderPreviewModal(window.__previewList); }
+        break;
+      case 'newpost':
+        openNewPost(t.getAttribute('data-imgid'));
+        break;
+      case 'editpost':
+        openEditPost(t.getAttribute('data-id'));
+        break;
+      case 'toggleplat': {
+        const plat = t.getAttribute('data-plat');
+        readEditorFields();
+        editingPost.platforms[plat] = !editingPost.platforms[plat];
+        renderPostEditor();
+        break;
+      }
+      case 'savepost': {
+        readEditorFields();
+        const p = editingPost;
+        if(!p.platforms.deviantart && !p.platforms.patreon){
+          toast('Pick at least one platform before saving.');
+          return;
+        }
+        const saved = await savePostRecord(p);
+        if(saved){
+          const existingIdx = state.posts.findIndex(x=>x.id===p.id);
+          if(existingIdx>=0) state.posts[existingIdx]=p; else state.posts.push(p);
+          toast('Post saved.');
+          closeModal();
+          render();
+        }
+        break;
+      }
+      case 'togglepost': {
+        const id = t.getAttribute('data-id');
+        const p = postById(id) || (editingPost && editingPost.id===id ? editingPost : null);
+        if(!p) return;
+        p.posted = !p.posted;
+        p.postedAt = p.posted ? Date.now() : null;
+        await savePostRecord(p);
+        const idx = state.posts.findIndex(x=>x.id===id);
+        if(idx>=0) state.posts[idx]=p;
+        toast(p.posted?'Marked as posted.':'Moved back to active.');
+        if(editingPost && editingPost.id===id){ editingPost = JSON.parse(JSON.stringify(p)); renderPostEditor(); }
+        else { closeModal(); }
+        render();
+        break;
+      }
+      case 'deletepostask': {
+        const id = t.getAttribute('data-id');
+        askConfirm('Delete this post? This cannot be undone.', async ()=>{
+          await deletePostRecord(id);
+          state.posts = state.posts.filter(p=>p.id!==id);
+          toast('Post deleted.');
+          closeModal();
+          render();
+        });
+        break;
+      }
+      case 'doconfirm':
+        if(pendingConfirm){ const fn=pendingConfirm; pendingConfirm=null; fn(); }
+        break;
+      case 'deleteimageask': {
+        const id = t.getAttribute('data-id');
+        const n = postsForImage(id).length;
+        askConfirm('Delete this photo'+(n?' and its '+n+' post'+(n===1?'':'s'):'')+'? This cannot be undone.', async ()=>{
+          await deleteImageRecord(id);
+          for(const p of postsForImage(id)) await deletePostRecord(p.id);
+          state.posts = state.posts.filter(p=>p.imageId!==id);
+          state.images = state.images.filter(i=>i.id!==id);
+          toast('Photo deleted.');
+          closeModal();
+          render();
+        });
+        break;
+      }
+      case 'moveq': {
+        const id = t.getAttribute('data-id');
+        const dir = parseInt(t.getAttribute('data-dir'),10);
+        const p = postById(id);
+        if(!p) return;
+        let group;
+        if(p.scheduledDate) group = state.posts.filter(x=>!x.posted && x.scheduledDate===p.scheduledDate).sort((a,b)=>(a.order||0)-(b.order||0));
+        else group = state.posts.filter(x=>!x.posted && !x.scheduledDate).sort((a,b)=>(a.order||0)-(b.order||0));
+        const gi = group.indexOf(p);
+        const swapWith = group[gi+dir];
+        if(!swapWith) return;
+        const tmp = p.order; p.order = swapWith.order; swapWith.order = tmp;
+        await savePostRecord(p); await savePostRecord(swapWith);
+        render();
+        break;
+      }
+      case 'calprev':
+        state.calMonth--; if(state.calMonth<0){state.calMonth=11; state.calYear--;}
+        renderView();
+        break;
+      case 'calnext':
+        state.calMonth++; if(state.calMonth>11){state.calMonth=0; state.calYear++;}
+        renderView();
+        break;
+      case 'opendaypanel':
+        openDayPanel(t.getAttribute('data-iso'));
+        break;
+      case 'pickimagefordate':
+        openImagePicker(t.getAttribute('data-iso'));
+        break;
+      case 'pickedimage':
+        openNewPost(t.getAttribute('data-id'), t.getAttribute('data-iso'));
+        break;
+      case 'savetemplate': {
+        state.template.sharedBody = document.getElementById('tplShared').value;
+        state.template.deviantartExtra = document.getElementById('tplDA').value;
+        state.template.patreonExtra = document.getElementById('tplPat').value;
+        state.template.defaultTags = document.getElementById('tplTags').value;
+        const saved = await saveTemplateRecord();
+        if(saved){ toast('Template saved.'); renderTemplates(); }
+        break;
+      }
+      case 'copytext': {
+        readEditorFields();
+        const which = t.getAttribute('data-text');
+        const text = generateFinalText(editingPost, which==='da'?'deviantart':'patreon');
+        try{
+          await navigator.clipboard.writeText(text);
+          toast('Copied to clipboard.');
+        }catch(err){
+          toast('Could not auto-copy — select the text box and copy manually.');
+        }
+        break;
+      }
+    }
+  });
+
+  // live-update generated text previews as user types, without full re-render (keeps focus)
+  document.addEventListener('input', function(e){
+    if(!editingPost) return;
+    if(['peTitle','peNotes','peTags','peTier'].includes(e.target.id)){
+      readEditorFields();
+      const daBox = document.getElementById('daPreviewBox');
+      const patBox = document.getElementById('patPreviewBox');
+      if(daBox) daBox.textContent = generateFinalText(editingPost,'deviantart');
+      if(patBox) patBox.textContent = generateFinalText(editingPost,'patreon');
+    }
+    if(e.target.id==='peDate'){
+      readEditorFields();
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && $modalRoot.innerHTML.trim()!==''){
+      const overlays = document.querySelectorAll('#modalRoot .overlay');
+      if(overlays.length>1){ overlays[overlays.length-1].remove(); pendingConfirm=null; }
+      else closeModal();
+    }
+    if(window.__previewList && document.querySelector('.preview-wrap')){
+      if(e.key==='ArrowLeft' && previewIndex>0){ previewIndex--; renderPreviewModal(window.__previewList); }
+      if(e.key==='ArrowRight' && previewIndex<window.__previewList.length-1){ previewIndex++; renderPreviewModal(window.__previewList); }
+    }
+  });
+
+  $fileInput.addEventListener('change', function(e){
+    if(e.target.files && e.target.files.length){
+      handleFiles(e.target.files);
+      e.target.value = '';
+    }
+  });
+
+  /* ---------------- init ---------------- */
+  async function init(){
+    $viewport.innerHTML = `<div class="empty-state"><span class="spinner"></span><p style="margin-top:14px;">Loading your library…</p></div>`;
+    await loadAll();
+    render();
+  }
+  init();
+
+})();
+</script>
+</body>
+</html>
