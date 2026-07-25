@@ -356,6 +356,7 @@
 <div id="modalRoot"></div>
 <div id="toastRoot"></div>
 <input type="file" id="fileInput" accept="image/*" multiple hidden>
+<input type="file" id="backupInput" accept="application/json" hidden>
 
 <script>
 (function(){
@@ -382,6 +383,7 @@
   const $modalRoot = document.getElementById('modalRoot');
   const $toastRoot = document.getElementById('toastRoot');
   const $fileInput = document.getElementById('fileInput');
+  const $backupInput = document.getElementById('backupInput');
 
   /* ---------------- utils ---------------- */
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -425,35 +427,73 @@
   function imageById(id){ return state.images.find(i=>i.id===id); }
   function postById(id){ return state.posts.find(p=>p.id===id); }
 
-  /* ---------------- storage ---------------- */
+  /* ---------------- storage (IndexedDB) ---------------- */
+  const DB_NAME = 'contactSheetDB';
+  const DB_VERSION = 1;
+  let dbPromise = null;
+
+  function openDB(){
+    if(dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve,reject)=>{
+      if(!window.indexedDB){ reject(new Error('This browser does not support local storage (IndexedDB).')); return; }
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = ()=>{
+        const db = req.result;
+        if(!db.objectStoreNames.contains('images')) db.createObjectStore('images', {keyPath:'id'});
+        if(!db.objectStoreNames.contains('posts')) db.createObjectStore('posts', {keyPath:'id'});
+        if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', {keyPath:'key'});
+      };
+      req.onsuccess = ()=> resolve(req.result);
+      req.onerror = ()=> reject(req.error || new Error('Could not open local storage.'));
+    });
+    return dbPromise;
+  }
+
+  function idbGetAll(storeName){
+    return openDB().then(db=> new Promise((resolve,reject)=>{
+      const tx = db.transaction(storeName, 'readonly');
+      const req = tx.objectStore(storeName).getAll();
+      req.onsuccess = ()=> resolve(req.result || []);
+      req.onerror = ()=> reject(req.error);
+    }));
+  }
+  function idbPut(storeName, value){
+    return openDB().then(db=> new Promise((resolve,reject)=>{
+      const tx = db.transaction(storeName, 'readwrite');
+      tx.objectStore(storeName).put(value);
+      tx.oncomplete = ()=> resolve(true);
+      tx.onerror = ()=> reject(tx.error);
+    }));
+  }
+  function idbDelete(storeName, key){
+    return openDB().then(db=> new Promise((resolve,reject)=>{
+      const tx = db.transaction(storeName, 'readwrite');
+      tx.objectStore(storeName).delete(key);
+      tx.oncomplete = ()=> resolve(true);
+      tx.onerror = ()=> reject(tx.error);
+    }));
+  }
+  function idbGet(storeName, key){
+    return openDB().then(db=> new Promise((resolve,reject)=>{
+      const tx = db.transaction(storeName, 'readonly');
+      const req = tx.objectStore(storeName).get(key);
+      req.onsuccess = ()=> resolve(req.result);
+      req.onerror = ()=> reject(req.error);
+    }));
+  }
+
   async function loadAll(){
     try{
-      const imgList = await window.storage.list('img_', false);
-      if(imgList && imgList.keys){
-        for(const k of imgList.keys){
-          try{
-            const r = await window.storage.get(k, false);
-            if(r && r.value) state.images.push(JSON.parse(r.value));
-          }catch(e){ /* skip missing */ }
-        }
-      }
-    }catch(e){ console.error('load images failed', e); }
+      state.images = await idbGetAll('images');
+    }catch(e){ console.error('load images failed', e); toast('Could not load your saved photos.'); }
 
     try{
-      const postList = await window.storage.list('post_', false);
-      if(postList && postList.keys){
-        for(const k of postList.keys){
-          try{
-            const r = await window.storage.get(k, false);
-            if(r && r.value) state.posts.push(JSON.parse(r.value));
-          }catch(e){}
-        }
-      }
-    }catch(e){ console.error('load posts failed', e); }
+      state.posts = await idbGetAll('posts');
+    }catch(e){ console.error('load posts failed', e); toast('Could not load your saved posts.'); }
 
     try{
-      const t = await window.storage.get('template_main', false);
-      if(t && t.value) state.template = JSON.parse(t.value);
+      const t = await idbGet('meta', 'template_main');
+      if(t && t.value) state.template = t.value;
     }catch(e){ /* use default */ }
 
     state.images.sort((a,b)=> (a.createdAt||0)-(b.createdAt||0));
@@ -461,15 +501,9 @@
   }
 
   async function saveImageRecord(rec){
-    const payload = JSON.stringify(rec);
-    if(payload.length > 5000000){
-      toast('"'+rec.name+'" is still too large to store even after compression — try a smaller source photo.');
-      return false;
-    }
     try{
-      const res = await window.storage.set('img_'+rec.id, payload, false);
-      if(!res) toast('"'+rec.name+'" could not be saved. Please try again.');
-      return !!res;
+      await idbPut('images', rec);
+      return true;
     }catch(e){
       console.error(e);
       toast('"'+rec.name+'" could not be saved: '+(e && e.message ? e.message : 'unknown error'));
@@ -477,30 +511,28 @@
     }
   }
   async function deleteImageRecord(id){
-    try{ await window.storage.delete('img_'+id, false); }catch(e){ console.error(e); }
+    try{ await idbDelete('images', id); }catch(e){ console.error(e); }
   }
   async function savePostRecord(post){
     try{
-      const res = await window.storage.set('post_'+post.id, JSON.stringify(post), false);
-      if(!res) toast('Could not save the post.');
-      return !!res;
+      await idbPut('posts', post);
+      return true;
     }catch(e){ console.error(e); toast('Could not save the post.'); return false; }
   }
   async function deletePostRecord(id){
-    try{ await window.storage.delete('post_'+id, false); }catch(e){ console.error(e); }
+    try{ await idbDelete('posts', id); }catch(e){ console.error(e); }
   }
   async function saveTemplateRecord(){
     try{
-      const res = await window.storage.set('template_main', JSON.stringify(state.template), false);
-      if(!res) toast('Could not save the template.');
-      return !!res;
+      await idbPut('meta', {key:'template_main', value: state.template});
+      return true;
     }catch(e){ console.error(e); toast('Could not save the template.'); return false; }
   }
 
   /* ---------------- image processing ---------------- */
-  // Storage caps values at 5MB. Leave headroom for the surrounding JSON (name/id/etc)
-  // and for base64 overhead by targeting a safe character-length ceiling.
-  const MAX_DATAURL_CHARS = 4200000;
+  // IndexedDB has no 5MB-per-item ceiling, so we can keep quality higher.
+  // This ladder now exists mainly to protect performance on very large originals.
+  const MAX_DATAURL_CHARS = 15000000; // ~15MB safety backstop, rarely hit
 
   function loadImageEl(file){
     return new Promise((resolve,reject)=>{
@@ -539,11 +571,10 @@
 
   async function resizeImageFile(file){
     const img = await loadImageEl(file);
-    // Progressively smaller dimension/quality passes until the encoded
-    // photo comfortably fits under the per-key storage limit.
+    // First pass targets good quality at a comfortable working size; the
+    // remaining passes only kick in for unusually large originals.
     const passes = [
-      [1600, 0.85], [1600, 0.7], [1200, 0.7], [1200, 0.55],
-      [900, 0.6], [900, 0.45], [700, 0.5], [500, 0.5], [360, 0.5]
+      [2000, 0.88], [1600, 0.85], [1200, 0.75], [900, 0.65], [700, 0.55]
     ];
     let last = null;
     for(const [maxDim, quality] of passes){
@@ -622,6 +653,10 @@
       <div class="stat-row"><span>Photos</span><b>${state.images.length}</b></div>
       <div class="stat-row"><span>Scheduled</span><b>${scheduled}</b></div>
       <div class="stat-row"><span>Posted</span><b>${posted}</b></div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" data-action="exportbackup">Export</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;" data-action="importbackup">Import</button>
+      </div>
     `;
 
     renderTopbar();
@@ -1121,10 +1156,64 @@
     `;
   }
 
+  /* ---------------- backup export/import ---------------- */
+  function exportBackup(){
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      images: state.images,
+      posts: state.posts,
+      template: state.template
+    };
+    const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'contact-sheet-backup-'+todayISO()+'.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 2000);
+    toast('Backup downloaded.');
+  }
+
+  function importBackupFile(file){
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+      let data;
+      try{ data = JSON.parse(reader.result); }
+      catch(e){ toast('That file is not a valid backup.'); return; }
+      if(!data || !Array.isArray(data.images) || !Array.isArray(data.posts)){
+        toast('That file is not a valid backup.');
+        return;
+      }
+      askConfirmGeneric(
+        'Import '+data.images.length+' photo(s) and '+data.posts.length+' post(s)? This adds to what you already have — it won\'t erase anything.',
+        'Import',
+        async ()=>{
+          let imported=0;
+          for(const img of data.images){ await saveImageRecord(img); imported++; }
+          for(const p of data.posts){ await savePostRecord(p); }
+          if(data.template){ state.template = Object.assign({}, state.template, data.template); await saveTemplateRecord(); }
+          state.images = await idbGetAll('images');
+          state.posts = await idbGetAll('posts');
+          state.images.sort((a,b)=> (a.createdAt||0)-(b.createdAt||0));
+          toast('Backup imported.');
+          closeModal();
+          render();
+        }
+      );
+    };
+    reader.onerror = ()=> toast('Could not read that file.');
+    reader.readAsText(file);
+  }
+
+
   /* ---------------- confirm modal ---------------- */
   let pendingConfirm = null;
-  function askConfirm(message, onYes){
+  function askConfirm(message, onYes, confirmLabel, danger){
     pendingConfirm = onYes;
+    const label = confirmLabel || 'Delete';
+    const isDanger = danger !== false;
     $modalRoot.innerHTML += `
       <div class="overlay" data-action="cancelconfirm" style="z-index:150;">
         <div class="modal modal-sm" data-stop="1">
@@ -1132,12 +1221,15 @@
             <p style="margin:0 0 20px;font-size:14px;">${esc(message)}</p>
             <div style="display:flex;gap:10px;justify-content:flex-end;">
               <button class="btn btn-ghost" data-action="cancelconfirm">Cancel</button>
-              <button class="btn btn-danger" data-action="doconfirm">Delete</button>
+              <button class="btn ${isDanger?'btn-danger':'btn-accent'}" data-action="doconfirm">${esc(label)}</button>
             </div>
           </div>
         </div>
       </div>
     `;
+  }
+  function askConfirmGeneric(message, label, onYes){
+    askConfirm(message, onYes, label, false);
   }
 
   function closeModal(){
@@ -1309,6 +1401,12 @@
         if(saved){ toast('Template saved.'); renderTemplates(); }
         break;
       }
+      case 'exportbackup':
+        exportBackup();
+        break;
+      case 'importbackup':
+        $backupInput.click();
+        break;
       case 'copytext': {
         readEditorFields();
         const which = t.getAttribute('data-text');
@@ -1358,23 +1456,39 @@
     }
   });
 
+  $backupInput.addEventListener('change', function(e){
+    if(e.target.files && e.target.files.length){
+      importBackupFile(e.target.files[0]);
+      e.target.value = '';
+    }
+  });
+
   /* ---------------- init ---------------- */
   let storageAvailable = true;
   async function init(){
-    $viewport.innerHTML = `<div class="empty-state"><span class="spinner"></span><p style="margin-top:14px;">Loading your library…</p></div>`;
+    $viewport.innerHTML = `<span class="spinner"></span>`;
 
-    if(typeof window.storage === 'undefined' || !window.storage){
+    if(!window.indexedDB){
       storageAvailable = false;
       $viewport.innerHTML = `
         <div class="empty-state">
-          <div class="em-title">This copy can't save your work</div>
-          <p>Saving only works while this tool is open inside Claude's chat panel. A downloaded or separately-opened copy of this file can't store photos or posts between visits — everything you add here will disappear on refresh.</p>
-          <p>Open this artifact from within the chat to get persistent storage.</p>
+          <div class="em-title">This browser can't save your work</div>
+          <p>This tool needs IndexedDB, which is supported by every modern browser but sometimes blocked in private/incognito windows or by strict privacy settings. Try a regular browser window, or a different browser.</p>
         </div>`;
       return;
     }
 
-    await loadAll();
+    try{
+      await loadAll();
+    }catch(e){
+      console.error(e);
+      $viewport.innerHTML = `
+        <div class="empty-state">
+          <div class="em-title">Couldn't open local storage</div>
+          <p>${esc(e && e.message ? e.message : 'An unknown error occurred while opening this browser\'s local database.')}</p>
+        </div>`;
+      return;
+    }
     render();
   }
   init();
