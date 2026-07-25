@@ -504,16 +504,21 @@
 
   function loadImageEl(file){
     return new Promise((resolve,reject)=>{
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = ()=>{ resolve({img,url}); };
-      img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('image load failed')); };
-      img.src = url;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        const img = new Image();
+        img.onload = ()=> resolve(img);
+        img.onerror = ()=> reject(new Error('Could not decode this image file.'));
+        img.src = reader.result;
+      };
+      reader.onerror = ()=> reject(new Error('Could not read this file from disk.'));
+      reader.readAsDataURL(file);
     });
   }
 
   function renderAt(img, maxDim, quality){
     let {naturalWidth:width, naturalHeight:height} = img;
+    if(!width || !height) throw new Error('Image has no readable dimensions.');
     if(width>maxDim || height>maxDim){
       if(width>=height){ height = Math.round(height*(maxDim/width)); width = maxDim; }
       else { width = Math.round(width*(maxDim/height)); height = maxDim; }
@@ -522,32 +527,33 @@
     canvas.width = width; canvas.height = height;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img,0,0,width,height);
-    return { dataUrl: canvas.toDataURL('image/jpeg', quality), width, height };
+    let dataUrl;
+    try{
+      dataUrl = canvas.toDataURL('image/jpeg', quality);
+    }catch(err){
+      throw new Error('Browser blocked reading this image back out (canvas security restriction).');
+    }
+    if(!dataUrl || dataUrl === 'data:,') throw new Error('Browser returned an empty image.');
+    return { dataUrl, width, height };
   }
 
   async function resizeImageFile(file){
-    const {img,url} = await loadImageEl(file);
-    try{
-      // Progressively smaller dimension/quality passes until the encoded
-      // photo comfortably fits under the per-key storage limit.
-      const passes = [
-        [1600, 0.85], [1600, 0.7], [1200, 0.7], [1200, 0.55],
-        [900, 0.6], [900, 0.45], [700, 0.5], [500, 0.5], [360, 0.5]
-      ];
-      let last = null;
-      for(const [maxDim, quality] of passes){
-        const result = renderAt(img, maxDim, quality);
-        last = result;
-        if(result.dataUrl.length <= MAX_DATAURL_CHARS){
-          return result;
-        }
+    const img = await loadImageEl(file);
+    // Progressively smaller dimension/quality passes until the encoded
+    // photo comfortably fits under the per-key storage limit.
+    const passes = [
+      [1600, 0.85], [1600, 0.7], [1200, 0.7], [1200, 0.55],
+      [900, 0.6], [900, 0.45], [700, 0.5], [500, 0.5], [360, 0.5]
+    ];
+    let last = null;
+    for(const [maxDim, quality] of passes){
+      const result = renderAt(img, maxDim, quality);
+      last = result;
+      if(result.dataUrl.length <= MAX_DATAURL_CHARS){
+        return result;
       }
-      // Smallest pass still too big (extremely rare) — return it anyway and
-      // let the caller's save step report the failure clearly.
-      return last;
-    } finally {
-      URL.revokeObjectURL(url);
     }
+    return last;
   }
 
   async function handleFiles(fileList){
@@ -562,7 +568,11 @@
         const rec = { id: uid(), name: f.name.replace(/\.[a-zA-Z0-9]+$/,''), dataUrl, width, height, createdAt: Date.now()+i };
         const saved = await saveImageRecord(rec);
         if(saved){ state.images.push(rec); ok++; } else fail++;
-      }catch(e){ fail++; }
+      }catch(e){
+        console.error('Failed to process', f.name, e);
+        toast('"'+f.name+'" failed: '+(e && e.message ? e.message : 'unknown error'));
+        fail++;
+      }
     }
     toast(ok+' photo'+(ok===1?'':'s')+' added'+(fail?', '+fail+' failed':'')+'.');
     render();
@@ -1349,8 +1359,21 @@
   });
 
   /* ---------------- init ---------------- */
+  let storageAvailable = true;
   async function init(){
     $viewport.innerHTML = `<div class="empty-state"><span class="spinner"></span><p style="margin-top:14px;">Loading your library…</p></div>`;
+
+    if(typeof window.storage === 'undefined' || !window.storage){
+      storageAvailable = false;
+      $viewport.innerHTML = `
+        <div class="empty-state">
+          <div class="em-title">This copy can't save your work</div>
+          <p>Saving only works while this tool is open inside Claude's chat panel. A downloaded or separately-opened copy of this file can't store photos or posts between visits — everything you add here will disappear on refresh.</p>
+          <p>Open this artifact from within the chat to get persistent storage.</p>
+        </div>`;
+      return;
+    }
+
     await loadAll();
     render();
   }
