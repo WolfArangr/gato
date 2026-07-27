@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>anomia · auditoría web</title>
+<meta name="robots" content="noindex">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#0d0d0d;
+    --surface:#161616;
+    --surface2:#1e1e1e;
+    --border:rgba(255,255,255,.07);
+    --border-hover:rgba(255,255,255,.18);
+    --text:#f0ece2;
+    --muted:#888;
+    --ghost:#444;
+
+    --accent-red:#e84d4d;
+    --accent-amber:#f0a020;
+    --accent-teal:#2dbf8a;
+    --accent-blue:#4d9de8;
+    --accent-purple:#9b7dea;
+    --accent-pink:#e05ca3;
+    --accent-gray:#aaa;
+
+    --mono:'Space Mono', ui-monospace, monospace;
+    --display:'Unbounded', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{background:var(--bg);}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  /* ---------- overlay CRT sutil ---------- */
+  .crt{
+    position:fixed; inset:0; pointer-events:none; z-index:999;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,.04) 0px, rgba(0,0,0,.04) 1px,
+      transparent 1px, transparent 3px
+    );
+  }
+
+  .wrap{max-width:1400px; margin:0 auto; padding:0 2rem;}
+  @media (max-width:700px){ .wrap{padding:0 1.1rem;} }
+
+  /* ---------- header ---------- */
+  header{padding:3rem 0 2rem; border-bottom:1px solid var(--border);}
+  .header-row{display:flex; justify-content:space-between; align-items:flex-end; gap:2rem; flex-wrap:wrap;}
+  .logo{font-family:var(--display); font-weight:900; font-size:2.1rem; letter-spacing:-.03em; margin:0;}
+  .logo .dot{color:var(--accent-red);}
+  .subtitle{
+    font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--muted); margin-top:.4rem;
+  }
+  .stats{display:flex; gap:2.4rem; flex-wrap:wrap;}
+  .stat{text-align:right;}
+  .stat b{
+    display:block; font-family:var(--display); font-weight:700; font-size:1.9rem;
+    letter-spacing:-.02em; line-height:1;
+  }
+  .stat span{font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.1em;}
+  .stat.is-red b{color:var(--accent-red);}
+
+  /* ---------- resumen ---------- */
+  .resumen{
+    margin:2.4rem 0 3rem;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent-red);
+    padding:1.6rem 1.8rem;
+  }
+  .resumen .tag{
+    font-size:.68rem; text-transform:uppercase; letter-spacing:.14em; color:var(--accent-red);
+    margin-bottom:.7rem; display:block;
+  }
+  .resumen p{margin:.5rem 0; max-width:78ch;}
+  .resumen p strong{color:var(--text); font-weight:700;}
+  .resumen p .m{color:var(--muted);}
+
+  /* ---------- etiqueta de sección "// algo así" ---------- */
+  .section-label{
+    display:flex; align-items:center; gap:1rem;
+    margin:3.4rem 0 1.4rem;
+  }
+  .section-label span{
+    font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted);
+    white-space:nowrap;
+  }
+  .section-label i{flex:1; height:1px; background:var(--border);}
+  h2.section-title{
+    font-family:var(--display); font-weight:700; font-size:1.9rem; letter-spacing:-.02em;
+    margin:0 0 .6rem;
+  }
+  .section-desc{color:var(--muted); max-width:70ch; margin:0 0 1.6rem;}
+
+  /* ---------- filtros ---------- */
+  .filters{display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:2.2rem;}
+  .tag-btn{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase;
+    background:transparent; color:var(--muted); border:1px solid var(--border);
+    padding:.5rem .85rem; cursor:pointer; transition:all .15s ease;
+  }
+  .tag-btn:hover{border-color:var(--border-hover); color:var(--text);}
+  .tag-btn.active{color:var(--bg); border-color:transparent;}
+  .tag-btn[data-cat="critico"].active{background:var(--accent-red);}
+  .tag-btn[data-cat="seo"].active{background:var(--accent-teal);}
+  .tag-btn[data-cat="rendimiento"].active{background:var(--accent-amber);}
+  .tag-btn[data-cat="tecnico"].active{background:var(--accent-blue);}
+  .tag-btn[data-cat="contenido"].active{background:var(--accent-purple);}
+  .tag-btn[data-cat="seguimiento"].active{background:var(--accent-pink);}
+  .tag-btn[data-cat="todos"].active{background:var(--text);}
+
+  /* ---------- tarjetas / acordeón ---------- */
+  .card{
+    border:1px solid var(--border);
+    border-left:3px solid var(--card-color, var(--accent-gray));
+    background:var(--bg);
+    margin-bottom:.7rem;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .card:hover{background:var(--surface); border-color:var(--border-hover); border-left-color:var(--card-color, var(--accent-gray));}
+
+  .card-head{
+    display:flex; align-items:center; gap:1rem;
+    padding:1rem 1.2rem; cursor:pointer; user-select:none;
+  }
+  .card-cat{
+    font-size:.65rem; text-transform:uppercase; letter-spacing:.1em;
+    color:var(--card-color, var(--accent-gray));
+    border:1px solid var(--card-color, var(--accent-gray));
+    padding:.2rem .5rem; white-space:nowrap; flex-shrink:0;
+  }
+  .card-title{flex:1; font-size:.92rem; color:var(--text);}
+  .card-prio{
+    font-size:.64rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+    white-space:nowrap; flex-shrink:0;
+  }
+  .card-chevron{
+    color:var(--muted); font-size:.8rem; transition:transform .2s ease; flex-shrink:0;
+  }
+  .card.open .card-chevron{transform:rotate(90deg); color:var(--card-color, var(--text));}
+
+  .card-body{
+    max-height:0; overflow:hidden; transition:max-height .25s ease;
+    padding:0 1.2rem;
+  }
+  .card.open .card-body{max-height:600px; padding:0 1.2rem 1.2rem;}
+  .card-body p{margin:.4rem 0 .8rem; color:#c9c4b6; max-width:72ch;}
+  .card-body .how{
+    font-size:.8rem; color:var(--muted); border-top:1px dashed var(--border); padding-top:.7rem;
+  }
+  .card-body .how b{color:var(--text); font-weight:700;}
+
+  .card.hidden{display:none;}
+
+  /* ---------- footer ---------- */
+  footer{
+    border-top:1px solid var(--border);
+    margin-top:4rem; padding:1.6rem 0 3rem;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.6rem;
+  }
+  footer .f-left{color:var(--ghost); font-size:.75rem;}
+  footer .f-left b{color:#666;}
+  footer .f-right{color:var(--ghost); font-size:.72rem;}
+</style>
+</head>
+<body>
+
+<div class="crt" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <header>
+    <div class="header-row">
+      <div>
+        <p class="logo">anomia<span class="dot">·</span>audit</p>
+        <p class="subtitle">informe técnico + seo — para pasar a quien lleve la web</p>
+      </div>
+      <div class="stats">
+        <div class="stat is-red"><b>4</b><span>críticos</span></div>
+        <div class="stat"><b>16</b><span>accionables</span></div>
+        <div class="stat"><b>0</b><span>og:image</span></div>
+        <div class="stat"><b>422kb</b><span>peso html</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="resumen">
+    <span class="tag">// resumen muy resumido</span>
+    <p><strong>la base de la web está bien</strong> — <span class="m">shopify, tema moderno, imágenes optimizadas — pero hay 4 cosas fáciles de arreglar que están dejando dinero y visibilidad sobre la mesa.</span></p>
+    <p><strong>lo más gordo:</strong> <span class="m">no aparece imagen al compartir enlaces (whatsapp, instagram...), las reseñas no muestran estrellas en google aunque las tienen, y una parte del texto que google lee está en inglés dentro de la página en español.</span></p>
+    <p><strong>todo esto se arregla easy</strong> — <span class="m">son ajustes de configuración y ya, no un rediseño completo. el resto de la lista es para ir haciendo con calma.</span></p>
+  </div>
+
+  <!-- ========================= HALLAZGOS ========================= -->
+  <div class="section-label"><span>// qué está pasando</span><i></i></div>
+  <h2 class="section-title">hallazgos</h2>
+  <p class="section-desc">esto es lo que hemos encontrado revisando el código de la página. cada tarjeta se puede abrir para ver el detalle y, si aplica, cómo arreglarlo.</p>
+
+  <div class="filters" id="filters-hallazgos">
+    <button class="tag-btn active" data-cat="todos">todos</button>
+    <button class="tag-btn" data-cat="critico">crítico</button>
+    <button class="tag-btn" data-cat="seo">seo</button>
+    <button class="tag-btn" data-cat="rendimiento">rendimiento</button>
+    <button class="tag-btn" data-cat="tecnico">técnico</button>
+    <button class="tag-btn" data-cat="contenido">contenido</button>
+    <button class="tag-btn" data-cat="seguimiento">seguimiento</button>
+  </div>
+
+  <div class="cards" id="cards-hallazgos">
+
+    <div class="card" data-cat="critico" style="--card-color:var(--accent-red)">
+      <div class="card-head">
+        <span class="card-cat">crítico</span>
+        <span class="card-title">no hay imagen de vista previa al compartir el enlace (og:image)</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>si alguien pega el enlace de anomiaevoo.com en whatsapp, instagram o un email, no aparece ninguna foto del producto — o aparece una al azar. para una marca que vive de lo visual, es una pérdida tonta.</p>
+        <p class="how"><b>cómo se arregla:</b> añadir una etiqueta <code>og:image</code> (y <code>twitter:image</code>) con una foto de 1200×630px en el tema de shopify. 10 minutos de trabajo.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="critico" style="--card-color:var(--accent-red)">
+      <div class="card-head">
+        <span class="card-cat">crítico</span>
+        <span class="card-title">las reseñas no aparecen como estrellas en google</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>la web usa judge.me para las reseñas y hay reseñas reales, pero la opción que le dice a google "muestra estas valoraciones en los resultados de búsqueda" está desactivada. resultado: en google aparece el enlace normal, sin las estrellitas que dan confianza y hacen que la gente haga más clic.</p>
+        <p class="how"><b>cómo se arregla:</b> en el panel de judge.me, activar la opción de datos estructurados de producto (<code>enable_json_ld_products</code>). no toca nada visual de la web, solo lo que ve google.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="critico" style="--card-color:var(--accent-red)">
+      <div class="card-head">
+        <span class="card-cat">crítico</span>
+        <span class="card-title">la ficha técnica del producto que lee google está en inglés</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>la página está en español, pero dentro del código hay un bloque invisible (pensado para que lo lea google, no las personas) con la descripción del producto — y ese bloque está en inglés. google puede confundirse sobre en qué idioma mostrar la página, o mezclar textos en un resultado de búsqueda en español.</p>
+        <p class="how"><b>cómo se arregla:</b> traducir ese bloque al español para que coincida con lo que ve la persona en pantalla.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="contenido" style="--card-color:var(--accent-purple)">
+      <div class="card-head">
+        <span class="card-cat">contenido</span>
+        <span class="card-title">el título principal de la página (h1) no dice nada de nada</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>toda página debería tener un "h1" — el título más importante para google — con las palabras clave del negocio. en anomia ese h1 existe pero está oculto y solo dice "anomia", sin mencionar "aceite de oliva virgen extra ecológico" ni nada parecido. es la señal más fuerte de toda la página y se está desperdiciando.</p>
+        <p class="how"><b>cómo se arregla:</b> o se rellena ese h1 oculto con un texto real, o mejor aún, se convierte el titular visible ("aceite de oliva virgen extra ecológico galardonado") en el h1 de verdad.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="rendimiento" style="--card-color:var(--accent-amber)">
+      <div class="card-head">
+        <span class="card-cat">rendimiento</span>
+        <span class="card-title">el vídeo del hero se reproduce solo y pesa varios mb</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>nada más entrar, la web lanza un vídeo en HD a pantalla completa sin que nadie lo pida. en móvil con datos, eso es lo primero que se descarga — y hace que la web se sienta más lenta de lo que es en realidad.</p>
+        <p class="how"><b>cómo se arregla:</b> mostrar una foto fija con un botón de "play" y cargar el vídeo solo cuando alguien lo pide, o servir una versión más ligera en móvil.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="rendimiento" style="--card-color:var(--accent-amber)">
+      <div class="card-head">
+        <span class="card-cat">rendimiento</span>
+        <span class="card-title">la página carga más de 100 archivos distintos</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>entre el tema de shopify y las apps instaladas (traducción, reseñas, un mapa de una app poco reconocible...), la página dispara más de cien peticiones. el tema en sí está bien optimizado, pero el acumulado de apps de terceros pesa.</p>
+        <p class="how"><b>cómo se arregla:</b> revisar qué apps siguen realmente en uso y desinstalar las que no aportan (ver siguiente hallazgo).</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="tecnico" style="--card-color:var(--accent-blue)">
+      <div class="card-head">
+        <span class="card-cat">técnico</span>
+        <span class="card-title">hay una app de un dominio raro corriendo en la web</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>se carga un script desde <code>maps.bestfreecdn.com</code>, un dominio que no es de ninguna marca reconocible de apps de shopify. probablemente sea un mapa de tienda o similar, pero convendría confirmar qué app es exactamente y si de verdad se está usando.</p>
+        <p class="how"><b>cómo se arregla:</b> revisar en el admin de shopify → apps, identificarla y desinstalarla si no aporta nada.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="tecnico" style="--card-color:var(--accent-blue)">
+      <div class="card-head">
+        <span class="card-cat">técnico</span>
+        <span class="card-title">8 imágenes sin texto alternativo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>varias imágenes (algunas del buscador y de la propia ficha de producto) no tienen texto alternativo ("alt"). esto afecta a personas que usan lector de pantalla, y también a que google entienda qué muestra cada foto.</p>
+        <p class="how"><b>cómo se arregla:</b> añadir una frase corta describiendo cada imagen relevante, tipo "botella de aceite de oliva anomia de 375ml".</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="seo" style="--card-color:var(--accent-teal)">
+      <div class="card-head">
+        <span class="card-cat">seo</span>
+        <span class="card-title">la versión en inglés puede no estar realmente indexada</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>la web usa weglot para traducir al inglés, pero la versión inglesa no tiene su propia dirección clara (<code>/en/</code>) — apunta a la misma raíz que la española. si el plan de weglot no genera páginas independientes rastreables, google puede no estar indexando el inglés en absoluto, aunque la etiqueta de idioma diga que existe.</p>
+        <p class="how"><b>cómo se arregla:</b> confirmar en search console si hay páginas en inglés indexadas, y revisar el plan de weglot si no las hay.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="seo" style="--card-color:var(--accent-teal)">
+      <div class="card-head">
+        <span class="card-cat">seo</span>
+        <span class="card-title">la dirección del producto está en inglés dentro de la web en español</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>la url es <code>/es/products/anomia-extra-virgin-olive-oil</code> — página en español, dirección en inglés. no es grave, pero es una inconsistencia que se podría cuidar.</p>
+        <p class="how"><b>cómo se arregla:</b> cambiar el slug a algo como <code>aceite-oliva-virgen-extra-anomia</code>, con una redirección desde la url vieja para no perder lo que ya tenga posicionado.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="contenido" style="--card-color:var(--accent-purple)">
+      <div class="card-head">
+        <span class="card-cat">contenido</span>
+        <span class="card-title">toda la web es una única página larga, sin más contenido detrás</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>no hay blog ni páginas de "la finca", "el proceso" o recetas. esto está bien para vender (una landing larga convierte bien), pero significa que la web solo puede aparecer en google cuando alguien busca directamente "anomia" — no para búsquedas más genéricas como "mejor aceite de oliva ecológico" o "aove toledo".</p>
+        <p class="how"><b>cómo se arregla:</b> no es urgente, pero con el tiempo ayuda muchísimo crear 4-6 páginas de contenido sobre la finca, la cosecha, las variedades, etc.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="seguimiento" style="--card-color:var(--accent-pink)">
+      <div class="card-head">
+        <span class="card-cat">seguimiento</span>
+        <span class="card-title">el robots.txt bloquea el acceso a herramientas externas</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>al intentar analizar la web en vivo con herramientas automáticas, el propio robots.txt del sitio lo impedía — este informe se hizo sobre una copia del html, no sobre la web en directo. conviene comprobar en search console que ese bloqueo no está afectando también a rastreadores legítimos.</p>
+        <p class="how"><b>cómo se arregla:</b> revisar el robots.txt y confirmar en google search console que no hay páginas bloqueadas por error.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================= ACCIONABLES ========================= -->
+  <div class="section-label"><span>// qué hacer</span><i></i></div>
+  <h2 class="section-title">plan de acción</h2>
+  <p class="section-desc">lo mismo de arriba pero convertido en tareas concretas, ordenadas por cuándo conviene hacerlas. los de "crítico" son cosas de una tarde; el resto se puede ir haciendo con calma.</p>
+
+  <div class="filters" id="filters-plan">
+    <button class="tag-btn active" data-cat="todos">todos</button>
+    <button class="tag-btn" data-cat="critico">esta semana</button>
+    <button class="tag-btn" data-cat="rendimiento">próximas semanas</button>
+    <button class="tag-btn" data-cat="contenido">este trimestre</button>
+    <button class="tag-btn" data-cat="seguimiento">seguimiento</button>
+  </div>
+
+  <div class="cards" id="cards-plan">
+
+    <div class="card" data-cat="critico" style="--card-color:var(--accent-red)">
+      <div class="card-head">
+        <span class="card-cat">esta semana</span>
+        <span class="card-title">1. activar el schema de reseñas en judge.me</span>
+        <span class="card-prio">alto impacto · bajo esfuerzo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>panel de judge.me → ajustes → seo/widgets → activar la opción de datos estructurados de producto. es el cambio con mejor relación resultado/esfuerzo de toda la lista.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="critico" style="--card-color:var(--accent-red)">
+      <div class="card-head">
+        <span class="card-cat">esta semana</span>
+        <span class="card-title">2. añadir imagen de vista previa (og:image)</span>
+        <span class="card-prio">alto impacto · bajo esfuerzo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>subir una foto del producto de 1200×630px y añadirla como <code>og:image</code> / <code>twitter:image</code> en el tema.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="critico" style="--card-color:var(--accent-red)">
+      <div class="card-head">
+        <span class="card-cat">esta semana</span>
+        <span class="card-title">3. traducir la descripción del producto en el schema</span>
+        <span class="card-prio">medio impacto · bajo esfuerzo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>que el texto que lee google coincida en idioma con el texto que ve la persona.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="critico" style="--card-color:var(--accent-red)">
+      <div class="card-head">
+        <span class="card-cat">esta semana</span>
+        <span class="card-title">4. darle contenido real al h1</span>
+        <span class="card-prio">alto impacto · bajo esfuerzo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>rellenar el h1 oculto con algo como "anomia — aceite de oliva virgen extra ecológico de la guardia, toledo", o promover el titular visible a h1.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="rendimiento" style="--card-color:var(--accent-amber)">
+      <div class="card-head">
+        <span class="card-cat">próximas semanas</span>
+        <span class="card-title">5. quitar el autoplay del vídeo del hero</span>
+        <span class="card-prio">alto impacto · esfuerzo medio</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>foto fija + botón de play, o vídeo más ligero en móvil. es la mejora de velocidad más notable de la lista.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="rendimiento" style="--card-color:var(--accent-amber)">
+      <div class="card-head">
+        <span class="card-cat">próximas semanas</span>
+        <span class="card-title">6. rellenar los "alt" que faltan en las imágenes</span>
+        <span class="card-prio">medio impacto · bajo esfuerzo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>especialmente en las tarjetas de producto del buscador y la primera foto de la galería.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="rendimiento" style="--card-color:var(--accent-amber)">
+      <div class="card-head">
+        <span class="card-cat">próximas semanas</span>
+        <span class="card-title">7. revisar la app del dominio raro (maps.bestfreecdn.com)</span>
+        <span class="card-prio">medio impacto · bajo esfuerzo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>identificar qué app de shopify es realmente y desinstalarla si no se usa.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="rendimiento" style="--card-color:var(--accent-amber)">
+      <div class="card-head">
+        <span class="card-cat">próximas semanas</span>
+        <span class="card-title">8. confirmar si el inglés de weglot está indexado</span>
+        <span class="card-prio">medio impacto · esfuerzo bajo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>revisar en search console la cobertura por idioma; si no hay páginas en inglés indexadas, revisar el plan de weglot.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="rendimiento" style="--card-color:var(--accent-amber)">
+      <div class="card-head">
+        <span class="card-cat">próximas semanas</span>
+        <span class="card-title">9. traducir el slug del producto (opcional)</span>
+        <span class="card-prio">bajo impacto · esfuerzo bajo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>cambiar la url a algo en español, con redirección desde la antigua para no perder posicionamiento.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="contenido" style="--card-color:var(--accent-purple)">
+      <div class="card-head">
+        <span class="card-cat">este trimestre</span>
+        <span class="card-title">10. crear 4-6 páginas de contenido</span>
+        <span class="card-prio">alto impacto a largo plazo · esfuerzo alto</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>la finca, el proceso de cosecha y extracción en frío, recetas, comparativa de variedades (arróniz, manzanilla cacereña, picual). es lo que permite aparecer en búsquedas genéricas de la categoría, no solo de marca.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="contenido" style="--card-color:var(--accent-purple)">
+      <div class="card-head">
+        <span class="card-cat">este trimestre</span>
+        <span class="card-title">11. completar los datos de la marca (organization schema)</span>
+        <span class="card-prio">bajo impacto · esfuerzo bajo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>añadir redes sociales, contacto y dirección de la finca al bloque de datos de la organización.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="contenido" style="--card-color:var(--accent-purple)">
+      <div class="card-head">
+        <span class="card-cat">este trimestre</span>
+        <span class="card-title">12. añadir migas de pan (breadcrumbs) si se crean páginas nuevas</span>
+        <span class="card-prio">bajo impacto · esfuerzo bajo</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>solo aplica si se acaba montando blog o páginas de colección con el punto 10.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="contenido" style="--card-color:var(--accent-purple)">
+      <div class="card-head">
+        <span class="card-cat">este trimestre</span>
+        <span class="card-title">13. limpiar el css que arrastra el creador de bloques</span>
+        <span class="card-prio">bajo impacto · esfuerzo medio</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>cada bloque de la página trae su propio estilo suelto — revisar y unificar donde se pueda para aligerar la página.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="seguimiento" style="--card-color:var(--accent-pink)">
+      <div class="card-head">
+        <span class="card-cat">seguimiento</span>
+        <span class="card-title">14. comprobar el sitemap y el robots.txt en search console</span>
+        <span class="card-prio">mantenimiento</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>confirmar que hay un sitemap enviado y que no se está bloqueando por error ninguna página que sí interese que aparezca en google.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="seguimiento" style="--card-color:var(--accent-pink)">
+      <div class="card-head">
+        <span class="card-cat">seguimiento</span>
+        <span class="card-title">15. medir antes/después con pagespeed insights</span>
+        <span class="card-prio">mantenimiento</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>sobre todo tras quitar el autoplay del vídeo — debería notarse en el tiempo de carga en móvil.</p>
+      </div>
+    </div>
+
+    <div class="card" data-cat="seguimiento" style="--card-color:var(--accent-pink)">
+      <div class="card-head">
+        <span class="card-cat">seguimiento</span>
+        <span class="card-title">16. vigilar si aparecen las estrellas en google</span>
+        <span class="card-prio">mantenimiento</span>
+        <span class="card-chevron">›</span>
+      </div>
+      <div class="card-body">
+        <p>tras activar el schema de reseñas (punto 1), puede tardar entre 1 y 3 semanas en verse reflejado en los resultados de búsqueda.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="f-left">elaborado para <b>anomia</b> por <b>el gato media</b></div>
+    <div class="f-right">julio 2026 · miau</div>
+  </footer>
+
+</div>
+
+<script>
+  // acordeón
+  document.querySelectorAll('.card-head').forEach(function(head){
+    head.addEventListener('click', function(){
+      head.closest('.card').classList.toggle('open');
+    });
+  });
+
+  // filtros (uno por bloque de tarjetas)
+  function wireFilters(filterId, cardsId){
+    var filterBox = document.getElementById(filterId);
+    var cardsBox = document.getElementById(cardsId);
+    if(!filterBox || !cardsBox) return;
+    var buttons = filterBox.querySelectorAll('.tag-btn');
+    var cards = cardsBox.querySelectorAll('.card');
+
+    buttons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        buttons.forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        var cat = btn.getAttribute('data-cat');
+        cards.forEach(function(card){
+          if(cat === 'todos' || card.getAttribute('data-cat') === cat){
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      });
+    });
+  }
+
+  wireFilters('filters-hallazgos', 'cards-hallazgos');
+  wireFilters('filters-plan', 'cards-plan');
+</script>
+
+</body>
+</html>
