@@ -340,22 +340,37 @@
 
 <audio id="musicPreviewAudio" hidden></audio>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.12.15/umd/ffmpeg.min.js"></script>
 <script>
-  function __loadFFmpegFallback(){
-    var urls = [
-      'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
-      'https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js'
-    ];
-    (function tryNext(i){
-      if (i >= urls.length || window.FFmpeg) return;
-      var s = document.createElement('script');
-      s.src = urls[i];
-      s.onerror = function(){ tryNext(i + 1); };
-      document.head.appendChild(s);
-    })(0);
-  }
+(function(){
+  'use strict';
+
+  // Some builds of the ffmpeg engine spawn a worker directly from a CDN URL. Browsers
+  // refuse to construct a Worker from a different origin than the page, regardless of
+  // which CDN is used. This transparently converts any such cross-origin Worker request
+  // into a same-origin one by fetching the script and constructing the Worker from a
+  // blob instead — the engine itself never needs to know this happened.
+  var NativeWorker = window.Worker;
+  window.Worker = function(scriptURL, options){
+    var url;
+    try { url = new URL(scriptURL, document.baseURI); } catch(e){ return new NativeWorker(scriptURL, options); }
+    if (url.protocol === 'blob:' || url.origin === window.location.origin){
+      return new NativeWorker(scriptURL, options);
+    }
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url.href, false);
+      xhr.send(null);
+      if (xhr.status >= 200 && xhr.status < 300){
+        var blobUrl = URL.createObjectURL(new Blob([xhr.responseText], { type:'application/javascript' }));
+        return new NativeWorker(blobUrl, options);
+      }
+    } catch(e){}
+    return new NativeWorker(scriptURL, options);
+  };
+  window.Worker.prototype = NativeWorker.prototype;
+})();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.11.6/ffmpeg.min.js" onerror="__loadFFmpegFallback()"></script>
 <script>
 (function(){
   'use strict';
@@ -727,31 +742,39 @@
     });
   }
 
+  async function toBlobURL(url, mimeType){
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('Could not fetch ' + url);
+    return URL.createObjectURL(new Blob([await resp.arrayBuffer()], { type: mimeType }));
+  }
+
   async function initFFmpeg(){
     const statusText = $('engineStatusText'), dot = $('engineDot');
-    const coreCandidates = [
-      'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
-      'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/ffmpeg-core/0.10.0/ffmpeg-core.js'
+    const coreBases = [
+      'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd',
+      'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd',
+      'https://cdnjs.cloudflare.com/ajax/libs/ffmpeg-core/0.12.10/umd'
     ];
     try {
       statusText.textContent = 'Loading engine…';
-      const scriptOk = await waitForGlobal('FFmpeg', 12000);
+      const scriptOk = await waitForGlobal('FFmpegWASM', 12000);
       if (!scriptOk) throw new Error('engine script did not load (check network / ad-blocker)');
-      const { createFFmpeg } = window.FFmpeg;
+      const { FFmpeg } = window.FFmpegWASM;
+      ffmpeg = new FFmpeg();
+      ffmpeg.on('progress', ({ progress }) => {
+        const pct = Math.min(100, Math.max(0, Math.round((progress||0) * 100)));
+        $('progressFill').style.width = pct + '%';
+        $('progressLabel').textContent = pct + '%';
+      });
       let lastErr = null, loaded = false;
-      for (const corePath of coreCandidates){
+      for (const base of coreBases){
         try {
-          ffmpeg = createFFmpeg({ log:false, corePath });
-          ffmpeg.setProgress(({ ratio }) => {
-            const pct = Math.min(100, Math.max(0, Math.round((ratio||0) * 100)));
-            $('progressFill').style.width = pct + '%';
-            $('progressLabel').textContent = pct + '%';
-          });
-          await ffmpeg.load();
+          const coreURL = await toBlobURL(base + '/ffmpeg-core.js', 'text/javascript');
+          const wasmURL = await toBlobURL(base + '/ffmpeg-core.wasm', 'application/wasm');
+          await ffmpeg.load({ coreURL, wasmURL });
           loaded = true;
           break;
-        } catch (err){ lastErr = err; console.warn('core source failed:', corePath, err); }
+        } catch (err){ lastErr = err; console.warn('core source failed:', base, err); }
       }
       if (!loaded) throw lastErr || new Error('all engine sources failed');
       ffmpegReady = true;
@@ -807,17 +830,17 @@
     const wantText = clip.textOverlay.enabled && clip.textOverlay.text.trim().length > 0;
 
     try {
-      ffmpeg.FS('writeFile', inputName, await fetchFileBytes(clip.file));
-      if (hasMusic) ffmpeg.FS('writeFile', musicName, await fetchFileBytes(music.file));
+      await ffmpeg.writeFile(inputName, await fetchFileBytes(clip.file));
+      if (hasMusic) await ffmpeg.writeFile(musicName, await fetchFileBytes(music.file));
 
       let fontOk = false;
       if (wantText){
         fontOk = await ensureFont();
         if (fontOk){
-          ffmpeg.FS('writeFile', 'overlay-font.ttf', fontData);
+          await ffmpeg.writeFile('overlay-font.ttf', fontData);
           // Written as a file (not inlined into the filter string) so caption text
           // never has to survive ffmpeg's filtergraph quote/escape rules.
-          ffmpeg.FS('writeFile', 'caption.txt', new TextEncoder().encode(clip.textOverlay.text.trim()));
+          await ffmpeg.writeFile('caption.txt', new TextEncoder().encode(clip.textOverlay.text.trim()));
         }
       }
 
@@ -891,9 +914,9 @@
       args.push('-movflags','+faststart', outputName);
 
       statusEl.textContent = 'Rendering…';
-      await ffmpeg.run.apply(ffmpeg, args);
+      await ffmpeg.exec(args);
 
-      const data = ffmpeg.FS('readFile', outputName);
+      const data = await ffmpeg.readFile(outputName);
       const blob = new Blob([data], { type:'video/mp4' });
       const url = URL.createObjectURL(blob);
       const link = $('downloadLink');
@@ -903,12 +926,12 @@
       statusEl.textContent = 'Done — ready to download.';
       statusEl.classList.add('success');
 
-      try { ffmpeg.FS('unlink', inputName); } catch(e){}
-      if (hasMusic) try { ffmpeg.FS('unlink', musicName); } catch(e){}
-      try { ffmpeg.FS('unlink', outputName); } catch(e){}
+      try { await ffmpeg.deleteFile(inputName); } catch(e){}
+      if (hasMusic) try { await ffmpeg.deleteFile(musicName); } catch(e){}
+      try { await ffmpeg.deleteFile(outputName); } catch(e){}
       if (wantText && fontOk){
-        try { ffmpeg.FS('unlink', 'overlay-font.ttf'); } catch(e){}
-        try { ffmpeg.FS('unlink', 'caption.txt'); } catch(e){}
+        try { await ffmpeg.deleteFile('overlay-font.ttf'); } catch(e){}
+        try { await ffmpeg.deleteFile('caption.txt'); } catch(e){}
       }
     } catch (err){
       console.error(err);
