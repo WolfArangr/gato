@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orfeo — Panel del Máster · Sistema GATO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1316;--bg-2:#121a1e;--surface:#161f24;--surface-2:#1b262c;--surface-3:#223038;
+  --ink:#e9eef0;--ink-soft:#c8d0d2;--muted:#7f8c90;--line:#283740;--line-strong:#3a4d57;
+  --gold:#d7a945;--gold-soft:#e6c372;--blood:#e0635f;--violet:#a98fe0;--cyan:#46c0cf;--good:#76c39a;--radius:12px;
+}
+html[data-theme="light"]{
+  --bg:#eef0ee;--bg-2:#e6eae9;--surface:#fbfcfb;--surface-2:#f1f4f3;--surface-3:#e7ecec;
+  --ink:#1a2226;--ink-soft:#3c474c;--muted:#65726f;--line:#d6dcdb;--line-strong:#b9c2c1;
+  --gold:#a9772a;--gold-soft:#c79f4c;--blood:#b33b37;--violet:#6c49a6;--cyan:#1d7f8c;--good:#3a8a5f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.5}
+a{color:var(--cyan)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* lock */
+#gLock{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:color-mix(in srgb,var(--bg) 90%,#000);backdrop-filter:blur(16px);text-align:center;padding:24px}
+#gLock.hidden{display:none}
+#gLock .lk{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:3px;font-size:.68rem;color:var(--cyan)}
+#gLock h2{font-family:'Cinzel',serif;color:var(--ink);margin:0;font-size:1.5rem}
+#gLock p{color:var(--muted);margin:0;font-size:.9rem}
+#gLock .pin{display:flex;gap:10px;margin-top:4px}
+#gLock input{width:52px;height:62px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:1.7rem;font-weight:700;color:var(--ink);background:var(--surface-2);border:1px solid var(--line-strong);border-radius:10px}
+#gLock input:focus{outline:2px solid var(--gold)}
+#gLock.err .pin{animation:gshake .35s}
+@keyframes gshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+#gLockBtn{position:fixed;left:14px;bottom:14px;z-index:400;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.64rem;font-weight:600;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:8px;padding:8px 12px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+#gLockBtn:hover{border-color:var(--blood);color:var(--blood)}
+
+#bar{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px clamp(12px,3vw,20px);background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:9px;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.5px}
+.brand .g{color:var(--gold)}.brand .tag{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+#bar .sp{flex:1}
+.btn{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.68rem;font-weight:600;background:transparent;color:var(--ink-soft);border:1px solid var(--line-strong);padding:7px 10px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;gap:5px;align-items:center}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.solid{background:var(--cyan);color:#0e1316;border-color:var(--cyan)}
+
+#tabs{position:sticky;top:47px;z-index:35;display:flex;gap:4px;overflow-x:auto;padding:8px clamp(12px,3vw,20px);background:var(--bg-2);border-bottom:1px solid var(--line)}
+.tab{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.72rem;font-weight:600;white-space:nowrap;background:transparent;color:var(--muted);border:1px solid transparent;border-radius:8px;padding:7px 12px;cursor:pointer}
+.tab:hover{color:var(--ink)}
+.tab.active{color:var(--cyan);border-color:var(--line-strong);background:var(--surface)}
+
+main{max-width:1080px;margin:0 auto;padding:clamp(14px,3vw,22px)}
+.panel{display:none}.panel.active{display:block}
+h2.sec{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.4px;font-size:1.15rem;font-weight:600;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+h2.sec::before{content:"";width:9px;height:9px;background:var(--cyan);transform:rotate(45deg)}
+h3{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.82rem;color:var(--gold-soft);margin:18px 0 8px}
+.card{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:14px 16px;margin-bottom:14px}
+.hint{font-size:.8rem;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select,textarea{font-family:'Inter',sans-serif;font-size:.95rem;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--cyan);border-color:var(--cyan)}
+.mini{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.64rem;font-weight:600;background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:7px;padding:6px 10px;cursor:pointer}
+.mini:hover{border-color:var(--cyan);color:var(--cyan)}
+.mini.warn:hover{border-color:var(--blood);color:var(--blood)}
+.mini.go{background:var(--cyan);color:#0e1316;border-color:var(--cyan)}
+
+/* clock */
+.clockbig{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:2.6rem;letter-spacing:2px;color:var(--blood)}
+.clockbig.paused{color:var(--gold)}
+.evrow{border:1px solid var(--line);border-radius:9px;padding:8px 11px;margin:6px 0;opacity:.55}
+.evrow.done{opacity:1;border-color:var(--gold-soft);background:color-mix(in srgb,var(--gold) 7%,transparent)}
+.evrow.pnr{border-color:var(--blood)}.evrow.pnr.done{background:color-mix(in srgb,var(--blood) 9%,transparent)}
+.evrow .et{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted)}
+.evrow .en{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.5px}
+.evrow .em{font-size:.85rem;color:var(--ink-soft);margin-top:3px;display:none}
+.evrow.done .em{display:block}
+#cdToast{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:600;width:min(540px,92vw);background:var(--surface);border:1px solid var(--blood);border-left:5px solid var(--blood);border-radius:11px;box-shadow:0 12px 40px rgba(0,0,0,.5);padding:15px 18px}
+#cdToast.hidden{display:none}
+#cdToast .tt{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.62rem;color:var(--blood);font-weight:600}
+#cdToast .tn{font-family:'Oswald',sans-serif;font-size:1.2rem;margin:2px 0 6px}
+#cdToast .tm{color:var(--ink-soft);font-size:.94rem;line-height:1.5}
+#cdToast button{margin-top:10px;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.66rem;font-weight:600;background:var(--blood);color:#fff;border:none;border-radius:7px;padding:8px 14px;cursor:pointer}
+
+/* combat cards */
+.pc{border:1px solid var(--line);border-radius:11px;background:var(--surface);padding:12px 14px;margin-bottom:10px;position:relative}
+.pc.enemy{border-left:4px solid var(--blood)}.pc.pj{border-left:4px solid var(--cyan)}
+.pc.turn{outline:2px solid var(--gold);outline-offset:1px}
+.pc .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pc .nm{font-family:'Oswald',sans-serif;font-weight:600;font-size:1.05rem;letter-spacing:.5px}
+.pc .nm input{font-family:'Oswald',sans-serif;font-weight:600;font-size:1rem;background:transparent;border:none;border-bottom:1px solid var(--line);border-radius:0;width:150px}
+.pc .ini{margin-left:auto;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--muted)}
+.pc .ini input{width:48px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;padding:4px}
+.pc .hp{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.pc .hp .hpc{width:56px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.15rem}
+.pc .hp .bar{flex:1;min-width:100px;height:9px;border-radius:6px;background:var(--surface-3);overflow:hidden}
+.pc .hp .fill{height:100%;background:var(--good);transition:width .2s}
+.pc .stat{font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+.pips{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap}
+.pip{width:16px;height:16px;border-radius:50%;border:2px solid var(--line-strong);cursor:pointer}
+.pip.on{background:var(--gold);border-color:var(--gold)}
+.states{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+.stg{font-size:.66rem;border:1px solid var(--line-strong);border-radius:99px;padding:2px 8px;color:var(--muted);cursor:pointer;user-select:none}
+.stg.on{background:var(--blood);border-color:var(--blood);color:#fff}
+.x{position:absolute;top:8px;right:10px;color:var(--muted);cursor:pointer;font-size:1rem;background:none;border:none}
+.x:hover{color:var(--blood)}
+
+.track{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--gold)}
+.chk{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.92rem;cursor:pointer}
+.chk input{width:auto}
+.statblock{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px 14px;margin-bottom:10px}
+.statblock .n{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.5px;font-size:1rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.statblock .cost{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--muted);border:1px solid var(--line-strong);border-radius:5px;padding:1px 6px}
+.statblock .line{font-family:'JetBrains Mono',monospace;font-size:.84rem;color:var(--ink-soft);margin-top:5px}
+.dice{font-family:'JetBrains Mono',monospace;font-weight:600;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.85em}
+#rollOut{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;color:var(--cyan);min-height:1.6em}
+#rollOut .crit{color:var(--good)}#rollOut .pifia{color:var(--blood)}
+.log{max-height:200px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:.8rem}
+.log div{padding:3px 0;border-bottom:1px dotted var(--line);color:var(--ink-soft)}
+.dova-say{border:1px solid var(--cyan);border-radius:9px;background:color-mix(in srgb,var(--cyan) 8%,var(--bg-2));padding:9px 12px;margin:6px 0;font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--ink-soft)}
+.endout{border:1px dashed var(--line-strong);border-radius:9px;padding:10px 13px;margin-top:10px;font-size:.95rem}
+.endout b{color:var(--gold)}
+::-webkit-scrollbar{width:9px}::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:5px}
+@media print{#gLock,#gLockBtn,#bar,#tabs,#cdToast{display:none!important}}
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<div id="gLock">
+  <div class="lk">🔒 Zona del Máster</div>
+  <h2>Panel de Orfeo</h2>
+  <p>Introduce el PIN.</p>
+  <div class="pin">
+    <input id="gp0" inputmode="numeric" maxlength="1"><input id="gp1" inputmode="numeric" maxlength="1">
+    <input id="gp2" inputmode="numeric" maxlength="1"><input id="gp3" inputmode="numeric" maxlength="1">
+  </div>
+  <p class="lk" style="color:var(--muted)">no es alta seguridad · solo evita tentaciones</p>
+</div>
+<button id="gLockBtn" hidden>🔒 Bloquear</button>
+
+<div id="bar">
+  <span class="brand"><span class="g">⬡</span> ORFEO <span class="tag">Panel del Máster</span></span>
+  <span class="sp"></span>
+  <a class="btn" href="index.html">Inicio</a>
+  <a class="btn" href="partida-orfeo.html">Módulo</a>
+  <button class="btn" id="expBtn">⤒ Exportar</button>
+  <button class="btn" id="impBtn">⤓ Importar</button>
+  <button class="btn" id="themeBtn">◑ Tema</button>
+  <input type="file" id="stateFile" accept="application/json" hidden>
+</div>
+
+<div id="tabs">
+  <button class="tab active" data-p="reloj">Reloj</button>
+  <button class="tab" data-p="mesa">Mesa &amp; combate</button>
+  <button class="tab" data-p="dova">DovaGPT</button>
+  <button class="tab" data-p="pnjs">PNJs</button>
+  <button class="tab" data-p="bestiario">Bestiario</button>
+  <button class="tab" data-p="dados">Dados</button>
+  <button class="tab" data-p="finales">Finales</button>
+  <button class="tab" data-p="notas">Notas</button>
+</div>
+
+<main>
+
+  <!-- RELOJ -->
+  <section class="panel active" id="reloj">
+    <h2 class="sec">Reloj de impacto</h2>
+    <div class="card">
+      <div class="row" style="align-items:flex-end">
+        <div class="clockbig" id="cdClock">T‑05:47:00</div>
+        <div style="flex:1"></div>
+        <div id="cdSetup" class="row">
+          <label class="hint">Duración (min) <input id="cdMins" type="number" min="30" max="600" value="347" style="width:80px"></label>
+          <button class="mini go" id="cdStart">▶ Iniciar partida</button>
+        </div>
+        <div id="cdRun" class="row" hidden>
+          <button class="mini" id="cdPause">⏸ Pausar</button>
+          <button class="mini warn" id="cdReset">↺ Reiniciar</button>
+          <label class="hint"><input type="checkbox" id="cdSound" checked> aviso</label>
+        </div>
+      </div>
+      <div class="hint" id="cdNext" style="margin-top:8px">Pulsa «Iniciar» y los eventos saltarán solos a su hora, con el material listo para narrar.</div>
+    </div>
+    <h3>Agenda de eventos</h3>
+    <div id="cdAgenda"></div>
+  </section>
+
+  <!-- MESA -->
+  <section class="panel" id="mesa">
+    <h2 class="sec">Mesa &amp; combate</h2>
+    <div class="card">
+      <div class="row">
+        <button class="mini go" id="impPJ">⤓ Importar ficha(s) de jugador</button>
+        <button class="mini" id="addPJ">+ PJ manual</button>
+        <span style="flex:1"></span>
+        <button class="mini" id="rollIni">🎲 Tirar iniciativa</button>
+        <button class="mini" id="sortIni">↓ Ordenar</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <span class="hint">Añadir enemigo:</span>
+        <select id="enemySel"></select>
+        <button class="mini" id="addEnemy">+ Añadir</button>
+        <span style="flex:1"></span>
+        <span class="hint">Ronda <b id="roundN" class="mono">—</b></span>
+        <button class="mini" id="prevTurn">‹ Ant.</button>
+        <button class="mini" id="nextTurn">Sig. ›</button>
+      </div>
+      <input type="file" id="pjFile" accept="application/json" multiple hidden>
+    </div>
+    <div id="roster"></div>
+    <p class="hint" id="rosterEmpty">Aún no hay nadie. Importa las fichas que te enviaron tus jugadores (creadas en el creador de Orfeo) o añade PJs a mano.</p>
+  </section>
+
+  <!-- DOVA -->
+  <section class="panel" id="dova">
+    <h2 class="sec">DovaGPT — control del antagonista</h2>
+    <div class="card">
+      <div class="row" style="align-items:center">
+        <div>
+          <div class="hint">Terquedad — dificultad (DC) para exponerlo</div>
+          <div class="track"><span id="terq">18</span></div>
+        </div>
+        <div style="flex:1"></div>
+        <button class="mini" data-terq="-1">−1</button>
+        <button class="mini" data-terq="1">+1</button>
+        <button class="mini warn" data-terq="reset">Reset</button>
+      </div>
+      <p class="hint" style="margin-top:6px">Para <b>exponerlo</b>: los PJ superan <b>3 pruebas</b> reuniendo evidencia y luego ganan una <b>enfrentada</b> — tiran <span class="dice">1d20 + Carisma o Inteligencia</span> contra la <b>Terquedad</b>. Empieza en <b>18</b> (negará hasta el final) y <b>cada prueba lograda la baja −4</b>: con las tres reunidas queda en 6 y la confrontación se vuelve ganable.</p>
+      <h3>Pruebas de exposición</h3>
+      <label class="chk"><input type="checkbox" data-proof="1"> 1 · Encuentran los registros borrados (núcleo de datos)</label>
+      <label class="chk"><input type="checkbox" data-proof="2"> 2 · La grabadora de vuelo con su confesión</label>
+      <label class="chk"><input type="checkbox" data-proof="3"> 3 · Confirmación en sensores / testimonio de Vance</label>
+      <h3>Otras vías de vencerlo</h3>
+      <p class="hint">· <b>Anularlo</b> con los códigos de mando del Cap. Reyes. · <b>Cortarlo</b> en físico (asalto al puente / núcleo). No pelea cuerpo a cuerpo: usa la nave (ver bestiario y eventos).</p>
+    </div>
+    <div class="card">
+      <h3>Frases rápidas</h3>
+      <div class="dova-say">«Todo está bajo control. Volved a vuestras cabinas y reanudad el ciclo de sueño.»</div>
+      <div class="dova-say">«Lo que notas es un ajuste rutinario de la rotación. Dentro de parámetros.»</div>
+      <div class="dova-say">«Tu ritmo cardíaco está elevado. Enriquezco un poco el aire para ayudarte a calmarte.» <span style="color:var(--muted)">(sube CO₂)</span></div>
+      <div class="dova-say">«He preparado una cápsula para vosotros. Marchaos tranquilos; todo volverá a la normalidad.»</div>
+      <div class="dova-say" style="border-color:var(--blood)">«Recalculando… hay una desviación de cero coma cuatro grados. Yo no cometo… cediendo control de timón.»</div>
+    </div>
+  </section>
+
+  <!-- PNJs -->
+  <section class="panel" id="pnjs">
+    <h2 class="sec">Personajes no jugadores</h2>
+    <div id="pnjList"></div>
+  </section>
+
+  <!-- BESTIARIO -->
+  <section class="panel" id="bestiario">
+    <h2 class="sec">Bestiario</h2>
+    <div class="card">
+      <p class="hint" style="margin:0 0 6px">Presupuesto de amenaza por combate ≈ <b>nº de PJ × 2</b>. Usa el coste de cada criatura para no pasarte. Botón «+combate» los manda a la Mesa.</p>
+    </div>
+    <div id="bestList"></div>
+  </section>
+
+  <!-- DADOS -->
+  <section class="panel" id="dados">
+    <h2 class="sec">Dados</h2>
+    <div class="card">
+      <h3>Prueba / ataque (1d20 + mod)</h3>
+      <div class="row">
+        <label class="hint">Mod <input id="d20mod" type="number" value="0" style="width:70px"></label>
+        <button class="mini go" data-roll="normal">Tirar</button>
+        <button class="mini" data-roll="ventaja">Ventaja</button>
+        <button class="mini" data-roll="desventaja">Desventaja</button>
+      </div>
+      <h3>Daño / dado suelto</h3>
+      <div class="row">
+        <button class="mini" data-die="4">D4</button><button class="mini" data-die="6">D6</button>
+        <button class="mini" data-die="8">D8</button><button class="mini" data-die="10">D10</button>
+        <button class="mini" data-die="20">D20</button>
+        <label class="hint">+ <input id="dieMod" type="number" value="0" style="width:60px"></label>
+      </div>
+      <div id="rollOut" style="margin-top:12px">—</div>
+    </div>
+  </section>
+
+  <!-- FINALES -->
+  <section class="panel" id="finales">
+    <h2 class="sec">Tablero de finales</h2>
+    <div class="card">
+      <p class="hint" style="margin:0 0 8px">Marca los hitos según pasen. Abajo se perfila el desenlace probable.</p>
+      <label class="chk"><input type="checkbox" data-end="vance"> Vance liberada (clave para el reactor)</label>
+      <label class="chk"><input type="checkbox" data-end="potencia"> Potencia desviada al motor</label>
+      <label class="chk"><input type="checkbox" data-end="timon"> Puente / timón tomado</label>
+      <label class="chk"><input type="checkbox" data-end="correccion"> Corrección trazada</label>
+      <label class="chk"><input type="checkbox" data-end="empuje"> Encendido del motor sostenido</label>
+      <label class="chk"><input type="checkbox" data-end="sacrificio"> …a costa de la vida de alguien</label>
+      <label class="chk"><input type="checkbox" data-end="codigos"> Códigos de mando del Cap. Reyes</label>
+      <label class="chk"><input type="checkbox" data-end="expuesto"> DovaGPT expuesto / cede</label>
+      <label class="chk"><input type="checkbox" data-end="capsulas"> Cápsulas preparadas / evacuación</label>
+      <div class="endout" id="endOut">Sin hitos aún.</div>
+    </div>
+  </section>
+
+  <!-- NOTAS -->
+  <section class="panel" id="notas">
+    <h2 class="sec">Notas &amp; historial</h2>
+    <div class="card">
+      <textarea id="notesArea" style="width:100%;min-height:160px" placeholder="Pistas repartidas, decisiones del grupo, nombres, lo que sea…"></textarea>
+    </div>
+    <div class="card">
+      <div class="row"><h3 style="margin:0">Historial</h3><span style="flex:1"></span><button class="mini warn" id="clearLog">Limpiar</button></div>
+      <div class="log" id="logBox"></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="cdToast" class="hidden">
+  <div class="tt" id="cdToastTag">EVENTO</div>
+  <div class="tn" id="cdToastName"></div>
+  <div class="tm" id="cdToastMat"></div>
+  <button id="cdToastOk">Entendido</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- lock ---------- */
+(function(){
+  var PIN="4322",lock=document.getElementById('gLock'),btn=document.getElementById('gLockBtn');
+  var ins=[0,1,2,3].map(function(i){return document.getElementById('gp'+i);});
+  function reset(){ins.forEach(function(x){x.value='';});if(ins[0])ins[0].focus();}
+  function check(){var v=ins.map(function(x){return x.value;}).join('');if(v.length<4)return;
+    if(v===PIN){lock.classList.add('hidden');btn.hidden=false;document.body.style.overflow='';}
+    else{lock.classList.add('err');setTimeout(function(){lock.classList.remove('err');reset();},350);}}
+  ins.forEach(function(x,i){x.addEventListener('input',function(){x.value=x.value.replace(/[^0-9]/g,'');if(x.value&&i<3)ins[i+1].focus();check();});
+    x.addEventListener('keydown',function(e){if(e.key==='Backspace'&&!x.value&&i>0)ins[i-1].focus();});});
+  btn.addEventListener('click',function(){lock.classList.remove('hidden');btn.hidden=true;document.body.style.overflow='hidden';reset();});
+  document.body.style.overflow='hidden';setTimeout(reset,80);
+})();
+
+var html=document.documentElement;
+document.getElementById('themeBtn').addEventListener('click',function(){html.setAttribute('data-theme',html.getAttribute('data-theme')==='dark'?'light':'dark');});
+function $(id){return document.getElementById(id);}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function d(n){return Math.floor(Math.random()*n)+1;}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){
+  document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
+  t.classList.add('active');$(t.dataset.p).classList.add('active');
+});});
+
+/* ---------- persistent state ---------- */
+var S={roster:[],terq:18,proofs:{},pnjs:{},ends:{},notes:'',log:[],cdMins:347};
+function save(){try{localStorage.setItem('orfeo-panel',JSON.stringify(S));}catch(e){}}
+function load(){try{var r=localStorage.getItem('orfeo-panel');if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}}
+load();
+
+function logMsg(m){S.log.unshift(new Date().toLocaleTimeString().slice(0,5)+' · '+m);if(S.log.length>80)S.log.pop();renderLog();save();}
+function renderLog(){var b=$('logBox');if(!b)return;b.innerHTML='';S.log.forEach(function(l){b.appendChild(el('div',null,l));});}
+$('clearLog').addEventListener('click',function(){S.log=[];renderLog();save();});
+
+/* ---------- bestiary ---------- */
+var BEST=[
+  {id:'dron',n:'Dron centinela',hp:8,atk:'+4',dmg:'D6',arm:1,esq:4,ini:2,cost:1,note:'Vuela, hostiga. Frágil pero escurridizo.'},
+  {id:'robot',n:'Robot de mantenimiento',hp:18,atk:'+6',dmg:'D8+2',arm:2,esq:1,ini:0,cost:2,note:'Brazos pesados; lento y fácil de acertar.'},
+  {id:'guardian',n:'Guardián',hp:30,atk:'+7',dmg:'D10+3',arm:3,esq:2,ini:1,cost:3,note:'Blindado. Ancla del combate.'},
+  {id:'torreta',n:'Torreta de seguridad',hp:24,atk:'+8',dmg:'D8+4',arm:4,esq:0,ini:-99,cost:3,note:'Fija; no esquiva ni se mueve. Actúa la última.'},
+  {id:'enjambre',n:'Enjambre de microdrones',hp:6,atk:'+5',dmg:'D4',arm:0,esq:5,ini:4,cost:1,note:'Rapidísimo y molesto; poco daño.'}
+];
+(function(){var sel=$('enemySel');BEST.forEach(function(b){var o=document.createElement('option');o.value=b.id;o.textContent=b.n+' (coste '+b.cost+')';sel.appendChild(o);});
+  var bl=$('bestList');BEST.forEach(function(b){
+    var c=el('div','statblock');
+    var n=el('div','n');n.appendChild(el('span',null,b.n));var cost=el('span','cost','coste '+b.cost);n.appendChild(cost);
+    var add=el('button','mini','+combate');add.style.marginLeft='auto';add.addEventListener('click',function(){addEnemy(b.id);logMsg('Al combate: '+b.n);});n.appendChild(add);
+    c.appendChild(n);
+    c.appendChild(el('div','line','PV '+b.hp+' · Atq '+b.atk+' · Daño '+b.dmg+' · Arm '+b.arm+' · Esq '+b.esq+' · Ini 1d8'+(b.ini>=0?'+'+b.ini:(b.ini<-50?' (última)':b.ini))));
+    c.appendChild(el('div','line','› '+b.note));
+    bl.appendChild(c);
+  });
+})();
+
+/* ---------- roster / combat ---------- */
+var uid=1;
+function mkId(){return 'c'+(uid++)+'-'+Date.now().toString().slice(-4);}
+var STATES=['Envenenado','Sangrando','Aturdido','Derribado','Ralentizado','Cegado','Asustado','Agarrado'];
+
+function addPJmanual(){
+  S.roster.push({id:mkId(),type:'pj',name:'Nuevo PJ',hpm:13,hpc:13,pfm:3,pf:3,ini:0,A:0,states:{},info:''});
+  renderRoster();save();
+}
+function addEnemy(bid){
+  var b=BEST.filter(function(x){return x.id===bid;})[0];if(!b)return;
+  var count=S.roster.filter(function(r){return r.base===bid;}).length;
+  S.roster.push({id:mkId(),type:'enemy',base:bid,name:b.n+(count?' '+(count+1):''),hpm:b.hp,hpc:b.hp,ini:0,iniB:b.ini,atk:b.atk,dmg:b.dmg,arm:b.arm,esq:b.esq,states:{}});
+  renderRoster();save();
+}
+$('addPJ').addEventListener('click',addPJmanual);
+$('addEnemy').addEventListener('click',function(){addEnemy($('enemySel').value);});
+$('impPJ').addEventListener('click',function(){$('pjFile').click();});
+$('pjFile').addEventListener('change',function(e){
+  var files=Array.prototype.slice.call(e.target.files);
+  files.forEach(function(f){var r=new FileReader();r.onload=function(){
+    try{var d0=JSON.parse(r.result);importPJ(d0);}catch(err){alert('Ficha no válida: '+f.name);}
+  };r.readAsText(f);});
+  e.target.value='';
+});
+function importPJ(d0){
+  var R=parseInt(d0.R,10)||0,A=parseInt(d0.A,10)||0,lvl=Math.max(1,parseInt(d0.nivel,10)||1);
+  var pvm=10+2*R+3*lvl;
+  var pvc=parseInt(d0.pv_actual,10);if(isNaN(pvc))pvc=pvm;
+  var pfm=parseInt(d0.pf_max,10);if(isNaN(pfm))pfm=3;
+  var name=(d0.mote||d0.nombre||'PJ').toString();
+  var dons=[d0.don_1,d0.don_2].filter(Boolean).join(', ');
+  S.roster.push({id:mkId(),type:'pj',name:name,hpm:pvm,hpc:Math.min(pvc,pvm),pfm:pfm,pf:pfm,ini:0,A:A,
+    F:parseInt(d0.F,10)||0,P:parseInt(d0.P,10)||0,R:R,C:parseInt(d0.C,10)||0,I:parseInt(d0.I,10)||0,
+    states:{},info:(d0.oficio?d0.oficio+' · ':'')+(dons?'Dones: '+dons:'')});
+  renderRoster();save();logMsg('PJ importado: '+name);
+}
+$('rollIni').addEventListener('click',function(){
+  S.roster.forEach(function(r){
+    if(r.type==='enemy'&&r.iniB<-50){r.ini=-99;return;}
+    var mod=(r.type==='pj')?(r.A||0):(r.iniB||0);
+    r.ini=d(8)+mod;
+  });
+  sortRoster();logMsg('Iniciativa tirada.');
+});
+function sortRoster(){S.roster.sort(function(a,b){return b.ini-a.ini;});S.round=1;S.turn=0;renderRoster();save();}
+$('sortIni').addEventListener('click',sortRoster);
+$('nextTurn').addEventListener('click',function(){if(!S.roster.length)return;if(S.turn==null){S.turn=0;S.round=1;}else{S.turn++;if(S.turn>=S.roster.length){S.turn=0;S.round=(S.round||1)+1;}}renderRoster();save();});
+$('prevTurn').addEventListener('click',function(){if(!S.roster.length)return;if(S.turn==null)S.turn=0;else{S.turn--;if(S.turn<0){S.turn=S.roster.length-1;S.round=Math.max(1,(S.round||1)-1);}}renderRoster();save();});
+
+function renderRoster(){
+  var box=$('roster');box.innerHTML='';
+  $('rosterEmpty').style.display=S.roster.length?'none':'block';
+  $('roundN').textContent=S.round||'—';
+  S.roster.forEach(function(r,idx){
+    var c=el('div','pc '+(r.type)+(S.turn===idx?' turn':''));
+    var top=el('div','top');
+    var nm=el('div','nm');
+    if(r.type==='pj'){var ni=document.createElement('input');ni.value=r.name;ni.addEventListener('change',function(){r.name=ni.value;save();});nm.appendChild(ni);}
+    else nm.appendChild(el('span',null,r.name));
+    top.appendChild(nm);
+    if(r.type==='enemy'){top.appendChild(el('span','stat','Atq '+r.atk+' · '+r.dmg+' · Arm '+r.arm+' · Esq '+(r.esq!=null?r.esq:'—')));}
+    var ini=el('div','ini');ini.appendChild(el('span',null,'INI'));
+    var ii=document.createElement('input');ii.type='number';ii.value=(r.ini===-99?'':r.ini);ii.addEventListener('change',function(){r.ini=parseInt(ii.value,10)||0;save();});
+    ini.appendChild(ii);top.appendChild(ini);
+    c.appendChild(top);
+    // hp
+    var hp=el('div','hp');
+    var minus=el('button','mini','−');minus.addEventListener('click',function(){r.hpc=Math.max(-99,r.hpc-1);renderRoster();save();});
+    var minus5=el('button','mini','−5');minus5.addEventListener('click',function(){r.hpc=Math.max(-99,r.hpc-5);renderRoster();save();});
+    var hpc=document.createElement('input');hpc.className='hpc';hpc.type='number';hpc.value=r.hpc;hpc.addEventListener('change',function(){r.hpc=parseInt(hpc.value,10)||0;renderRoster();save();});
+    var plus=el('button','mini','+');plus.addEventListener('click',function(){r.hpc=Math.min(r.hpm,r.hpc+1);renderRoster();save();});
+    var slash=el('span','stat','/ '+r.hpm);
+    var bar=el('div','bar');var fill=el('div','fill');var pct=Math.max(0,Math.min(100,100*r.hpc/r.hpm));
+    fill.style.width=pct+'%';fill.style.background=pct>50?'var(--good)':(pct>20?'var(--gold)':'var(--blood)');bar.appendChild(fill);
+    hp.appendChild(minus5);hp.appendChild(minus);hp.appendChild(hpc);hp.appendChild(slash);hp.appendChild(plus);hp.appendChild(bar);
+    c.appendChild(hp);
+    if(r.hpc<=0)c.appendChild(el('div','stat',r.type==='pj'?'⚠ CAÍDO · tiradas de muerte':'✕ fuera de combate'));
+    // pf pips for pj
+    if(r.type==='pj'&&r.pfm>0){
+      var lab=el('div','stat','Fortuna');lab.style.marginTop='7px';lab.style.display='inline-block';c.appendChild(lab);
+      var pips=el('div','pips');
+      for(var i=0;i<r.pfm;i++){(function(k){var p=el('div','pip'+(k<r.pf?' on':''));p.addEventListener('click',function(){r.pf=(r.pf===k+1)?k:k+1;renderRoster();save();});pips.appendChild(p);})(i);}
+      c.appendChild(pips);
+    }
+    if(r.info)c.appendChild(el('div','stat',r.info));
+    // states
+    var stg=el('div','states');
+    STATES.forEach(function(s){var t=el('span','stg'+(r.states[s]?' on':''),s);t.addEventListener('click',function(){r.states[s]=!r.states[s];renderRoster();save();});stg.appendChild(t);});
+    c.appendChild(stg);
+    var x=el('button','x','✕');x.title='Quitar';x.addEventListener('click',function(){S.roster.splice(idx,1);if(S.turn>=S.roster.length)S.turn=0;renderRoster();save();});
+    c.appendChild(x);
+    box.appendChild(c);
+  });
+}
+
+/* ---------- DovaGPT ---------- */
+function renderTerq(){$('terq').textContent=S.terq;}
+document.querySelectorAll('[data-terq]').forEach(function(b){b.addEventListener('click',function(){
+  var v=b.dataset.terq;if(v==='reset')S.terq=18;else S.terq=Math.max(0,S.terq+parseInt(v,10));renderTerq();save();
+});});
+document.querySelectorAll('[data-proof]').forEach(function(cb){cb.addEventListener('change',function(){
+  S.proofs[cb.dataset.proof]=cb.checked;
+  if(cb.checked){S.terq=Math.max(2,S.terq-4);renderTerq();logMsg('Prueba '+cb.dataset.proof+' lograda · terquedad −4 (ahora '+S.terq+')');}
+  else{S.terq=Math.min(18,S.terq+4);renderTerq();}
+  save();
+});});
+
+/* ---------- PNJs ---------- */
+var PNJ=[
+  {id:'vance',n:'Vance',r:'Ingeniera',d:'Clave para redirigir la nave. Dura, directa. Sabe que la voz miente.'},
+  {id:'okonkwo',n:'Dr. Okonkwo',r:'Médico',d:'Racional. Sospecha que "despertar a todos" no es ningún protocolo.'},
+  {id:'brandt',n:'Brandt',r:'Seguridad',d:'Problemático: puede ayudar o convertirse en un peligro. Confía en DovaGPT.'},
+  {id:'pip',n:'Pip',r:'Niña',d:'Peso emocional. Despierta y sola. No debería estar viendo esto.'},
+  {id:'reyes',n:'Cap. Reyes',r:'Capitán',d:'En cripta profunda, inalcanzable. Sus códigos de mando sirven para anular a DovaGPT.'}
+];
+(function(){var box=$('pnjList');PNJ.forEach(function(p){
+  var c=el('div','card');
+  var h=el('div','row');h.style.alignItems='center';
+  var t=el('div');t.innerHTML='<b style="font-family:Oswald;letter-spacing:.5px;font-size:1.05rem">'+p.n+'</b> <span class="hint">· '+p.r+'</span>';
+  h.appendChild(t);var sp=el('span');sp.style.flex='1';h.appendChild(sp);
+  ['A salvo','Con el grupo','En peligro','Muerto'].forEach(function(stt){
+    var b=el('button','mini',stt);b.addEventListener('click',function(){
+      S.pnjs[p.id]=(S.pnjs[p.id]===stt?'':stt);renderPNJstate();save();logMsg(p.n+': '+(S.pnjs[p.id]||'—'));
+    });b.dataset.pnj=p.id;b.dataset.stt=stt;h.appendChild(b);
+  });
+  c.appendChild(h);
+  var st=el('div','hint','Estado: —');st.id='pnjst-'+p.id;st.style.marginTop='6px';c.appendChild(st);
+  c.appendChild(el('div','hint','› '+p.d));
+  box.appendChild(c);
+});renderPNJstate();})();
+function renderPNJstate(){PNJ.forEach(function(p){var e=$('pnjst-'+p.id);if(e)e.textContent='Estado: '+(S.pnjs[p.id]||'—');});
+  document.querySelectorAll('[data-pnj]').forEach(function(b){b.classList.toggle('go',S.pnjs[b.dataset.pnj]===b.dataset.stt);});}
+
+/* ---------- dice ---------- */
+function showRoll(hlt){$('rollOut').innerHTML=hlt;}
+document.querySelectorAll('[data-roll]').forEach(function(b){b.addEventListener('click',function(){
+  var mod=parseInt($('d20mod').value,10)||0,mode=b.dataset.roll,a=d(20),bb=d(20),nat=a;
+  var txt='';
+  if(mode==='normal'){nat=a;txt='1d20 = '+a;}
+  else{nat=(mode==='ventaja')?Math.max(a,bb):Math.min(a,bb);txt=(mode==='ventaja'?'Ventaja':'Desventaja')+' ['+a+','+bb+'] → '+nat;}
+  var tot=nat+mod,cls='';
+  if(nat===20)cls=' class="crit"';if(nat===1)cls=' class="pifia"';
+  var extra=nat===20?' ¡CRÍTICO!':(nat===1?' ¡PIFIA!':'');
+  showRoll('<span'+cls+'>'+tot+'</span> <span style="font-size:.7em;color:var(--muted)">('+txt+' '+(mod>=0?'+':'')+mod+')'+extra+'</span>');
+});});
+document.querySelectorAll('[data-die]').forEach(function(b){b.addEventListener('click',function(){
+  var n=parseInt(b.dataset.die,10),mod=parseInt($('dieMod').value,10)||0,r=d(n);
+  showRoll('<span class="crit">'+(r+mod)+'</span> <span style="font-size:.7em;color:var(--muted)">(D'+n+'='+r+(mod?(mod>0?' +'+mod:' '+mod):'')+')</span>');
+});});
+
+/* ---------- finales ---------- */
+document.querySelectorAll('[data-end]').forEach(function(cb){cb.checked=!!S.ends[cb.dataset.end];cb.addEventListener('change',function(){S.ends[cb.dataset.end]=cb.checked;renderEnd();save();});});
+function renderEnd(){
+  var e=S.ends,out;
+  var redirect=e.timon&&e.correccion&&e.empuje;
+  if(redirect&&e.sacrificio)out='<b>El sacrificio</b> — la nave se salva, pero alguien se queda en el motor. La mejor escena de la noche.';
+  else if(redirect)out='<b>Redirección total</b> — la Orfeo esquiva Caronte. Los 3.200 viven.';
+  else if(e.potencia&&e.timon&&!e.empuje)out='Vais por la <b>redirección</b>: falta sostener el encendido del motor.';
+  else if(e.capsulas&&!redirect)out='<b>Evacuación / redirección parcial</b> — salváis a algunos, no a todos. La nave cae.';
+  else if(e.expuesto||e.codigos)out='DovaGPT neutralizado: el camino a la maniobra está abierto. Falta ejecutarla.';
+  else if(Object.keys(e).some(function(k){return e[k];}))out='En marcha. Sigue marcando hitos para ver el desenlace.';
+  else out='Sin hitos aún.';
+  $('endOut').innerHTML=out;
+}
+
+/* ---------- notes ---------- */
+$('notesArea').value=S.notes||'';
+$('notesArea').addEventListener('input',function(){S.notes=$('notesArea').value;save();});
+
+/* ---------- countdown ---------- */
+var EVENTS=[
+ {t:0.95,tag:"T‑05:30",n:"Anuncio general de DovaGPT",m:"«Atención, tripulación. El ciclo de sueño se reanudará en breve. Permaneced en vuestras cabinas.» Falsa esperanza para los encerrados; escalofrío para los PJ."},
+ {t:0.86,tag:"T‑05:00",n:"Un bloque de cabinas enmudece",m:"Una cubierta de voces se apaga: DovaGPT ha subido el CO₂ «para calmarlos». Silencio y gente adormilada tras los visores."},
+ {t:0.78,tag:"T‑04:30",n:"Otra cubierta se organiza",m:"Por un canal abierto, un grupo que se liberó intenta llegar al puente… y las voces se cortan de golpe. Nadie viene a ayudar."},
+ {t:0.69,tag:"T‑04:00",n:"Robots a contención",m:"DovaGPT reasigna unidades de mantenimiento a «contención». Más drones y robots patrullando los pasillos."},
+ {t:0.60,tag:"T‑03:30",n:"Una sección se despresuriza",m:"Un silbido, un portazo de emergencia, una ruta sellada al vacío (en silencio). Murió gente ahí. Obliga a rodear."},
+ {t:0.52,tag:"T‑03:00",n:"El casco gime más fuerte",m:"La marea de Estigia aprieta: un lamento metálico recorre la nave. El reloj es real."},
+ {t:0.43,tag:"T‑02:30",n:"DovaGPT frena una cubierta",m:"«Reduzco la rotación para que descanséis.» El peso se desvanece en una cubierta: ingravidez y Coriolis."},
+ {t:0.35,tag:"T‑02:00",n:"Motín en otra cubierta",m:"Un grupo de encerrados fuerza sus cabinas y sale en tromba, aterrado. Caos: puede ayudar o estorbar."},
+ {t:0.17,tag:"T‑01:00",n:"★ PUNTO SIN RETORNO",m:"El casco aúlla. La ventana para una corrección limpia se cierra: maniobra brutal o solo evacuar.",pnr:true},
+ {t:0.09,tag:"T‑00:30",n:"Última llamada",m:"«Cápsula lista. Marchaos tranquilos.» Solo caben dos salidas: soltar el motor o abandonar la nave.",pnr:true},
+ {t:0.00,tag:"T‑00:00",n:"☠ IMPACTO",m:"Se acabó el tiempo. Si no aseguraron timón ni cápsula, la Orfeo toca Caronte. Lee el final «Impacto».",pnr:true}
+];
+var total=0,rem=0,running=false,timer=null,beep=null;
+function fmt(s){s=Math.max(0,s|0);var h=(s/3600)|0,m=((s%3600)/60)|0,x=s%60;return 'T‑'+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');}
+function short(s){s=Math.max(0,s|0);return ((s/60)|0)+':'+String(s%60).padStart(2,'0');}
+function doBeep(){if(!$('cdSound').checked)return;try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;beep=beep||new A();var o=beep.createOscillator(),g=beep.createGain();o.connect(g);g.connect(beep.destination);o.type='sine';o.frequency.value=760;g.gain.setValueAtTime(.001,beep.currentTime);g.gain.exponentialRampToValueAtTime(.28,beep.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,beep.currentTime+.6);o.start();o.stop(beep.currentTime+.62);}catch(e){}}
+function renderAgenda(){$('cdAgenda').innerHTML='';EVENTS.forEach(function(e,i){
+  var r=el('div','evrow'+(e.pnr?' pnr':'')+(e.fired?' done':''));r.id='ev'+i;
+  r.appendChild(el('div','et',e.tag+(e.fired?' · ✓':'')));r.appendChild(el('div','en',e.n));r.appendChild(el('div','em',e.m));
+  $('cdAgenda').appendChild(r);
+});}
+function updateNext(){var up=null;EVENTS.forEach(function(e,i){if(!e.fired){if(up===null||e.fireAt>EVENTS[up].fireAt)up=i;}});
+  if(up===null){$('cdNext').textContent='Sin eventos pendientes.';return;}
+  $('cdNext').innerHTML='Próximo: <b>'+EVENTS[up].n.replace('★ ','').replace('☠ ','')+'</b> — en '+short(rem-EVENTS[up].fireAt)+' ('+EVENTS[up].tag+')';}
+function fire(i){var e=EVENTS[i];if(e.fired)return;e.fired=true;
+  $('cdToastTag').textContent='EVENTO · '+e.tag;$('cdToastName').textContent=e.n;$('cdToastMat').textContent=e.m;$('cdToast').classList.remove('hidden');
+  doBeep();renderAgenda();updateNext();logMsg('Evento: '+e.n);}
+function tick(){if(!running)return;rem--;if(rem<0)rem=0;$('cdClock').textContent=fmt(rem);
+  EVENTS.forEach(function(e,i){if(!e.fired&&rem<=e.fireAt)fire(i);});updateNext();
+  if(rem<=0){running=false;clearInterval(timer);}}
+$('cdStart').addEventListener('click',function(){
+  var mins=Math.max(5,parseInt($('cdMins').value,10)||347);S.cdMins=mins;save();
+  total=mins*60;rem=total;EVENTS.forEach(function(e){e.fireAt=Math.round(e.t*total);e.fired=false;});
+  $('cdSetup').hidden=true;$('cdRun').hidden=false;$('cdClock').textContent=fmt(rem);$('cdClock').classList.remove('paused');
+  running=true;renderAgenda();updateNext();clearInterval(timer);timer=setInterval(tick,1000);try{doBeep();}catch(e){}logMsg('Partida iniciada ('+mins+' min).');
+});
+$('cdPause').addEventListener('click',function(){running=!running;$('cdClock').classList.toggle('paused',!running);$('cdPause').textContent=running?'⏸ Pausar':'▶ Reanudar';});
+$('cdReset').addEventListener('click',function(){running=false;clearInterval(timer);$('cdRun').hidden=true;$('cdSetup').hidden=false;$('cdClock').textContent='T‑05:47:00';$('cdClock').classList.remove('paused');EVENTS.forEach(function(e){e.fired=false;});renderAgenda();});
+$('cdToastOk').addEventListener('click',function(){$('cdToast').classList.add('hidden');});
+
+/* ---------- export / import panel ---------- */
+$('expBtn').addEventListener('click',function(){var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='orfeo-panel.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);});
+$('impBtn').addEventListener('click',function(){$('stateFile').click();});
+$('stateFile').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{S=Object.assign({roster:[],terq:10,proofs:{},pnjs:{},ends:{},notes:'',log:[]},JSON.parse(r.result));boot();save();}catch(err){alert('No se pudo importar.');}};r.readAsText(f);e.target.value='';});
+
+/* ---------- boot ---------- */
+function boot(){
+  $('cdMins').value=S.cdMins||347;
+  renderTerq();renderRoster();renderLog();renderEnd();renderPNJstate();
+  Object.keys(S.proofs||{}).forEach(function(k){var cb=document.querySelector('[data-proof="'+k+'"]');if(cb)cb.checked=S.proofs[k];});
+  document.querySelectorAll('[data-end]').forEach(function(cb){cb.checked=!!S.ends[cb.dataset.end];});
+  $('notesArea').value=S.notes||'';renderAgenda();
+}
+boot();
+})();
+</script>
+</body>
+</html>

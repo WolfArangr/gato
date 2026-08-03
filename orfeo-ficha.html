@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<title>Orfeo — Creador de personaje · Sistema GATO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1316;--bg-2:#121a1e;--surface:#161f24;--surface-2:#1b262c;--surface-3:#223038;
+  --ink:#e9eef0;--ink-soft:#c8d0d2;--muted:#7f8c90;--line:#283740;--line-strong:#3a4d57;
+  --gold:#d7a945;--gold-soft:#e6c372;--blood:#e0635f;--violet:#a98fe0;--cyan:#46c0cf;--good:#76c39a;--radius:13px;
+}
+html[data-theme="light"]{
+  --bg:#eef0ee;--bg-2:#e6eae9;--surface:#fbfcfb;--surface-2:#f1f4f3;--surface-3:#e7ecec;
+  --ink:#1a2226;--ink-soft:#3c474c;--muted:#65726f;--line:#d6dcdb;--line-strong:#b9c2c1;
+  --gold:#a9772a;--gold-soft:#c79f4c;--blood:#b33b37;--violet:#6c49a6;--cyan:#1d7f8c;--good:#3a8a5f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.5;
+  background-image:radial-gradient(circle at 88% -8%, color-mix(in srgb,var(--cyan) 8%,transparent), transparent 42%);background-attachment:fixed}
+a{color:var(--cyan)}
+#bar{position:sticky;top:0;z-index:30;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px clamp(12px,3vw,22px);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:9px;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.5px}
+.brand .g{color:var(--gold)}.brand .tag{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+#bar .sp{flex:1}
+.btn{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.7rem;font-weight:600;background:transparent;color:var(--ink-soft);border:1px solid var(--line-strong);padding:7px 11px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;gap:6px;align-items:center}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.solid{background:var(--cyan);color:#0e1316;border-color:var(--cyan)}
+
+.page{max-width:1060px;margin:0 auto;padding:clamp(14px,3vw,26px)}
+.intro{border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:var(--radius);background:var(--bg-2);padding:16px 20px;margin-bottom:16px}
+.intro h1{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.5px;font-size:1.5rem;margin:0 0 6px}
+.intro p{margin:.3em 0;color:var(--ink-soft);font-size:.95rem}
+.intro a{font-weight:600}
+
+.id{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:18px 20px;margin-bottom:16px}
+.id .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.5px;font-size:.62rem;color:var(--muted);font-weight:600}
+input,textarea,select{font-family:'Inter',sans-serif;font-size:1rem;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--cyan);outline-offset:1px;border-color:var(--cyan)}
+.id input.name{font-family:'Cinzel',serif;font-weight:700;font-size:1.5rem;background:transparent;border:none;border-bottom:1px solid var(--line);border-radius:0;padding:2px 0;min-width:220px}
+.id input.mote{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;background:transparent;border:none;border-bottom:1px solid var(--line);border-radius:0;padding:2px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:.78rem;border:1px solid var(--line-strong);border-radius:99px;padding:3px 10px;color:var(--ink-soft);cursor:pointer;background:none}
+.chip:hover{border-color:var(--cyan);color:var(--cyan)}
+
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.card{grid-column:span 12;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:16px 18px}
+@media(min-width:760px){.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}}
+.card h2{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.5px;font-size:.92rem;font-weight:600;margin:0 0 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.card h2::before{content:"";width:8px;height:8px;background:var(--cyan);transform:rotate(45deg);flex:none}
+.card h2 .pool{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:.8rem;border:1px solid var(--line-strong);border-radius:7px;padding:2px 9px;color:var(--muted)}
+.card h2 .pool.ok{color:var(--good);border-color:var(--good)}
+.card h2 .pool.over{color:var(--blood);border-color:var(--blood)}
+.hint{font-size:.78rem;color:var(--muted)}
+
+.attrgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+@media(max-width:520px){.attrgrid{grid-template-columns:repeat(2,1fr)}}
+.attr{border:1px solid var(--line);border-radius:10px;padding:9px;background:var(--surface-2)}
+.attr .top{display:flex;align-items:baseline;gap:6px;justify-content:center}
+.attr .k{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--cyan);font-size:.82rem}
+.attr .nm{font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:.58rem;letter-spacing:1px;color:var(--muted)}
+.attr .ctl{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:6px}
+.attr .ctl input{text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.2rem;padding:4px;background:var(--surface);width:56px}
+.attr .desc{font-size:.68rem;color:var(--muted);text-align:center;margin-top:5px;line-height:1.3}
+.stp{width:28px;height:30px;border-radius:7px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font-size:1.1rem;cursor:pointer;flex:none}
+.stp:hover{border-color:var(--cyan);color:var(--cyan)}
+
+.vit{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.pvbox{flex:1;min-width:150px}
+.pvline{display:flex;align-items:center;gap:8px}
+.pvline input{width:64px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.3rem}
+.pvline .slash{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:1.3rem}
+.big{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.3rem;color:var(--ink)}
+.derived{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;display:flex;justify-content:space-between;gap:10px;margin-top:7px}
+.derived b{color:var(--cyan)}
+.lbl-sm{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.64rem;color:var(--muted);font-weight:600;margin-top:8px}
+.pips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pip{width:22px;height:22px;border-radius:50%;border:2px solid var(--line-strong);cursor:pointer;background:transparent}
+.pip.on{background:var(--cyan);border-color:var(--cyan)}
+.pip.fail.on{background:var(--blood);border-color:var(--blood)}
+
+.rows{display:flex;flex-direction:column;gap:7px}
+.slot{display:flex;gap:8px;align-items:center}
+.slot .tag{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.6rem;color:var(--muted);width:74px;flex:none}
+.slot input{font-size:.92rem;padding:6px 9px}
+.donhint{font-size:.72rem;color:var(--muted);margin:8px 0 0;line-height:1.5}
+.donhint b{color:var(--cyan);font-family:inherit}
+textarea{min-height:80px;resize:vertical}
+.prompts{font-size:.82rem;color:var(--ink-soft);margin:0 0 10px;padding-left:1.1em}
+.prompts li{margin:.25em 0}
+footer{max-width:1060px;margin:8px auto 30px;padding:0 22px;color:var(--muted);font-size:.8rem;text-align:center}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+input[type=number]{-moz-appearance:textfield}
+body{-webkit-user-select:none;-ms-user-select:none;user-select:none;touch-action:manipulation;-webkit-touch-callout:none}
+input,textarea,select{-webkit-user-select:text;-ms-user-select:text;user-select:text;-webkit-touch-callout:default}
+.dondesc{font-size:.74rem;color:var(--muted);margin:3px 0 0 82px;min-height:1em;line-height:1.4}
+.dondesc b{color:var(--cyan);font-family:inherit;font-weight:600}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+@media print{#bar,.btn,.stp,.chips,footer .noprint,.intro{display:none!important}body{background:#fff;font-size:11pt}.card,.id{break-inside:avoid;border-color:#bbb}.page{max-width:none;padding:0}}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <span class="brand"><span class="g">⬡</span> ORFEO <span class="tag">Creador de personaje</span></span>
+  <span class="sp"></span>
+  <a class="btn" href="index.html">Inicio</a>
+  <a class="btn" href="partida-orfeo-jugadores.html">Guía</a>
+  <button class="btn" id="loadBtn">⤓ Cargar</button>
+  <button class="btn solid" id="saveBtn">⤒ Guardar</button>
+  <button class="btn" id="printBtn">⎙ Imprimir</button>
+  <button class="btn" id="themeBtn">◑ Tema</button>
+  <input type="file" id="fileInput" accept="application/json" hidden>
+</div>
+
+<div class="page">
+
+  <div class="intro">
+    <h1>Tu tripulante de la Orfeo</h1>
+    <p>Despertaréis <strong>sin equipo</strong>: aquí solo defines <strong>quién eres</strong>. Reparte 32 puntos entre los seis atributos, elige 2 dones y escribe tu historia. Si te atascas, mira la <a href="partida-orfeo-jugadores.html">guía para jugadores</a>.</p>
+    <p class="hint">Cuando termines, pulsa <strong>Guardar</strong> y envíale el archivo a tu Máster.</p>
+  </div>
+
+  <div class="id">
+    <div class="row">
+      <div class="f" style="flex:1;min-width:220px"><label>Nombre</label><input class="name" name="nombre" placeholder="Nombre del tripulante"></div>
+      <div class="f" style="flex:1;min-width:150px"><label>Mote</label><input class="mote" name="mote" placeholder="Apodo"></div>
+      <div class="f" style="flex:1;min-width:180px"><label>Oficio a bordo</label><input name="oficio" placeholder="Mecánica, médico, colono…"></div>
+    </div>
+    <div class="chips" id="oficioChips">
+      <button class="chip">Mecánico/a</button><button class="chip">Médico/a</button><button class="chip">Seguridad</button>
+      <button class="chip">Científico/a</button><button class="chip">Piloto de relevo</button><button class="chip">Ingeniero/a</button>
+      <button class="chip">Técnico/a</button><button class="chip">Cocinero/a</button><button class="chip">Colono/a</button>
+      <button class="chip">Profesor/a</button><button class="chip">Polizón</button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- ATRIBUTOS -->
+    <div class="card c7">
+      <h2>Atributos <span class="pool" id="poolBadge">32 restantes</span></h2>
+      <div class="attrgrid">
+        <div class="attr"><div class="top"><span class="k">F</span><span class="nm">Fuerza</span></div><div class="ctl"><button class="stp" data-a="F" data-d="-1">−</button><input name="F" type="number" min="1" max="8" value="5"><button class="stp" data-a="F" data-d="1">+</button></div><div class="desc">Forzar, cargar, pelear c. a c.</div></div>
+        <div class="attr"><div class="top"><span class="k">P</span><span class="nm">Percep.</span></div><div class="ctl"><button class="stp" data-a="P" data-d="-1">−</button><input name="P" type="number" min="1" max="8" value="5"><button class="stp" data-a="P" data-d="1">+</button></div><div class="desc">Notar lo que no encaja, apuntar</div></div>
+        <div class="attr"><div class="top"><span class="k">R</span><span class="nm">Resist.</span></div><div class="ctl"><button class="stp" data-a="R" data-d="-1">−</button><input name="R" type="number" min="1" max="8" value="5"><button class="stp" data-a="R" data-d="1">+</button></div><div class="desc">Tus PV, aire malo, frío, aguante</div></div>
+        <div class="attr"><div class="top"><span class="k">C</span><span class="nm">Carisma</span></div><div class="ctl"><button class="stp" data-a="C" data-d="-1">−</button><input name="C" type="number" min="1" max="8" value="5"><button class="stp" data-a="C" data-d="1">+</button></div><div class="desc">Calmar, convencer, liderar</div></div>
+        <div class="attr"><div class="top"><span class="k">I</span><span class="nm">Intelig.</span></div><div class="ctl"><button class="stp" data-a="I" data-d="-1">−</button><input name="I" type="number" min="1" max="8" value="5"><button class="stp" data-a="I" data-d="1">+</button></div><div class="desc">Sistemas, reparar, piratear, curar</div></div>
+        <div class="attr"><div class="top"><span class="k">A</span><span class="nm">Agilid.</span></div><div class="ctl"><button class="stp" data-a="A" data-d="-1">−</button><input name="A" type="number" min="1" max="8" value="5"><button class="stp" data-a="A" data-d="1">+</button></div><div class="desc">Esquivar, sigilo, actuar primero</div></div>
+      </div>
+      <p class="hint" style="margin:10px 0 0">Reparte <strong>32 puntos</strong> entre los seis (mín 1, máx 8 al crear).</p>
+    </div>
+
+    <!-- VITALES -->
+    <div class="card c5">
+      <h2>Vitales</h2>
+      <div class="vit">
+        <div class="pvbox">
+          <div class="lbl-sm">Puntos de Vida</div>
+          <div class="pvline">
+            <button class="stp" data-pv="-1">−</button>
+            <input name="pv_actual" type="number" value="13">
+            <span class="slash">/</span><span class="big" id="pvMax">13</span>
+            <button class="stp" data-pv="1">+</button>
+            <button class="stp" id="pvReset" title="Restablecer al máximo" style="width:auto;padding:0 9px;font-size:.85rem">↺</button>
+          </div>
+          <div class="derived"><span>10 + 2×R + 3×Nivel</span><span><b id="pvFormula">13</b></span></div>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <div class="lbl-sm">En combate</div>
+          <div class="derived"><span>Iniciativa</span><span>1d8 <b id="iniA">+5</b></span></div>
+          <div class="derived"><span>Ataque c.a.c.</span><span>1d20 <b id="bF">+5</b></span></div>
+          <div class="derived"><span>Esquiva</span><span>1d20 <b id="bA">+5</b></span></div>
+        </div>
+      </div>
+      <input name="nivel" type="hidden" value="1">
+    </div>
+
+    <!-- DONES -->
+    <div class="card c6">
+      <h2>Dones (elige 2)</h2>
+      <div class="rows">
+        <div>
+          <div class="slot"><span class="tag">Don 1</span><input name="don_1" list="donlist" placeholder="Escribe o elige…"></div>
+          <div class="dondesc" id="desc_don_1"></div>
+        </div>
+        <div>
+          <div class="slot"><span class="tag">Don 2</span><input name="don_2" list="donlist" placeholder="Escribe o elige…"></div>
+          <div class="dondesc" id="desc_don_2"></div>
+        </div>
+      </div>
+      <datalist id="donlist">
+        <option value="Descifrador"><option value="Manitas"><option value="Sangre Fría"><option value="Vigor">
+        <option value="Sentido del Peligro"><option value="Labia de Plata"><option value="Esquiva Felina">
+        <option value="Contactos"><option value="Piloto"><option value="Erudito"><option value="Superviviente">
+        <option value="Cargador"><option value="Mercader Nato"><option value="Puntería"><option value="Fornido">
+      </datalist>
+      <p class="donhint">Encajan bien en la nave: <b>Descifrador</b> (sistemas y cerraduras), <b>Manitas</b> (reparar), <b>Sangre Fría</b> (no te bloquea el miedo), <b>Vigor</b> (aguantas más), <b>Sentido del Peligro</b>, <b>Labia de Plata</b>. Puedes coger cualquiera de la guía.</p>
+    </div>
+
+    <!-- HISTORIA -->
+    <div class="card c6">
+      <h2>Tu historia</h2>
+      <ul class="prompts">
+        <li>¿Tu trabajo a bordo, o por qué viajas?</li>
+        <li>¿Por qué un viaje solo de ida?</li>
+        <li>¿A quién dejaste atrás… o traes dormido en una cabina?</li>
+        <li>¿Qué se te da genial? ¿Qué te da miedo?</li>
+      </ul>
+      <textarea name="semblanza" placeholder="Unas líneas bastan. Humano y falible mejor que épico."></textarea>
+    </div>
+
+    <!-- EQUIPO -->
+    <div class="card">
+      <h2>Equipo</h2>
+      <p class="hint" style="margin:-4px 0 10px">Empezáis <strong>sin equipo</strong>: despertáis tal cual. Deja esto en blanco; lo irás rellenando con lo que encuentres por la Orfeo.</p>
+      <div class="rows">
+        <div class="slot"><span class="tag">Llevas</span><input name="eq_1" placeholder="(lo que encuentres)"></div>
+        <div class="slot"><span class="tag">Llevas</span><input name="eq_2" placeholder=""></div>
+        <div class="slot"><span class="tag">Llevas</span><input name="eq_3" placeholder=""></div>
+      </div>
+      <div class="lbl-sm">Estados</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px">
+        <label class="hint"><input type="checkbox" name="est_envenenado" style="width:auto"> Envenenado</label>
+        <label class="hint"><input type="checkbox" name="est_sangrando" style="width:auto"> Sangrando</label>
+        <label class="hint"><input type="checkbox" name="est_aturdido" style="width:auto"> Aturdido</label>
+        <label class="hint"><input type="checkbox" name="est_derribado" style="width:auto"> Derribado</label>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer><span class="noprint">Tus cambios viven en esta pestaña. <strong>Guardar</strong> descarga tu personaje como archivo; <strong>Cargar</strong> lo recupera. Envíaselo a tu Máster para que lo cargue en su panel.</span></footer>
+
+<script>
+(function(){
+  "use strict";
+  var ATTRS=['F','P','R','C','I','A'], POOL=32;
+  var html=document.documentElement;
+  document.getElementById('themeBtn').addEventListener('click',function(){html.setAttribute('data-theme',html.getAttribute('data-theme')==='dark'?'light':'dark');});
+  document.getElementById('printBtn').addEventListener('click',function(){window.print();});
+  function q(n){return document.querySelector('[name="'+n+'"]');}
+  function val(n){var e=q(n);return e?parseInt(e.value,10)||0:0;}
+  function sign(n){return (n>=0?'+':'')+n;}
+  var DONES={
+    'descifrador':'sistemas, cerraduras electrónicas y códigos; ventaja al piratear o forzar terminales.',
+    'manitas':'reparas y apañas aparatos con lo que haya a mano.',
+    'sangre fría':'el miedo no te bloquea; resistes el pánico y el estado Asustado.',
+    'vigor':'aguante extra: más PV y ventaja para resistir aire viciado, frío o veneno.',
+    'sentido del peligro':'intuición para trampas y emboscadas; algo te avisa antes de caer.',
+    'labia de plata':'convences, calmas y mientes con soltura; ventaja en lo social.',
+    'esquiva felina':'reflejos rápidos; ventaja para esquivar y no acabar derribado.',
+    'contactos':'conoces a alguien en todas partes; un favor o un dato cuando importa.',
+    'piloto':'manejas naves y vehículos con destreza.',
+    'erudito':'sabes cosas raras; ventaja para recordar ciencia, historia o datos técnicos.',
+    'superviviente':'te apañas sin recursos: comida, refugio y orientación.',
+    'cargador':'fuerte de espalda; cargas y arrastras más peso sin penalización.',
+    'mercader nato':'regateas y tasas; mejores precios y detectas timos.',
+    'puntería':'disparas con precisión; ventaja a distancia.',
+    'fornido':'golpes más contundentes; +daño cuerpo a cuerpo.'
+  };
+  function updateDonDesc(){
+    ['don_1','don_2'].forEach(function(n){
+      var inp=q(n),box=document.getElementById('desc_'+n);if(!inp||!box)return;
+      var key=(inp.value||'').trim().toLowerCase();
+      if(DONES[key])box.innerHTML='<b>›</b> '+DONES[key];
+      else if(key)box.textContent='Don personalizado — anota con tu Máster qué hace.';
+      else box.textContent='';
+    });
+  }
+
+  function recompute(){
+    var R=val('R'),A=val('A'),F=val('F'),lvl=Math.max(1,val('nivel'));
+    var total=ATTRS.reduce(function(a,k){return a+val(k);},0);
+    var left=POOL-total;
+    var badge=document.getElementById('poolBadge');
+    badge.textContent=(left===0?'reparto completo':(left>0?left+' por repartir':Math.abs(left)+' de más'));
+    badge.className='pool'+(left===0?' ok':(left<0?' over':''));
+    var pvmax=10+2*R+3*lvl;
+    document.getElementById('pvMax').textContent=pvmax;
+    document.getElementById('pvFormula').textContent=pvmax;
+    document.getElementById('iniA').textContent=sign(A);
+    document.getElementById('bF').textContent=sign(F);
+    document.getElementById('bA').textContent=sign(A);
+    updateDonDesc();
+  }
+  function clampAttr(e){var v=parseInt(e.value,10)||1;if(v<1)v=1;if(v>8)v=8;e.value=v;}
+  document.querySelectorAll('.attr input').forEach(function(inp){inp.addEventListener('change',function(){clampAttr(inp);recompute();});});
+  document.querySelectorAll('.stp[data-a]').forEach(function(b){
+    b.addEventListener('click',function(){var e=q(b.dataset.a);e.value=(parseInt(e.value,10)||0)+parseInt(b.dataset.d,10);clampAttr(e);recompute();});
+  });
+  document.querySelectorAll('.stp[data-pv]').forEach(function(b){
+    b.addEventListener('click',function(){var e=q('pv_actual');e.value=(parseInt(e.value,10)||0)+parseInt(b.dataset.pv,10);});
+  });
+  document.getElementById('pvReset').addEventListener('click',function(){q('pv_actual').value=document.getElementById('pvMax').textContent;});
+  document.getElementById('oficioChips').addEventListener('click',function(e){
+    if(e.target.classList.contains('chip')){e.preventDefault();q('oficio').value=e.target.textContent;}
+  });
+  document.addEventListener('input',recompute);
+
+  function collect(){var d={_type:'orfeo-pj'};document.querySelectorAll('[name]').forEach(function(e){d[e.name]=(e.type==='checkbox')?e.checked:e.value;});return d;}
+  function apply(d){Object.keys(d).forEach(function(k){if(k.charAt(0)==='_'){return;}var e=q(k);if(!e)return;if(e.type==='checkbox')e.checked=!!d[k];else e.value=d[k];});recompute();}
+  document.getElementById('saveBtn').addEventListener('click',function(){
+    var name=(q('nombre').value||q('mote').value||'tripulante').trim().replace(/\s+/g,'-').toLowerCase();
+    var blob=new Blob([JSON.stringify(collect(),null,2)],{type:'application/json'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='orfeo-'+name+'.json';a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+  });
+  document.getElementById('loadBtn').addEventListener('click',function(){document.getElementById('fileInput').click();});
+  document.getElementById('fileInput').addEventListener('change',function(e){
+    var f=e.target.files[0];if(!f)return;var r=new FileReader();
+    r.onload=function(){try{apply(JSON.parse(r.result));}catch(err){alert('No se pudo leer: '+err.message);}};
+    r.readAsText(f);e.target.value='';
+  });
+  recompute();
+})();
+</script>
+</body>
+</html>

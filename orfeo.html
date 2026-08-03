@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema GATO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1316;--bg-2:#121a1e;--surface:#161f24;--surface-2:#1b262c;--surface-3:#223038;
+  --ink:#e9eef0;--ink-soft:#c8d0d2;--muted:#7f8c90;--line:#283740;--line-strong:#3a4d57;
+  --gold:#d7a945;--gold-soft:#e6c372;--blood:#e0635f;--violet:#a98fe0;--cyan:#46c0cf;--radius:14px;
+}
+html[data-theme="light"]{
+  --bg:#eef0ee;--bg-2:#e6eae9;--surface:#fbfcfb;--surface-2:#f1f4f3;--surface-3:#e7ecec;
+  --ink:#1a2226;--ink-soft:#3c474c;--muted:#65726f;--line:#d6dcdb;--line-strong:#b9c2c1;
+  --gold:#a9772a;--gold-soft:#c79f4c;--blood:#b33b37;--violet:#6c49a6;--cyan:#1d7f8c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;
+  background-image:radial-gradient(circle at 85% -10%, color-mix(in srgb,var(--gold) 8%,transparent), transparent 45%),radial-gradient(circle at 0% 105%, color-mix(in srgb,var(--cyan) 6%,transparent), transparent 42%);
+  background-attachment:fixed;min-height:100vh}
+a{color:var(--gold);text-decoration:none}
+.mono{font-family:'JetBrains Mono',monospace}
+
+#bar{display:flex;align-items:center;gap:8px;padding:11px clamp(14px,4vw,30px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:9px;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.5px;font-size:1.05rem}
+.brand .g{color:var(--gold)}
+#bar .sp{flex:1}
+.btn{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.68rem;font-weight:600;background:transparent;color:var(--ink-soft);border:1px solid var(--line-strong);padding:7px 11px;border-radius:8px;cursor:pointer}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+
+main{max-width:940px;margin:0 auto;padding:clamp(20px,5vw,46px) clamp(16px,4vw,30px) 70px}
+
+.hero{text-align:center;margin:10px 0 40px}
+.hero .eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);margin-bottom:14px}
+.hero h1{font-family:'Cinzel',serif;font-weight:700;font-size:clamp(2.8rem,11vw,5.2rem);line-height:1;margin:0;letter-spacing:2px}
+.hero h1 .g{color:var(--gold)}
+.hero .sub{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:3px;font-size:clamp(.8rem,2.5vw,1rem);color:var(--ink-soft);margin-top:12px}
+.hero p{max-width:56ch;margin:18px auto 0;color:var(--ink-soft)}
+
+.groupname{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:2px;font-weight:600;font-size:.95rem;color:var(--gold-soft);display:flex;align-items:center;gap:12px;margin:36px 0 14px}
+.groupname::before,.groupname::after{content:"";height:1px;background:var(--line);flex:1}
+.groupname span{flex:none}
+
+.grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:640px){.grid{grid-template-columns:1fr 1fr}}
+@media(min-width:640px){.grid .wide{grid-column:1 / -1}}
+
+.card{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:20px 22px;text-decoration:none;color:inherit;position:relative;overflow:hidden;transition:border-color .15s, transform .15s}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent,var(--gold))}
+.card:hover{border-color:var(--accent,var(--gold));transform:translateY(-2px)}
+.card .ic{font-size:1.5rem;line-height:1}
+.card h3{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-weight:600;font-size:1.15rem;margin:2px 0 0}
+.card p{margin:0;color:var(--ink-soft);font-size:.94rem}
+.card .go{margin-top:6px;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.5px;font-size:.68rem;color:var(--accent,var(--gold));font-weight:600}
+.card.g-guia{--accent:var(--gold)} .card.g-ficha{--accent:var(--gold-soft)} .card.g-panel{--accent:var(--cyan)}
+.card.g-mod{--accent:var(--blood)} .card.g-narr{--accent:var(--violet)} .card.g-play{--accent:var(--cyan)}
+.lockpin{display:inline-block;margin-top:6px;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.6rem;color:var(--muted);border:1px solid var(--line-strong);border-radius:6px;padding:2px 7px}
+
+footer{max-width:940px;margin:0 auto;padding:26px clamp(16px,4vw,30px);color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);text-align:center}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <span class="brand"><span class="g">⬡</span> Sistema GATO</span>
+  <span class="sp"></span>
+  <button class="btn" id="themeBtn">◑ Tema</button>
+</div>
+
+<main>
+  <div class="hero">
+    <div class="eyebrow">Guía de Aventuras Tácticas Orientadas</div>
+    <h1><span class="g">Sistema</span> GATO</h1>
+    <div class="sub">Un motor · cualquier ambientación</div>
+    <p>Juego de rol de mesa táctico y cooperativo. Un D20 decide casi todo, la rejilla decide el resto y la muerte siempre está a dos malas tiradas — pero un buen compañero puede sacarte de ella. Aquí tienes todo el material.</p>
+  </div>
+
+  <div class="groupname"><span>El sistema</span></div>
+  <div class="grid">
+    <a class="card g-guia" href="guia-gato.html">
+      <span class="ic">📖</span>
+      <h3>Guía del jugador</h3>
+      <p>Todas las reglas: atributos, dados, combate, dones, muerte, niveles y equipo (medieval, contemporáneo o futuro). Por dónde empezar.</p>
+      <span class="go">Abrir →</span>
+    </a>
+    <a class="card g-ficha" href="ficha-gato.html">
+      <span class="ic">🗒️</span>
+      <h3>Ficha de personaje</h3>
+      <p>Ficha interactiva e imprimible: calcula PV, iniciativa y bonos sola. Guarda y carga en JSON. Sin instalar nada.</p>
+      <span class="go">Abrir →</span>
+    </a>
+    <a class="card g-panel wide" href="control-gato.html">
+      <span class="ic">🎛️</span>
+      <h3>Panel del Máster</h3>
+      <p>Tu consola: seguimiento de personajes, rastreador de iniciativa, tirador de dados, bestiario y una guía del Máster completa. Incluye el dial secreto de la Suerte.</p>
+      <span class="lockpin">🔒 Máster · PIN</span>
+      <span class="go">Abrir →</span>
+    </a>
+  </div>
+
+  <div class="groupname"><span>Aventura · «Orfeo»</span></div>
+  <div class="grid">
+    <a class="card g-play wide" href="partida-orfeo-jugadores.html">
+      <span class="ic">🧑‍🚀</span>
+      <h3>Guía para jugadores</h3>
+      <p>Para tu grupo: presenta el mundo (sin spoilers) y les acompaña a crear su personaje con el creador. Empieza por aquí antes de la primera sesión.</p>
+      <span class="go">Abrir →</span>
+    </a>
+    <a class="card g-play" href="ficha-orfeo.html">
+      <span class="ic">📝</span>
+      <h3>Creador de personaje</h3>
+      <p>Ficha de Orfeo para jugadores: reparte 32 puntos en vivo, empieza sin equipo, elige dones y guarda para enviarle al Máster.</p>
+      <span class="go">Abrir →</span>
+    </a>
+    <a class="card g-panel" href="control-orfeo.html">
+      <span class="ic">🖥️</span>
+      <h3>Panel del Máster (Orfeo)</h3>
+      <p>Tu consola de partida: reloj con eventos, mesa de jugadores, combate e iniciativa, bestiario, seguimiento de DovaGPT, PNJs y tablero de finales.</p>
+      <span class="lockpin">🔒 Máster · PIN</span>
+      <span class="go">Abrir →</span>
+    </a>
+    <a class="card g-mod" href="partida-orfeo.html">
+      <span class="ic">🛰️</span>
+      <h3>Módulo de la partida</h3>
+      <p>Aventura de introducción autoconclusiva (~6 h): una nave a la deriva, miles de dormidos y una IA que no admite un error. Estructura, mapas, bestiario, finales y cuenta atrás con eventos.</p>
+      <span class="lockpin">🔒 Máster · PIN</span>
+      <span class="go">Abrir →</span>
+    </a>
+    <a class="card g-narr" href="partida-orfeo-narracion.html">
+      <span class="ic">🎙️</span>
+      <h3>Material de narración</h3>
+      <p>Lo que se lee y se enseña en mesa: aperturas, lecturas por escena, el guion de DovaGPT y los documentos-atrezo imprimibles.</p>
+      <span class="lockpin">🔒 Máster · PIN</span>
+      <span class="go">Abrir →</span>
+    </a>
+  </div>
+</main>
+
+<footer>
+  <p class="mono">Sistema GATO · construido sobre tu versión original</p>
+</footer>
+
+<script>
+document.getElementById('themeBtn').addEventListener('click',function(){var h=document.documentElement;h.setAttribute('data-theme',h.getAttribute('data-theme')==='light'?'dark':'light');});
+</script>
+</body>
+</html>
