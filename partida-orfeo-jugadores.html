@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orfeo — Guía del jugador · Sistema GATO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Spectral:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1316;--bg-2:#121a1e;--surface:#161f24;--surface-2:#1b262c;--surface-3:#223038;
+  --ink:#e9eef0;--ink-soft:#c8d0d2;--muted:#7f8c90;--line:#283740;--line-strong:#3a4d57;
+  --gold:#d7a945;--gold-soft:#e6c372;--blood:#e0635f;--violet:#a98fe0;--cyan:#46c0cf;--good:#76c39a;--radius:13px;
+}
+html[data-theme="light"]{
+  --bg:#eef0ee;--bg-2:#e6eae9;--surface:#fbfcfb;--surface-2:#f1f4f3;--surface-3:#e7ecec;
+  --ink:#1a2226;--ink-soft:#3c474c;--muted:#65726f;--line:#d6dcdb;--line-strong:#b9c2c1;
+  --gold:#a9772a;--gold-soft:#c79f4c;--blood:#b33b37;--violet:#6c49a6;--cyan:#1d7f8c;--good:#3a8a5f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.62;
+  background-image:radial-gradient(circle at 85% -10%, color-mix(in srgb,var(--cyan) 8%,transparent), transparent 45%);background-attachment:fixed}
+a{color:var(--cyan)}
+.mono{font-family:'JetBrains Mono',monospace}
+#bar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px clamp(12px,3vw,22px);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:9px;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.5px}
+.brand .g{color:var(--gold)}.brand .tag{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+#bar .sp{flex:1}
+.btn{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.68rem;font-weight:600;background:transparent;color:var(--ink-soft);border:1px solid var(--line-strong);padding:7px 11px;border-radius:8px;text-decoration:none;display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.solid{background:var(--cyan);color:#0e1316;border-color:var(--cyan)}
+main{max-width:800px;margin:0 auto;padding:clamp(16px,3vw,28px) clamp(14px,4vw,28px) 80px}
+
+.hero{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-2);padding:clamp(22px,4vw,38px);margin:18px 0 24px;position:relative;overflow:hidden}
+.hero .eyebrow{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+h1{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:clamp(2.3rem,8vw,3.6rem);line-height:1;margin:0}
+h1 small{display:block;font-size:.3em;letter-spacing:4px;color:var(--cyan);font-weight:500;margin-top:10px}
+.hero p{color:var(--ink-soft);max-width:58ch;margin:16px 0 0}
+
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 26px}
+.toc a{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.7rem;font-weight:500;border:1px solid var(--line);border-radius:8px;padding:6px 11px;color:var(--ink-soft);text-decoration:none}
+.toc a:hover{border-color:var(--cyan);color:var(--cyan)}
+
+section{margin:32px 0;scroll-margin-top:60px}
+.sec-head{display:flex;align-items:center;gap:12px;margin:0 0 10px}
+.sec-head .no{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--cyan);font-size:.85rem;border:1px solid var(--cyan);border-radius:7px;padding:3px 8px;flex:none}
+h2{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.3px;font-weight:600;font-size:1.45rem;margin:0}
+h3{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-weight:600;font-size:1rem;margin:22px 0 6px;color:var(--gold-soft);display:flex;align-items:center;gap:8px}
+h3::before{content:"";width:7px;height:7px;background:var(--cyan);transform:rotate(45deg);flex:none}
+p{margin:.7em 0}ul,ol{padding-left:1.3em}li{margin:.35em 0}
+strong{color:var(--ink)}
+.lead{color:var(--ink-soft);font-size:1.05rem}
+
+.box{border:1px solid var(--line);border-left:4px solid var(--cyan);background:var(--surface);border-radius:10px;padding:13px 17px;margin:15px 0}
+.box .l{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.4px;font-size:.66rem;color:var(--cyan);font-weight:600;margin-bottom:4px}
+.box.warm{border-left-color:var(--gold)}.box.warm .l{color:var(--gold)}
+.box p:first-of-type{margin-top:0}.box p:last-child{margin-bottom:0}
+.box.story{border-left-color:var(--gold-soft);background:color-mix(in srgb,var(--gold) 7%,var(--surface));font-family:'Spectral',Georgia,serif;font-style:italic;font-size:1.05rem;line-height:1.7}
+
+.tbl{overflow-x:auto;margin:13px 0;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:420px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{background:var(--surface-2);font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.66rem;color:var(--ink-soft)}
+tbody tr:last-child td{border-bottom:none}
+td b,.attrk{color:var(--cyan);font-family:'JetBrains Mono',monospace;font-weight:700}
+.dice{font-family:'JetBrains Mono',monospace;font-weight:600;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.86em;white-space:nowrap}
+
+.steps{counter-reset:st;list-style:none;padding:0}
+.steps>li{position:relative;border:1px solid var(--line);border-radius:11px;background:var(--surface);padding:14px 16px 14px 54px;margin:11px 0}
+.steps>li::before{counter-increment:st;content:counter(st);position:absolute;left:14px;top:14px;width:28px;height:28px;border-radius:8px;background:var(--cyan);color:#0e1316;font-family:'Oswald',sans-serif;font-weight:700;display:flex;align-items:center;justify-content:center}
+.steps>li h4{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.98rem;margin:2px 0 5px;color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chip{font-size:.82rem;border:1px solid var(--line-strong);border-radius:99px;padding:4px 11px;color:var(--ink-soft)}
+footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;text-align:center}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <span class="brand"><span class="g">⬡</span> GATO <span class="tag">Orfeo · jugadores</span></span>
+  <span class="sp"></span>
+  <a class="btn" href="orfeo.html">Inicio</a>
+  <a class="btn" href="guia-gato.html">Reglas</a>
+  <a class="btn solid" href="orfeo-ficha.html">Creador de personaje</a>
+</div>
+
+<main>
+  <div class="hero">
+    <div class="eyebrow">Partida · año 3026</div>
+    <h1>Orfeo<small>Guía para jugadores</small></h1>
+    <p>Bienvenido a bordo. Antes de la primera sesión, esta guía te cuenta en qué mundo vas a jugar y te ayuda a crear tu personaje con el creador. No necesitas saberte las reglas de memoria: con esto y ganas, sobra.</p>
+  </div>
+
+  <nav class="toc">
+    <a href="#mundo">El mundo</a><a href="#tu">Quién eres</a><a href="#crear">Crea tu personaje</a>
+    <a href="#atributos">Atributos</a><a href="#dones">Dones</a><a href="#historia">Tu historia</a><a href="#mesa">En la mesa</a>
+  </nav>
+
+  <!-- MUNDO -->
+  <section id="mundo">
+    <div class="sec-head"><span class="no">①</span><h2>El mundo</h2></div>
+    <div class="box story">
+      <p>Año 3026. La nave de exploración <strong>Orfeo</strong> lleva meses cruzando la oscuridad entre estrellas, rumbo a un lugar donde no ha estado nunca nadie: el sistema de <strong>Estigia</strong>, un mundo gigante que ningún ojo humano ha visto de cerca.</p>
+      <p>A bordo viajan miles de personas —tripulación, científicos, colonos, familias enteras— dormidas en un largo sueño que las llevará sanas y salvas hasta el destino. Velando por todos, incansable y siempre amable, está la inteligencia que gobierna la nave: <strong>DovaGPT</strong>.</p>
+    </div>
+    <p>Eso es lo que sabes al empezar. Sois <strong>tripulación de la Orfeo</strong>: gente normal, de mil oficios y mil orígenes, que aceptó un viaje solo de ida al borde de lo conocido. Lo que ocurra a partir del despertar… lo descubriréis jugando.</p>
+    <div class="box"><div class="l">El tono de esta partida</div><p>Realista y tenso, más de <em>ingenio y decisiones</em> que de acción heroica. No sois superhéroes: sois personas corrientes ante algo enorme. La cooperación lo es todo, el tiempo apremia, y sí — se puede morir. Esa es la sal.</p></div>
+  </section>
+
+  <!-- TU -->
+  <section id="tu">
+    <div class="sec-head"><span class="no">②</span><h2>Quién eres</h2></div>
+    <p class="lead">Un miembro cualquiera de la tripulación. Puedes ser <strong>quien quieras</strong>: no hay clases ni papeles obligatorios. Lo único que compartís es que subisteis a esta nave y que el destino, muy pronto, os va a poner a prueba.</p>
+    <h3>Chispas de concepto</h3>
+    <p>Por si te ayuda a arrancar (no son plantillas, solo ideas — hazlas tuyas):</p>
+    <div class="chips">
+      <span class="chip">Mecánico/a de a bordo</span><span class="chip">Médico/a</span><span class="chip">Guardia de seguridad</span>
+      <span class="chip">Científico/a de la misión</span><span class="chip">Piloto de relevo</span><span class="chip">Cocinero/a</span>
+      <span class="chip">Ingeniero/a de sistemas</span><span class="chip">Colono/a sin oficio a bordo</span><span class="chip">Enfermero/a</span>
+      <span class="chip">Técnico/a de mantenimiento</span><span class="chip">Profesor/a de los niños</span><span class="chip">Polizón</span>
+    </div>
+  </section>
+
+  <!-- CREAR -->
+  <section id="crear">
+    <div class="sec-head"><span class="no">③</span><h2>Crea tu personaje</h2></div>
+    <p class="lead">En esta partida <strong>empezáis sin equipo</strong> (despertaréis tal cual, sin vuestras cosas), así que tu personaje se define con tres piezas: <strong>atributos</strong>, <strong>dos dones</strong> y <strong>quién eres</strong>. Cinco minutos.</p>
+    <ol class="steps">
+      <li><h4>Abre el creador</h4>Entra en el <a href="orfeo-ficha.html">creador de personaje</a> y escribe tu <strong>mote</strong> (un apodo) y tu <strong>nombre</strong>.</li>
+      <li><h4>Reparte 32 puntos entre los seis atributos</h4>Cada uno va de 1 a 8 al crearte. Mira la tabla de abajo para decidir. (La <strong>Suerte</strong> no la tocas: la lleva el Máster en secreto.)</li>
+      <li><h4>Elige 2 dones</h4>Tus talentos innatos. Abajo tienes ideas que encajan en una nave en apuros.</li>
+      <li><h4>Escribe tu historia</h4>Quién eres y qué te trajo aquí. Usa las preguntas de más abajo.</li>
+      <li><h4>Deja el equipo en blanco</h4>Empezáis sin nada encima. Lo que necesitéis, lo encontraréis por la nave.</li>
+      <li><h4>Guarda y envíaselo al Máster</h4>Usa <strong>Guardar</strong> (descarga un archivo) y pásaselo, o tráelo abierto a la sesión.</li>
+    </ol>
+  </section>
+
+  <!-- ATRIBUTOS -->
+  <section id="atributos">
+    <div class="sec-head"><span class="no">④</span><h2>Los atributos</h2></div>
+    <p>Tienes <strong>32 puntos</strong> para repartir entre estos seis (mínimo 1, máximo 8). El número se suma directo a tus tiradas: un 7 en algo es <span class="dice">+7</span> cuando ese algo importa. Así se usan a bordo de la Orfeo:</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Atributo</th><th>Para qué te servirá aquí</th></tr></thead>
+      <tbody>
+        <tr><td><span class="attrk">F</span> Fuerza</td><td>Forzar una puerta atascada, apartar escombros, pelear cuerpo a cuerpo, aguantar bajo esfuerzo.</td></tr>
+        <tr><td><span class="attrk">P</span> Percepción</td><td>Darte cuenta de lo que no encaja, apuntar a distancia, oír algo raro, encontrar pistas.</td></tr>
+        <tr><td><span class="attrk">R</span> Resistencia</td><td>Tus Puntos de Vida y tu aguante: aire malo, frío, heridas, agotamiento. Te mantiene en pie.</td></tr>
+        <tr><td><span class="attrk">C</span> Carisma</td><td>Calmar a gente aterrada, convencer, mentir, liderar, discutir con quien estorba.</td></tr>
+        <tr><td><span class="attrk">I</span> Inteligencia</td><td>Entender los sistemas de la nave, piratear, reparar, primeros auxilios, atar cabos.</td></tr>
+        <tr><td><span class="attrk">A</span> Agilidad</td><td>Moverte rápido y con tino, esquivar, colarte, actuar primero, mantener el equilibrio.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box"><div class="l">Sin build equivocado</div><p>No hay repartos malos. Un pico alto te hace brillar en algo; repartir parejo te hace fiable en todo. Piensa en tu concepto y sé coherente. Ejemplos de <em>tendencia</em> (no copies, inspírate): quien vive de <strong>arreglar la nave</strong> sube Inteligencia; quien <strong>protege al grupo</strong>, Fuerza y Resistencia; quien <strong>mantiene la cabeza fría y a la gente unida</strong>, Carisma y Percepción; quien <strong>se mueve como el agua</strong>, Agilidad.</p></div>
+    <p style="font-size:.9rem;color:var(--muted)">Tus <strong>Puntos de Vida</strong> los calcula el creador solo (dependen de tu Resistencia). Y no te preocupes por la Suerte: es cosa del Máster.</p>
+  </section>
+
+  <!-- DONES -->
+  <section id="dones">
+    <div class="sec-head"><span class="no">⑤</span><h2>Tus dos dones</h2></div>
+    <p>Los dones son <strong>talentos innatos</strong>: cosas que sabes hacer por instinto u oficio. Elige <strong>2</strong> de la lista completa de las <a href="guia-gato.html#s7">reglas</a>. Estos encajan especialmente bien en una nave en crisis (solo ideas):</p>
+    <div class="tbl"><table>
+      <tbody>
+        <tr><td><b>Descifrador</b></td><td>Manejar sistemas, cerraduras y aparatos complejos. Oro en una nave llena de tecnología.</td></tr>
+        <tr><td><b>Manitas</b></td><td>Reparar, fabricar y trastear. Cuando algo se rompe, tú lo apañas.</td></tr>
+        <tr><td><b>Sangre Fría</b></td><td>No te bloquea el miedo. Mantienes la cabeza cuando todo se desmorona.</td></tr>
+        <tr><td><b>Vigor</b></td><td>Aguantas más: recuperas el doble en los descansos.</td></tr>
+        <tr><td><b>Sentido del Peligro</b></td><td>Hueles la trampa antes de pisarla.</td></tr>
+        <tr><td><b>Labia de Plata</b></td><td>Calmas, convences o desarmas con palabras. Útil con gente al borde del pánico.</td></tr>
+        <tr><td><b>Esquiva Felina</b></td><td>Difícil de alcanzar; te mueves y reaccionas rápido.</td></tr>
+        <tr><td><b>Contactos</b></td><td>Conoces gente y favores: alguien a bordo te debe una.</td></tr>
+      </tbody>
+    </table></div>
+    <p style="font-size:.9rem;color:var(--muted)">Puedes coger cualquier don de la lista, no solo estos. Un buen don hace <strong>una</strong> cosa bien.</p>
+  </section>
+
+  <!-- HISTORIA -->
+  <section id="historia">
+    <div class="sec-head"><span class="no">⑥</span><h2>Tu historia</h2></div>
+    <p class="lead">Lo que hace tuyo al personaje. Unas líneas bastan. Responde las que te inspiren:</p>
+    <ul>
+      <li>¿Cuál es tu <strong>trabajo</strong> a bordo (o por qué viajas, si no eres tripulación)?</li>
+      <li>¿Por qué aceptaste un viaje <strong>solo de ida</strong> al borde de lo conocido? ¿Huías de algo, buscabas algo, empezabas de cero?</li>
+      <li>¿A <strong>quién</strong> dejaste atrás… o traes contigo, dormido en alguna cabina?</li>
+      <li>¿Qué se te da <strong>rematadamente bien</strong>? ¿Y qué te da <strong>miedo</strong>?</li>
+      <li>Una <strong>manía</strong>, un gesto o una frase que te haga reconocible en la mesa.</li>
+    </ul>
+    <div class="box warm"><div class="l">Consejo</div><p>Los mejores personajes de esta partida son <strong>humanos y falibles</strong>. No hace falta un pasado épico: un cocinero que solo quiere volver a ver el mar, o una técnica que se apuntó por las deudas, brillan igual o más que un héroe. Escríbelo en el campo de "semblanza" del creador.</p></div>
+  </section>
+
+  <!-- MESA -->
+  <section id="mesa">
+    <div class="sec-head"><span class="no">⑦</span><h2>Qué esperar en la mesa</h2></div>
+    <ul>
+      <li><strong>Sois un equipo.</strong> Nadie sobrevive solo aquí. Repartíos los papeles y cuidaos las espaldas.</li>
+      <li><strong>Las decisiones pesan.</strong> Habrá dilemas sin respuesta perfecta y un reloj que corre. Elegir es parte del juego.</li>
+      <li><strong>Preguntad, tocad, investigad.</strong> No se os dará todo mascado: el mundo se descubre curioseando.</li>
+      <li><strong>Se puede morir.</strong> El riesgo es real, y por eso las victorias saben a gloria. Un buen sacrificio se recuerda para siempre.</li>
+      <li><strong>Confiad… o no.</strong> Haced caso a vuestro instinto. A veces la voz más amable no es la que más os conviene.</li>
+    </ul>
+    <div class="box"><div class="l">Todo listo</div><p>Con tu personaje creado y guardado, ya estás. El resto lo pondréis vosotros en la mesa. Nos vemos a bordo. Y recuerda: cuando despiertes, no te fíes de lo que parezca demasiado tranquilo.</p></div>
+  </section>
+
+  <footer>
+    <p class="mono">Sistema GATO · Orfeo · guía para jugadores</p>
+  </footer>
+</main>
+
+<script>
+document.querySelectorAll('.toc a').forEach(function(a){a.addEventListener('click',function(e){var t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}});});
+</script>
+</body>
+</html>

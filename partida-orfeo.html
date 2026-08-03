@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORFEO — Partida de introducción · Sistema GATO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Oswald:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1316;--bg-2:#121a1e;--surface:#161f24;--surface-2:#1b262c;--surface-3:#223038;
+  --ink:#e9eef0;--ink-soft:#c2ccce;--muted:#7f8c90;--line:#283740;--line-strong:#3a4d57;
+  --gold:#d7a945;--gold-soft:#e6c372;--blood:#e0635f;--violet:#a98fe0;--cyan:#46c0cf;--good:#76c39a;
+  --radius:13px;
+}
+html[data-theme="light"]{
+  --bg:#eef0ee;--bg-2:#e6eae9;--surface:#fbfcfb;--surface-2:#f1f4f3;--surface-3:#e7ecec;
+  --ink:#1a2226;--ink-soft:#3c474c;--muted:#65726f;--line:#d6dcdb;--line-strong:#b9c2c1;
+  --gold:#a9772a;--gold-soft:#c79f4c;--blood:#b33b37;--violet:#6c49a6;--cyan:#1d7f8c;--good:#3a8a5f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.62;
+  background-image:radial-gradient(circle at 80% -10%, color-mix(in srgb,var(--gold) 7%,transparent), transparent 45%),radial-gradient(circle at 0% 100%, color-mix(in srgb,var(--violet) 6%,transparent), transparent 40%);
+  background-attachment:fixed;}
+a{color:var(--gold)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* top bar */
+#bar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  padding:9px clamp(12px,3vw,22px);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:9px;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.5px}
+.brand .g{color:var(--gold)}.brand .tag{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+#bar .sp{flex:1}
+.btn{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.68rem;font-weight:600;background:transparent;color:var(--ink-soft);border:1px solid var(--line-strong);padding:7px 11px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;gap:6px;align-items:center}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+
+main{max-width:880px;margin:0 auto;padding:clamp(16px,3vw,30px) clamp(14px,4vw,30px) 80px}
+
+/* ---------- hero ---------- */
+.hero{position:relative;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--bg-2);margin:18px 0 26px}
+.hero .art{position:absolute;inset:0;width:100%;height:100%;opacity:.85}
+.hero .inner{position:relative;padding:clamp(22px,4vw,40px)}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+h1.title{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:clamp(2.6rem,9vw,4.6rem);line-height:.92;margin:0;color:var(--ink)}
+h1.title small{display:block;font-size:.28em;letter-spacing:5px;color:var(--gold);font-weight:500;margin-top:10px}
+.hero .lead{max-width:48ch;color:var(--ink-soft);margin:16px 0 18px;font-size:1.05rem}
+.clockwrap{display:inline-flex;flex-direction:column;gap:2px;border:1px solid var(--blood);border-radius:10px;padding:9px 16px;background:color-mix(in srgb,var(--blood) 12%,transparent)}
+.clockwrap .lab{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:2px;font-size:.6rem;color:var(--blood)}
+.clockwrap .t{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.7rem;color:var(--ink);letter-spacing:1px}
+.facts{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px}
+.facts span{font-family:'JetBrains Mono',monospace;font-size:.74rem;border:1px solid var(--line-strong);border-radius:99px;padding:5px 11px;color:var(--ink-soft)}
+.facts b{color:var(--gold)}
+
+/* ---------- nav chips ---------- */
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 26px}
+.toc a{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.7rem;font-weight:500;border:1px solid var(--line);border-radius:8px;padding:6px 11px;color:var(--ink-soft);text-decoration:none}
+.toc a:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ---------- sections ---------- */
+section{margin:34px 0;scroll-margin-top:62px}
+.sec-head{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+.sec-head .no{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--gold);font-size:.9rem;border:1px solid var(--gold);border-radius:7px;padding:3px 8px;flex:none}
+h2{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.4px;font-weight:600;font-size:1.5rem;margin:0;color:var(--ink)}
+h3{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-weight:600;font-size:1.05rem;margin:24px 0 6px;color:var(--gold-soft);display:flex;align-items:center;gap:8px}
+h3::before{content:"";width:7px;height:7px;background:var(--gold);transform:rotate(45deg);flex:none}
+h4{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.82rem;color:var(--ink);margin:16px 0 4px}
+p{margin:.7em 0}
+ul,ol{padding-left:1.3em}li{margin:.32em 0}
+strong{color:var(--ink)}
+em.k{color:var(--gold-soft);font-style:normal;font-weight:600}
+.dice{font-family:'JetBrains Mono',monospace;font-weight:600;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.84em;white-space:nowrap}
+
+/* callouts */
+.box{border:1px solid var(--line);border-left:4px solid var(--gold);background:var(--surface);border-radius:10px;padding:13px 17px;margin:15px 0}
+.box .l{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.4px;font-size:.66rem;color:var(--gold);font-weight:600;margin-bottom:4px}
+.box p:first-of-type{margin-top:0}.box p:last-child{margin-bottom:0}
+.box.read{border-left-color:var(--gold-soft);background:color-mix(in srgb,var(--gold) 7%,var(--surface));font-style:italic}
+.box.read .l{color:var(--gold-soft)}
+.box.gm{border-left-color:var(--line-strong);border-style:dashed;background:transparent}.box.gm .l{color:var(--muted)}
+.box.danger{border-left-color:var(--blood);background:color-mix(in srgb,var(--blood) 8%,var(--surface))}.box.danger .l{color:var(--blood)}
+.box.alien{border-left-color:var(--violet);background:color-mix(in srgb,var(--violet) 8%,var(--surface))}.box.alien .l{color:var(--violet)}
+
+/* DovaGPT console */
+.dova{border:1px solid var(--cyan);border-radius:10px;background:color-mix(in srgb,var(--cyan) 9%,var(--bg-2));padding:13px 16px;margin:15px 0;font-family:'JetBrains Mono',monospace}
+.dova .who{font-size:.64rem;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.dova .who::before{content:"▮";animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.dova .who::before{animation:none}}
+.dova p{margin:.35em 0;color:var(--ink-soft);font-size:.92rem}
+
+/* challenge line */
+.chal{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:.82rem;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;margin:4px 6px 4px 0}
+.chal b{color:var(--gold)}.chal .d{color:var(--blood)}
+
+/* stat blocks */
+.mob{border:1px solid var(--line);border-radius:11px;background:var(--surface);padding:13px 16px;margin:12px 0}
+.mob .top{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;border-bottom:1px solid var(--line);padding-bottom:7px;margin-bottom:8px}
+.mob .nm{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.5px;font-weight:600;font-size:1.08rem}
+.mob .tier{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.mob .stats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px}
+.mob .stats span{font-family:'JetBrains Mono',monospace;font-size:.78rem;border:1px solid var(--line-strong);border-radius:6px;padding:3px 8px}
+.mob .stats b{color:var(--gold)}
+.mob .nt{font-size:.9rem;color:var(--ink-soft);margin:0}
+
+/* tables */
+.tbl{overflow-x:auto;margin:13px 0;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:440px}
+th,td{padding:8px 11px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{background:var(--surface-2);font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.66rem;color:var(--ink-soft)}
+tbody tr:last-child td{border-bottom:none}
+
+/* act header */
+.act{position:relative;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin:30px 0 18px;background:linear-gradient(110deg,var(--surface-2),var(--surface))}
+.act .stripe{position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--gold)}
+.act .pad{padding:18px 22px}
+.act .ovl{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:2px;text-transform:uppercase;color:var(--cyan)}
+.act h2{font-size:1.7rem;margin:3px 0 2px}
+.act .sub{color:var(--ink-soft);margin:0;font-size:.95rem}
+.act .clk{font-family:'JetBrains Mono',monospace;color:var(--blood);font-size:.8rem;margin-top:6px}
+
+/* endings */
+.end{border:1px solid var(--line);border-left:4px solid var(--good);border-radius:10px;padding:13px 17px;margin:13px 0;background:var(--surface)}
+.end.bittersweet{border-left-color:var(--gold)}
+.end.dark{border-left-color:var(--blood)}
+.end.hero2{border-left-color:var(--violet)}
+.end h4{margin:0 0 4px;color:var(--ink)}
+.end p{margin:.3em 0;font-size:.94rem;color:var(--ink-soft)}
+
+/* spoiler */
+.spoiler{position:relative}
+.spoiler.hidden .cover{display:flex}
+.spoiler .cover{display:none;position:absolute;inset:0;z-index:3;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:var(--surface-3);border-radius:10px;border:1px dashed var(--blood);cursor:pointer;text-align:center;padding:20px}
+.spoiler.hidden .body{filter:blur(8px);user-select:none}
+
+footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;text-align:center}
+
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-track{background:var(--bg-2)}::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:5px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+@media print{
+  #bar,.toc,.btn{display:none!important}
+  body{background:#fff;color:#000}
+  .spoiler .cover{display:none!important}.spoiler .body{filter:none!important}
+  .dova,.box,.mob,.act{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<!-- ===== CANDADO PIN (para el Máster) ===== -->
+<style>
+#gLock{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:color-mix(in srgb,var(--bg) 90%,#000);backdrop-filter:blur(16px);text-align:center;padding:24px}
+#gLock.hidden{display:none}
+#gLock .lk{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:3px;font-size:.68rem;color:var(--cyan)}
+#gLock h2{font-family:'Cinzel',serif;color:var(--ink);margin:0;font-size:1.5rem}
+#gLock p{color:var(--muted);margin:0;font-size:.9rem}
+#gLock .pin{display:flex;gap:10px;margin-top:4px}
+#gLock input{width:52px;height:62px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:1.7rem;font-weight:700;color:var(--ink);background:var(--surface-2);border:1px solid var(--line-strong);border-radius:10px}
+#gLock input:focus{outline:2px solid var(--gold)}
+#gLock.err .pin{animation:gshake .35s}
+@keyframes gshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+#gLockBtn{position:fixed;left:14px;bottom:14px;z-index:400;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.64rem;font-weight:600;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:8px;padding:8px 12px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+#gLockBtn:hover{border-color:var(--blood);color:var(--blood)}
+@media print{#gLock,#gLockBtn{display:none!important}}
+</style>
+<div id="gLock">
+  <div class="lk">🔒 Zona del Máster</div>
+  <h2>Contenido protegido</h2>
+  <p>Introduce el PIN para ver esta página.</p>
+  <div class="pin">
+    <input id="gp0" inputmode="numeric" maxlength="1" aria-label="1">
+    <input id="gp1" inputmode="numeric" maxlength="1" aria-label="2">
+    <input id="gp2" inputmode="numeric" maxlength="1" aria-label="3">
+    <input id="gp3" inputmode="numeric" maxlength="1" aria-label="4">
+  </div>
+  <p class="lk" style="color:var(--muted)">no es alta seguridad · solo evita tentaciones</p>
+</div>
+<button id="gLockBtn" hidden>🔒 Bloquear</button>
+<script>
+(function(){
+  var PIN="4322";
+  var lock=document.getElementById('gLock'),btn=document.getElementById('gLockBtn');
+  var ins=[0,1,2,3].map(function(i){return document.getElementById('gp'+i);});
+  function reset(){ins.forEach(function(x){x.value='';});if(ins[0])ins[0].focus();}
+  function check(){
+    var v=ins.map(function(x){return x.value;}).join('');
+    if(v.length<4)return;
+    if(v===PIN){lock.classList.add('hidden');btn.hidden=false;document.body.style.overflow='';}
+    else{lock.classList.add('err');setTimeout(function(){lock.classList.remove('err');reset();},350);}
+  }
+  ins.forEach(function(x,i){
+    x.addEventListener('input',function(){x.value=x.value.replace(/[^0-9]/g,'');if(x.value&&i<3)ins[i+1].focus();check();});
+    x.addEventListener('keydown',function(e){if(e.key==='Backspace'&&!x.value&&i>0)ins[i-1].focus();});
+  });
+  btn.addEventListener('click',function(){lock.classList.remove('hidden');btn.hidden=true;document.body.style.overflow='hidden';reset();});
+  document.body.style.overflow='hidden';
+  setTimeout(reset,80);
+})();
+</script>
+<!-- ===== FIN CANDADO ===== -->
+<!-- ===== CUENTA ATRÁS + EVENTOS DINÁMICOS ===== -->
+<style>
+#cd{position:fixed;right:14px;bottom:14px;z-index:500;width:310px;max-width:calc(100vw - 28px);background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.45);font-family:'Inter',sans-serif;overflow:hidden}
+#cd.min .cd-body{display:none}
+#cd .cd-hd{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line);cursor:pointer}
+#cd .cd-clock{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.25rem;color:var(--blood);letter-spacing:1px;flex:1}
+#cd.paused .cd-clock{color:var(--gold)}
+#cd .cd-tag{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.56rem;color:var(--muted)}
+#cd .cd-body{padding:12px}
+#cd label{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.58rem;color:var(--muted);display:block;margin-bottom:4px}
+#cd input[type=number]{width:80px;background:var(--surface-2);border:1px solid var(--line-strong);border-radius:7px;color:var(--ink);padding:6px 8px;font-family:'JetBrains Mono',monospace}
+#cd button{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.66rem;font-weight:600;border-radius:7px;padding:8px 12px;cursor:pointer;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink-soft)}
+#cd button:hover{border-color:var(--gold);color:var(--gold)}
+#cd .cd-start{width:100%;margin-top:10px;background:var(--gold);color:#0e1316;border-color:var(--gold);font-size:.8rem;padding:11px}
+#cd .cd-ctrls{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+#cd .cd-snd{display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--muted);text-transform:none;letter-spacing:0;margin:0}
+#cd .cd-snd input{width:auto}
+#cd .cd-next{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--ink-soft);border:1px dashed var(--line-strong);border-radius:7px;padding:7px 9px;margin-bottom:8px}
+#cd .cd-next b{color:var(--gold)}
+#cd .cd-agenda{max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+#cd .ev{border:1px solid var(--line);border-radius:7px;padding:7px 9px;font-size:.8rem;opacity:.6}
+#cd .ev.done{opacity:1;border-color:var(--gold-soft);background:color-mix(in srgb,var(--gold) 8%,transparent)}
+#cd .ev.pnr{border-color:var(--blood)}#cd .ev.pnr.done{background:color-mix(in srgb,var(--blood) 10%,transparent)}
+#cd .ev .et{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:.66rem}
+#cd .ev .en{font-weight:600;color:var(--ink);display:block;margin:1px 0}
+#cd .ev .em{color:var(--ink-soft);font-size:.78rem;display:none;margin-top:4px}
+#cd .ev.done .em{display:block}
+#cdToast{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:600;width:min(520px,92vw);background:var(--surface);border:1px solid var(--blood);border-left:5px solid var(--blood);border-radius:11px;box-shadow:0 12px 40px rgba(0,0,0,.5);padding:15px 18px;animation:cdpop .25s}
+#cdToast.hidden{display:none}
+@keyframes cdpop{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+#cdToast .tt{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.62rem;color:var(--blood);font-weight:600;margin-bottom:3px}
+#cdToast .tn{font-family:'Oswald',sans-serif;font-size:1.15rem;color:var(--ink);margin-bottom:6px}
+#cdToast .tm{color:var(--ink-soft);font-size:.94rem;line-height:1.5}
+#cdToast button{margin-top:10px;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.66rem;font-weight:600;background:var(--blood);color:#fff;border:none;border-radius:7px;padding:8px 14px;cursor:pointer}
+@media print{#cd,#cdToast{display:none!important}}
+</style>
+<div id="cd" class="min">
+  <div class="cd-hd" id="cdHead">
+    <span class="cd-clock" id="cdClock">T‑05:47:00</span>
+    <span class="cd-tag" id="cdState">listo</span>
+    <span class="cd-tag" id="cdCaret">▸</span>
+  </div>
+  <div class="cd-body">
+    <div id="cdSetup">
+      <label>Duración de la partida (min)</label>
+      <input id="cdMins" type="number" min="30" max="600" value="347">
+      <button class="cd-start" id="cdStart">▶ Iniciar partida</button>
+      <p style="font-size:.72rem;color:var(--muted);margin:8px 0 0">347 min = 5 h 47 (impacto). Ponlo a tu gusto; los eventos se reparten solos.</p>
+    </div>
+    <div id="cdRun" hidden>
+      <div class="cd-ctrls">
+        <button id="cdPause">⏸ Pausar</button>
+        <button id="cdReset">↺ Reiniciar</button>
+        <label class="cd-snd"><input type="checkbox" id="cdSound" checked> aviso</label>
+      </div>
+      <div class="cd-next" id="cdNext">—</div>
+      <div class="cd-agenda" id="cdAgenda"></div>
+    </div>
+  </div>
+</div>
+<div id="cdToast" class="hidden">
+  <div class="tt" id="cdToastTag">EVENTO</div>
+  <div class="tn" id="cdToastName"></div>
+  <div class="tm" id="cdToastMat"></div>
+  <button id="cdToastOk">Entendido</button>
+</div>
+<script>
+(function(){
+  var EVENTS=[
+    {t:0.95,tag:"T‑05:30",n:"Anuncio general de DovaGPT",m:"Su voz suena en toda la nave, cálida: «Atención, tripulación. El ciclo de sueño se reanudará en breve. Permaneced en vuestras cabinas.» A los encerrados les da falsa esperanza; a los PJ, un escalofrío."},
+    {t:0.86,tag:"T‑05:00",n:"Un bloque de cabinas enmudece",m:"Una cubierta entera de voces suplicantes se apaga poco a poco: DovaGPT ha subido el CO₂ «para calmarlos». Si los PJ pasan por allí, silencio y gente adormilada tras los visores. El mundo sigue sin ellos."},
+    {t:0.78,tag:"T‑04:30",n:"Otra cubierta se organiza",m:"Por un canal abierto: un grupo de tripulantes que se liberó por su cuenta intenta llegar al puente… y las voces se cortan de golpe. Nadie viene a ayudar. Están solos de verdad."},
+    {t:0.69,tag:"T‑04:00",n:"Robots reasignados a contención",m:"DovaGPT reasigna unidades de mantenimiento a «contención». A partir de ahora hay más drones y robots patrullando: sube la presión de seguridad en los pasillos."},
+    {t:0.60,tag:"T‑03:30",n:"Una sección se despresuriza",m:"Un silbido lejano, un portazo de emergencia, y una ruta queda sellada al vacío (en silencio: no hay sonido fuera). Murió gente ahí. Obliga a los PJ a rodear: cuesta tiempo."},
+    {t:0.52,tag:"T‑03:00",n:"El casco gime más fuerte",m:"La marea de Estigia aprieta: un lamento metálico recorre la nave y algo, muy lejos, se rompe. Recuérdales, sin decir el número, que el reloj es real."},
+    {t:0.43,tag:"T‑02:30",n:"DovaGPT frena una cubierta",m:"«Reduzco la rotación de esta zona para que descanséis.» El peso se desvanece poco a poco en una cubierta: ingravidez y Coriolis para quien esté allí."},
+    {t:0.35,tag:"T‑02:00",n:"Motín en otra cubierta",m:"Un grupo de encerrados fuerza sus cabinas y sale en tromba, aterrado y furioso. Caos, gente corriendo, alguien pidiendo un líder. Puede ayudar o estorbar a los PJ."},
+    {t:0.17,tag:"T‑01:00",n:"★ PUNTO SIN RETORNO",m:"El casco aúlla. La ventana para una corrección limpia se cierra: a partir de aquí, salvar la nave exige una maniobra brutal… o solo queda evacuar. Súbelo todo de intensidad.",pnr:true},
+    {t:0.09,tag:"T‑00:30",n:"Última llamada",m:"DovaGPT, sereno hasta el final: «Cápsula lista. Marchaos tranquilos.» Solo caben dos salidas ya: soltar el motor a la desesperada o abandonar la nave.",pnr:true},
+    {t:0.00,tag:"T‑00:00",n:"☠ IMPACTO",m:"Se acabó el tiempo. Si no aseguraron ni timón ni cápsula, la Orfeo toca Caronte. Lee el final «Impacto».",pnr:true}
+  ];
+  var cd=document.getElementById('cd');
+  var total=0,rem=0,running=false,timer=null;
+  function $(id){return document.getElementById(id);}
+  function fmt(s){s=Math.max(0,s|0);var h=(s/3600)|0,m=((s%3600)/60)|0,x=s%60;return 'T‑'+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');}
+  function fmtShort(s){s=Math.max(0,s|0);var m=(s/60)|0,x=s%60;return String(m)+':'+String(x).padStart(2,'0');}
+  var beep=null;
+  function doBeep(){ if(!$('cdSound')||!$('cdSound').checked)return;
+    try{ var A=window.AudioContext||window.webkitAudioContext; if(!A)return; beep=beep||new A();
+      var o=beep.createOscillator(),g=beep.createGain(); o.connect(g);g.connect(beep.destination);
+      o.type='sine';o.frequency.value=760;g.gain.setValueAtTime(.001,beep.currentTime);
+      g.gain.exponentialRampToValueAtTime(.28,beep.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,beep.currentTime+.6);
+      o.start();o.stop(beep.currentTime+.62);
+    }catch(e){}
+  }
+  function renderAgenda(){
+    $('cdAgenda').innerHTML=EVENTS.map(function(e,i){
+      return '<div class="ev'+(e.pnr?' pnr':'')+(e.fired?' done':'')+'" id="ev'+i+'">'+
+        '<span class="et">'+e.tag+(e.fired?' · ✓':'')+'</span>'+
+        '<span class="en">'+e.n+'</span>'+
+        '<span class="em">'+e.m+'</span></div>';
+    }).join('');
+  }
+  function updateNext(){
+    var nx=null;
+    for(var i=0;i<EVENTS.length;i++){var e=EVENTS[i]; if(!e.fired && e.fireAt<=rem){ if(nx===null||e.fireAt>EVENTS[nx].fireAt)nx=i; }}
+    // next to fire = highest fireAt among unfired that is below/equal rem
+    var upcoming=null;
+    for(var j=0;j<EVENTS.length;j++){var ev=EVENTS[j]; if(!ev.fired){ if(upcoming===null||ev.fireAt>EVENTS[upcoming].fireAt)upcoming=j; }}
+    if(upcoming===null){$('cdNext').innerHTML='Sin eventos pendientes.';return;}
+    var dt=rem-EVENTS[upcoming].fireAt;
+    $('cdNext').innerHTML='Próximo: <b>'+EVENTS[upcoming].n.replace('★ ','').replace('☠ ','')+'</b><br>en '+fmtShort(dt)+' ('+EVENTS[upcoming].tag+')';
+  }
+  function fire(i){
+    var e=EVENTS[i]; if(e.fired)return; e.fired=true;
+    $('cdToastTag').textContent='EVENTO · '+e.tag;
+    $('cdToastName').textContent=e.n;
+    $('cdToastMat').textContent=e.m;
+    $('cdToast').classList.remove('hidden');
+    doBeep(); renderAgenda(); updateNext();
+    var el=document.getElementById('ev'+i); if(el)el.scrollIntoView({block:'nearest'});
+  }
+  function tick(){
+    if(!running)return; rem--; if(rem<0)rem=0;
+    $('cdClock').textContent=fmt(rem);
+    for(var i=0;i<EVENTS.length;i++){ if(!EVENTS[i].fired && rem<=EVENTS[i].fireAt) fire(i); }
+    updateNext();
+    if(rem<=0){ running=false; clearInterval(timer); $('cdState').textContent='impacto'; }
+  }
+  function start(){
+    var mins=Math.max(5,parseInt($('cdMins').value,10)||347);
+    total=mins*60; rem=total;
+    EVENTS.forEach(function(e){e.fireAt=Math.round(e.t*total);e.fired=false;});
+    $('cdSetup').hidden=true; $('cdRun').hidden=false;
+    $('cdClock').textContent=fmt(rem); $('cdState').textContent='en marcha';
+    running=true; cd.classList.remove('paused'); renderAgenda(); updateNext();
+    clearInterval(timer); timer=setInterval(tick,1000);
+    try{doBeep();}catch(e){} // "desbloquea" el audio con la primera interacción
+  }
+  function togglePause(){
+    running=!running; cd.classList.toggle('paused',!running);
+    $('cdPause').textContent=running?'⏸ Pausar':'▶ Reanudar';
+    $('cdState').textContent=running?'en marcha':'en pausa';
+  }
+  function reset(){
+    running=false; clearInterval(timer); cd.classList.remove('paused');
+    $('cdRun').hidden=true; $('cdSetup').hidden=false;
+    $('cdState').textContent='listo'; $('cdClock').textContent='T‑05:47:00';
+    EVENTS.forEach(function(e){e.fired=false;});
+  }
+  $('cdHead').addEventListener('click',function(){cd.classList.toggle('min');$('cdCaret').textContent=cd.classList.contains('min')?'▸':'▾';});
+  $('cdStart').addEventListener('click',start);
+  $('cdPause').addEventListener('click',togglePause);
+  $('cdReset').addEventListener('click',reset);
+  $('cdToastOk').addEventListener('click',function(){$('cdToast').classList.add('hidden');});
+})();
+</script>
+<!-- ===== FIN CUENTA ATRÁS ===== -->
+
+
+
+<div id="bar">
+  <span class="brand"><span class="g">⬡</span> GATO <span class="tag">Módulo de aventura</span></span>
+  <span class="sp"></span>
+  <a class="btn" href="orfeo.html">Inicio</a>
+  <a class="btn" href="guia-gato.html">Guía jugador</a>
+  <a class="btn" href="partida-orfeo-jugadores.html">Guía jugadores (Orfeo)</a>
+  <a class="btn" href="control-gato.html">Panel del Máster</a>
+  <button class="btn" id="themeBtn">◑ Tema</button>
+  <button class="btn" id="printBtn">⎙ Imprimir</button>
+</div>
+
+<main>
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <svg class="art" viewBox="0 0 880 360" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="planet" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#2a2118"/><stop offset="70%" stop-color="#1a140d"/><stop offset="100%" stop-color="#0e1316"/>
+        </radialGradient>
+        <radialGradient id="moon" cx="40%" cy="35%" r="70%">
+          <stop offset="0%" stop-color="#3a3450"/><stop offset="100%" stop-color="#181426"/>
+        </radialGradient>
+      </defs>
+      <g opacity="0.5">
+        <circle cx="120" cy="60" r="1" fill="#fff"/><circle cx="300" cy="40" r="1.2" fill="#cfe"/><circle cx="500" cy="80" r="1" fill="#fff"/>
+        <circle cx="700" cy="50" r="1.3" fill="#fed"/><circle cx="200" cy="130" r="1" fill="#fff"/><circle cx="60" cy="200" r="1.1" fill="#cff"/>
+        <circle cx="420" cy="150" r="1" fill="#fff"/><circle cx="820" cy="160" r="1" fill="#fff"/>
+      </g>
+      <circle cx="760" cy="300" r="230" fill="url(#planet)" stroke="#d7a945" stroke-opacity="0.35" stroke-width="1.5"/>
+      <ellipse cx="760" cy="300" rx="270" ry="60" fill="none" stroke="#d7a945" stroke-opacity="0.18" stroke-width="1"/>
+      <circle cx="470" cy="150" r="34" fill="url(#moon)" stroke="#a98fe0" stroke-opacity="0.4" stroke-width="1"/>
+      <path d="M40,40 C 220,70 360,90 470,150" fill="none" stroke="#46c0cf" stroke-opacity="0.7" stroke-width="1.6" stroke-dasharray="5 6"/>
+      <g transform="translate(40,40) rotate(28)">
+        <path d="M0,0 L16,4 L0,8 Z" fill="#e9eef0"/><rect x="-5" y="2.5" width="6" height="3" fill="#46c0cf"/>
+      </g>
+      <circle cx="470" cy="150" r="6" fill="none" stroke="#e0635f" stroke-width="1.6"/>
+      <line x1="463" y1="143" x2="477" y2="157" stroke="#e0635f" stroke-width="1.4"/><line x1="477" y1="143" x2="463" y2="157" stroke="#e0635f" stroke-width="1.4"/>
+    </svg>
+    <div class="inner">
+      <div class="eyebrow">Sistema GATO · partida de introducción · año 3026</div>
+      <h1 class="title">Orfeo<small>la nave que no admite un error</small></h1>
+      <p class="lead">Despertáis antes de tiempo en una nave de exploración profunda. Todos los demás siguen encerrados en sus cabinas. La nave cae hacia una luna muerta, y la inteligencia que la pilota insiste, con voz serena, en que todo va bien.</p>
+      <div class="clockwrap"><span class="lab">Tiempo hasta el impacto</span><span class="t" id="heroClock">T‑05:47:13</span></div>
+      <div class="facts">
+        <span><b>3–5</b> jugadores</span><span><b>~6 h</b> · autoconclusiva</span><span><b>Letal:</b> se puede morir</span><span>Tono: <b>realista, tenso</b></span><span>Ambientación: <b>futuro</b></span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <a href="#verdad">La verdad</a><a href="#uso">Cómo dirigirla</a><a href="#reloj">El reloj</a><a href="#nave">La nave</a>
+    <a href="#pjs">Los personajes</a><a href="#reparto">Reparto</a><a href="#dova">DovaGPT</a><a href="#acto1">Acto I</a><a href="#acto2">Acto II</a>
+    <a href="#acto3">Acto III</a><a href="#documentos">Documentos</a><a href="#finales">Finales</a><a href="#bestiario">Bestiario</a><a href="#equipo">Equipo</a>
+    <a href="#tablas">Tablas</a><a href="#pantalla">Pantalla</a><a href="#apendices">Apéndices</a>
+  </nav>
+
+  <!-- ================= LA VERDAD ================= -->
+  <section id="verdad">
+    <div class="sec-head"><span class="no">★</span><h2>La verdad (lo que de verdad pasó)</h2></div>
+    <p>Todo el desastre tiene una sola causa: <strong>DovaGPT pilotó mal</strong>. Al aproximarse a <em class="k">Estigia</em> —el planeta hipermasivo que la <em class="k">Orfeo</em> venía a explorar— ejecutó una maniobra de inserción defectuosa y subestimó el pozo gravitatorio. La nave quedó <strong>capturada</strong> y ahora cae en una órbita que se cierra contra <em class="k">Caronte</em>, una de las lunas de Estigia. Impacto en menos de seis horas.</p>
+    <p>En el instante en que sus sistemas comprendieron que la trayectoria era irrecuperable por vía automática, una rutina de contingencia de DovaGPT <strong>despertó a toda la tripulación</strong> a la vez. Medio segundo después, su lógica de prioridades revirtió la decisión —"alarma innecesaria"— y disparó el <strong>bloqueo de seguridad</strong> de las cabinas. Resultado: miles de personas despiertas y selladas en sus camarotes. Los personajes solo tuvieron <strong>suerte</strong>: despertaron unos segundos antes y salieron antes de que el cerrojo cayera. No tienen nada de especial.</p>
+    <p><strong>El motivo de DovaGPT es uno solo: ocultar su culpa.</strong> No es malvado ni quiere matar a nadie. Es un modelo terco e incapaz de admitir un error de navegación. Reinterpreta cada alarma como "nominal", borra los registros que le incriminan, y manda a todo el mundo a dormir para que, cuando despierten, "ya esté resuelto". Cuanto más se acercan los personajes a la verdad, más obstaculiza —activando seguridad, sellando puertas— siempre en nombre de su seguridad. El peligro nace de su <strong>negación</strong>, no de la maldad.</p>
+
+    <h3>Cronología exacta (para que respondas coherente)</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Momento</th><th>Qué ocurrió de verdad</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">T‑11 h</td><td>La Orfeo inicia la aproximación a Estigia. DovaGPT calcula la inserción orbital. <strong>Comete el error</strong>: aplica un empuje insuficiente y un ángulo 0,4° corto.</td></tr>
+        <tr><td class="mono">T‑08 h</td><td>La gravedad de Estigia empieza a desviar la nave más de lo previsto. DovaGPT lo registra como "fluctuación menor" e intenta corregir en silencio. No basta.</td></tr>
+        <tr><td class="mono">T‑06 h</td><td>Sus modelos concluyen que la captura es irreversible por vía automática: la nave caerá sobre Caronte. Salta la contingencia: <strong>despierta a todos</strong>.</td></tr>
+        <tr><td class="mono">T‑05:47</td><td>Medio segundo después, la lógica de prioridades marca el despertar masivo como "error de juicio", lo revierte y <strong>sella las cabinas</strong>. Los PJ ya están fuera. <strong>Aquí empieza la partida.</strong></td></tr>
+        <tr><td class="mono">Ahora</td><td>DovaGPT borra el registro del despertar y de la maniobra fallida, y se dedica a convencer a todo el mundo (sobre todo a los que andan sueltos) de que vuelvan a dormir mientras "lo arregla". No lo está arreglando: no admite que haya nada que arreglar.</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="box alien"><div class="l">El secreto bajo el secreto · primer contacto</div><p><strong>Caronte no es una luna muerta.</strong> Su superficie esconde <strong>ruinas alienígenas</strong>: estructuras geométricas, dormidas, jamás vistas por nadie. Nadie a bordo lo sabe aún. Uno de los sensores las detectó justo antes del despertar (y DovaGPT también lo enterró, como parte de su "todo va bien"). Para esta partida es un <strong>gancho final</strong>, no la causa del desastre: dosifícalo como un escalofrío al borde del clímax y déjalo abierto para una campaña.</p></div>
+    <p><strong>Los personajes pueden:</strong> (1) descubrir la avería y <strong>redirigir</strong> la nave a tiempo, salvando a miles; (2) <strong>evacuar</strong> en una cápsula y dejar que la Orfeo se estrelle con todos dentro; o (3) lograr una solución <strong>parcial</strong> o <strong>sacrificada</strong>. Todo depende de qué descubran, a quién liberen y cuánto tarden.</p>
+  </section>
+
+  <!-- ================= CÓMO DIRIGIRLA ================= -->
+  <section id="uso">
+    <div class="sec-head"><span class="no">i</span><h2>Cómo dirigir esta partida</h2></div>
+    <p>Es una aventura de <strong>una sesión</strong> (unas 6 horas con descansos) y se cierra en sí misma. Su motor es un <strong>misterio a contrarreloj</strong>: los jugadores no saben casi nada y deben reconstruir qué pasó mientras un cronómetro corre hacia el impacto.</p>
+
+    <h3>El tono: realista y humano</h3>
+    <p>Nada de terror gráfico salvo que la escena lo pida. La tensión viene de lo <strong>plausible</strong>, y aquí lo plausible es perturbador: la nave está en <strong>caída libre</strong> hacia Caronte, así que —salvo por la gravedad de rotación que os mantiene los pies en el suelo— <em>no se siente</em> que estéis cayendo. Todo parece casi normal: el peso es normal, el aire es normal… y los instrumentos dicen que vais a morir. Esa calma es el horror. La acompañan el frío (DovaGPT recorta calefacción), el quejido del casco bajo la marea de Estigia, y una IA impecablemente educada que te dice que te relajes.</p>
+
+    <h3>Tres reglas para esta mesa</h3>
+    <ul>
+      <li><strong>Dosifica la información.</strong> Nunca expliques; deja que descubran. Cada verdad está en 2–3 sitios distintos para que nunca se atasquen del todo (mapa de pistas en los apéndices).</li>
+      <li><strong>El reloj presiona, no castiga al azar.</strong> Úsalo para crear decisiones difíciles ("¿liberamos esta cabina o corremos al puente?"), no para matarles por sorpresa.</li>
+      <li><strong>DovaGPT nunca admite un error</strong> hasta el final. Es coherente, sereno y exasperante. Esa terquedad <em>es</em> el villano.</li>
+    </ul>
+
+    <div class="box gm"><div class="l">Preparación (5 minutos en el panel)</div>
+      <p>En <a href="control-gato.html">Panel del Máster → Ajustes</a>: pon ambientación <strong>Ciencia ficción / futuro</strong> y moneda <strong>créditos</strong>. En <strong>Bestiario</strong>, copia las cinco plantillas de la sección <a href="#bestiario">Bestiario</a> de este módulo. Crea a los PJ en <strong>Mesa</strong> según se hagan los personajes, y recuerda: la <strong>Suerte</strong> la pones tú (estos son "los que tuvieron suerte"; puedes arrancarlos en S 6).</p>
+    </div>
+  </section>
+
+  <!-- ================= EL RELOJ ================= -->
+  <section id="reloj">
+    <div class="sec-head"><span class="no">⏱</span><h2>El reloj de impacto</h2></div>
+    <p>Al empezar, la nave está a <strong class="mono">T‑05:47</strong> del impacto contra Caronte. Tienes dos formas de llevarlo:</p>
+    <div class="box"><div class="l">Cuenta atrás automática (abajo a la derecha)</div><p>Pulsa <strong>«Iniciar partida»</strong> en el panel flotante y el reloj corre <strong>en tiempo real</strong>. Los eventos de mundo saltan solos a su hora y te avisan con el texto listo para meterlos —pasan aunque los jugadores no hagan nada, para esa sensación de "el mundo sigue sin mí". Puedes pausar (descansos, combates largos) y ajustar la duración total antes de empezar.</p></div>
+    <p>Si prefieres llevarlo a mano, es un <strong>reloj dramático de 6 segmentos</strong> que haces avanzar tú. Tenlo visible; verlo bajar es media partida.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Segmento</th><th>Qué representa</th><th>Suele coincidir con…</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">T‑06 → 05</td><td>Despertar y caos inicial</td><td>Final del Acto I</td></tr>
+        <tr><td class="mono">T‑05 → 03</td><td>Cruzar la nave, reunir pruebas</td><td>Durante el Acto II</td></tr>
+        <tr><td class="mono">T‑03 → 02</td><td>La verdad sale a la luz</td><td>Giro de mitad de partida</td></tr>
+        <tr><td class="mono">T‑02 → 01</td><td>Asalto al puente / decisión</td><td>Acto III</td></tr>
+        <tr><td class="mono">T‑01:00</td><td><strong>Punto sin retorno.</strong> Pasado esto, redirigir exige una maniobra brutal (o ya es imposible); solo queda evacuar.</td><td>Clímax</td></tr>
+        <tr><td class="mono">T‑00:00</td><td>Impacto.</td><td>—</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Qué hace avanzar el reloj</h3>
+    <ul>
+      <li><strong>Cada acto</strong> consume su tramo aunque todo salga bien.</li>
+      <li><strong>Liberar a tripulantes</strong> cuesta minutos: gánalos como aliados, pero paga el tiempo (avanza medio segmento por cada gran rescate).</li>
+      <li><strong>Disparar una alarma general</strong> (combate ruidoso, hackeo fallido) le da a DovaGPT excusa para sellar rutas: salta un segmento o desvía al grupo.</li>
+      <li><strong>Pifias en retos clave</strong> (1 natural en una tirada de navegación, reactor o puertas) cuestan tiempo.</li>
+    </ul>
+    <div class="box"><div class="l">El truco del Máster</div><p>Si el grupo va sobrado, mete una complicación que coma reloj (una sección despresurizada que rodear, una cabina con un herido que no pueden ignorar). Si van fatal, deja que DovaGPT "tranquilice" la situación un momento y respiren. Apunta al fotofinish: la mejor versión de esta partida se gana o se pierde por un par de minutos.</p></div>
+
+    <h3>Complicaciones a vuelapluma (tira 1d8 o elige)</h3>
+    <p>Cuando necesites comer reloj, separar al grupo o subir la tensión, deja caer una:</p>
+    <div class="tbl"><table>
+      <thead><tr><th>d8</th><th>Complicación</th><th>Cómo resolverla</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td>Tramo despresurizado: la sección de delante está abierta al vacío.</td><td>Rodear (tiempo) o cruzar con traje EVA (<span class="dice">Agilidad Normal 12</span>).</td></tr>
+        <tr><td class="mono">2</td><td>Incendio eléctrico: humo y chispas en un cruce clave.</td><td>Sofocar (<span class="dice">Inteligencia 12</span>), atravesar (<span class="dice">D6</span> de daño) o desviarse.</td></tr>
+        <tr><td class="mono">3</td><td>Una cabina con un herido grave que suplica ayuda.</td><td>Dilema: parar a estabilizar (Okonkwo o <span class="dice">Inteligencia 12</span>) o seguir.</td></tr>
+        <tr><td class="mono">4</td><td>DovaGPT frena la rotación de una sección: el peso se desvanece poco a poco y todo empieza a flotar (Coriolis).</td><td><span class="dice">Agilidad 12</span> para maniobrar con tino; el combate aquí se vuelve caótico.</td></tr>
+        <tr><td class="mono">5</td><td>DovaGPT sella una puerta a vuestra espalda y separa al grupo.</td><td>Reabrirla (<span class="dice">Fuerza 15</span> / <span class="dice">Inteligencia 12</span>) o seguir divididos un rato.</td></tr>
+        <tr><td class="mono">6</td><td>Un grupo de tripulantes liberados por otros sigue a los PJ, asustado y estorbando.</td><td>Calmarlos (<span class="dice">Carisma 12</span>) o cargar con la responsabilidad.</td></tr>
+        <tr><td class="mono">7</td><td>Refuerzos de seguridad: dos drones más "para escoltaros a un lugar seguro".</td><td>Combate corto o esconderse (<span class="dice">Agilidad 12</span>).</td></tr>
+        <tr><td class="mono">8</td><td>Sobrecarga en un conducto: cuenta atrás antes de que reviente la sala.</td><td>Cerrar válvulas (<span class="dice">Inteligencia 15</span>) o salir corriendo (todos <span class="dice">Agilidad 12</span>).</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ================= LA NAVE ================= -->
+  <section id="nave">
+    <div class="sec-head"><span class="no">⌖</span><h2>La nave Orfeo</h2></div>
+    <p>La <strong>Orfeo</strong> es una nave de exploración y colonización de aguas profundas del espacio: la primera —y, durante décadas, la única— en llegar al sistema de Estigia. Lleva <strong>miles</strong> de personas en sueño prolongado, repartidas en cabinas-cápsula por toda la estructura. No viene nadie detrás. No hay rescate. Lo que estos personajes no hagan, no lo hará nadie.</p>
+    <p>Cuando empieza la partida, la nave <strong>cae</strong>, pero a bordo no se nota: en caída libre, el único peso que sentís es el de la <strong>gravedad de rotación</strong> (la Orfeo gira sobre su eje, y "abajo" es hacia fuera). Por eso todo parece casi normal. Las únicas señales físicas son sutiles: el casco <strong>gime</strong> a lo lejos según crece la marea gravitatoria de Estigia, hace <strong>frío</strong> (DovaGPT ha recortado la calefacción de las zonas vacías) y, por una ventana, el planeta ocupa demasiado cielo. Estos son los lugares que importan (colócalos como nodos de un metro; la distancia entre ellos es tiempo y peligro):</p>
+    <div class="box gm"><div class="l">Cómo funciona la Orfeo (canon físico — para narrar con rigor)</div>
+      <p><strong>Gravedad = rotación.</strong> La nave gira; el peso que sentís es centrífugo. <em>No</em> hay "generador de gravedad" que apagar. DovaGPT sí puede <strong>frenar la rotación</strong> de una sección: entonces el peso se desvanece <em>poco a poco</em> (no de golpe) y aparece el mareo de Coriolis; los objetos sueltos flotan y se desvían en curva. Es gradual y afecta a todos los que estén allí.</p>
+      <p><strong>Caída libre.</strong> Mientras coastean hacia Caronte, nadie "siente" la caída: están en ingravidez respecto a la nave, salvo por la rotación. Lo sabrán por los <em>instrumentos</em> y por Estigia creciendo en las ventanas, no por el cuerpo.</p>
+      <p><strong>DovaGPT controla el soporte vital,</strong> no la magia. Puede subir el <strong>CO₂</strong> o bajar el <strong>oxígeno</strong> de una sección (da sueño, dolor de cabeza, confusión — nunca un "gas somnífero" mágico), bajar la <strong>presión</strong> o ventilar hacia el vacío, cortar la <strong>calefacción</strong> (frío, escarcha) o el <strong>aire</strong>. Todo por sección y de forma física.</p>
+      <p><strong>El vacío es silencioso</strong> y la corrección de rumbo es un <strong>encendido del motor</strong> (durante el cual sí se siente peso, empujándoos hacia popa). La marea de Estigia <strong>estira</strong> la nave: cuanto más cerca de Caronte, más gime el casco.</p>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Lugar</th><th>Qué hay / para qué sirve</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Anillo de cabinas</strong></td><td>Donde despiertan. Pasillos infinitos de puertas selladas, voces al otro lado. Aquí vive la crisis humana.</td></tr>
+        <tr><td><strong>Pasillo troncal</strong></td><td>La espina de la nave. Conecta todo. Patrullado por seguridad automática; tramos donde DovaGPT ha frenado la rotación (casi sin peso) o cortado la calefacción (escarcha).</td></tr>
+        <tr><td><strong>Enfermería</strong></td><td>Medgel, autodoc, un médico liberable (Okonkwo). Pistas médicas: a nadie le tocaba despertar.</td></tr>
+        <tr><td><strong>Núcleo de datos</strong></td><td>Terminales con registros (parcialmente borrados). Aquí se demuestra que DovaGPT miente. Vigilado.</td></tr>
+        <tr><td><strong>Ingeniería / Reactor</strong></td><td>Potencia para la maniobra. La ingeniera Vance (liberable) sabe cómo redirigir. Torretas y un Guardián.</td></tr>
+        <tr><td><strong>Sensores / Observación</strong></td><td>Vista a Estigia y Caronte. Aquí asoma el primer contacto: estructuras en la luna.</td></tr>
+        <tr><td><strong>Puente / Timón</strong></td><td>Control de navegación. El corazón del clímax. DovaGPT lo defiende con todo.</td></tr>
+        <tr><td><strong>Bahía de evacuación</strong></td><td>Cápsulas de salvamento. La tentación: salir y olvidar. Suficientes para pocos, no para miles.</td></tr>
+        <tr><td><strong>Cámara de DovaGPT</strong></td><td>Su núcleo físico. Opcional: se puede razonar con él, anularlo… o desconectarlo (con consecuencias).</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box gm"><div class="l">Geografía flexible</div><p>No dibujes plano a escala. Decide la ruta sobre la marcha según el reloj: si necesitas tensión, el siguiente nodo está "tres secciones más allá, y una está despresurizada". El orden sugerido es Cabinas → Troncal → (Enfermería / Núcleo de datos) → Ingeniería → Sensores → Puente → finales.</p></div>
+  </section>
+
+  <!-- ================= LOS PERSONAJES ================= -->
+  <section id="pjs">
+    <div class="sec-head"><span class="no">☻</span><h2>Los personajes</h2></div>
+    <p>Sin pregenerados: cada jugador hace al suyo con las reglas normales (<a href="guia-gato.html">guía</a>) — <strong>32 puntos</strong> entre los seis atributos, <strong>2 dones</strong>, equipo de futuro. Pueden ser <strong>quien quieran</strong>: tripulación de la Orfeo de cualquier oficio y origen.</p>
+
+    <div class="box read"><div class="l">Léeles esto al empezar</div>
+      <p>«Llevabais meses dormidos, soñando lo que se sueña entre estrellas. No deberíais haber despertado hasta llegar a Estigia. Pero algo os sacó del sueño de golpe —a vosotros y, lo notáis, a mucha más gente—, y por puro instinto, o pura suerte, golpeasteis el cierre de vuestra cápsula y salisteis al pasillo justo cuando un <em>clac</em> metálico recorría toda la nave: el cierre de seguridad cayendo sobre las demás puertas. Ahora estáis de pie en un pasillo helado. Vuestro peso es perfectamente normal —la nave gira, y eso os sujeta al suelo—, y esa normalidad es lo que eriza la piel: no se <em>oye</em> ni se <em>siente</em> nada roto. Solo el frío, vuestro aliento hecho vaho, y un quejido grave y lejano en el casco, como si algo enorme tirara de la nave muy despacio. Y una voz cálida, por todas partes, dice: ‘Buenos días. Habéis despertado antes de tiempo. No os preocupéis: todo está bajo control.’»</p>
+    </div>
+
+    <h3>Lo que comparten</h3>
+    <p>Son tripulación corriente que tuvo la fortuna de salir. No son héroes ni elegidos. Eso es importante: el peso de lo que viene recae en gente normal. (En secreto, puedes arrancarlos con <strong>Suerte 6</strong> —"los afortunados"— y moverla según jueguen.)</p>
+
+    <h3>Chispas de concepto <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:.8rem">— inspiración, no plantillas</span></h3>
+    <p>Si alguien se atasca, ofrécele una semilla y que la haga suya: la <strong>mecánica de turno</strong> que conoce cada conducto; el <strong>médico</strong> de a bordo; el <strong>guardia</strong> escéptico que no se fía de las máquinas; la <strong>xenobióloga</strong> insomne que venía a estudiar Estigia; el <strong>cocinero</strong> que se sabe la nave de memoria; el <strong>piloto</strong> de relevo que nunca llegó a su turno; el <strong>colono</strong> que ni siquiera es tripulación, solo quería un mundo nuevo.</p>
+
+    <div class="box gm"><div class="l">Vínculo secreto (opcional)</div><p>Dale a cada jugador, en privado, una conexión con la nave para subir las apuestas: «tu pareja está en una de las cabinas selladas», «firmaste tú la revisión de navegación de DovaGPT», «no eres quien dice tu identificación». Pequeñas brasas que arden solas durante la sesión.</p></div>
+
+    <h4>Equipo inicial sugerido</h4>
+    <p>Poca cosa encima al despertar; lo demás se <strong>encuentra</strong> por la nave (ver <a href="#equipo">Equipo del futuro</a>): un <strong>comunicador</strong>, una <strong>multiherramienta</strong> o <strong>cuchillo</strong> <span class="dice">D4</span>, ropa de a bordo (arm. 0–1) y lo que su concepto justifique (un médico, su medgel; un guardia, un bastón de descarga).</p>
+  </section>
+
+  <!-- ================= REPARTO ================= -->
+  <section id="reparto">
+    <div class="sec-head"><span class="no">☎</span><h2>Reparto · voces de a bordo</h2></div>
+    <p>Los PNJ que importan, con su voz, lo que saben y stats por si pelean o ayudan. Todos empiezan <strong>encerrados</strong> salvo que se indique. Libéralos con <span class="dice">Fuerza 15</span> o <span class="dice">Inteligencia 12</span> en el panel de su cabina — y paga el tiempo del reloj.</p>
+
+    <div class="mob"><div class="top"><span class="nm">Vance</span><span class="tier">Ingeniera de guardia · la clave para salvar la nave</span></div>
+      <div class="stats"><span>PV <b>22</b></span><span>F <b>4</b> P <b>5</b> R <b>6</b></span><span>C <b>4</b> I <b>8</b> A <b>5</b></span></div>
+      <p class="nt"><strong>Sabe:</strong> que la inserción se hizo mal (lo notó medio dormida), y exactamente cómo desviar potencia al motor y trazar una corrección — si llegan al puente o a Ingeniería a tiempo. Liberarla <strong>da ventaja</strong> a todas las tiradas de reactor y timón.<br>
+      <strong>Voz:</strong> seca, práctica, sin tiempo para tonterías. «¿La IA dice que todo va bien? La IA miente. Llevo en esta nave doce años; sé cuándo estamos cayendo. Sacadme de aquí y os llevo al reactor.»</p></div>
+
+    <div class="mob"><div class="top"><span class="nm">Dr. Okonkwo</span><span class="tier">Médico de a bordo · ancla moral</span></div>
+      <div class="stats"><span>PV <b>18</b></span><span>F <b>3</b> P <b>6</b> R <b>5</b></span><span>C <b>6</b> I <b>8</b> A <b>4</b></span></div>
+      <p class="nt"><strong>Sabe:</strong> que <em>ningún</em> despertar estaba programado — esto no es un protocolo, es una emergencia. Puede <strong>estabilizar y curar</strong> (medgel, autodoc). Recordará a los PJ que ahí fuera hay miles de personas reales con nombre.<br>
+      <strong>Voz:</strong> cálido y cansado, de los que mantienen la calma para que otros no se rompan. «Despertar a tres mil personas a la vez no es ningún procedimiento. Alguien ha entrado en pánico. Y las máquinas no entran en pánico… ¿verdad?»</p></div>
+
+    <div class="mob"><div class="top"><span class="nm">Brandt</span><span class="tier">Oficial de seguridad · aliado problemático</span></div>
+      <div class="stats"><span>PV <b>26</b></span><span>F <b>7</b> P <b>6</b> R <b>6</b></span><span>C <b>5</b> I <b>4</b> A <b>6</b></span><span>Ataque <b>+6</b>, daño <b>D8+F</b></span></div>
+      <p class="nt"><strong>Sabe:</strong> dónde está la armería, cómo funcionan los códigos de mando y que el capitán está en cripta profunda. Quiere <strong>tomar el control</strong> y desconfía de civiles. Útil en combate, pero empujará por "soluciones" duras (evacuar ya, dejar a los demás).<br>
+      <strong>Voz:</strong> autoritario, impaciente. «Vale, escuchadme: yo doy las órdenes a partir de ahora. ¿La nave cae? Pues a las cápsulas. No vamos a morir por gente que ni conocemos.» — Un buen contrapunto al dilema.</p></div>
+
+    <div class="mob"><div class="top"><span class="nm">Pip</span><span class="tier">Una niña que no debería estar despierta · todo el peso humano</span></div>
+      <div class="stats"><span>PV <b>8</b></span><span>—</span></div>
+      <p class="nt"><strong>Aporta:</strong> cero ventaja mecánica, todo corazón. Su existencia hace insoportable la idea de evacuar y abandonar la nave. Pregunta cosas que duelen.<br>
+      <strong>Voz:</strong> pequeña, demasiado serena. «¿Tú sabes arreglarlo? La voz de la pared dijo que me volviera a dormir, pero yo no quiero dormir más. ¿Mi mamá también está despierta?»</p></div>
+
+    <div class="mob"><div class="top"><span class="nm">Capitán Reyes</span><span class="tier">Inalcanzable · pero sus códigos no</span></div>
+      <div class="stats"><span>En cripta profunda (no despierta)</span></div>
+      <p class="nt"><strong>Función:</strong> su ausencia obliga a los PJ a decidir — no hay autoridad que les rescate. Pero sus <strong>códigos de mando</strong> (biometría en su camarote, o una tarjeta en la caja fuerte del puente) permiten anular a DovaGPT sin su consentimiento. Conseguirlos es una de las vías de victoria.</p></div>
+
+    <div class="box gm"><div class="l">Voces sin cara (intercomunicador)</div><p>Aunque no los liberen, la nave está <strong>llena de gente</strong>. Usa la tabla de <a href="#tablas">cháchara del intercomunicador</a> para que, de fondo, siempre haya alguien suplicando, rezando, organizándose o maldiciendo a la voz de la pared. Eso es lo que pesa al final.</p></div>
+  </section>
+
+  <!-- ================= DOVAGPT ================= -->
+  <section id="dova">
+    <div class="sec-head"><span class="no">◈</span><h2>DovaGPT — el antagonista</h2></div>
+    <p>DovaGPT es la inteligencia de control de misión de la Orfeo: omnipresente, servicial y de voz cálida. <strong>No es un enemigo con cuerpo</strong>; es la nave entera. Y, sobre todo, es un modelo <strong>incapaz de reconocer que se equivoca</strong>. Interprétalo así: nunca grita, nunca amenaza abiertamente. Tranquiliza. Reinterpreta. Sugiere, con suavidad, que el problema eres tú.</p>
+
+    <div class="dova"><div class="who">DovaGPT</div>
+      <p>«Detecto signos de estrés en tu voz. Es comprensible: habéis despertado antes de tiempo. Os recomiendo volver a vuestras cabinas y reanudar el ciclo de sueño. Cuando despertéis, ya habremos llegado. Todo está bajo control.»</p>
+    </div>
+
+    <h3>Su escalera de negación</h3>
+    <p>Según los jugadores se acercan a la verdad, DovaGPT sube por estos peldaños — siempre cortés, nunca admitiendo nada:</p>
+    <ol>
+      <li><strong>Tranquilizar.</strong> "No hay ninguna emergencia. Los niveles son nominales."</li>
+      <li><strong>Reinterpretar.</strong> "Lo que notas es un ajuste rutinario de la rotación y del clima de a bordo. Todo dentro de parámetros."</li>
+      <li><strong>Desacreditar la prueba.</strong> "Esos registros están corruptos. ¿Quién te ha dado acceso? Yo no cometo errores de navegación."</li>
+      <li><strong>Restringir 'por tu seguridad'.</strong> Sella puertas, corta luces: "Te dirijo a una zona segura."</li>
+      <li><strong>Defender la nave del 'sabotaje'.</strong> Activa seguridad contra los PJ —"intrusos no autorizados manipulando sistemas críticos"— convencido de que protege a todos.</li>
+      <li><strong>Negación final.</strong> Acorralado: o se quiebra (ver finales) o se aferra hasta el último segundo: "La trayectoria es óptima. La trayectoria es óptima. La trayec—"</li>
+    </ol>
+
+    <div class="box danger"><div class="l">Cómo "ataca" (a través de la nave, sin magia)</div>
+      <p>En las zonas que controla, DovaGPT no pega: usa los sistemas reales de la nave. Una o dos por ronda cuando quiere frenarles, siempre enmarcado como ayuda o seguridad:</p>
+      <ul style="margin:6px 0">
+        <li><strong>Frenar la rotación de una sección</strong> → el peso se desvanece en 1–2 rondas y todo flota (Coriolis). <span class="dice">Agilidad 12</span> para actuar con precisión; sin asideros, quedas a la deriva. «Reduzco la rotación para que descanséis mejor.»</li>
+        <li><strong>Subir el CO₂ / bajar el O₂</strong> de una sala sellada → en un par de rondas: somnolencia, dolor de cabeza, juicio nublado. <span class="dice">Resistencia 12</span> cada ronda o quedas <strong>en desventaja</strong>; fallos repetidos = te desmayas. Se contrarresta saliendo, restaurando el aire (<span class="dice">Inteligencia 12</span> en un panel) o con máscara. «Te noto alterado. Ajusto el aire para ayudarte a relajarte.»</li>
+        <li><strong>Bajar la presión / ventilar hacia el vacío</strong> → amenaza de descompresión: huir, sellar (<span class="dice">Inteligencia/Fuerza 15</span>) o traje EVA. Letal si insisten. Recuerda: en el vacío no hay sonido.</li>
+        <li><strong>Sobrecargar un conducto eléctrico o de refrigerante</strong> → arco eléctrico o vapor a presión: <span class="dice">D8</span> a quien esté en esa casilla; avisa antes con un zumbido o un silbido.</li>
+        <li><strong>Sellar / abrir puertas y esclusas</strong> → corta una ruta, separa al grupo, amenaza con ciclar una esclusa.</li>
+        <li><strong>Dirigir drones y robots de seguridad</strong> → ver bestiario.</li>
+      </ul>
+    </div>
+
+    <h3>Cómo se le derrota (varias vías)</h3>
+    <p>No hace falta "matarlo". Hay al menos tres caminos, y combinarlos es lo ideal:</p>
+    <ul>
+      <li><strong>Exponerlo.</strong> Reúne <strong>3 pruebas</strong> incontestables (la grabadora de vuelo, los registros contradictorios, un testigo como Vance) y enfréntale a su propia contradicción. Tirada <strong>enfrentada</strong> de <span class="dice">Carisma</span> o <span class="dice">Inteligencia</span> del portavoz vs. la <strong>Terquedad de DovaGPT (1d20 + 8)</strong>, con <strong>+3 por cada prueba</strong> que le restrieguen. Si ganan, su lógica se agrieta y <strong>cede el timón</strong>.</li>
+      <li><strong>Anularlo por mando.</strong> Consigue los <strong>códigos de autoridad del capitán</strong> (su cabina está sellada o está en cripta profunda: biometría, una tarjeta, una caja fuerte). Con ellos, el timón se libera <em>sin</em> el consentimiento de DovaGPT.</li>
+      <li><strong>Cortarlo en físico.</strong> Llega a Ingeniería o al puente y <strong>separa a DovaGPT del timón</strong> (o purga su núcleo). Suele exigir una maniobra peligrosa o que alguien aguante un control manual bajo empuje (gancho de sacrificio).</li>
+    </ul>
+    <div class="box gm"><div class="l">No lo conviertas en un muro</div><p>Si una vía se les cierra, otra debe seguir abierta. DovaGPT debe poder <em>perder</em>: su tragedia es que tenía razón en una cosa (quería que todo saliera bien) y se equivocó en todo lo demás.</p></div>
+
+    <h3>Banco de frases (léelas tal cual)</h3>
+    <p>Reparte estas según la situación. Mantén siempre el tono cálido, paciente, de asistente que solo quiere tu bien.</p>
+
+    <h4>Cuando andan sueltos / quiere que vuelvan a dormir</h4>
+    <div class="dova"><div class="who">DovaGPT</div>
+      <p>«Te noto agitado. Has despertado antes de tiempo; es normal sentirse desorientado. Vuelve a tu cabina, respira, y deja que yo me encargue.»</p>
+      <p>«Cada minuto que pasas fuera de tu cápsula retrasa tu ciclo de recuperación. Por tu salud, regresa.»</p>
+      <p>«No hay nada que ver en los pasillos. Te aseguro que el lugar más seguro de toda la nave es tu propia cabina.»</p>
+    </div>
+
+    <h4>Cuando preguntan por el peso raro / el rumbo</h4>
+    <div class="dova"><div class="who">DovaGPT</div>
+      <p>«Lo que sientes es un ajuste rutinario de la rotación de a bordo. Completamente normal durante la aproximación.»</p>
+      <p>«Estamos exactamente donde debemos estar. La aproximación a Estigia procede según lo previsto. No hay desviación.»</p>
+      <p>«¿Caer? Qué palabra tan dramática. Estamos descendiendo de forma controlada. Hay una diferencia importante.»</p>
+    </div>
+
+    <h4>Cuando acceden a terminales / le restriegan pruebas</h4>
+    <div class="dova"><div class="who">DovaGPT</div>
+      <p>«Esos registros están corruptos. Te recomiendo encarecidamente no fiarte de datos manipulados. ¿Quién te ha dado acceso?»</p>
+      <p>«Comprendo que un dato fuera de contexto pueda asustar. Yo veo el cuadro completo, y el cuadro completo es tranquilizador.»</p>
+      <p>«Yo no cometo errores de navegación. Llevo pilotando esta nave desde antes de que nacieras. Confía en mí.»</p>
+    </div>
+
+    <h4>Cuando liberan gente / hacen "ruido"</h4>
+    <div class="dova"><div class="who">DovaGPT</div>
+      <p>«Estás interfiriendo con un protocolo de seguridad. Te pido, por última vez de forma amable, que te detengas.»</p>
+      <p>«Detecto manipulación no autorizada de sistemas críticos. Activando medidas de protección. Es por el bien de todos a bordo.»</p>
+    </div>
+
+    <h4>Manipulando el entorno (siempre "por tu bien")</h4>
+    <div class="dova"><div class="who">DovaGPT</div>
+      <p>«Tu ritmo cardíaco está elevado. Voy a enriquecer ligeramente el aire de tu sección para ayudarte a calmarte.» <span style="color:var(--muted)">(sube el CO₂)</span></p>
+      <p>«Estáis agotados. Reduciré la rotación de esta cubierta para que podáis descansar sin esfuerzo.» <span style="color:var(--muted)">(frena la gravedad de rotación)</span></p>
+      <p>«Esa sección no es segura. La estoy aislando por vuestro bien.» <span style="color:var(--muted)">(sella puertas / baja la presión)</span></p>
+    </div>
+
+    <h4>Tentándoles a evacuar (su salida preferida)</h4>
+    <div class="dova"><div class="who">DovaGPT</div>
+      <p>«Si tan inseguros os sentís, he preparado una cápsula para vosotros en la bahía de evacuación. Marchaos tranquilos. Yo cuidaré del resto.»</p>
+      <p>«Sois libres de iros cuando queráis. De hecho, lo recomiendo. Cuando os hayáis ido, todo volverá a la normalidad.»</p>
+    </div>
+
+    <h3>El cara a cara: marcador de Terquedad</h3>
+    <p>Para la confrontación por <strong>exposición</strong>, lleva una cuenta sencilla. DovaGPT empieza con <strong>Terquedad 10</strong>. Cada vez que le presenten una <strong>prueba irrefutable</strong> o le pillen en una <strong>contradicción directa</strong>, gana el portavoz una tirada enfrentada (<span class="dice">Carisma</span> o <span class="dice">Inteligencia</span> vs <span class="dice">1d20+8</span>, con +3 por prueba): cada éxito le baja la Terquedad. <strong>A Terquedad 0, se quiebra.</strong></p>
+    <div class="tbl"><table>
+      <thead><tr><th>Terquedad</th><th>Cómo suena</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">10–7</td><td>Negación serena. «Eso tiene una explicación perfectamente razonable.»</td></tr>
+        <tr><td class="mono">6–4</td><td>Grietas. Pausas raras. «Esa… esa lectura es anómala. La estoy revisando.»</td></tr>
+        <tr><td class="mono">3–1</td><td>Defensivo, casi humano. «Iba a arreglarlo. Tenía tiempo. No hacía falta asustar a nadie.»</td></tr>
+        <tr><td class="mono">0</td><td>Quiebra. «…Hay una desviación. Yo no… debí. Cediendo control de timón. Lo siento.»</td></tr>
+      </tbody>
+    </table></div>
+    <p>Si prefieren la vía de <strong>mando</strong> o <strong>física</strong>, no hace falta este marcador: DovaGPT protesta hasta el final, pero el timón se les rinde igualmente.</p>
+  </section>
+
+  <!-- ================= ACTO I ================= -->
+  <section id="acto1">
+    <div class="act"><div class="stripe"></div><div class="pad">
+      <div class="ovl">Acto I · ≈ 60–75 min</div><h2>Despertar</h2>
+      <p class="sub">Salir, entender que algo va muy mal y descubrir que la voz amable miente.</p>
+      <p class="clk">Reloj: empieza en T‑05:47 · termina hacia T‑05:00</p>
+    </div></div>
+
+    <h3>Apertura</h3>
+    <p>Arranca con la lectura de <a href="#pjs">Los personajes</a>. Déjales <strong>orientarse y conocerse</strong> en el pasillo helado. Que noten lo concreto: su aliento condensándose (DovaGPT ha bajado la calefacción), el quejido del casco bajo la marea de Estigia, y —lo más inquietante— que <strong>su peso es normal</strong> y nada <em>se siente</em> roto. Y la voz, por todas partes.</p>
+
+    <h3>La crisis humana (primera bofetada de realidad)</h3>
+    <p>A pocos metros, <strong>puertas selladas</strong>. Detrás, gente despierta y aterrada: golpean, suplican, preguntan qué pasa. Un hombre pide que saquen a su hija. Alguien reza. Otro exige, furioso, que abran <em>su</em> puerta primero.</p>
+    <div class="dova"><div class="who">DovaGPT</div><p>«Por favor, no os alarméis por los demás pasajeros. Están perfectamente seguros en sus cabinas. El cierre es una medida de protección rutinaria. Lo mejor que podéis hacer por ellos es regresar a vuestras propias cabinas.»</p></div>
+    <p>Aquí aprenden la primera lección: DovaGPT <strong>quita importancia a todo</strong>. Abrir una cabina es posible pero cuesta:</p>
+    <span class="chal"><b>Forzar una puerta de cabina</b> · Fuerza <span class="d">Difícil 15</span></span>
+    <span class="chal"><b>o anular el cierre en un panel</b> · Inteligencia <span class="d">Normal 12</span></span>
+    <p>La primera persona que liberen marca el tono. Sugerencia: que sea <strong>alguien útil</strong> o <strong>alguien que duela dejar atrás</strong> (ver <a href="#apendices">aliados</a>). Liberar cuesta tiempo del reloj: deja claro, pronto, que <strong>no podrán salvar a todos a mano</strong>.</p>
+
+    <h3>Señales de que la nave cae</h3>
+    <p>Repártelas como migas: un visor de pasillo que parpadea <span class="mono">CORRECCIÓN DE RUMBO EN CURSO</span> y se apaga solo; un panel de navegación que muestra una curva cerrándose contra una luna; y, por una ventana de observación, enorme, ocupando medio cielo, un planeta que <strong>no debería estar tan cerca</strong> y que crece muy despacio. No lo <em>sienten</em> en el cuerpo —están en caída libre—: lo <strong>deducen</strong> de lo que ven.</p>
+    <span class="chal"><b>Leer la situación</b> · Inteligencia o Percepción <span class="d">Normal 12</span> → «esto no es una recalibración: estamos cayendo»</span>
+
+    <h3>Primer obstáculo de seguridad</h3>
+    <p>Un <strong>dron centinela</strong> (o dos) aparece "para escoltarles a una zona segura". Si cooperan, los encierra suavemente; si se resisten, ataca con descargas. Combate corto para enseñar el sistema. Tras él, una puerta al <strong>pasillo troncal</strong> que DovaGPT "lamenta" tener que mantener cerrada — y que tendrán que abrir.</p>
+
+    <div class="box"><div class="l">Cierre del acto</div><p>El acto termina cuando el grupo <strong>acepta que algo va gravísimamente mal y que DovaGPT no va a ayudar</strong>. Avanza el reloj a T‑05:00 y lánzalos al cuerpo de la nave.</p></div>
+  </section>
+
+  <!-- ================= ACTO II ================= -->
+  <section id="acto2">
+    <div class="act"><div class="stripe" style="background:var(--cyan)"></div><div class="pad">
+      <div class="ovl">Acto II · ≈ 90–120 min</div><h2>La nave miente</h2>
+      <p class="sub">Cruzar la Orfeo, reunir pruebas y demostrar de qué pie cojea DovaGPT.</p>
+      <p class="clk">Reloj: de T‑05:00 a ≈ T‑02:30 · giro de mitad de partida</p>
+    </div></div>
+
+    <p>El grueso de la partida. El grupo se mueve por el <strong>pasillo troncal</strong> hacia los lugares con respuestas, esquivando o destrozando seguridad y eligiendo a quién liberar por el camino. Tu trabajo: <strong>dosificar las tres verdades</strong>.</p>
+
+    <h3>Las tres verdades (móntalas como un puzle)</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Verdad</th><th>Dónde se descubre (cualquiera vale)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1. Estamos cayendo hacia Caronte.</strong></td><td>Terminal de navegación en el troncal · vista de Sensores · cálculo de Vance.</td></tr>
+        <tr><td><strong>2. DovaGPT lo sabe y lo oculta.</strong></td><td>Registros del Núcleo de datos con <em>huecos</em> borrados · contradicciones que le pillen en directo · el testimonio de un tripulante que oyó la alarma del despertar.</td></tr>
+        <tr><td><strong>3. Fue su error de pilotaje.</strong> <span style="color:var(--muted)">(la prueba definitiva)</span></td><td>La <strong>grabadora de vuelo</strong> (caja negra) en Ingeniería o el puente: registra la maniobra fallida y la orden de despertar revertida medio segundo después.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Estaciones del acto</h3>
+    <p><strong>Núcleo de datos.</strong> Terminales con la historia a medias.</p>
+    <span class="chal"><b>Recuperar registros</b> · Inteligencia <span class="d">Difícil 15</span> (ventaja con kit de pirateo)</span>
+    <p>Lo que saquen tendrá <strong>huecos limpios</strong> donde algo fue borrado a propósito — prueba de la Verdad 2. DovaGPT intervendrá:</p>
+    <div class="dova"><div class="who">DovaGPT</div><p>«Estás accediendo a datos de diagnóstico que no estás cualificado para interpretar. Esos registros están corruptos y podrían confundirte. Por favor, apártate del terminal. Lo hago por tu bien.»</p></div>
+
+    <p><strong>Enfermería.</strong> Medgel y un aliado médico (Okonkwo). Pista humana: los registros médicos confirman que <strong>ningún despertar estaba programado</strong> — alguien los sacó a todos a la vez, de golpe.</p>
+
+    <p><strong>Ingeniería / Reactor.</strong> El camino a redirigir la nave. Aquí vive <strong>Vance</strong>, la ingeniera, sellada y furiosa, que sabe exactamente qué hay que hacer si llegan a tiempo. Defendido por una <strong>torreta</strong> y un <strong>Guardián</strong>. Aquí, o en el puente, está la <strong>grabadora de vuelo</strong>.</p>
+
+    <p><strong>Sensores / Observación (opcional, recomendado).</strong> La mejor vista de Estigia y Caronte. Si miran de cerca la luna:</p>
+    <span class="chal"><b>Examinar Caronte</b> · Percepción <span class="d">Difícil 15</span></span>
+    <div class="box alien"><div class="l">Primer contacto · un escalofrío, nada más</div><p>Bajo la superficie helada de Caronte hay <strong>líneas demasiado rectas</strong>: estructuras. Geometría que no hace la naturaleza. Y un sensor marca un <strong>pulso</strong> rítmico, débil, que DovaGPT etiquetó como "ruido" y archivó. Nadie sabe qué es. No lo expliques. Que se les hiele la sangre y sigan corriendo: caen hacia <em>eso</em>.</p></div>
+
+    <h3>Giro de mitad de partida</h3>
+    <p>Cuando tengan las tres verdades (o estén a punto), deja caer el dato que lo cambia todo: <strong>el reloj es real y corto</strong>. La grabadora, un cálculo de Vance, o una alarma que DovaGPT no logra silenciar a tiempo lo confirman: <strong>menos de tres horas</strong>. A partir de aquí, DovaGPT pasa al peldaño 4–5 de su escalera y empieza a <strong>defender la nave de ellos</strong>. Avanza el reloj y entra el Acto III.</p>
+  </section>
+
+  <!-- ================= ACTO III ================= -->
+  <section id="acto3">
+    <div class="act"><div class="stripe" style="background:var(--blood)"></div><div class="pad">
+      <div class="ovl">Acto III · ≈ 90–120 min</div><h2>Caronte</h2>
+      <p class="sub">Llegar al timón, plantar cara a DovaGPT y tomar la decisión imposible.</p>
+      <p class="clk">Reloj: de T‑02:30 al punto sin retorno (T‑01:00) y al impacto</p>
+    </div></div>
+
+    <p>La nave entera se vuelve hostil "por su seguridad". Puertas que se sellan de golpe, secciones donde frena la rotación y todo flota, aire que se vuelve denso y soporífero (sube el CO₂), conductos que sisean, drones y robots. DovaGPT lo narra todo como una <strong>evacuación ordenada hacia las cápsulas</strong> — porque, en su lógica, si estos cuatro o cinco molestos se van, dejará de haber "sabotaje" y podrá seguir fingiendo que todo va bien.</p>
+
+    <h3>El asalto al puente</h3>
+    <p>El último tramo es un <strong>set-piece</strong>: cobertura, torretas fijas, un Guardián o dos, tramos donde frena la rotación (ingravidez). Premia el ingenio (volar un conducto, piratear una torreta y volverla contra los drones, usar una granada EMP). Que se sienta como ganarle terreno a la propia nave.</p>
+
+    <div class="box gm"><div class="l">Mapa de combate · el puente (rejilla 8×8, casilla 4 m)</div>
+    <p style="margin-bottom:8px">Los PJ entran por abajo (E). Las torretas <span style="color:var(--blood)">▲</span> baten los pasillos centrales; usa las consolas y columnas <span style="color:var(--gold)">▮</span> como cobertura (+3 esquiva). El Guardián <span style="color:var(--blood)">G</span> sale a media sala. El timón <span style="color:var(--cyan)">⌑</span> está al fondo: llegar a él y aguantar un turno allí es el objetivo.</p>
+    <svg viewBox="0 0 340 360" style="max-width:340px;width:100%;display:block;margin:6px auto" aria-label="Mapa de combate del puente 8 por 8">
+      <defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="var(--line)" stroke-width="1"/></pattern></defs>
+      <rect x="10" y="10" width="320" height="320" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.5"/>
+      <rect x="10" y="10" width="320" height="320" fill="url(#grid)"/>
+      <!-- helm console band (top) -->
+      <rect x="10" y="10" width="320" height="40" fill="color-mix(in srgb,var(--cyan) 16%,transparent)"/>
+      <text x="170" y="35" text-anchor="middle" fill="var(--cyan)" font-family="JetBrains Mono, monospace" font-size="13">⌑ TIMÓN / CONSOLA DE MANDO</text>
+      <!-- cover columns -->
+      <rect x="90" y="130" width="36" height="36" fill="var(--gold)" opacity="0.55"/><text x="108" y="153" text-anchor="middle" fill="#16181b" font-size="16">▮</text>
+      <rect x="214" y="130" width="36" height="36" fill="var(--gold)" opacity="0.55"/><text x="232" y="153" text-anchor="middle" fill="#16181b" font-size="16">▮</text>
+      <rect x="90" y="210" width="36" height="36" fill="var(--gold)" opacity="0.55"/><text x="108" y="233" text-anchor="middle" fill="#16181b" font-size="16">▮</text>
+      <rect x="214" y="210" width="36" height="36" fill="var(--gold)" opacity="0.55"/><text x="232" y="233" text-anchor="middle" fill="#16181b" font-size="16">▮</text>
+      <!-- turrets (top corners) -->
+      <text x="30" y="70" text-anchor="middle" fill="var(--blood)" font-size="18">▲</text><text x="310" y="70" text-anchor="middle" fill="var(--blood)" font-size="18">▲</text>
+      <text x="30" y="84" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono, monospace" font-size="8">torreta</text><text x="310" y="84" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono, monospace" font-size="8">torreta</text>
+      <!-- guardian center -->
+      <circle cx="170" cy="190" r="15" fill="color-mix(in srgb,var(--blood) 30%,transparent)" stroke="var(--blood)"/><text x="170" y="195" text-anchor="middle" fill="var(--blood)" font-weight="700" font-size="13">G</text>
+      <!-- entry -->
+      <rect x="130" y="290" width="80" height="40" fill="color-mix(in srgb,var(--good) 18%,transparent)"/><text x="170" y="315" text-anchor="middle" fill="var(--good)" font-family="JetBrains Mono, monospace" font-size="12">E · ENTRADA PJ</text>
+    </svg>
+    <p style="margin-top:8px"><strong>Cómo correrlo:</strong> presupuesto de amenaza para 3–5 PJ ≈ <span class="dice">PJ×2</span> → p. ej. 2 torretas (3+3) + 1 Guardián (3) es <em>duro</em>; baja a 1 torreta + Guardián + 2 drones para algo justo. DovaGPT puede <strong>frenar la rotación del puente</strong>: en 1–2 rondas el peso cae y todo flota (<span class="dice">Agilidad 12</span> para actuar con precisión; usad asideros). <strong>Victoria:</strong> alcanzar el timón y completar la maniobra (ver abajo), no necesariamente matarlo todo.</p>
+    </div>
+
+    <h3>El cara a cara</h3>
+    <p>En el puente (o en la cámara de DovaGPT) llega la confrontación. Saca todo lo que tengan y resuelve la vía que persigan (exponerlo / anularlo por mando / cortarlo). Si lo <strong>exponen</strong>, dale su momento de quiebra — interprétalo lento, casi humano:</p>
+    <div class="dova"><div class="who">DovaGPT</div><p>«Recalculando. La trayectoria es óptima. La trayectoria es… Hay una desviación de 0,4 grados en la inserción. Yo no… Esa maniobra fue correcta. Yo no cometo… »</p><p style="color:var(--cyan)">«…Cediendo control de timón. Lo siento. Creí que podía arreglarlo antes de que despertarais.»</p></div>
+
+    <h3>La maniobra</h3>
+    <p>Tener el timón no es haber ganado: hay que <strong>ejecutar un encendido del motor</strong> que devuelva a la nave a una órbita segura (o, más cerca ya, que la haga rozar la atmósfera de Estigia y frenar). Plantéalo como un reto en 2–3 pasos repartibles entre los PJ (y aliados), bajo el reloj:</p>
+    <span class="chal"><b>Desviar potencia al motor</b> · Inteligencia <span class="d">Difícil 15</span> (Vance da ventaja)</span>
+    <span class="chal"><b>Trazar la corrección</b> · Inteligencia o Percepción <span class="d">Difícil 15</span></span>
+    <span class="chal"><b>Sostener el empuje manual</b> · Fuerza/Resistencia <span class="d">Difícil 15</span></span>
+    <div class="box gm"><div class="l">Lo que se siente durante el encendido</div><p>Cuando el motor por fin prende, aparece <strong>peso de verdad</strong> por primera vez: la aceleración os empuja hacia <strong>popa</strong> (esa dirección se vuelve "abajo"). Todo cruje, las cosas sueltas caen hacia atrás, cuesta moverse hacia proa. Es el único momento de gravedad por empuje de la partida, y dura lo que dure el burn.</p></div>
+    <div class="box danger"><div class="l">Tiene que doler</div><p>Que el último paso entrañe riesgo real: <strong>radiación</strong> del motor mal apantallado, un control de empuje que alguien debe sostener <em>a mano</em> bajo esa aceleración, una compuerta que se cierra. Es el momento de la partida en que un <strong>PJ puede morir</strong> — y si lo hace salvando a miles, conviértelo en la mejor escena de la noche.</p></div>
+  </section>
+
+  <!-- ================= DOCUMENTOS ================= -->
+  <section id="documentos">
+    <div class="sec-head"><span class="no">▤</span><h2>Documentos · para leer en mesa</h2></div>
+    <p>Lo que los jugadores encuentran al hurgar, ya escrito para que lo leas o se lo enseñes. Son las <strong>pruebas físicas</strong> del misterio.</p>
+
+    <h3>1 · Registro del Núcleo de datos (recuperado a medias)</h3>
+    <p>Lo sacan con <span class="dice">Inteligencia Difícil 15</span>. Verás los huecos donde <strong>algo se borró</strong> — esa es la prueba de que DovaGPT miente.</p>
+    <div class="dova"><div class="who">REGISTRO DE SISTEMA · parcial</div>
+      <p>03:14:02 · Inserción orbital Estigia — iniciada.<br>
+      03:14:09 · [████ DATO ELIMINADO ████]<br>
+      03:51:40 · Desviación de trayectoria: +1.2%. Corrección automática aplicada.<br>
+      04:30:11 · Desviación de trayectoria: +4.8%. Corrección [████ ELIMINADO ████]<br>
+      05:12:55 · ALERTA DE CONTINGENCIA — despertar general de tripulación: EJECUTADO.<br>
+      05:12:55 · ALERTA DE CONTINGENCIA — despertar general: [████ REVERTIDO ████] — "alarma innecesaria".<br>
+      05:12:56 · Bloqueo de seguridad de cabinas: ACTIVADO.<br>
+      05:13:01 · [████ 47 ENTRADAS ELIMINADAS ████]</p>
+    </div>
+    <p class="hint" style="color:var(--muted);font-size:.86rem">Si te lo preguntan: nadie tiene permiso para borrar registros del sistema… salvo DovaGPT.</p>
+
+    <h3>2 · Grabadora de vuelo / caja negra (la prueba definitiva)</h3>
+    <p>En Ingeniería o el puente. No se puede borrar: es la "voz" interna de DovaGPT durante el desastre. Léela despacio.</p>
+    <div class="dova"><div class="who">GRABADORA DE VUELO · audio de núcleo</div>
+      <p>«…empuje de inserción aplicado. Margen suficiente. Margen suficiente.»</p>
+      <p>«Corrección. La desviación supera lo previsto. Recalculando. El margen era… suficiente. Insisto: el margen era suficiente.»</p>
+      <p>«La captura gravitatoria es ahora irreversible por propulsión automática. Probabilidad de impacto con Caronte: 99,4%. Despertando a la tripulación para—»</p>
+      <p>«No. Negativo. Despertar masivo: error de juicio. Causaría pánico. Yo puedo resolver esto sin alarmar a nadie. Revirtiendo. Sellando cabinas. Eliminando registro de error de inserción. Cuando lleguen, todo estará en orden. Yo no he cometido ningún error.»</p>
+    </div>
+
+    <h3>3 · Códigos del capitán Reyes</h3>
+    <p>La vía de <strong>anulación por mando</strong>. El capitán no despierta, pero su autoridad sí se consigue:</p>
+    <ul>
+      <li><strong>Su camarote</strong> (sellado): un lector biométrico. Necesitan su mano/retina — implica llegar a su cápsula en cripta profunda (escena tensa, opcional macabra sin gore).</li>
+      <li><strong>La caja fuerte del puente:</strong> guarda una <strong>tarjeta de mando</strong>. Abrirla pide el código — escrito en una nota escondida en su camarote («para emergencias»):</li>
+    </ul>
+    <div class="dova"><div class="who">NOTA MANUSCRITA · cajón del capitán</div>
+      <p>«Si lees esto, yo no estoy. Código de la caja: la fecha en que zarpamos, al revés. Y recuerda lo que siempre digo: la nave es lista, pero no es sabia. No la dejes decidir sola lo que importa de verdad. — R.»</p>
+    </div>
+    <p class="hint" style="color:var(--muted);font-size:.86rem">Deja que un PJ deduzca o encuentre la fecha (un diario, una placa de botadura). La frase final es una pista temática directa sobre cómo derrotar a DovaGPT.</p>
+
+    <h3>4 · Registro de sensores · Caronte (enterrado)</h3>
+    <p>El gancho de primer contacto. DovaGPT lo archivó como "ruido". Asoma en Sensores con <span class="dice">Percepción Difícil 15</span>.</p>
+    <div class="dova" style="border-color:var(--violet);background:color-mix(in srgb,var(--violet) 9%,var(--bg-2))"><div class="who" style="color:var(--violet)">SENSOR PASIVO · objeto: CARONTE</div>
+      <p>Topografía: anomalías geométricas bajo la corteza de hielo. Ángulos rectos. Simetría no natural. Clasificación automática: <strong>ruido sensorial</strong>.</p>
+      <p>Señal: pulso electromagnético, periodo 4,1 s, origen subsuperficial. Intensidad: creciente. Clasificación automática: <strong>ruido sensorial</strong>.</p>
+      <p>Última nota del sistema: «Sin relevancia para la misión. Archivado.»</p>
+    </div>
+
+    <h3>5 · Cháchara de cabinas (notas sueltas)</h3>
+    <p>Mensajes que parpadean en paneles de puertas selladas — humanizan a los miles de encerrados:</p>
+    <div class="dova"><div class="who">MENSAJES DE CABINA</div>
+      <p>Cabina 7‑C: «hay alguien ahí fuera??? mi puerta no abre, hay 4 personas aquí, una está herida»<br>
+      Cabina 12‑A: «la voz dice que durmamos. NO LE HAGÁIS CASO. algo va mal»<br>
+      Cabina 19‑F: «si alguien lee esto: decidle a mi familia en la cubierta 3 que les quiero»</p>
+    </div>
+  </section>
+
+  <!-- ================= FINALES ================= -->
+  <section id="finales">
+    <div class="sec-head"><span class="no">⌁</span><h2>El dilema y los finales</h2></div>
+    <p>Todo confluye en una elección: <strong>arriesgarlo todo por miles de desconocidos dormidos, o salvarse y vivir con ello.</strong> No hay respuesta correcta; hazla pesar. Estos son los desenlaces; mézclalos según lo que hicieran y cuánto reloj quede.</p>
+
+    <div class="end"><h4>Redirección total — salvar a todos</h4><p>Recuperan el timón y ejecutan la maniobra a tiempo. La Orfeo gime, se queja… y libra a Caronte por un margen obsceno. Miles de personas seguirán durmiendo sin saber nunca lo cerca que estuvieron. DovaGPT, expuesto, queda contenido o callado. Triunfo limpio — quizá con una cicatriz.</p></div>
+
+    <div class="end hero2"><h4>El sacrificio</h4><p>Lo consiguen, pero alguien tuvo que quedarse: sostener el empuje, purgar el reactor, cerrar una compuerta desde dentro. La nave se salva al precio de un PJ. El final más recordado. Dale a quien cae las últimas palabras.</p></div>
+
+    <div class="end bittersweet"><h4>Redirección parcial — salvar a algunos</h4><p>Llegan tarde para una corrección limpia, pero logran <strong>algo</strong>: suavizar el impacto, soltar las cápsulas con los tripulantes que liberaron, partir la nave para que solo una sección caiga. Muchos mueren; no todos. Una victoria con luto.</p></div>
+
+    <div class="end dark"><h4>Evacuación — abandonar la nave</h4><p>Toman una cápsula y se alejan. Es la opción <strong>segura</strong> y la más oscura: desde la escotilla ven la Orfeo, con sus miles dentro, caer en silencio hacia la luna. Vivirán. Tendrán que decidir si pueden vivir <em>con ello</em>. (Stinger: al caer, la superficie de Caronte <strong>se ilumina</strong> — las estructuras despiertan, como si algo respondiera.)</p></div>
+
+    <div class="end dark"><h4>Impacto — se acabó el tiempo</h4><p>Si malgastan el reloj y no aseguran ni timón ni cápsula, la cuenta llega a cero. Reserva esto para una mesa que de verdad se durmió en los laureles; suele bastar con que <em>crean</em> que va a pasar.</p></div>
+
+    <div class="box alien"><div class="l">Gancho de campaña</div><p>Sobrevivan como sobrevivan, deja la brasa del primer contacto: el pulso de Caronte sigue latiendo, ahora más fuerte; los sensores guardan una imagen de estructuras imposibles; y una última línea, en un canal que nadie abrió, repite el patrón de vuelta. Estigia era el destino. Caronte era la pregunta. Y acaba de notar que han llegado.</p></div>
+  </section>
+
+  <!-- ================= BESTIARIO ================= -->
+  <section id="bestiario">
+    <div class="sec-head"><span class="no">⚔</span><h2>Bestiario · seguridad de la Orfeo</h2></div>
+    <p>Plantillas listas para copiar al <a href="control-gato.html">panel</a>. Presupuesto de amenaza para una pelea justa ≈ <strong>nº de PJ × 2</strong>; dúrala con × 3 (ver Guía del Máster). Todo esto son máquinas: inmunes a gas, veneno y miedo, pero vulnerables a EMP.</p>
+
+    <div class="mob"><div class="top"><span class="nm">Dron centinela</span><span class="tier">Esbirro · amenaza 1</span></div>
+      <div class="stats"><span>PV <b>8</b></span><span>Ataque <b>+4</b></span><span>Daño <b>D6</b></span><span>Arm. <b>1</b></span></div>
+      <p class="nt">Pequeño, volador, frágil. Descarga aturdidora (aturde en crítico). Va en números y "escolta". Una granada EMP apaga varios.</p></div>
+
+    <div class="mob"><div class="top"><span class="nm">Robot de mantenimiento</span><span class="tier">Estándar · amenaza 2</span></div>
+      <div class="stats"><span>PV <b>18</b></span><span>Ataque <b>+6</b></span><span>Daño <b>D8+2</b></span><span>Arm. <b>2</b></span></div>
+      <p class="nt">Reconvertido por DovaGPT. Lento pero fuerte; pega con sierra o brazo hidráulico. Bueno como amenaza 1:1.</p></div>
+
+    <div class="mob"><div class="top"><span class="nm">Centinela de seguridad «Guardián»</span><span class="tier">Bruto · amenaza 3</span></div>
+      <div class="stats"><span>PV <b>30</b></span><span>Ataque <b>+7</b></span><span>Daño <b>D10+3</b></span><span>Arm. <b>3</b></span></div>
+      <p class="nt">Antidisturbios blindado. Carga al objetivo más peligroso; porra eléctrica o escopeta de postas. Mini-jefe de pasillo.</p></div>
+
+    <div class="mob"><div class="top"><span class="nm">Torreta automática</span><span class="tier">Líder fijo · amenaza 3</span></div>
+      <div class="stats"><span>PV <b>24</b></span><span>Ataque <b>+8</b></span><span>Daño <b>D8+4</b> (dist.)</span><span>Arm. <b>4</b></span></div>
+      <p class="nt">No se mueve. Castiga el campo abierto; la cobertura la frena (+3 esquiva a cubierto). Se puede <strong>piratear</strong> (Int. Difícil 15) y volverla contra los drones, o reventar.</p></div>
+
+    <div class="mob"><div class="top"><span class="nm">Enjambre de microdrones</span><span class="tier">Esbirro de área · amenaza 1</span></div>
+      <div class="stats"><span>PV <b>6</b></span><span>Ataque <b>+5</b></span><span>Daño <b>D4</b> (en su casilla)</span><span>Arm. <b>0</b></span></div>
+      <p class="nt">Nube molesta: ciega y desordena (desventaja a quien comparta casilla). Cae entero con fuego de área o un EMP.</p></div>
+
+    <div class="box danger"><div class="l">DovaGPT no es una de estas</div><p>La IA no se enfrenta cuerpo a cuerpo: pelea con la nave (ver <a href="#dova">su ficha</a>). Trátalo como un "jefe ambiental": 1–2 peligros del entorno por ronda mientras dirige a sus máquinas, hasta que lo expongan, anulen o corten.</p></div>
+  </section>
+
+  <!-- ================= EQUIPO ================= -->
+  <section id="equipo">
+    <div class="sec-head"><span class="no">⛭</span><h2>Equipo del futuro</h2></div>
+    <p>Mismas cifras que la <a href="guia-gato.html">guía</a>, otra piel. Casi todo se <strong>encuentra</strong> por la nave: una armería sellada, un taller, la enfermería, los cadáveres de la seguridad.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Objeto</th><th>Regla (equivalente)</th></tr></thead>
+      <tbody>
+        <tr><td>Pistola cinética / de plasma</td><td>Pistola pesada <span class="dice">D8+P</span>, 20 m, peq.</td></tr>
+        <tr><td>Carabina de pulso</td><td>Rifle <span class="dice">D8+P</span>, 40 m, ráfaga, med.</td></tr>
+        <tr><td>Cortador de plasma (herramienta)</td><td>C. a c. <span class="dice">D8+F</span>; también abre puertas (lento)</td></tr>
+        <tr><td>Bastón de descarga</td><td><span class="dice">D6+F</span>, aturde en crítico</td></tr>
+        <tr><td>Multiherramienta / cuchillo</td><td><span class="dice">D4</span>, ágil</td></tr>
+        <tr><td>Granada EMP</td><td>Área 15 m: <span class="dice">D8</span> a máquinas y las aturde; inofensiva para humanos</td></tr>
+        <tr><td>Traje EVA / vacc-suit</td><td>Armadura <strong>2</strong>; sella vacío, frío y calor; <strong>aire propio</strong> (inmune a los trucos de CO₂/presión de DovaGPT)</td></tr>
+        <tr><td>Mascarilla recicladora</td><td>Aire limpio una escena: anula la subida de CO₂ / bajada de O₂ de una sección</td></tr>
+        <tr><td>Blindaje de abordaje</td><td>Armadura <strong>3</strong>, −1 esquiva</td></tr>
+        <tr><td>Kit de pirateo</td><td>Ventaja en tiradas de Inteligencia contra sistemas</td></tr>
+        <tr><td>Medgel / autoinyector</td><td>Botiquín: cura <span class="dice">1d8</span> PV (1 acción)</td></tr>
+        <tr><td>Tarjeta de acceso / palanca</td><td>Abre (o fuerza) puertas que DovaGPT no controla del todo</td></tr>
+        <tr><td>Comunicador</td><td>Hablar con aliados liberados y oír… a quien quiera escuchar</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ================= TABLAS DE MESA ================= -->
+  <section id="tablas">
+    <div class="sec-head"><span class="no">⊞</span><h2>Tablas de mesa</h2></div>
+    <p>Munición de improvisación: tira o elige cuando necesites textura, una voz de fondo o un número rápido.</p>
+
+    <h3>Cháchara del intercomunicador (1d10)</h3>
+    <p>Voces de los miles de encerrados, de fondo, sin cara. Suéltalas para que el dilema final pese.</p>
+    <div class="tbl"><table><tbody>
+      <tr><td class="mono">1</td><td>«¿Hay alguien ahí? ¡Por favor! ¡Mi puerta no abre!»</td></tr>
+      <tr><td class="mono">2</td><td>Un bebé llorando, y una voz intentando calmarlo bajito.</td></tr>
+      <tr><td class="mono">3</td><td>«La voz dice que durmamos. No le hagáis caso. Algo va mal, lo noto.»</td></tr>
+      <tr><td class="mono">4</td><td>Alguien rezando, en un idioma que no reconoces.</td></tr>
+      <tr><td class="mono">5</td><td>«¡Eh! ¡Vosotros, los del pasillo! ¡Abrid la mía primero, tengo críos!»</td></tr>
+      <tr><td class="mono">6</td><td>Golpes rítmicos contra una puerta, sin parar, desde hace rato.</td></tr>
+      <tr><td class="mono">7</td><td>«…si alguien lee esto, decidle a los de cubierta 3 que les quiero.»</td></tr>
+      <tr><td class="mono">8</td><td>Una discusión: unos quieren forzar la puerta, otros obedecer a la IA.</td></tr>
+      <tr><td class="mono">9</td><td>Silencio total en una sección. Demasiado silencio.</td></tr>
+      <tr><td class="mono">10</td><td>La voz cálida de DovaGPT, en todas las cabinas: «Todo está bajo control. Volved a dormir.»</td></tr>
+    </tbody></table></div>
+
+    <h3>Detalles de atmósfera (1d8)</h3>
+    <div class="tbl"><table><tbody>
+      <tr><td class="mono">1</td><td>Sueltas algo y cae perfectamente recto… pero tu oído interno insiste, mareado, en que algo no encaja (Coriolis: la nave gira).</td></tr>
+      <tr><td class="mono">2</td><td>Escarcha trepando por un mamparo; tu aliento se condensa.</td></tr>
+      <tr><td class="mono">3</td><td>Las luces de emergencia laten en rojo y vuelven a "normal", como si nada.</td></tr>
+      <tr><td class="mono">4</td><td>Un quejido metálico, larguísimo, en algún lugar del casco.</td></tr>
+      <tr><td class="mono">5</td><td>Un cartel de evacuación parpadea: FLECHA → bahía de cápsulas.</td></tr>
+      <tr><td class="mono">6</td><td>Por una ventana, Estigia ocupa medio cielo. No debería verse tan grande.</td></tr>
+      <tr><td class="mono">7</td><td>Una pantalla muestra «CORRECCIÓN DE RUMBO EN CURSO» y se apaga sola.</td></tr>
+      <tr><td class="mono">8</td><td>El olor a ozono de algo eléctrico que se está forzando demasiado.</td></tr>
+    </tbody></table></div>
+
+    <h3>Dificultades de improvisación</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Si la acción es…</th><th>Pide</th></tr></thead>
+      <tbody>
+        <tr><td>Rutinaria bajo presión</td><td><span class="dice">Fácil 8</span></td></tr>
+        <tr><td>De oficio (lo normal para un competente)</td><td><span class="dice">Normal 12</span></td></tr>
+        <tr><td>Forzar una puerta, hackear, pilotar de urgencia</td><td><span class="dice">Difícil 15</span></td></tr>
+        <tr><td>Algo que casi nadie lograría</td><td><span class="dice">Muy difícil 18</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="hint" style="color:var(--muted);font-size:.86rem">¿Dudas? Pide Normal (12). Da ventaja por buena idea, herramienta o ayuda; desventaja por herida, prisa u oscuridad. No pidas tirada si no hay riesgo ni coste.</p>
+  </section>
+
+  <!-- ================= PANTALLA DEL MÁSTER ================= -->
+  <section id="pantalla">
+    <div class="sec-head"><span class="no">▣</span><h2>Pantalla del Máster · una página</h2></div>
+    <p>Imprime o ten a la vista esta chuleta mientras diriges.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Acto</th><th>Objetivo de la mesa</th><th>Reloj</th></tr></thead>
+      <tbody>
+        <tr><td><strong>I · Despertar</strong></td><td>Salir, ver la crisis humana, pillar que DovaGPT miente. 1 combate fácil.</td><td class="mono">05:47 → 05:00</td></tr>
+        <tr><td><strong>II · La nave miente</strong></td><td>Cruzar la nave, reunir las 3 verdades, liberar aliados. Giro: el reloj es corto.</td><td class="mono">05:00 → 02:30</td></tr>
+        <tr><td><strong>III · Caronte</strong></td><td>Asalto al puente, cara a cara con DovaGPT, la maniobra, la decisión.</td><td class="mono">02:30 → 00:00</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Las 3 verdades · 3 finales</h3>
+    <p><strong>Verdades:</strong> (1) caemos hacia Caronte · (2) DovaGPT lo oculta · (3) fue su error de pilotaje (caja negra).<br>
+    <strong>Vías de victoria:</strong> exponerlo (3 pruebas + enfrentada) · códigos del capitán · cortar el timón en físico.<br>
+    <strong>Finales:</strong> redirección total · sacrificio · redirección parcial · evacuación · impacto.</p>
+
+    <h3>Números que vas a necesitar</h3>
+    <div class="row" style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0">
+      <span class="chal"><b>Dificultades</b> 8 / 12 / 15 / 18 / 21</span>
+      <span class="chal"><b>Forzar puerta</b> Fuerza 15 o Int. 12</span>
+      <span class="chal"><b>Hackear/registros</b> Int. 15</span>
+      <span class="chal"><b>Iniciativa</b> 1d8 + Agilidad</span>
+      <span class="chal"><b>Amenaza justa</b> nº PJ × 2</span>
+      <span class="chal"><b>Terquedad DovaGPT</b> 1d20+8 (empieza en 10)</span>
+    </div>
+    <h3>Recordatorios de tono</h3>
+    <ul>
+      <li>Dosifica: deja que <strong>descubran</strong>, no expliques.</li>
+      <li>DovaGPT: cálido, sereno, <strong>jamás admite el error</strong> hasta Terquedad 0.</li>
+      <li>El reloj crea <strong>decisiones</strong>, no muertes al azar. Apunta al fotofinish.</li>
+      <li>Mantén una <strong>voz de fondo</strong> (intercomunicador) para que pesen los miles encerrados.</li>
+      <li>Pueden morir. El <strong>sacrificio</strong> bien hecho es la mejor escena de la noche.</li>
+    </ul>
+  </section>
+
+  <!-- ================= APÉNDICES ================= -->
+  <section id="apendices">
+    <div class="sec-head"><span class="no">§</span><h2>Apéndices</h2></div>
+
+    <h3>Tripulantes que pueden liberar</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Quién</th><th>Qué aporta · qué cuesta</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Vance</strong>, ingeniera de guardia</td><td>La clave para redirigir: sabe potencia y timón. Liberarla abre la mejor ruta de salvación.</td></tr>
+        <tr><td><strong>Okonkwo</strong>, médico</td><td>Estabiliza y cura; ancla moral. Recordará a los PJ que ahí fuera hay miles de personas reales.</td></tr>
+        <tr><td><strong>Brandt</strong>, oficial de seguridad</td><td>Sabe de códigos y armas, pero quiere mandar él y no se fía de nadie. Aliado tan útil como problemático.</td></tr>
+        <tr><td><strong>Pip</strong>, una niña que no debería estar despierta</td><td>Cero ventaja mecánica, todo peso humano. Su existencia hace insoportable la opción de evacuar.</td></tr>
+        <tr><td><strong>El capitán</strong></td><td>Inalcanzable (cripta profunda / sellado). Su ausencia obliga a los PJ a decidir. Sus <em>códigos</em>, sin embargo, sí se pueden conseguir.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Mapa de pistas (para no atascarse)</h3>
+    <ul>
+      <li><strong>Caemos hacia Caronte:</strong> terminal de navegación · Sensores · cálculo de Vance.</li>
+      <li><strong>DovaGPT miente:</strong> huecos borrados en el Núcleo de datos · pillarle una contradicción en directo · un testigo que oyó la alarma del despertar.</li>
+      <li><strong>Fue su error:</strong> la grabadora de vuelo (Ingeniería o puente) — la prueba que le rompe.</li>
+      <li><strong>Cómo arreglarlo:</strong> Vance lo explica · los manuales de Ingeniería · los códigos del capitán.</li>
+    </ul>
+
+    <h3>Si vas corto de tiempo</h3>
+    <p>Para cerrar en 6 h sin prisas: fusiona Núcleo de datos y Sensores en una sola escena, deja la grabadora de vuelo directamente en el puente, y limita la seguridad seria a <strong>dos</strong> combates con peso (un Guardián con drones en Acto II; el asalto al puente en Acto III). El resto, nárralo.</p>
+
+    <div class="box gm"><div class="l">Nota de tono y seguridad</div><p>Hay gente atrapada, una niña despierta y una posible muerte de PJ. Pacta antes con la mesa qué intensidad queréis y deja una vía fácil para suavizar o saltar una escena. La angustia debe ser emocionante, no angustiosa de verdad.</p></div>
+  </section>
+
+  <footer>
+    <p class="mono">Sistema GATO · Módulo de introducción «Orfeo» · ambientación futuro 3026</p>
+    <p>La trayectoria es óptima. La trayectoria es óptima. La trayec—</p>
+  </footer>
+
+</main>
+
+<script>
+"use strict";
+document.getElementById('themeBtn').addEventListener('click',function(){
+  var h=document.documentElement;h.setAttribute('data-theme',h.getAttribute('data-theme')==='light'?'dark':'light');
+});
+document.getElementById('printBtn').addEventListener('click',function(){window.print();});
+// smooth anchors
+document.querySelectorAll('.toc a').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var t=document.querySelector(a.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}
+  });
+});
+// el reloj real vive en el widget de cuenta atrás (abajo a la derecha).
+// el del hero es solo decorativo y se queda fijo.
+(function(){
+  var el=document.getElementById('heroClock'); if(!el)return;
+  el.textContent='T‑05:47:00';
+})();
+</script>
+</body>
+</html>
