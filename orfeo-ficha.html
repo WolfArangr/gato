@@ -318,6 +318,24 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     r.onload=function(){try{apply(JSON.parse(r.result));}catch(err){alert('No se pudo leer: '+err.message);}};
     r.readAsText(f);e.target.value='';
   });
+
+  /* personaje sugerido que llega desde el test o el analizador (#pj=…) */
+  (function(){
+    var h=location.hash||'';
+    if(h.indexOf('#pj=')!==0)return;
+    try{
+      apply(JSON.parse(decodeURIComponent(h.slice(4))));
+      var n=document.createElement('div');
+      n.className='intro';n.style.borderLeftColor='var(--gold)';
+      n.innerHTML='<h1 style="font-size:1.2rem">Tu personaje sugerido está listo</h1>'+
+        '<p>He rellenado atributos, oficio y dones según tus respuestas del test. <strong>Cambia lo que quieras</strong>: es tu personaje.</p>'+
+        '<p class="hint">Cuando lo tengas a tu gusto, pulsa <strong>Guardar</strong> arriba y envíale el archivo a tu Máster.</p>';
+      var page=document.querySelector('.page');
+      if(page)page.insertBefore(n,page.firstChild);
+      history.replaceState(null,'',location.pathname+location.search);
+    }catch(e){}
+  })();
+
   recompute();
 })();
 </script>
