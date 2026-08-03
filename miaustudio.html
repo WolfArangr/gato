@@ -339,8 +339,6 @@
 </div>
 
 <audio id="musicPreviewAudio" hidden></audio>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.12.15/umd/ffmpeg.min.js"></script>
 <script>
 (function(){
   'use strict';
@@ -700,27 +698,58 @@
 
   // ---------- FFmpeg engine ----------
   async function fetchFileBytes(file){ return new Uint8Array(await file.arrayBuffer()); }
-  async function toBlobURL(url, mimeType){
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('Could not fetch ' + url);
-    return URL.createObjectURL(new Blob([await resp.arrayBuffer()], { type: mimeType }));
+
+  async function loadScriptInline(urls){
+    let lastErr = null;
+    for (const url of urls){
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('bad status ' + resp.status + ' for ' + url);
+        const code = await resp.text();
+        const script = document.createElement('script');
+        script.textContent = code;
+        document.head.appendChild(script);
+        return true;
+      } catch (err){ lastErr = err; console.warn('script source failed:', url, err); }
+    }
+    if (lastErr) console.warn('all script sources failed', lastErr);
+    return false;
   }
 
   async function initFFmpeg(){
     const statusText = $('engineStatusText'), dot = $('engineDot');
+    const wrapperUrls = [
+      'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
+      'https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.11.6/ffmpeg.min.js'
+    ];
+    const coreCandidates = [
+      'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
+      'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/ffmpeg-core/0.10.0/ffmpeg-core.js'
+    ];
     try {
-      if (!window.FFmpegWASM) throw new Error('engine script did not load');
-      const { FFmpeg } = window.FFmpegWASM;
-      ffmpeg = new FFmpeg();
-      ffmpeg.on('progress', ({ progress }) => {
-        const pct = Math.min(100, Math.max(0, Math.round(progress * 100)));
-        $('progressFill').style.width = pct + '%';
-        $('progressLabel').textContent = pct + '%';
-      });
-      const base = 'https://cdnjs.cloudflare.com/ajax/libs/ffmpeg-core/0.12.10/umd';
-      const coreURL = await toBlobURL(base + '/ffmpeg-core.js', 'text/javascript');
-      const wasmURL = await toBlobURL(base + '/ffmpeg-core.wasm', 'application/wasm');
-      await ffmpeg.load({ coreURL, wasmURL });
+      statusText.textContent = 'Loading engine…';
+      if (!window.FFmpeg){
+        const scriptOk = await loadScriptInline(wrapperUrls);
+        if (!scriptOk || !window.FFmpeg) throw new Error('engine script did not load from any source');
+      }
+      const { createFFmpeg } = window.FFmpeg;
+      let lastErr = null, loaded = false;
+      for (const corePath of coreCandidates){
+        try {
+          ffmpeg = createFFmpeg({ log:false, corePath });
+          ffmpeg.setProgress(({ ratio }) => {
+            const pct = Math.min(100, Math.max(0, Math.round((ratio||0) * 100)));
+            $('progressFill').style.width = pct + '%';
+            $('progressLabel').textContent = pct + '%';
+          });
+          await ffmpeg.load();
+          loaded = true;
+          break;
+        } catch (err){ lastErr = err; console.warn('core source failed:', corePath, err); }
+      }
+      if (!loaded) throw lastErr || new Error('all engine sources failed');
       ffmpegReady = true;
       statusText.textContent = 'Engine ready';
       dot.classList.add('ready');
@@ -735,13 +764,20 @@
 
   async function ensureFont(){
     if (fontLoaded) return true;
-    try {
-      const resp = await fetch('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf');
-      if (!resp.ok) throw new Error('font fetch failed');
-      fontData = new Uint8Array(await resp.arrayBuffer());
-      fontLoaded = true;
-      return true;
-    } catch (err){ console.error('font load failed', err); return false; }
+    const fontUrls = [
+      'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf',
+      'https://cdn.jsdelivr.net/gh/google/fonts@main/apache/roboto/Roboto-Bold.ttf'
+    ];
+    for (const url of fontUrls){
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('font fetch failed: ' + url);
+        fontData = new Uint8Array(await resp.arrayBuffer());
+        fontLoaded = true;
+        return true;
+      } catch (err){ console.warn('font source failed:', url, err); }
+    }
+    return false;
   }
 
   // ---------- Export ----------
@@ -767,17 +803,17 @@
     const wantText = clip.textOverlay.enabled && clip.textOverlay.text.trim().length > 0;
 
     try {
-      await ffmpeg.writeFile(inputName, await fetchFileBytes(clip.file));
-      if (hasMusic) await ffmpeg.writeFile(musicName, await fetchFileBytes(music.file));
+      ffmpeg.FS('writeFile', inputName, await fetchFileBytes(clip.file));
+      if (hasMusic) ffmpeg.FS('writeFile', musicName, await fetchFileBytes(music.file));
 
       let fontOk = false;
       if (wantText){
         fontOk = await ensureFont();
         if (fontOk){
-          await ffmpeg.writeFile('overlay-font.ttf', fontData);
+          ffmpeg.FS('writeFile', 'overlay-font.ttf', fontData);
           // Written as a file (not inlined into the filter string) so caption text
           // never has to survive ffmpeg's filtergraph quote/escape rules.
-          await ffmpeg.writeFile('caption.txt', new TextEncoder().encode(clip.textOverlay.text.trim()));
+          ffmpeg.FS('writeFile', 'caption.txt', new TextEncoder().encode(clip.textOverlay.text.trim()));
         }
       }
 
@@ -851,10 +887,10 @@
       args.push('-movflags','+faststart', outputName);
 
       statusEl.textContent = 'Rendering…';
-      await ffmpeg.exec(args);
+      await ffmpeg.run.apply(ffmpeg, args);
 
-      const data = await ffmpeg.readFile(outputName);
-      const blob = new Blob([data.buffer], { type:'video/mp4' });
+      const data = ffmpeg.FS('readFile', outputName);
+      const blob = new Blob([data], { type:'video/mp4' });
       const url = URL.createObjectURL(blob);
       const link = $('downloadLink');
       link.href = url;
@@ -863,12 +899,12 @@
       statusEl.textContent = 'Done — ready to download.';
       statusEl.classList.add('success');
 
-      try { await ffmpeg.deleteFile(inputName); } catch(e){}
-      if (hasMusic) try { await ffmpeg.deleteFile(musicName); } catch(e){}
-      try { await ffmpeg.deleteFile(outputName); } catch(e){}
+      try { ffmpeg.FS('unlink', inputName); } catch(e){}
+      if (hasMusic) try { ffmpeg.FS('unlink', musicName); } catch(e){}
+      try { ffmpeg.FS('unlink', outputName); } catch(e){}
       if (wantText && fontOk){
-        try { await ffmpeg.deleteFile('overlay-font.ttf'); } catch(e){}
-        try { await ffmpeg.deleteFile('caption.txt'); } catch(e){}
+        try { ffmpeg.FS('unlink', 'overlay-font.ttf'); } catch(e){}
+        try { ffmpeg.FS('unlink', 'caption.txt'); } catch(e){}
       }
     } catch (err){
       console.error(err);
