@@ -96,6 +96,11 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .ends{display:flex;justify-content:space-between;font-size:.74rem;color:var(--muted);margin-top:4px;gap:12px}
 .ends span{max-width:45%}
 .ends span:last-child{text-align:right}
+.fine{display:flex;gap:7px;justify-content:center;margin-top:14px}
+.fbtn{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.82rem;background:var(--surface-2);
+  color:var(--ink);border:1px solid var(--line-strong);border-radius:8px;padding:9px 12px;cursor:pointer;min-width:58px}
+.fbtn:hover{border-color:var(--gold);color:var(--gold)}
+.fbtn:active{background:var(--gold);color:#1a1206}
 .nudge{font-size:.8rem;color:var(--muted);margin-top:12px}
 
 .barsbox{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:18px 14px}
@@ -343,14 +348,15 @@ var QUESTIONS=[
  {t:"Le digo que es una tontería y que nos centremos",s:{}}]},
 
 /* ---------- BLOQUE 4: INTERACTIVAS ---------- */
-{b:"Manos a la obra",t:'slider',min:0,max:100,def:12,unit:'%',
- sc:"Estás en la sala de máquinas. El manual dice, en letra pequeña, que el regulador debe quedar exactamente al 60 % o el reactor se desestabiliza. Nadie te está mirando y la rueda va suelta.",
- q:"Ajusta el regulador.",lo:"0 %",hi:"100 %",
- sf:function(v){var d=Math.abs(v-60);
-   if(d===0)return{s:{co:3,tc:1},m:'Perfeccionista'};
-   if(d<=2)return{s:{co:2,tc:1},m:'Meticuloso'};
-   if(d<=8)return{s:{co:1},m:'Aproximado'};
-   if(d<=20)return{s:{},m:'A ojo'};
+{b:"Manos a la obra",t:'slider',min:0,max:1000,def:123,dec:1,drift:true,unit:'%',
+ sc:"Estás en la sala de máquinas. El manual dice, en letra pequeña, que el regulador debe quedar exactamente al 60,0 % o el reactor se desestabiliza. La aguja no para quieta: la presión de la línea la mueve sola, así que hay que corregirla y fijarla en el momento justo. Nadie te está mirando.",
+ q:"Ajusta el regulador y pulsa «Siguiente» cuando esté como quieras dejarlo.",lo:"0 %",hi:"100 %",
+ sf:function(v){var d=Math.abs(v-600);
+   if(d===0)return{s:{co:3,tc:2},m:'Perfeccionista'};
+   if(d<=2)return{s:{co:3,tc:1},m:'Muy meticuloso'};
+   if(d<=10)return{s:{co:2,tc:1},m:'Meticuloso'};
+   if(d<=50)return{s:{co:1},m:'Aproximado'};
+   if(d<=200)return{s:{},m:'A ojo'};
    return{s:{},m:'Se salta el manual'};}},
 
 {b:"Manos a la obra",t:'bars',bars:5,max:4,def:2,labels:['Inicio','','Mitad','','Final'],
@@ -640,7 +646,7 @@ $('resetBtn').addEventListener('click',function(){
   try{localStorage.removeItem(STORE);}catch(e){}
   $('pname').value='';$('pidea').value='';show('scIntro');refreshIntro();setProg();
 });
-function show(id){['scIntro','scQ','scEnd'].forEach(function(s){$(s).classList.toggle('on',s===id);});
+function show(id){stopDrift();['scIntro','scQ','scEnd'].forEach(function(s){$(s).classList.toggle('on',s===id);});
   window.scrollTo({top:0,behavior:'smooth'});}
 function answered(i){return st.ans[i]!=null;}
 function setProg(){var d=0;for(var i=0;i<QUESTIONS.length;i++)if(answered(i))d++;
@@ -655,7 +661,11 @@ function advance(){
   },230);
 }
 
+var driftTimer=null;
+function stopDrift(){if(driftTimer){clearInterval(driftTimer);driftTimer=null;}}
+
 function renderQ(){
+  stopDrift();
   var i=st.i,q=QUESTIONS[i];
   $('qBlock').textContent=q.b;
   $('qNum').textContent=(i+1)+' / '+QUESTIONS.length;
@@ -668,14 +678,51 @@ function renderQ(){
     var w=document.createElement('div');w.className='dialwrap';
     var val=document.createElement('div');val.className='dialval';
     var rng=document.createElement('input');rng.type='range';rng.min=q.min;rng.max=q.max;rng.step=1;rng.value=st.ans[i];
-    function paint(){val.innerHTML=rng.value+(q.unit?'<small> '+q.unit+'</small>':'');}
-    paint();
-    rng.addEventListener('input',function(){st.ans[i]=parseInt(rng.value,10);paint();save();setProg();});
+    function fmt(n){return q.dec?(n/10).toFixed(q.dec).replace('.',','):String(n);}
+    function paint(){
+      val.innerHTML=fmt(st.ans[i])+(q.unit?'<small> '+q.unit+'</small>':'');
+      if(q.drift){
+        var off=Math.abs(st.ans[i]-600);
+        val.style.color=off===0?'var(--good)':(off<=10?'var(--gold)':'var(--blood)');
+      }
+    }
+    function setVal(v){
+      v=Math.max(q.min,Math.min(q.max,Math.round(v)));
+      st.ans[i]=v;rng.value=v;paint();save();
+    }
+    setVal(st.ans[i]);
+    rng.addEventListener('input',function(){setVal(parseInt(rng.value,10));});
+    w.appendChild(val);w.appendChild(rng);
     var ends=document.createElement('div');ends.className='ends';
     ends.innerHTML='<span>'+(q.lo||'')+'</span><span>'+(q.hi||'')+'</span>';
-    w.appendChild(val);w.appendChild(rng);w.appendChild(ends);
-    var n=document.createElement('div');n.className='nudge';n.textContent='Arrastra y pulsa «Siguiente» cuando lo tengas.';
-    w.appendChild(n);body.appendChild(w);
+    w.appendChild(ends);
+
+    if(q.dec){
+      var fine=document.createElement('div');fine.className='fine';
+      [['−1,0',-10],['−0,1',-1],['+0,1',1],['+1,0',10]].forEach(function(p){
+        var b=document.createElement('button');b.className='fbtn';b.textContent=p[0];
+        b.addEventListener('click',function(){setVal(st.ans[i]+p[1]);});
+        fine.appendChild(b);
+      });
+      w.appendChild(fine);
+    }
+    var n=document.createElement('div');n.className='nudge';
+    n.textContent=q.drift?'La aguja se mueve sola: corrígela y pulsa «Siguiente» cuando la tengas donde quieras.'
+                         :'Arrastra y pulsa «Siguiente» cuando lo tengas.';
+    w.appendChild(n);
+    body.appendChild(w);
+
+    if(q.drift){
+      var dir=Math.random()<0.5?-1:1, ticks=0;
+      driftTimer=setInterval(function(){
+        ticks++;
+        if(ticks%9===0&&Math.random()<0.55)dir=-dir;
+        var step=dir*(1+Math.floor(Math.random()*3));      // entre 0,1 y 0,3 por tic
+        var nv=st.ans[i]+step;
+        if(nv<=q.min||nv>=q.max)dir=-dir;
+        setVal(st.ans[i]+step);
+      },520);
+    }
   }
   else if(q.t==='bars'){
     if(st.ans[i]==null){st.ans[i]=defaultAns(q);save();}

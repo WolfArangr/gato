@@ -286,14 +286,15 @@ var QUESTIONS=[
  {t:"Le digo que es una tontería y que nos centremos",s:{}}]},
 
 /* ---------- BLOQUE 4: INTERACTIVAS ---------- */
-{b:"Manos a la obra",t:'slider',min:0,max:100,def:12,unit:'%',
- sc:"Estás en la sala de máquinas. El manual dice, en letra pequeña, que el regulador debe quedar exactamente al 60 % o el reactor se desestabiliza. Nadie te está mirando y la rueda va suelta.",
- q:"Ajusta el regulador.",lo:"0 %",hi:"100 %",
- sf:function(v){var d=Math.abs(v-60);
-   if(d===0)return{s:{co:3,tc:1},m:'Perfeccionista'};
-   if(d<=2)return{s:{co:2,tc:1},m:'Meticuloso'};
-   if(d<=8)return{s:{co:1},m:'Aproximado'};
-   if(d<=20)return{s:{},m:'A ojo'};
+{b:"Manos a la obra",t:'slider',min:0,max:1000,def:123,dec:1,drift:true,unit:'%',
+ sc:"Estás en la sala de máquinas. El manual dice, en letra pequeña, que el regulador debe quedar exactamente al 60,0 % o el reactor se desestabiliza. La aguja no para quieta: la presión de la línea la mueve sola, así que hay que corregirla y fijarla en el momento justo. Nadie te está mirando.",
+ q:"Ajusta el regulador y pulsa «Siguiente» cuando esté como quieras dejarlo.",lo:"0 %",hi:"100 %",
+ sf:function(v){var d=Math.abs(v-600);
+   if(d===0)return{s:{co:3,tc:2},m:'Perfeccionista'};
+   if(d<=2)return{s:{co:3,tc:1},m:'Muy meticuloso'};
+   if(d<=10)return{s:{co:2,tc:1},m:'Meticuloso'};
+   if(d<=50)return{s:{co:1},m:'Aproximado'};
+   if(d<=200)return{s:{},m:'A ojo'};
    return{s:{},m:'Se salta el manual'};}},
 
 {b:"Manos a la obra",t:'bars',bars:5,max:4,def:2,labels:['Inicio','','Mitad','','Final'],
@@ -617,9 +618,12 @@ function advice(p){
   if(x.ro<=35&&x.tc<=35&&x.co>=65)f.push(['Novato entusiasta: no sabe, pero quiere. Con dos sesiones de rodaje sube muchísimo — invierte en él/ella.',2]);
   if(x.cr>=70&&x.eq<=40)f.push(['Creativo pero va por libre: sus mejores ideas llegarán si le obligas a necesitar a otro personaje.',1]);
   // etiquetas interactivas
-  if(has('Perfeccionista'))f.push(['<b>Perfeccionista:</b> clavó el regulador al 60 % exacto. Disfrutará con puzles de precisión y detalles ocultos; le frustrará la improvisación caótica.',2]);
-  else if(has('Meticuloso'))f.push(['Meticuloso: lee la letra pequeña. Premia que investigue documentos y pistas escritas.',2]);
-  else if(has('Se salta el manual'))f.push(['Ignoró la instrucción del manual: no le des puzles de precisión, se aburrirá. Va por instinto.',2]);
+  if(has('Perfeccionista'))f.push(['<b>Perfeccionista de manual.</b> Clavó el regulador en 60,0 % exacto con la aguja moviéndose sola: eso es paciencia y precisión. Dale puzles finos, cerraduras por pasos y detalles ocultos; le frustrará que resuelvas las cosas «a lo bruto».',2]);
+  else if(has('Muy meticuloso'))f.push(['<b>Muy meticuloso:</b> se quedó a una décima del objetivo peleándose con la aguja. Disfrutará afinando planes y le encantará que premies el detalle.',2]);
+  else if(has('Meticuloso'))f.push(['Meticuloso: lee la letra pequeña y corrige hasta dejarlo fino. Premia que investigue documentos y pistas escritas.',2]);
+  else if(has('Aproximado'))f.push(['Se conforma con «casi»: cumple el objetivo pero no se obsesiona. Perfil práctico, no le pongas puzles de precisión milimétrica.',0]);
+  else if(has('A ojo'))f.push(['Trabaja a ojo: le importa más avanzar que acertar. Dale decisiones rápidas y no pruebas de exactitud.',0]);
+  else if(has('Se salta el manual'))f.push(['<b>Ignoró la instrucción del manual</b> y siguió adelante. Va por instinto y no leerá tus documentos-atrezo: dale la información hablada o en imágenes.',1]);
   if(has('Crescendo'))f.push(['Quiere que la tensión suba hasta el final: le encajará la cuenta atrás de Orfeo.',2]);
   if(has('Montaña rusa'))f.push(['Prefiere picos y valles: intercálale respiros de humor entre las escenas duras.',2]);
   if(has('Ritmo plano'))f.push(['Prefiere ritmo constante: puede agobiarse con la presión sostenida del reloj. Dale margen.',1]);
@@ -722,7 +726,8 @@ function render(){
     h+='<details style="margin-top:10px"><summary class="hint" style="cursor:pointer">Ver sus '+QUESTIONS.length+' respuestas</summary><div style="margin-top:8px">';
     QUESTIONS.forEach(function(q,i){
       var a=p.ans[i],txt;
-      if(q.t==='slider')txt=a+(q.unit||'');
+      if(q.t==='slider')txt=(q.dec?(a/10).toFixed(q.dec).replace('.',','):a)+(q.unit||'')+
+        (q.drift?'  (objetivo 60,0 — desvío '+(Math.abs(a-600)/10).toFixed(1).replace('.',',')+')':'');
       else if(q.t==='bars')txt='curva '+a.join('-');
       else txt=q.o[a].t;
       h+='<div class="qa"><b>'+(i+1)+'.</b> '+esc(q.q)+'<br>→ '+esc(txt)+'</div>';});
