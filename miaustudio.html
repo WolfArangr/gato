@@ -339,6 +339,23 @@
 </div>
 
 <audio id="musicPreviewAudio" hidden></audio>
+
+<script>
+  function __loadFFmpegFallback(){
+    var urls = [
+      'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
+      'https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js'
+    ];
+    (function tryNext(i){
+      if (i >= urls.length || window.FFmpeg) return;
+      var s = document.createElement('script');
+      s.src = urls[i];
+      s.onerror = function(){ tryNext(i + 1); };
+      document.head.appendChild(s);
+    })(0);
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.11.6/ffmpeg.min.js" onerror="__loadFFmpegFallback()"></script>
 <script>
 (function(){
   'use strict';
@@ -699,30 +716,19 @@
   // ---------- FFmpeg engine ----------
   async function fetchFileBytes(file){ return new Uint8Array(await file.arrayBuffer()); }
 
-  async function loadScriptInline(urls){
-    let lastErr = null;
-    for (const url of urls){
-      try {
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error('bad status ' + resp.status + ' for ' + url);
-        const code = await resp.text();
-        const script = document.createElement('script');
-        script.textContent = code;
-        document.head.appendChild(script);
-        return true;
-      } catch (err){ lastErr = err; console.warn('script source failed:', url, err); }
-    }
-    if (lastErr) console.warn('all script sources failed', lastErr);
-    return false;
+  function waitForGlobal(name, timeoutMs){
+    return new Promise((resolve) => {
+      const start = Date.now();
+      (function check(){
+        if (window[name]) return resolve(true);
+        if (Date.now() - start > timeoutMs) return resolve(false);
+        setTimeout(check, 50);
+      })();
+    });
   }
 
   async function initFFmpeg(){
     const statusText = $('engineStatusText'), dot = $('engineDot');
-    const wrapperUrls = [
-      'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
-      'https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.11.6/ffmpeg.min.js'
-    ];
     const coreCandidates = [
       'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
       'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
@@ -730,10 +736,8 @@
     ];
     try {
       statusText.textContent = 'Loading engine…';
-      if (!window.FFmpeg){
-        const scriptOk = await loadScriptInline(wrapperUrls);
-        if (!scriptOk || !window.FFmpeg) throw new Error('engine script did not load from any source');
-      }
+      const scriptOk = await waitForGlobal('FFmpeg', 12000);
+      if (!scriptOk) throw new Error('engine script did not load (check network / ad-blocker)');
       const { createFFmpeg } = window.FFmpeg;
       let lastErr = null, loaded = false;
       for (const corePath of coreCandidates){
