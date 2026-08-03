@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>¿Encajas en la mesa? · Sistema GATO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1316;--bg-2:#121a1e;--surface:#161f24;--surface-2:#1b262c;--surface-3:#223038;
+  --ink:#e9eef0;--ink-soft:#c8d0d2;--muted:#7f8c90;--line:#283740;--line-strong:#3a4d57;
+  --gold:#d7a945;--gold-soft:#e6c372;--blood:#e0635f;--violet:#a98fe0;--cyan:#46c0cf;--good:#76c39a;--radius:13px;
+}
+html[data-theme="light"]{
+  --bg:#eef0ee;--bg-2:#e6eae9;--surface:#fbfcfb;--surface-2:#f1f4f3;--surface-3:#e7ecec;
+  --ink:#1a2226;--ink-soft:#3c474c;--muted:#65726f;--line:#d6dcdb;--line-strong:#b9c2c1;
+  --gold:#a9772a;--gold-soft:#c79f4c;--blood:#b33b37;--violet:#6c49a6;--cyan:#1d7f8c;--good:#3a8a5f;
+}
+*{box-sizing:border-box}
+html,body{overscroll-behavior:none}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.55;
+  background-image:radial-gradient(circle at 90% -10%, color-mix(in srgb,var(--violet) 9%,transparent), transparent 45%);background-attachment:fixed;
+  -webkit-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent}
+input,textarea,.sel{-webkit-user-select:text;-ms-user-select:text;user-select:text;-webkit-touch-callout:default}
+a{color:var(--cyan)}
+
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;padding:10px clamp(12px,3vw,20px);
+  background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:8px;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.5px;font-size:1rem}
+.brand .g{color:var(--gold)}
+.brand .tag{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+#bar .sp{flex:1}
+.btn{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:.68rem;font-weight:600;
+  background:transparent;color:var(--ink-soft);border:1px solid var(--line-strong);padding:7px 11px;border-radius:8px;cursor:pointer}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.solid{background:var(--cyan);color:#0e1316;border-color:var(--cyan)}
+.btn.warn:hover{border-color:var(--blood);color:var(--blood)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+#prog{height:3px;background:var(--surface-3);position:sticky;top:49px;z-index:29}
+#progFill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet));transition:width .3s}
+
+main{max-width:720px;margin:0 auto;padding:clamp(16px,4vw,30px) clamp(14px,4vw,22px) 60px}
+.screen{display:none}.screen.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+h1{font-family:'Cinzel',serif;font-size:clamp(1.6rem,5vw,2.2rem);margin:.2em 0 .3em;line-height:1.2}
+h1 .sub{display:block;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:3px;
+  font-size:.62rem;color:var(--cyan);font-weight:600;margin-bottom:8px}
+.lead{color:var(--ink-soft);font-size:1.02rem}
+.note{border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:var(--radius);
+  background:var(--bg-2);padding:14px 17px;margin:18px 0;font-size:.95rem;color:var(--ink-soft)}
+.note b{color:var(--gold-soft)}
+.field{margin:18px 0}
+.field label{display:block;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1.5px;
+  font-size:.64rem;color:var(--muted);font-weight:600;margin-bottom:5px}
+input,textarea{width:100%;font-family:'Inter',sans-serif;font-size:1rem;color:var(--ink);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:9px;padding:11px 13px}
+input:focus,textarea:focus{outline:2px solid var(--cyan);outline-offset:1px;border-color:var(--cyan)}
+textarea{min-height:76px;resize:vertical}
+
+.qmeta{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.qblock{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:2px;font-size:.6rem;
+  font-weight:600;color:var(--cyan);border:1px solid var(--line-strong);border-radius:99px;padding:3px 11px}
+.qnum{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted);margin-left:auto}
+.scene{border:1px solid var(--line);border-left:4px solid var(--violet);border-radius:var(--radius);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--violet) 7%,var(--bg-2)),var(--bg-2));
+  padding:14px 17px;margin-bottom:16px;font-size:.97rem;color:var(--ink-soft);line-height:1.6}
+.scene::before{content:"Escena";display:block;font-family:'Oswald',sans-serif;text-transform:uppercase;
+  letter-spacing:2px;font-size:.55rem;color:var(--violet);font-weight:600;margin-bottom:6px}
+.qtext{font-family:'Oswald',sans-serif;font-weight:500;font-size:clamp(1.15rem,3.6vw,1.4rem);
+  line-height:1.35;margin:0 0 18px;letter-spacing:.3px}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;
+  background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+  color:var(--ink);font-family:'Inter',sans-serif;font-size:.97rem;line-height:1.45;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--line-strong);background:var(--surface-2)}
+.opt .mk{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line-strong);
+  display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);margin-top:1px}
+.opt.sel{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 10%,var(--surface))}
+.opt.sel .mk{background:var(--cyan);border-color:var(--cyan);color:#0e1316}
+.nav{display:flex;gap:10px;align-items:center;margin-top:22px}
+.nav .sp{flex:1}
+
+.keybox{border:2px dashed var(--gold);border-radius:var(--radius);background:var(--bg-2);padding:18px;margin:18px 0;text-align:center}
+.keybox .lbl{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:2px;font-size:.6rem;color:var(--gold);font-weight:600}
+.key{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(.95rem,3.6vw,1.25rem);letter-spacing:1px;
+  color:var(--gold-soft);word-break:break-all;margin-top:9px;line-height:1.7;
+  -webkit-user-select:all;user-select:all;-webkit-touch-callout:default;cursor:text}
+.wa{display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#07301a;border:none;
+  font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;font-weight:600;font-size:.78rem;
+  padding:13px 20px;border-radius:10px;cursor:pointer;text-decoration:none;margin-top:6px}
+.small{font-size:.85rem;color:var(--muted)}
+.dots{display:flex;gap:4px;flex-wrap:wrap;margin:16px 0}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--surface-3);border:1px solid var(--line)}
+.dot.done{background:var(--cyan);border-color:var(--cyan)}
+.dot.cur{background:var(--gold);border-color:var(--gold);transform:scale(1.35)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <span class="brand"><span class="g">⬡</span> GATO <span class="tag">Test de mesa</span></span>
+  <span class="sp"></span>
+  <button class="btn" id="themeBtn">◑</button>
+  <button class="btn warn" id="resetBtn">Reiniciar</button>
+</div>
+<div id="prog"><div id="progFill"></div></div>
+
+<main>
+
+  <!-- INTRO -->
+  <section class="screen on" id="scIntro">
+    <h1><span class="sub">Sistema GATO</span>¿Encajas en la mesa?</h1>
+    <p class="lead">Un cuestionario para conocerte antes de sentarnos a jugar. Son <strong>30 preguntas</strong> y se tarda unos <strong>10 minutos</strong>.</p>
+
+    <div class="note">
+      <p style="margin:.2em 0"><b>No hay respuestas correctas.</b> Esto no es un examen: no se aprueba ni se suspende. Solo quiero saber de qué pie cojeas para prepararte una partida a tu medida.</p>
+      <p style="margin:.6em 0 .2em"><b>Responde con sinceridad.</b> Si no sabes algo, marca «No lo sé» sin ningún reparo — es una respuesta perfectamente válida y útil. Si dudas, contesta lo que <em>de verdad</em> harías, no lo que suene mejor.</p>
+    </div>
+
+    <div class="note" style="border-left-color:var(--cyan)">
+      <p style="margin:.2em 0">Puedes <b>parar cuando quieras</b>: se guarda solo en este navegador y al volver sigues donde lo dejaste. Al terminar te saldrá una <b>clave</b> que me tienes que enviar.</p>
+    </div>
+
+    <div class="field">
+      <label>¿Cómo te llamas?</label>
+      <input id="pname" placeholder="Tu nombre" autocomplete="off">
+    </div>
+
+    <div class="nav">
+      <button class="btn solid" id="startBtn" style="font-size:.82rem;padding:12px 22px">Empezar →</button>
+      <button class="btn" id="contBtn" hidden>Continuar donde lo dejé</button>
+    </div>
+  </section>
+
+  <!-- PREGUNTA -->
+  <section class="screen" id="scQ">
+    <div class="qmeta">
+      <span class="qblock" id="qBlock"></span>
+      <span class="qnum" id="qNum"></span>
+    </div>
+    <div class="scene" id="qScene" hidden></div>
+    <p class="qtext" id="qText"></p>
+    <div class="opts" id="qOpts"></div>
+    <div class="nav">
+      <button class="btn" id="prevBtn">‹ Atrás</button>
+      <span class="sp"></span>
+      <button class="btn solid" id="nextBtn">Siguiente ›</button>
+    </div>
+    <div class="dots" id="dots"></div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="screen" id="scEnd">
+    <h1><span class="sub">Hecho</span>Ya está, gracias</h1>
+    <p class="lead">Eso es todo. No hay nota ni resultado que ver: lo que has contestado me sirve para prepararte un personaje que te encaje.</p>
+
+    <div class="field">
+      <label>¿Se te ocurre algún personaje que te apetezca? (opcional)</label>
+      <textarea id="pidea" placeholder="Una línea basta. O déjalo en blanco y ya lo hablamos."></textarea>
+    </div>
+
+    <div class="keybox">
+      <div class="lbl">Tu clave</div>
+      <div class="key" id="keyOut">—</div>
+    </div>
+    <p class="small" style="text-align:center;margin-top:-6px">Mantén pulsado sobre la clave para copiarla, o usa el botón.</p>
+
+    <div style="text-align:center;margin-top:14px">
+      <a class="wa" id="waBtn" href="#" target="_blank" rel="noopener">✆ Enviar por WhatsApp</a>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="btn" id="copyBtn">⧉ Copiar clave</button>
+      <button class="btn" id="backBtn">‹ Revisar respuestas</button>
+    </div>
+    <p class="small" style="text-align:center;margin-top:22px">Si cambias algo al revisar, vuelve aquí: la clave se recalcula sola.</p>
+  </section>
+
+</main>
+
+<script>
+var AXES=[{k:'cr',n:'Creatividad'},{k:'eq',n:'Juego en equipo'},{k:'ro',n:'Rol'},{k:'tc',n:'Conocimiento técnico'},{k:'co',n:'Compromiso'}];
+var QUESTIONS=[
+/* ---------- BLOQUE 1 ---------- */
+{b:"Antes de nada",q:"¿Has jugado antes a juegos de rol de mesa (con dados, un Máster y una ficha)?",o:[
+ {t:"Nunca. Sería mi primera vez",s:{co:1}},
+ {t:"Una o dos partidas sueltas",s:{tc:1}},
+ {t:"He jugado varias campañas",s:{tc:2}},
+ {t:"Llevo años jugando",s:{tc:3}},
+ {t:"Además he dirigido partidas como Máster",s:{tc:3,cr:1}}]},
+
+{b:"Antes de nada",q:"¿Y videojuegos de rol (Baldur's Gate, Skyrim, Divinity, Fallout…)?",o:[
+ {t:"No, casi nada",s:{}},
+ {t:"Alguno suelto",s:{tc:1}},
+ {t:"Bastantes",s:{tc:2}},
+ {t:"Muchísimos, es mi género favorito",s:{tc:2,cr:1}}]},
+
+{b:"Antes de nada",q:"¿Con qué frecuencia podrías quedar para jugar, siendo realista?",o:[
+ {t:"Una vez por semana sin problema",s:{co:3}},
+ {t:"Cada dos semanas",s:{co:2}},
+ {t:"Una vez al mes",s:{co:1}},
+ {t:"Cuando pueda; prefiero no comprometerme",s:{}}]},
+
+{b:"Antes de nada",q:"Llega el día de partida y no puedes venir. ¿Qué haces?",o:[
+ {t:"Aviso en cuanto lo sé, con días de margen",s:{co:3,eq:1}},
+ {t:"Escribo al grupo y ayudo a buscar otra fecha",s:{co:3,eq:2}},
+ {t:"Aviso el mismo día",s:{co:1}},
+ {t:"No aviso, ya lo verán",s:{}}]},
+
+{b:"Antes de nada",q:"¿Qué es lo que más te atrae de jugar?",o:[
+ {t:"Vivir una historia y ver a dónde nos lleva",s:{ro:2,cr:1},p:'soc'},
+ {t:"Resolver problemas, puzles y misterios",s:{cr:2,tc:1},p:'tec'},
+ {t:"El combate y la táctica",s:{tc:1},p:'com'},
+ {t:"Estar con la gente y pasarlo bien",s:{eq:2},p:'sup'},
+ {t:"Crear un personaje e interpretarlo",s:{ro:3,cr:2},p:'soc'}]},
+
+/* ---------- BLOQUE 2 ---------- */
+{b:"Cómo funciona esto",q:"¿Qué son los «puntos de vida» de un personaje?",o:[
+ {t:"El daño que puede aguantar antes de caer",s:{tc:3}},
+ {t:"El dinero que lleva encima",s:{}},
+ {t:"Las veces que puede tirar los dados",s:{}},
+ {t:"No lo sé",s:{co:1}}]},
+
+{b:"Cómo funciona esto",q:"¿Qué hace el Máster (o Director de Juego)?",o:[
+ {t:"Describe el mundo, interpreta a los personajes no jugadores y arbitra las reglas",s:{tc:3}},
+ {t:"Es el jugador que va ganando la partida",s:{}},
+ {t:"Reparte las cartas y lleva la puntuación",s:{}},
+ {t:"No lo sé",s:{co:1}}]},
+
+{b:"Cómo funciona esto",q:"El Máster te pide una prueba de 12 o más. Tiras un dado de 20 y sacas 9. Tu atributo es 4. ¿Qué pasa?",o:[
+ {t:"Éxito: 9 + 4 = 13, y 13 supera 12",s:{tc:3}},
+ {t:"Fallo: 9 es menor que 12",s:{}},
+ {t:"Depende de lo que decida el Máster",s:{tc:1}},
+ {t:"No lo sé",s:{co:1}}]},
+
+{b:"Cómo funciona esto",q:"¿Qué es una «tirada enfrentada»?",o:[
+ {t:"Tiran los dos implicados y gana el resultado más alto",s:{tc:3}},
+ {t:"Tiras dos veces y te quedas con la mejor",s:{tc:1}},
+ {t:"Una tirada que hace solo el Máster en secreto",s:{}},
+ {t:"No lo sé",s:{co:1}}]},
+
+{b:"Cómo funciona esto",q:"¿Qué es la «ficha de personaje»?",o:[
+ {t:"La hoja con los datos y capacidades de tu personaje",s:{tc:3}},
+ {t:"El resumen de la partida que escribe el Máster",s:{}},
+ {t:"La lista de objetos que comparte el grupo",s:{}},
+ {t:"No lo sé",s:{co:1}}]},
+
+{b:"Cómo funciona esto",q:"Cuando alguien dice «rolear» o «interpretar», ¿a qué se refiere?",o:[
+ {t:"Hablar y decidir como lo haría tu personaje, aunque tú harías otra cosa",s:{tc:2,ro:3}},
+ {t:"Poner voces graciosas",s:{tc:1,ro:1}},
+ {t:"Ganar todos los combates",s:{}},
+ {t:"No lo sé",s:{co:1}}]},
+
+/* ---------- BLOQUE 3: ESCENAS ---------- */
+{b:"Escenas",sc:"Corres por un pasillo estrecho. A tu espalda suena una alarma; delante, una puerta blindada cerrada. Hay un panel con luces junto al marco, rejillas de ventilación en el techo y humo entrando por debajo.",q:"¿Qué haces?",o:[
+ {t:"Cargo contra la puerta a patadas",s:{ro:1},p:'com'},
+ {t:"Busco el panel de control e intento abrirla",s:{tc:1},p:'tec'},
+ {t:"Pregunto al grupo qué opciones tenemos",s:{eq:3},p:'sup'},
+ {t:"Miro las rejillas del techo: quizá haya otra vía",s:{cr:3,tc:1},p:'sig'}]},
+
+{b:"Escenas",sc:"En una esquina hay una niña de unos siete años, sola, llorando. No entiendes del todo lo que dice. El grupo tiene prisa.",q:"¿Qué hace tu personaje?",o:[
+ {t:"Me agacho a su altura y le hablo con calma",s:{ro:3,eq:2,cr:1},p:'soc'},
+ {t:"La cojo en brazos y sigo corriendo, no hay tiempo",s:{ro:1},p:'com'},
+ {t:"Le digo al grupo que alguien se ocupe de ella",s:{eq:1},p:'sup'},
+ {t:"Espero a ver qué hacen los demás",s:{}}]},
+
+{b:"Escenas",sc:"Tu personaje es claustrofóbico y toca arrastrarse por un conducto oscuro. El resto del grupo ya ha entrado y te esperan.",q:"¿Cómo lo juegas?",o:[
+ {t:"Interpreto el miedo aunque me haga quedar mal o nos retrase",s:{ro:3,cr:2}},
+ {t:"Digo que mi personaje respira hondo y se sobrepone",s:{ro:2}},
+ {t:"Hago lo que le convenga al grupo, sin darle más vueltas",s:{eq:2}},
+ {t:"No sabría muy bien cómo se interpreta eso",s:{co:1}}]},
+
+{b:"Escenas",sc:"Te has separado del grupo. En un cajón encuentras algo valioso y fácil de esconder. Nadie te ve. Tu personaje es de gatillo flojo con lo ajeno.",q:"¿Qué haces?",o:[
+ {t:"Se lo cuento al grupo cuando nos reencontremos",s:{eq:3}},
+ {t:"Me lo quedo, porque mi personaje lo haría; ya saldrá",s:{ro:3,cr:1}},
+ {t:"Me lo quedo y no digo nada, ni dentro ni fuera de la partida",s:{}},
+ {t:"Le pregunto al Máster qué debería hacer",s:{tc:1,co:1}}]},
+
+{b:"Escenas",sc:"El Máster describe una sala llena de términos técnicos y no te enteras de nada. Los demás asienten.",q:"¿Qué haces?",o:[
+ {t:"Pregunto en el momento, sin vergüenza",s:{co:3,eq:2,tc:1}},
+ {t:"Pregunto en voz baja a otro jugador",s:{eq:2,co:1}},
+ {t:"Espero y trato de deducirlo por contexto",s:{}},
+ {t:"Me quedo callado y hago algo al azar",s:{}}]},
+
+{b:"Escenas",sc:"Tenías un plan brillante. Sale rematadamente mal: se dispara la alarma, cae un muro y ahora hay tres enemigos más.",q:"¿Cómo reaccionas tú, en la mesa?",o:[
+ {t:"Me río y asumo las consecuencias en personaje",s:{ro:3,eq:2,cr:1}},
+ {t:"Intento convencer al Máster de repetir la tirada",s:{}},
+ {t:"Me frustro un poco, pero sigo adelante",s:{co:1}},
+ {t:"Busco quién del grupo lo hizo mal",s:{}}]},
+
+{b:"Escenas",sc:"Otro jugador propone un plan absurdo: disfrazarse con una sábana para colarse. Es ridículo, pero tiene su gracia.",q:"¿Qué haces?",o:[
+ {t:"Me apunto y lo llevo aún más lejos",s:{cr:3,eq:2}},
+ {t:"Le sigo el juego si no arruina la escena",s:{eq:2,cr:1}},
+ {t:"Propongo algo más sensato, pero sin cortarle el rollo",s:{eq:2,tc:1}},
+ {t:"Le digo que es una tontería y que nos centremos",s:{}}]},
+
+/* ---------- BLOQUE 4: LA MESA ---------- */
+{b:"La mesa",q:"Un jugador habla todo el rato y decide por los demás. Hay dos que casi no abren la boca.",o:[
+ {t:"Busco huecos para que los callados participen",s:{eq:3,ro:1}},
+ {t:"Hablo con él fuera de la partida, con buen rollo",s:{eq:3,co:2}},
+ {t:"Se lo comento al Máster para que lo gestione",s:{eq:1,co:1}},
+ {t:"No hago nada, no es asunto mío",s:{}}]},
+
+{b:"La mesa",q:"Tu personaje detesta al personaje de otro jugador (con el que tú te llevas genial).",o:[
+ {t:"Perfecto: conflicto entre personajes, amistad fuera de la mesa",s:{ro:3,cr:2,eq:2}},
+ {t:"Lo suavizo para que nadie se sienta incómodo",s:{eq:2}},
+ {t:"Prefiero que nuestros personajes se lleven bien",s:{eq:1}},
+ {t:"Le pido al Máster cambiar mi trasfondo",s:{}}]},
+
+{b:"La mesa",q:"En mitad de una escena tensa, el Máster aplica una regla como cree y te perjudica. Tú crees que se equivoca.",o:[
+ {t:"Lo acepto y lo comento tranquilamente al acabar la escena",s:{eq:3,co:2,tc:1}},
+ {t:"Lo discuto en el momento, citando la regla",s:{tc:1}},
+ {t:"Me callo, pero me fastidia el resto de la sesión",s:{}},
+ {t:"Insisto hasta que cambie de opinión",s:{}}]},
+
+{b:"La mesa",q:"¿Qué tono te apetece más para una partida?",o:[
+ {t:"Épico y serio",s:{ro:1},m:'Épico'},
+ {t:"Aventura con humor",s:{eq:1},m:'Humor'},
+ {t:"Oscuro y tenso",s:{ro:1},m:'Oscuro'},
+ {t:"Comedia total",s:{cr:1},m:'Comedia'}]},
+
+{b:"La mesa",q:"Si tuvieras que repartir una sesión de 4 horas…",o:[
+ {t:"Casi todo interpretación y exploración",s:{ro:3},m:'Narrativo'},
+ {t:"Más interpretación que combate",s:{ro:2},m:'Narrativo'},
+ {t:"Mitad y mitad",s:{ro:1,tc:1},m:'Equilibrado'},
+ {t:"Más combate y táctica",s:{tc:2},m:'Táctico'}]},
+
+{b:"La mesa",q:"Tu personaje puede morir de verdad si la cosa se tuerce. ¿Qué te parece?",o:[
+ {t:"Si es una buena escena, adelante",s:{ro:3,co:2}},
+ {t:"Preferiría evitarlo, pero lo acepto",s:{ro:1,co:1}},
+ {t:"Me molestaría bastante",s:{}},
+ {t:"No quiero que muera nunca",s:{}}]},
+
+/* ---------- BLOQUE 5: AVANZADO ---------- */
+{b:"Hilar fino",sc:"Tu personaje puede salvar a un desconocido o volver a por un compañero herido. Solo da tiempo a uno. Tu personaje es egoísta; tú, en su lugar, volverías a por el compañero.",q:"¿Qué haces?",o:[
+ {t:"Lo que haría mi personaje, aunque a mí me duela",s:{ro:3,cr:1}},
+ {t:"Lo hablo con el grupo y decidimos juntos",s:{eq:3,ro:1}},
+ {t:"Lo que haría yo; para eso juego",s:{}},
+ {t:"Le pregunto al Máster qué es lo correcto",s:{}}]},
+
+{b:"Hilar fino",q:"Tu personaje guarda un secreto. ¿Cuál te apetece más jugar?",o:[
+ {t:"Huyo de algo que hice y de lo que nadie sabe nada",s:{cr:3,ro:2}},
+ {t:"Busco a alguien que perdí hace mucho",s:{cr:2,ro:2}},
+ {t:"Trabajo para alguien que el grupo no aprobaría",s:{cr:3,ro:2}},
+ {t:"Prefiero un personaje sencillo, sin secretos",s:{}},
+ {t:"No se me ocurre nada; que lo decida el Máster",s:{co:1}}]},
+
+{b:"Hilar fino",q:"Te toca interpretar a alguien muy distinto a ti: otra edad, otro carácter, otra moral.",o:[
+ {t:"Me sale natural, me suelto rápido",s:{ro:3}},
+ {t:"Me cuesta al principio, pero acabo entrando",s:{ro:2,co:1}},
+ {t:"Prefiero un personaje parecido a mí",s:{ro:1}},
+ {t:"Me daría bastante vergüenza",s:{}}]},
+
+{b:"Hilar fino",sc:"Imagina que por un momento el Máster eres tú. Los jugadores acaban de entrar en una enfermería abandonada.",q:"¿Cómo la describirías?",o:[
+ {t:"Empezaría por lo que se huele y se oye, no solo por lo que se ve",s:{cr:3}},
+ {t:"Describiría los objetos importantes de la sala",s:{cr:1,tc:1}},
+ {t:"Diría lo justo y dejaría que preguntaran",s:{cr:1,eq:1}},
+ {t:"No sabría por dónde empezar",s:{co:1}}]},
+
+{b:"Hilar fino",q:"En un grupo, ¿qué papel te pega más?",o:[
+ {t:"El que resuelve aparatos, sistemas y cerraduras",s:{tc:1},p:'tec'},
+ {t:"El que habla, negocia y calma los ánimos",s:{ro:1},p:'soc'},
+ {t:"El que se pone delante cuando hay que pelear",s:{},p:'com'},
+ {t:"El que explora, se adelanta y va en silencio",s:{},p:'sig'},
+ {t:"El que cuida del grupo y lo mantiene en pie",s:{eq:2},p:'sup'}]},
+
+{b:"Hilar fino",q:"Última y la más importante: ¿has respondido con sinceridad?",o:[
+ {t:"Sí, he dicho lo que realmente haría o pienso",s:{co:3}},
+ {t:"Casi todo; alguna la he dudado",s:{co:2}},
+ {t:"He respondido un poco lo que creía que quedaba mejor",s:{}}]}
+];
+
+
+(function(){
+"use strict";
+var KEYV='G1', B36='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', STORE='gato-quiz-v1';
+var st={name:'',idea:'',ans:[],i:0,started:false};
+var html=document.documentElement;
+function $(id){return document.getElementById(id);}
+
+function save(){try{localStorage.setItem(STORE,JSON.stringify(st));}catch(e){}}
+function load(){try{var r=localStorage.getItem(STORE);if(r){var p=JSON.parse(r);if(p&&Array.isArray(p.ans))st=Object.assign(st,p);}}catch(e){}}
+
+$('themeBtn').addEventListener('click',function(){
+  html.setAttribute('data-theme',html.getAttribute('data-theme')==='dark'?'light':'dark');
+});
+$('resetBtn').addEventListener('click',function(){
+  if(!confirm('¿Seguro que quieres borrar todas tus respuestas y empezar de cero?'))return;
+  st={name:'',idea:'',ans:[],i:0,started:false};
+  try{localStorage.removeItem(STORE);}catch(e){}
+  $('pname').value='';$('pidea').value='';show('scIntro');refreshIntro();setProg();
+});
+
+function show(id){
+  ['scIntro','scQ','scEnd'].forEach(function(s){$(s).classList.toggle('on',s===id);});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function setProg(){
+  var done=st.ans.filter(function(a){return a!=null;}).length;
+  $('progFill').style.width=(100*done/QUESTIONS.length)+'%';
+}
+function refreshIntro(){
+  var done=st.ans.filter(function(a){return a!=null;}).length;
+  $('contBtn').hidden=!(st.started&&done>0);
+  $('startBtn').textContent=(st.started&&done>0)?'Empezar de nuevo':'Empezar →';
+}
+
+function renderQ(){
+  var i=st.i,q=QUESTIONS[i];
+  $('qBlock').textContent=q.b;
+  $('qNum').textContent=(i+1)+' / '+QUESTIONS.length;
+  if(q.sc){$('qScene').textContent=q.sc;$('qScene').hidden=false;}else{$('qScene').hidden=true;}
+  $('qText').textContent=q.q;
+  var box=$('qOpts');box.innerHTML='';
+  q.o.forEach(function(o,k){
+    var b=document.createElement('button');
+    b.className='opt'+(st.ans[i]===k?' sel':'');
+    var mk=document.createElement('span');mk.className='mk';mk.textContent=String.fromCharCode(65+k);
+    var tx=document.createElement('span');tx.textContent=o.t;
+    b.appendChild(mk);b.appendChild(tx);
+    b.addEventListener('click',function(){
+      st.ans[i]=k;save();renderQ();setProg();
+      setTimeout(function(){ if(st.i<QUESTIONS.length-1){st.i++;save();renderQ();} else {finish();} },230);
+    });
+    box.appendChild(b);
+  });
+  $('prevBtn').disabled=(i===0);
+  $('nextBtn').textContent=(i===QUESTIONS.length-1)?'Terminar ✓':'Siguiente ›';
+  $('nextBtn').disabled=(st.ans[i]==null);
+  var d=$('dots');d.innerHTML='';
+  QUESTIONS.forEach(function(_,k){
+    var e=document.createElement('span');
+    e.className='dot'+(st.ans[k]!=null?' done':'')+(k===i?' cur':'');
+    d.appendChild(e);
+  });
+  setProg();
+}
+
+$('prevBtn').addEventListener('click',function(){if(st.i>0){st.i--;save();renderQ();}});
+$('nextBtn').addEventListener('click',function(){
+  if(st.ans[st.i]==null)return;
+  if(st.i<QUESTIONS.length-1){st.i++;save();renderQ();}else finish();
+});
+$('startBtn').addEventListener('click',function(){
+  st.name=$('pname').value.trim();
+  var done=st.ans.filter(function(a){return a!=null;}).length;
+  if(st.started&&done>0){st.ans=[];st.i=0;}
+  st.started=true;save();show('scQ');renderQ();
+});
+$('contBtn').addEventListener('click',function(){
+  st.name=$('pname').value.trim()||st.name;
+  var first=0;for(var k=0;k<QUESTIONS.length;k++){if(st.ans[k]==null){first=k;break;}first=k;}
+  st.i=first;save();show('scQ');renderQ();
+});
+$('backBtn').addEventListener('click',function(){st.i=0;show('scQ');renderQ();});
+
+function buildKey(){
+  var chars='',sum=0;
+  for(var i=0;i<QUESTIONS.length;i++){
+    var a=st.ans[i];
+    if(a==null)return null;
+    chars+=B36.charAt(a);sum+=a*(i+1);
+  }
+  var ck=B36.charAt(sum%36);
+  var groups=chars.match(/.{1,10}/g).join('-');
+  return KEYV+'-'+groups+'-'+ck;
+}
+function finish(){
+  var missing=[];
+  for(var i=0;i<QUESTIONS.length;i++){if(st.ans[i]==null)missing.push(i+1);}
+  if(missing.length){
+    alert('Te faltan preguntas por contestar: '+missing.slice(0,8).join(', ')+(missing.length>8?'…':'')+'\nTe llevo a la primera.');
+    st.i=missing[0]-1;save();show('scQ');renderQ();return;
+  }
+  st.idea=$('pidea').value.trim();save();
+  var key=buildKey();
+  $('keyOut').textContent=key;
+  var who=(st.name||$('pname').value||'').trim();
+  var msg='Test de rol · Sistema GATO\n'+(who?'Soy '+who+'\n':'')+'Clave: '+key+(st.idea?'\nIdea de personaje: '+st.idea:'');
+  $('waBtn').href='https://wa.me/?text='+encodeURIComponent(msg);
+  show('scEnd');
+}
+$('pidea').addEventListener('input',function(){
+  st.idea=$('pidea').value.trim();save();
+  var who=(st.name||'').trim(),key=$('keyOut').textContent;
+  var msg='Test de rol · Sistema GATO\n'+(who?'Soy '+who+'\n':'')+'Clave: '+key+(st.idea?'\nIdea de personaje: '+st.idea:'');
+  $('waBtn').href='https://wa.me/?text='+encodeURIComponent(msg);
+});
+$('copyBtn').addEventListener('click',function(){
+  var t=$('keyOut').textContent;
+  function ok(){$('copyBtn').textContent='✓ Copiada';setTimeout(function(){$('copyBtn').textContent='⧉ Copiar clave';},1600);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,fallback);}else fallback();
+  function fallback(){
+    var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok();}catch(e){alert('Copia la clave a mano:\n'+t);}
+    document.body.removeChild(ta);
+  }
+});
+$('pname').addEventListener('input',function(){st.name=$('pname').value.trim();save();});
+
+/* boot */
+load();
+$('pname').value=st.name||'';
+$('pidea').value=st.idea||'';
+refreshIntro();setProg();
+})();
+</script>
+</body>
+</html>
