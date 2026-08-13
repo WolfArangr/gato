@@ -6,17 +6,14 @@
 <meta name="theme-color" content="#dceffa" id="metaTema">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Nubificador de Tren</title>
-
 <!-- ═══════════════════════════════════════════════════════════════
      NUBIFICADOR DE SALIDA PARA TREN
      Configuración editable: busca "ZONA EDITABLE" en el script.
      Editor de horarios desde el móvil: añade #editar a la URL.
      ═══════════════════════════════════════════════════════════════ -->
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
   :root{
     --fondo-1:#dceffa; --fondo-2:#f7fbff;
@@ -42,7 +39,6 @@
     --sombra:0 18px 44px -18px rgba(0,0,0,.7);
     --meta:#080f1e;
   }
-
   *{
     -webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none;
     -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent;
@@ -55,7 +51,7 @@
   body{
     box-sizing:border-box;
     height:100dvh; min-height:100%;
-    overflow:hidden;                       /* la página nunca hace scroll */
+    overflow:hidden;
     font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     background:radial-gradient(120% 90% at 50% 0%, var(--fondo-2) 0%, var(--fondo-1) 100%);
     color:var(--tinta);
@@ -64,11 +60,9 @@
     display:flex; justify-content:center; align-items:center;
     transition:background .5s ease, color .3s ease;
   }
-
   #emoji-background{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
   #emoji-background div{ position:absolute; will-change:transform; }
   html[data-tema="noche"] #emoji-background{ opacity:.5; }
-
   main{
     width:100%; max-width:440px;
     max-height:100%;
@@ -84,7 +78,6 @@
     animation:entrar .7s cubic-bezier(.22,1,.36,1);
   }
   main::-webkit-scrollbar{ display:none; }
-
   header{ display:flex; align-items:flex-start; gap:12px; margin-bottom:20px; }
   h1{
     font-family:'Bricolage Grotesque','Inter',sans-serif;
@@ -104,9 +97,7 @@
     transition:transform .25s, background .3s;
   }
   #btnTema:active{ transform:scale(.92) rotate(-15deg); }
-
   label{ display:block; font-weight:600; font-size:.82rem; color:var(--tinta-suave); }
-
   input[type="time"]{
     width:100%; box-sizing:border-box; margin-top:8px;
     padding:12px; border-radius:16px;
@@ -118,7 +109,6 @@
   }
   input[type="time"]:focus{ outline:none; border-color:var(--azul); }
   html[data-tema="noche"] input[type="time"]{ color-scheme:dark; }
-
   .toggle{
     display:flex; align-items:center; gap:14px;
     margin-top:14px; padding:12px 14px;
@@ -137,7 +127,6 @@
   .toggle.on .switch::after{ transform:translateX(20px); }
   .toggle b{ font-size:.92rem; font-weight:600; }
   .toggle small{ display:block; margin-top:2px; font-size:.76rem; font-weight:400; color:var(--tinta-suave); }
-
   .result{ margin-top:18px; }
   .result:empty{ display:none; }
   .tarjeta{
@@ -148,14 +137,12 @@
   .tarjeta + .tarjeta{ margin-top:12px; }
   .tarjeta.plan-b{ background:var(--ambar-tenue); border-left-color:var(--ambar); }
   .tarjeta.aviso{ background:var(--rojo-tenue); border-left-color:var(--rojo); }
-
   .eyebrow{
     display:block; font-size:.68rem; font-weight:700;
     letter-spacing:.14em; text-transform:uppercase; color:var(--tinta-suave);
   }
   .plan-b .eyebrow{ color:var(--ambar); }
   .aviso .eyebrow{ color:var(--rojo); }
-
   .hora-grande, .hora-media{
     font-family:'Bricolage Grotesque','Inter',sans-serif;
     font-weight:800; letter-spacing:-.045em; line-height:.95;
@@ -165,7 +152,6 @@
   .hora-media{ font-size:1.9rem; font-weight:700; }
   .sub{ font-size:.88rem; line-height:1.5; margin-top:8px; color:var(--tinta-suave); }
   .sub b{ color:var(--tinta); font-weight:600; font-variant-numeric:tabular-nums; }
-
   .salidas{ display:flex; gap:10px; margin-top:14px; }
   .salida{
     flex:1; text-align:center; padding:10px 6px;
@@ -183,12 +169,10 @@
   .salida em{ display:block; font-style:normal; font-size:.64rem; font-weight:600; color:var(--tinta-suave); margin-top:2px; }
   .salida.activa{ border-color:var(--verde); background:var(--verde-tenue); }
   .salida.activa em{ color:var(--verde); }
-
   .cuenta-atras{ margin-top:14px; text-align:center; font-size:.82rem; font-weight:600; color:var(--azul); }
   .cuenta-atras:empty{ display:none; }
   .nota-anterior{ margin:12px 4px 0; font-size:.78rem; text-align:center; color:var(--tinta-suave); }
-
-  /* Alarma */
+  /* Alarma / Recordatorio */
   #barraAlarma{ display:none; margin-top:12px; }
   #barraAlarma.puesta{ display:block; }
   .alarma{
@@ -210,7 +194,6 @@
   }
   #barraAlarma.sonando .eyebrow, #barraAlarma.sonando .detalle{ color:rgba(255,255,255,.85); }
   @keyframes latir{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
-
   .botones{ margin-top:20px; display:grid; gap:10px; }
   button{
     width:100%; padding:14px; border:none; border-radius:16px;
@@ -223,7 +206,6 @@
   button.ghost{ background:transparent; color:var(--azul); border:1px solid var(--azul); }
   #barraAlarma.sonando button.ghost{ background:#fff; color:var(--verde); border-color:#fff; }
   #btnMovimiento{ display:none; }
-
   #editor{ display:none; margin-top:22px; border-top:1px dashed var(--borde); padding-top:18px; }
   #editor.abierto{ display:block; }
   #editor h2{ font-family:'Bricolage Grotesque','Inter',sans-serif; font-size:1.05rem; margin:0 0 4px; }
@@ -241,15 +223,12 @@
     word-break:break-word; -webkit-user-select:text; user-select:text;
   }
   #editorSalida:empty{ display:none; }
-
   @keyframes entrar{ from{opacity:0; transform:translateY(14px) scale(.99)} to{opacity:1; transform:none} }
   @media (prefers-reduced-motion:reduce){ *{ animation:none !important; transition:none !important; } }
 </style>
 </head>
 <body>
-
 <div id="emoji-background" aria-hidden="true"></div>
-
 <main>
   <header>
     <h1>Nubificador de salida
@@ -257,10 +236,8 @@
     </h1>
     <button type="button" id="btnTema" aria-label="Cambiar entre modo día y modo noche">☾</button>
   </header>
-
   <label for="startTime">¿A qué hora entras al nubajo?</label>
   <input type="time" id="startTime" required>
-
   <div class="toggle" id="toggleFestivo">
     <input type="checkbox" id="finde">
     <span class="switch" aria-hidden="true"></span>
@@ -269,15 +246,12 @@
       <small id="avisoAuto">Actívalo si hoy no es laborable</small>
     </span>
   </div>
-
   <div class="result" id="resultBox" aria-live="polite"></div>
   <div id="barraAlarma"></div>
-
   <div class="botones">
     <button type="button" id="goToGameButton">Fortuna del día</button>
     <button type="button" class="ghost" id="btnMovimiento">Activar movimiento</button>
   </div>
-
   <section id="editor">
     <h2>Editor de horarios</h2>
     <p>Pega aquí las horas de salida tal cual las copies. Se extrae cualquier HH:MM, se ordena y se quitan las repetidas; el resto del texto se ignora.</p>
@@ -289,23 +263,15 @@
     <div id="editorSalida"></div>
   </section>
 </main>
-
 <script>
 /* ═══════════════════════════════════════════════════════════════════
    ZONA EDITABLE
    ═══════════════════════════════════════════════════════════════════ */
-
 const CONFIG = {
-  minutosAndando : 21,  // del nido a la estación, a pata
-  minutosMoto    : 11,  // del nido a la estación, en moto
-  minutosViaje   : 21   // de la salida del tren a estar dentro del nubajo
+  minutosAndando : 21,
+  minutosMoto : 11,
+  minutosViaje : 21
 };
-
-/*  Cada temporada tiene fecha de inicio y fin (AAAA-MM-DD) y la web
-    elige sola la que toca hoy. La entrada con desde/hasta a null es
-    la de reserva: se usa cuando ninguna fecha encaja, así nunca se
-    queda sin horario.                                             */
-
 const HORARIOS = [
   {
     nombre: "Verano 2026",
@@ -357,28 +323,27 @@ const HORARIOS = [
     `
   }
 ];
-
 const FESTIVOS = [
   "2026-08-15", "2026-10-12", "2026-11-01",
   "2026-12-06", "2026-12-08", "2026-12-25"
 ];
-
 /* ═══════════════════════════════════════════════════════════════════
    A PARTIR DE AQUÍ NO HACE FALTA TOCAR NADA
    ═══════════════════════════════════════════════════════════════════ */
-
 const $ = id => document.getElementById(id);
-
 const memoria = {
   leer(clave){ try { return localStorage.getItem(clave); } catch { return null; } },
-  guardar(clave, valor){ try { localStorage.setItem(clave, valor); } catch {} }
+  guardar(clave, valor){
+    try {
+      if (valor === null || valor === undefined) localStorage.removeItem(clave);
+      else localStorage.setItem(clave, valor);
+    } catch {}
+  }
 };
-
 const aMinutos = t => { const [h,m] = t.split(":").map(Number); return h*60+m; };
-const aHora    = m => `${String(Math.floor(m/60)%24).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
+const aHora = m => `${String(Math.floor(m/60)%24).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
 const fechaISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-
-const plural    = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
+const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 const enMinutos = n => plural(n, "minuto", "minutos");
 function duracionLarga(total){
   const h = Math.floor(total/60), m = total%60;
@@ -386,28 +351,22 @@ function duracionLarga(total){
   if (!m) return plural(h, "hora", "horas");
   return `${plural(h, "hora", "horas")} y ${enMinutos(m)}`;
 }
-
 function parseHoras(texto){
   const encontrados = texto.match(/\b([01]?\d|2[0-3]):[0-5]\d\b/g) || [];
   return [...new Set(encontrados.map(aMinutos))].sort((a,b)=>a-b);
 }
-
 function temporadaActiva(hoy = new Date()){
   const iso = fechaISO(hoy);
   return HORARIOS.find(h => h.desde && h.hasta && iso >= h.desde && iso <= h.hasta)
       || HORARIOS.find(h => !h.desde)
       || HORARIOS[0];
 }
-
-const esFinde   = d => d.getDay() === 0 || d.getDay() === 6;
+const esFinde = d => d.getDay() === 0 || d.getDay() === 6;
 const esFestivo = d => FESTIVOS.includes(fechaISO(d)) || esFinde(d);
-
 let temporada = temporadaActiva();
 let anulacionManual = null;
-
 const horasDelDia = finde =>
   anulacionManual || parseHoras(finde ? temporada.festivos : temporada.laborables);
-
 function calcular(entradaMin, finde){
   const trenes = horasDelDia(finde);
   const limite = entradaMin - CONFIG.minutosViaje;
@@ -415,47 +374,40 @@ function calcular(entradaMin, finde){
   for (let k = 0; k < trenes.length; k++) if (trenes[k] <= limite) i = k;
   return {
     trenes,
-    anterior   : i > 0 ? trenes[i-1] : null,
-    recomendado: i >= 0 ? trenes[i]  : null,
-    siguiente  : trenes[i+1] ?? null,
-    primero    : trenes[0] ?? null
+    anterior : i > 0 ? trenes[i-1] : null,
+    recomendado: i >= 0 ? trenes[i] : null,
+    siguiente : trenes[i+1] ?? null,
+    primero : trenes[0] ?? null
   };
 }
-
 /* --- resultado --- */
 const caja = $("resultBox");
 let horaSalidaAndando = null;
-
 function bloqueSalidas(tren){
   const pata = tren - CONFIG.minutosAndando;
   const moto = tren - CONFIG.minutosMoto;
   return `
     <div class="salidas">
       <button type="button" class="salida" data-minuto="${pata}" data-modo="a pata">
-        <span>A pata</span><strong>${aHora(pata)}</strong><em>Tocar para avisar</em>
+        <span>A pata</span><strong>${aHora(pata)}</strong><em>Poner recordatorio</em>
       </button>
       <button type="button" class="salida" data-minuto="${moto}" data-modo="en moto">
-        <span>En moto</span><strong>${aHora(moto)}</strong><em>Tocar para avisar</em>
+        <span>En moto</span><strong>${aHora(moto)}</strong><em>Poner recordatorio</em>
       </button>
     </div>`;
 }
-
 function render(){
   const valor = $("startTime").value;
   const finde = $("finde").checked;
   horaSalidaAndando = null;
-
   if (!valor){ caja.innerHTML = ""; marcarSalidaActiva(); return; }
-
   const entrada = aMinutos(valor);
   const r = calcular(entrada, finde);
-
   if (!r.trenes.length){
     caja.innerHTML = `<div class="tarjeta aviso"><span class="eyebrow">Sin datos</span>
       <div class="sub">No hay ningún horario cargado. Revisa el bloque HORARIOS del archivo.</div></div>`;
     return;
   }
-
   if (r.recomendado === null){
     const llegada = r.primero + CONFIG.minutosViaje;
     caja.innerHTML = `
@@ -469,11 +421,9 @@ function render(){
     marcarSalidaActiva();
     return;
   }
-
   const llegada = r.recomendado + CONFIG.minutosViaje;
   const holgura = entrada - llegada;
   horaSalidaAndando = r.recomendado - CONFIG.minutosAndando;
-
   let html = `
     <div class="tarjeta">
       <span class="eyebrow">Tu tren</span>
@@ -483,7 +433,6 @@ function render(){
       ${bloqueSalidas(r.recomendado)}
       <div class="cuenta-atras" id="cuentaAtras"></div>
     </div>`;
-
   if (r.siguiente !== null){
     const llegadaSiguiente = r.siguiente + CONFIG.minutosViaje;
     const retraso = llegadaSiguiente - entrada;
@@ -499,16 +448,13 @@ function render(){
     html += `<div class="tarjeta plan-b"><span class="eyebrow">Si lo pierdes</span>
       <div class="sub">Es el último tren del día, no hay plan B.</div></div>`;
   }
-
   if (r.anterior !== null){
     html += `<p class="nota-anterior">Con más margen: el de las ${aHora(r.anterior)} te deja allí a las ${aHora(r.anterior + CONFIG.minutosViaje)}.</p>`;
   }
-
   caja.innerHTML = html;
   marcarSalidaActiva();
   pintarCuentaAtras();
 }
-
 function pintarCuentaAtras(){
   const el = $("cuentaAtras");
   if (!el || horaSalidaAndando === null) return;
@@ -518,11 +464,51 @@ function pintarCuentaAtras(){
     ? `${faltan === 1 ? "Falta" : "Faltan"} ${duracionLarga(faltan)} para salir a pata`
     : "";
 }
-
-/* ═══ Alarma con sonido ═══ */
-let alarma = null;          // { objetivo:Date, minuto:Number, modo:String, sonando:Bool }
+/* ═══ Recordatorio / Alarma con sonido + notificación ═══ */
+let alarma = null;
 let audio = null;
 let repetirSonido = null;
+
+function guardarAlarma() {
+  if (!alarma) {
+    memoria.guardar("nubificador:alarma", null);
+    return;
+  }
+  memoria.guardar("nubificador:alarma", JSON.stringify({
+    minuto: alarma.minuto,
+    modo: alarma.modo,
+    objetivo: alarma.objetivo.getTime(),
+    sonando: alarma.sonando
+  }));
+}
+
+function restaurarAlarma() {
+  const raw = memoria.leer("nubificador:alarma");
+  if (!raw) { alarma = null; return; }
+  try {
+    const data = JSON.parse(raw);
+    alarma = {
+      minuto: data.minuto,
+      modo: data.modo,
+      objetivo: new Date(data.objetivo),
+      sonando: !!data.sonando
+    };
+    // Si ya debería haber sonado, forzar el estado
+    if (!alarma.sonando && new Date() >= alarma.objetivo) {
+      alarma.sonando = true;
+      prepararAudio();
+      pitar();
+      mostrarNotificacion();
+      if (!repetirSonido) {
+        repetirSonido = setInterval(pitar, 3000);
+        setTimeout(() => { clearInterval(repetirSonido); repetirSonido = null; }, 120000);
+      }
+      guardarAlarma();
+    }
+  } catch {
+    alarma = null;
+  }
+}
 
 function prepararAudio(){
   try{
@@ -549,8 +535,23 @@ function pitar(){
   if (navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
 }
 
+function mostrarNotificacion(){
+  if (!("Notification" in window) || Notification.permission !== "granted" || !alarma) return;
+  try {
+    new Notification("¡Hora de salir!", {
+      body: `Toca salir ${alarma.modo}`,
+      tag: "nubificador-recordatorio",
+      requireInteraction: true
+    });
+  } catch {}
+}
+
 function ponerAlarma(minuto, modo){
   prepararAudio();
+  // Pedir permiso de notificaciones la primera vez
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission().catch(()=>{});
+  }
   const ahora = new Date();
   const objetivo = new Date(ahora);
   objetivo.setHours(Math.floor(minuto/60), minuto%60, 0, 0);
@@ -559,9 +560,10 @@ function ponerAlarma(minuto, modo){
     return;
   }
   alarma = { objetivo, minuto, modo, sonando:false };
-  pitar();                                  // confirmación audible al ponerla
+  pitar();
   marcarSalidaActiva();
   pintarAlarma();
+  guardarAlarma();
 }
 
 function quitarAlarma(){
@@ -570,6 +572,7 @@ function quitarAlarma(){
   if (navigator.vibrate) navigator.vibrate(0);
   marcarSalidaActiva();
   pintarAlarma();
+  guardarAlarma();
 }
 
 function marcarSalidaActiva(){
@@ -577,7 +580,7 @@ function marcarSalidaActiva(){
     const activa = alarma && Number(b.dataset.minuto) === alarma.minuto;
     b.classList.toggle("activa", !!activa);
     const em = b.querySelector("em");
-    if (em) em.textContent = activa ? "Aviso puesto" : "Tocar para avisar";
+    if (em) em.textContent = activa ? "Recordatorio activo" : "Poner recordatorio";
   });
 }
 
@@ -590,14 +593,13 @@ function pintarAlarma(mensaje){
     return;
   }
   if (!alarma){ barra.className = ""; barra.innerHTML = ""; return; }
-
   if (alarma.sonando){
     barra.className = "puesta sonando";
     barra.innerHTML = `<div class="alarma">
       <span class="eyebrow">¡Hora de salir!</span>
       <div class="reloj">${aHora(alarma.minuto)}</div>
       <div class="detalle">Toca salir ${alarma.modo}</div>
-      <button type="button" class="ghost" id="btnQuitarAlarma">Ya voy, callar el aviso</button>
+      <button type="button" class="ghost" id="btnQuitarAlarma">Ya voy, callar</button>
     </div>`;
   } else {
     const restante = Math.max(0, Math.round((alarma.objetivo - new Date())/1000));
@@ -607,10 +609,10 @@ function pintarAlarma(mensaje){
       : `${m}:${String(s).padStart(2,"0")}`;
     barra.className = "puesta";
     barra.innerHTML = `<div class="alarma">
-      <span class="eyebrow">Aviso puesto</span>
+      <span class="eyebrow">Recordatorio puesto</span>
       <div class="reloj">${reloj}</div>
-      <div class="detalle">Sonará a las ${aHora(alarma.minuto)} para salir ${alarma.modo}</div>
-      <button type="button" class="ghost" id="btnQuitarAlarma">Quitar el aviso</button>
+      <div class="detalle">Te avisará a las ${aHora(alarma.minuto)} para salir ${alarma.modo}</div>
+      <button type="button" class="ghost" id="btnQuitarAlarma">Quitar el recordatorio</button>
     </div>`;
   }
   const boton = $("btnQuitarAlarma");
@@ -625,22 +627,28 @@ caja.addEventListener("click", e => {
   else ponerAlarma(minuto, boton.dataset.modo);
 });
 
-/* Un solo latido de reloj para la cuenta atrás y para la alarma */
+/* Un solo latido de reloj para la cuenta atrás y para el recordatorio */
 setInterval(() => {
   pintarCuentaAtras();
   if (!alarma) return;
   if (!alarma.sonando && new Date() >= alarma.objetivo){
     alarma.sonando = true;
     pitar();
+    mostrarNotificacion();
     repetirSonido = setInterval(pitar, 3000);
     setTimeout(() => { clearInterval(repetirSonido); repetirSonido = null; }, 120000);
+    guardarAlarma();
   }
   pintarAlarma();
 }, 1000);
 
-/* Al volver a la pestaña, recalcular por si el navegador frenó el temporizador */
+/* Al volver a la pestaña, restaurar y recalcular */
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden){ pintarCuentaAtras(); pintarAlarma(); }
+  if (!document.hidden){
+    restaurarAlarma();
+    pintarCuentaAtras();
+    pintarAlarma();
+  }
 });
 
 /* ═══ Modo noche ═══ */
@@ -665,27 +673,46 @@ $("btnTema").addEventListener("click", () => {
 const toggle = $("toggleFestivo");
 const checkFinde = $("finde");
 const pintarToggle = () => toggle.classList.toggle("on", checkFinde.checked);
-
 toggle.addEventListener("click", e => {
   if (e.target.tagName !== "INPUT") checkFinde.checked = !checkFinde.checked;
   pintarToggle();
+  memoria.guardar("nubificador:festivo", checkFinde.checked ? "1" : "0");
   render();
 });
-$("startTime").addEventListener("input", render);
-$("startTime").addEventListener("change", render);
+$("startTime").addEventListener("input", () => {
+  memoria.guardar("nubificador:hora", $("startTime").value);
+  render();
+});
+$("startTime").addEventListener("change", () => {
+  memoria.guardar("nubificador:hora", $("startTime").value);
+  render();
+});
 $("goToGameButton").addEventListener("click", () => { window.location.href = "miyutarot.html"; });
 
 (function iniciar(){
   const hoy = new Date();
   temporada = temporadaActiva(hoy);
   $("horarioActivo").textContent = temporada.nombre;
-  if (esFestivo(hoy)){
+
+  // Restaurar hora guardada
+  const horaGuardada = memoria.leer("nubificador:hora");
+  if (horaGuardada) $("startTime").value = horaGuardada;
+
+  // Restaurar festivo (si existe) o auto-detectar
+  const festivoGuardado = memoria.leer("nubificador:festivo");
+  if (festivoGuardado !== null) {
+    checkFinde.checked = festivoGuardado === "1";
+  } else if (esFestivo(hoy)) {
     checkFinde.checked = true;
     $("avisoAuto").textContent = esFinde(hoy)
       ? "Hoy es fin de semana, ya está marcado"
       : "Hoy es festivo, ya está marcado";
   }
   pintarToggle();
+
+  // Restaurar recordatorio
+  restaurarAlarma();
+
   render();
 })();
 
@@ -708,7 +735,6 @@ function abrirEditorSiToca(){
 }
 window.addEventListener("hashchange", abrirEditorSiToca);
 abrirEditorSiToca();
-
 $("editorAplicar").addEventListener("click", () => {
   const horas = parseHoras($("editorEntrada").value);
   if (!horas.length){ $("editorSalida").textContent = "No he encontrado ninguna hora en formato HH:MM."; return; }
@@ -716,13 +742,12 @@ $("editorAplicar").addEventListener("click", () => {
   $("editorSalida").textContent = `${horas.length} trenes cargados en esta sesión (se pierden al recargar). El primero sale a las ${aHora(horas[0])} y el último a las ${aHora(horas[horas.length-1])}.`;
   render();
 });
-
 $("editorCopiar").addEventListener("click", async () => {
   const horas = parseHoras($("editorEntrada").value);
   if (!horas.length){ $("editorSalida").textContent = "No he encontrado ninguna hora en formato HH:MM."; return; }
   const lineas = [];
-  for (let i = 0; i < horas.length; i += 6) lineas.push("      " + horas.slice(i, i+6).map(aHora).join(" "));
-  const bloque = "`\n" + lineas.join("\n") + "\n    `";
+  for (let i = 0; i < horas.length; i += 6) lineas.push(" " + horas.slice(i, i+6).map(aHora).join(" "));
+  const bloque = "`\n" + lineas.join("\n") + "\n `";
   try {
     await navigator.clipboard.writeText(bloque);
     $("editorSalida").textContent = `Copiado: ${horas.length} trenes. Pega el bloque en "laborables" o en "festivos".`;
@@ -731,20 +756,17 @@ $("editorCopiar").addEventListener("click", async () => {
   }
 });
 </script>
-
 <script>
 /* --- fondo de emojis con física: sólo en móvil y tableta --- */
 (function(){
   const esTactil = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
   if (!esTactil || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
   const cont = document.getElementById("emoji-background");
-  const set  = ["☁️","😺","❤️"];
-  const n    = 24;
+  const set = ["☁️","😺","❤️"];
+  const n = 24;
   const damping = .995, rebote = .6;
   let gravedad = { x:0, y:.14 };
   const piezas = [];
-
   for (let i = 0; i < n; i++){
     const el = document.createElement("div");
     el.textContent = set[Math.floor(Math.random()*set.length)];
@@ -759,37 +781,30 @@ $("editorCopiar").addEventListener("click", async () => {
       retraso:(Math.random()*10 + 5) * 100, cayendo:false
     });
   }
-
   let anterior = performance.now();
   function animar(t){
     const dt = Math.min(t - anterior, 50); anterior = t;
     for (const p of piezas){
       if (!p.cayendo){ p.retraso -= dt; if (p.retraso <= 0) p.cayendo = true; }
       if (p.cayendo){ p.vel.x += gravedad.x; p.vel.y += gravedad.y; }
-
       p.vel.x *= damping; p.vel.y *= damping;
       p.pos.x += p.vel.x; p.pos.y += p.vel.y;
-
       const limX = innerWidth - p.tam, limY = innerHeight - p.tam;
       if (p.pos.x < 0 || p.pos.x > limX){ p.vel.x *= -rebote; p.pos.x = Math.max(0, Math.min(p.pos.x, limX)); }
       if (p.pos.y < 0 || p.pos.y > limY){ p.vel.y *= -rebote; p.pos.y = Math.max(0, Math.min(p.pos.y, limY)); p.vel.x *= .96; }
-
       if (Math.abs(p.vel.x) < .04) p.vel.x = 0;
       if (Math.abs(p.vel.y) < .04 && p.pos.y >= limY - 1) p.vel.y = 0;
-
       p.giro += p.velGiro;
       p.el.style.transform = `translate(${p.pos.x}px, ${p.pos.y}px) rotate(${p.giro}deg)`;
     }
     requestAnimationFrame(animar);
   }
   requestAnimationFrame(animar);
-
   const despertar = () => piezas.forEach(p => {
     p.vel.x += (Math.random()-.5)*26;
     p.vel.y += (Math.random()-.5)*26;
     p.velGiro += (Math.random()-.5)*8;
   });
-
   function alInclinar(e){
     let x = e.gamma || 0, y = e.beta || 0;
     const giro = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
@@ -798,7 +813,6 @@ $("editorCopiar").addEventListener("click", async () => {
     else if (giro === 180){ x = -x; y = -y; }
     gravedad = { x: Math.max(-2, Math.min(2, x/45)), y: Math.max(-2, Math.min(2, y/45)) };
   }
-
   function detectorDeAgite(){
     let ax, ay, az;
     return e => {
@@ -807,16 +821,12 @@ $("editorCopiar").addEventListener("click", async () => {
       ax = a.x; ay = a.y; az = a.z;
     };
   }
-
   const escucharSensores = () => {
     addEventListener("deviceorientation", alInclinar);
     addEventListener("devicemotion", detectorDeAgite());
   };
-
-  /* iPhone (iOS 13+) exige permiso tras un toque; Android no. */
   const necesitaPermiso = typeof DeviceOrientationEvent !== "undefined"
     && typeof DeviceOrientationEvent.requestPermission === "function";
-
   if (!necesitaPermiso){
     escucharSensores();
   } else {
@@ -835,6 +845,5 @@ $("editorCopiar").addEventListener("click", async () => {
   }
 })();
 </script>
-
 </body>
 </html>
