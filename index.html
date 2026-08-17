@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>gato.red</title>
+<title id="pageTitle">gato.red — El Gato Media</title>
+<meta id="metaDesc" name="description" content="Consultoría digital, diseño y desarrollo web, y SEO técnico. Diagnóstico honesto, ejecución sin humo, y control total de lo tuyo desde el primer día.">
 <link rel="apple-touch-icon" sizes="180x180" href="https://www.gato.red/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://www.gato.red/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://www.gato.red/favicon-16x16.png">
 <link rel="icon" href="https://www.gato.red/favicon.ico" type="image/x-icon">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8628247999730660" crossorigin="anonymous"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,20 +27,22 @@
     --accent-blue: #4d9de8;
     --accent-purple: #9b7dea;
     --accent-pink: #e05ca3;
-    --accent-gray: #aaa;
-    --accent-design: #e05ca3;
     --mono: 'Space Mono', monospace;
     --display: 'Unbounded', sans-serif;
-    --max: 1400px;
+    --max: 1200px;
   }
+
+  html { scroll-behavior: smooth; }
 
   body {
     background: var(--bg);
     color: var(--text);
     font-family: var(--mono);
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.65;
     min-height: 100vh;
+    padding-bottom: 64px;
+    cursor: none;
   }
 
   body::before {
@@ -49,892 +51,1120 @@
     inset: 0;
     background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
     pointer-events: none;
-    z-index: 9999;
+    z-index: 9997;
   }
 
-  /* ─── HEADER ─── */
-  header {
-    padding: 3rem 2rem 2rem;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    align-items: flex-end;
-    justify-content: space-between;
-    max-width: var(--max);
-    margin: 0 auto;
-  }
+  @media (hover: none) { body { cursor: auto; } }
 
-  .logo-block h1 {
-    font-family: var(--display);
-    font-weight: 900;
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    letter-spacing: -0.03em;
-    line-height: 1;
-    color: var(--text);
-  }
+  a { color: inherit; }
+  textarea, input { cursor: auto; }
 
-  .logo-block h1 span { color: var(--accent-red); }
-
-  .logo-block p {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 0.5rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .stats { display: flex; gap: 2rem; text-align: right; }
-
-  .stat-n {
-    font-family: var(--display);
-    font-weight: 700;
-    font-size: 1.8rem;
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .stat-l {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-top: 2px;
-  }
-
-  /* ─── SHOWCASE ─── */
-  .showcase-wrap {
-    max-width: var(--max);
-    margin: 0 auto;
-    padding: 2.5rem 2rem 0;
-  }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 2rem; }
 
   .section-label {
     font-size: 10px;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
   }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
+  h1, h2, h3 { font-family: var(--display); letter-spacing: -0.02em; line-height: 1.1; }
+
+  /* ─── CUSTOM CURSOR ─── */
+  #cur {
+    position: fixed; width: 8px; height: 8px; background: var(--accent-red);
+    border-radius: 50%; pointer-events: none; z-index: 10000;
+    transform: translate(-50%, -50%);
+    transition: width .2s, height .2s, background .2s;
+  }
+  #cur-ring {
+    position: fixed; width: 34px; height: 34px;
+    border: 1px solid rgba(232,77,77,0.4); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width .2s, height .2s, border-color .2s;
+  }
+  @media (hover: none) { #cur, #cur-ring { display: none; } }
+
+  /* ─── HEADER ─── */
+  header { padding: 1.5rem 0; border-bottom: 1px solid var(--border); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+
+  .logo-block { text-decoration: none; }
+  .logo-main { font-family: var(--display); font-weight: 900; font-size: 1.3rem; }
+  .logo-main .dot { color: var(--accent-red); }
+  .logo-tag { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+
+  .header-right { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; }
+
+  nav { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  nav a { font-size: 12px; text-decoration: none; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; transition: color 0.15s; }
+  nav a:hover { color: var(--text); }
+
+  .lang-toggle { display: flex; border: 1px solid var(--border); }
+  .lang-btn {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    background: transparent; border: none; color: var(--muted);
+    padding: 0.4rem 0.7rem; cursor: none; letter-spacing: 0.05em;
+    transition: color .15s, background .15s;
+  }
+  .lang-btn[aria-pressed="true"] { color: var(--accent-blue); background: var(--surface2); }
+
+  /* ─── HERO ─── */
+  .hero { padding: 5rem 0 4rem; border-bottom: 1px solid var(--border); }
+  .hero h1 { font-size: clamp(2.2rem, 5.5vw, 4rem); max-width: 16ch; margin-bottom: 1.5rem; }
+  .hero h1 .accent { color: var(--accent-red); }
+  .hero-sub { font-size: 1.05rem; color: var(--muted); max-width: 52ch; margin-bottom: 2.5rem; }
+  .hero-chips { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; padding: 0.6rem 1rem;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    cursor: none; transition: border-color 0.15s, background 0.15s;
+  }
+  .chip:hover, .chip.active { border-color: var(--accent-amber); background: var(--surface2); }
+  .chip.active { color: var(--accent-amber); }
+  .hero-hint { font-size: 11px; color: #555; }
+
+  /* ─── PILLARS ─── */
+  .pillars { padding: 4rem 0; border-bottom: 1px solid var(--border); }
+  .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .pillar { padding: 2rem 1.75rem; border: 1px solid var(--border); background: var(--surface); position: relative; }
+  .pillar::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .pillar.diag::before { background: var(--accent-red); }
+  .pillar.exec::before { background: var(--accent-blue); }
+  .pillar.ctrl::before { background: var(--accent-teal); }
+  .pillar-num { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem; }
+  .pillar h3 { font-size: 1.15rem; margin-bottom: 0.75rem; }
+  .pillar p { font-size: 13px; color: var(--muted); }
+
+  /* ─── SHOWCASE ANTES/DESPUÉS ─── */
+  .showcase { padding: 4rem 0; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .showcase h2 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+  .showcase-sub { color: var(--muted); font-size: 13px; margin-bottom: 2.5rem; max-width: 50ch; }
+
+  .showcase-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+  .showcase-item { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .mock-tag {
+    display: inline-block; width: fit-content; font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.12em; padding: 4px 12px; font-weight: 700;
+  }
+  .mock-tag-before { background: var(--accent-red); color: #fff; }
+  .mock-tag-after { background: var(--accent-teal); color: #06231a; }
+
+  .browser-mock { border: 1px solid var(--border-hover); background: var(--bg); overflow: hidden; }
+  .browser-chrome {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0.6rem 0.8rem; background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  .browser-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; }
+  .browser-addr {
+    margin-left: 0.5rem; font-size: 10px; color: #666; background: var(--bg);
+    padding: 3px 10px; flex: 1; border-radius: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .mock-body { padding: 1.25rem; min-height: 340px; }
+
+  /* BAD mock */
+  .mock-bad .mock-body { background: #ffe9a8; position: relative; }
+  .mock-bad .fake-nav { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .mock-bad .fake-nav span { background: #ff5fa2; color: #fff; font-size: 9px; padding: 4px 8px; border-radius: 10px; font-family: Georgia, serif; }
+  .mock-bad .fake-badge {
+    display: inline-block; background: #ffe600; color: #d63031; font-weight: 900;
+    padding: 6px 14px; transform: rotate(-6deg); font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 15px; border: 2px dashed #d63031; margin-bottom: 1rem;
+  }
+  .mock-bad .fake-line { height: 10px; border-radius: 2px; margin-bottom: 8px; }
+  .mock-bad .l1 { width: 90%; background: #0984e3; }
+  .mock-bad .l2 { width: 70%; background: #6c5ce7; font-family: 'Comic Sans MS', cursive; }
+  .mock-bad .l3 { width: 95%; background: #00b894; }
+  .mock-bad .fake-btn {
+    display: inline-block; margin-top: 1rem; background: linear-gradient(90deg,#ff0844,#ffb199);
+    color: #fff; padding: 10px 18px; font-weight: 900; font-family: 'Comic Sans MS', cursive; font-size: 13px;
+    box-shadow: 0 4px 0 #b0003a;
+  }
+  .mock-bad .fake-clutter { position: absolute; bottom: 8px; right: 8px; font-size: 8px; color: #999; max-width: 140px; }
+
+  /* AFTER mock — toggle entre 3 estilos visuales distintos, fuera del marco */
+  .after-toggle { display: flex; gap: 1.25rem; padding-top: 0.25rem; }
+  .after-toggle button {
+    font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted);
+    padding: 0.4rem 0; cursor: none; transition: color 0.15s, border-color 0.15s;
+  }
+  .after-toggle button[aria-pressed="true"] { color: var(--text); border-color: var(--accent-teal); }
+
+  .mock-after .mock-body { padding: 1.5rem; }
+
+  /* estilo A — editorial minimal */
+  .after-a { background: #f5f1e8; color: #1c1c1c; font-family: Georgia, 'Times New Roman', serif; }
+  .after-a .a-eyebrow { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #8a8272; margin-bottom: 10px; font-family: var(--mono); }
+  .after-a .a-nav { display: flex; gap: 22px; margin-bottom: 26px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #7a7566; font-family: var(--mono); }
+  .after-a .a-head { font-size: 24px; line-height: 1.2; font-weight: 400; margin-bottom: 14px; max-width: 85%; }
+  .after-a .a-line { width: 100%; height: 1px; background: #d8d2c2; margin: 16px 0; }
+  .after-a .a-body { font-size: 12px; color: #5a5648; line-height: 1.6; max-width: 88%; margin-bottom: 22px; font-family: var(--mono); }
+  .after-a .a-btn { display: inline-block; border: 1px solid #1c1c1c; padding: 9px 20px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; font-family: var(--mono); }
+
+  /* estilo B — tech oscuro */
+  .after-b { background: #060a12; color: #e8f0ff; font-family: var(--mono); }
+  .after-b .b-nav { display: flex; gap: 18px; margin-bottom: 20px; }
+  .after-b .b-nav span { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #5c7a99; }
+  .after-b .b-badge { display: inline-block; border: 1px solid #39ff88; color: #39ff88; font-size: 9px; padding: 3px 8px; margin-bottom: 14px; letter-spacing: 0.1em; }
+  .after-b .b-head { font-size: 20px; font-weight: 700; margin-bottom: 18px; color: #fff; max-width: 90%; }
+  .after-b .b-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+  .after-b .b-card { border: 1px solid #1b2838; padding: 10px; background: #0c131f; }
+  .after-b .b-card .b-dot { width: 6px; height: 6px; background: #39ff88; border-radius: 50%; margin-bottom: 8px; }
+  .after-b .b-card .b-bar { height: 6px; background: #1b2838; border-radius: 1px; margin-bottom: 5px; }
+  .after-b .b-btn { display: inline-block; background: #39ff88; color: #04140a; padding: 9px 18px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+
+  /* estilo C — premium cálido */
+  .after-c { background: #fbf3e9; color: #3a2a1c; font-family: Georgia, serif; }
+  .after-c .c-nav { display: flex; gap: 22px; margin-bottom: 24px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #9c7a4e; border-bottom: 1px solid #e6d3b8; padding-bottom: 14px; font-family: var(--mono); }
+  .after-c .c-head { font-size: 23px; color: #3a2a1c; margin-bottom: 8px; max-width: 85%; }
+  .after-c .c-sub { font-size: 11px; color: #8a7256; margin-bottom: 20px; font-style: italic; }
+  .after-c .c-line { width: 40px; height: 2px; background: #b9863f; margin: 4px 0 18px; }
+  .after-c .c-btn { display: inline-block; background: #b9863f; color: #fff; padding: 10px 22px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-family: var(--mono); }
+
+  .showcase-caption { text-align: center; font-size: 10px; color: #555; margin-top: 2rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  @media (max-width: 900px) {
+    .showcase-grid { grid-template-columns: 1fr; }
   }
 
-  .showcase-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-  }
 
-  .showcase-card {
-    position: relative;
-    padding: 2rem 1.75rem;
-    border: 1px solid var(--border);
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    overflow: hidden;
+  /* ─── DIAGNÓSTICO ─── */
+  .diagnostico { padding: 4rem 0; border-bottom: 1px solid var(--border); }
+  .diag-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+  .diagnostico h2 { font-size: 1.8rem; margin-bottom: 1rem; }
+  .diagnostico .lead { color: var(--muted); max-width: 46ch; margin-bottom: 2.5rem; }
+
+  .check-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .check-item {
+    display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.85rem 1rem;
+    border: 1px solid var(--border); background: var(--surface); cursor: none;
+    transition: border-color 0.15s; font-size: 13px;
+  }
+  .check-item:hover { border-color: var(--border-hover); }
+  .check-item input { margin-top: 3px; accent-color: var(--accent-teal); cursor: pointer; }
+  .check-item.checked { border-color: var(--accent-teal); }
+
+  textarea#detalle {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 13px; padding: 0.85rem 1rem; min-height: 100px;
+    resize: vertical; margin-bottom: 1.25rem;
+  }
+  textarea#detalle:focus { outline: none; border-color: var(--accent-blue); }
+
+  .btn-primary {
+    display: inline-block; font-family: var(--mono); font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; padding: 0.9rem 1.75rem;
+    background: var(--accent-red); color: #0d0d0d; text-decoration: none; border: none;
+    cursor: none; transition: background 0.15s, transform 0.1s;
+  }
+  .btn-primary:hover { background: #f06868; }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+
+  .diag-summary { border: 1px dashed var(--border); padding: 1.5rem; font-size: 12px; color: var(--muted); min-height: 160px; }
+  .diag-summary .label { color: var(--accent-teal); text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; display: block; margin-bottom: 0.75rem; }
+  .diag-summary ul { padding-left: 1.2rem; margin: 0.5rem 0; }
+  .diag-summary .empty { color: #555; font-style: italic; }
+
+  /* ─── PORTFOLIO ─── */
+  .portfolio { padding: 4rem 0; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .pf-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+  .pf-card {
+    position: relative; padding: 1.75rem 1.5rem; border: 1px solid var(--border); background: var(--bg);
+    text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 0.6rem;
     transition: border-color 0.2s, background 0.2s;
-    background: var(--surface);
+  }
+  .pf-card:hover { border-color: var(--border-hover); background: var(--surface2); }
+  .pf-tag { display: inline-block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 8px; width: fit-content; border: 1px solid; }
+  .pf-tag.cliente { color: var(--accent-teal); border-color: var(--accent-teal); background: rgba(45,191,138,0.1); }
+  .pf-tag.propio { color: var(--accent-purple); border-color: var(--accent-purple); background: rgba(155,125,234,0.1); }
+  .pf-tag.herramienta { color: var(--accent-amber); border-color: var(--accent-amber); background: rgba(240,160,32,0.1); }
+  .pf-tag.articulo { color: var(--accent-blue); border-color: var(--accent-blue); background: rgba(77,157,232,0.1); }
+  .pf-name { font-family: var(--display); font-weight: 700; font-size: 1rem; }
+  .pf-desc { font-size: 12px; color: var(--muted); flex: 1; }
+  .pf-url { font-size: 10px; color: #444; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+  .pf-card:hover .pf-url { color: var(--muted); }
+  .pf-seeall { display: block; text-align: center; font-size: 12px; color: var(--accent-blue); text-decoration: none; }
+  .pf-seeall:hover { text-decoration: underline; }
+
+  /* ─── PROCESO ─── */
+  .proceso { padding: 4rem 0; border-bottom: 1px solid var(--border); }
+  .proc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .proc-step { padding: 1.5rem 0; border-top: 2px solid var(--border-hover); }
+  .proc-n { font-family: var(--display); font-size: 1.8rem; color: var(--accent-red); margin-bottom: 0.5rem; }
+  .proc-step h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+  .proc-step p { font-size: 12px; color: var(--muted); }
+
+  /* ─── SOBRE MÍ ─── */
+  .sobre { padding: 4rem 0; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .sobre-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 3rem; align-items: start; }
+  .sobre h2 { font-size: 1.8rem; margin-bottom: 1.25rem; }
+  .sobre p { color: var(--muted); margin-bottom: 1rem; font-size: 13.5px; }
+  .sobre p strong { color: var(--text); }
+  .sobre-facts { border: 1px solid var(--border); background: var(--bg); padding: 1.5rem; }
+  .sobre-facts .fact { padding: 0.85rem 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .sobre-facts .fact:last-child { border-bottom: none; }
+  .sobre-facts .fact .k { color: var(--accent-amber); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; display: block; margin-bottom: 3px; }
+
+  /* ─── SERVICIOS ─── */
+  .servicios { padding: 4rem 0; border-bottom: 1px solid var(--border); }
+  .serv-intro { color: var(--muted); max-width: 52ch; margin-bottom: 2.5rem; font-size: 14px; }
+  .serv-list { display: flex; flex-direction: column; }
+  .serv-item { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; padding: 1.75rem 0; border-top: 1px solid var(--border); }
+  .serv-item:last-child { border-bottom: 1px solid var(--border); }
+  .serv-item h3 { font-size: 1.1rem; }
+  .serv-item p { font-size: 13px; color: var(--muted); margin-bottom: 0.5rem; }
+  .serv-item .not-included { font-size: 11px; color: #555; }
+  .serv-item .not-included strong { color: var(--accent-red); }
+
+  /* ─── CONTACTO ─── */
+  .contacto { padding: 5rem 0; text-align: center; }
+  .contacto h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin-bottom: 1rem; }
+  .contacto p { color: var(--muted); max-width: 44ch; margin: 0 auto 2rem; }
+  .contacto .btn-primary { font-size: 15px; padding: 1.1rem 2.5rem; }
+  .contacto .email-note { display: block; margin-top: 1.25rem; font-size: 11px; color: #555; }
+
+  footer { padding: 2rem; text-align: center; font-size: 11px; color: #444; border-top: 1px solid var(--border); }
+
+  /* ─── TECH LEVEL CONTROL ─── */
+  .tech-control { position: fixed; z-index: 1000; display: flex; background: var(--surface); border: 1px solid var(--border-hover); }
+  .tech-control .tc-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; justify-content: center; padding: 0.5rem; }
+  .tech-btn {
+    font-family: var(--mono); font-size: 11px; background: transparent; border: none; color: var(--muted);
+    padding: 0.75rem 0.9rem; cursor: none; text-transform: uppercase; letter-spacing: 0.06em;
+    transition: color 0.15s, background 0.15s;
+  }
+  .tech-btn:hover { color: var(--text); }
+  .tech-btn[aria-pressed="true"] { color: var(--accent-amber); background: var(--surface2); }
+
+  @media (min-width: 901px) {
+    .tech-control { top: 50%; right: 0; transform: translateY(-50%); flex-direction: column; border-right: none; width: 128px; }
+    .tech-control .tc-label { padding: 0.85rem 0.6rem; text-align: center; font-size: 9px; line-height: 1.45; white-space: normal; word-break: normal; overflow-wrap: break-word; }
+    .tech-control .tech-btn { width: 100%; text-align: center; padding: 0.65rem 0.5rem; }
+  }
+  @media (max-width: 900px) {
+    .tech-control { bottom: 0; left: 0; right: 0; flex-direction: row; justify-content: center; border-left: none; border-right: none; border-bottom: none; }
+    .tech-control .tc-label { display: none; }
+    .tech-btn { flex: 1; text-align: center; padding: 1rem 0.5rem; }
   }
 
-  .showcase-card:hover {
-    border-color: var(--border-hover);
-    background: var(--surface2);
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .pillars-grid, .pf-grid { grid-template-columns: 1fr; }
+    .diag-grid, .sobre-grid { grid-template-columns: 1fr; }
+    .proc-grid { grid-template-columns: 1fr 1fr; }
+    .serv-item { grid-template-columns: 1fr; gap: 0.5rem; }
+    nav { display: none; }
   }
 
-  /* Accent glow top bar */
-  .showcase-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    transition: opacity 0.2s;
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
   }
 
-  .showcase-card.juego::before { background: linear-gradient(90deg, var(--accent-teal), transparent); }
-  .showcase-card.herramienta::before { background: linear-gradient(90deg, var(--accent-amber), transparent); }
-
-  /* Corner star */
-  .showcase-card::after {
-    content: '★';
-    position: absolute;
-    top: 1.25rem;
-    right: 1.25rem;
-    font-size: 10px;
-    color: var(--accent-amber);
-    opacity: 0.6;
-  }
-
-  .showcase-name {
-    font-family: var(--display);
-    font-weight: 900;
-    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-    text-transform: lowercase;
-  }
-
-  .showcase-card.juego .showcase-name { color: var(--accent-teal); }
-  .showcase-card.herramienta .showcase-name { color: var(--accent-amber); }
-
-  .showcase-desc {
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.6;
-    flex: 1;
-  }
-
-  .showcase-url {
-    font-size: 10px;
-    color: #444;
-    margin-top: auto;
-    padding-top: 0.5rem;
-    border-top: 1px solid var(--border);
-    transition: color 0.15s;
-  }
-
-  .showcase-card:hover .showcase-url { color: var(--muted); }
-
-  .showcase-cat {
-    display: inline-block;
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    padding: 2px 7px;
-    border-radius: 1px;
-    font-family: var(--mono);
-    margin-bottom: 0.25rem;
-  }
-
-  .juego .showcase-cat { background: rgba(45,191,138,0.12); color: var(--accent-teal); border: 1px solid rgba(45,191,138,0.25); }
-  .herramienta .showcase-cat { background: rgba(240,160,32,0.12); color: var(--accent-amber); border: 1px solid rgba(240,160,32,0.25); }
-
-  /* ─── FILTERS ─── */
-  .controls {
-    max-width: var(--max);
-    margin: 0 auto;
-    padding: 1.5rem 2rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: center;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .filter-label {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-right: 0.25rem;
-  }
-
-  .tag-btn {
-    padding: 5px 14px;
-    border-radius: 2px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.05em;
-  }
-
-  .tag-btn:hover { border-color: var(--border-hover); color: var(--text); }
-  .tag-btn.active { color: var(--bg); }
-
-  .tag-btn.all.active    { background: var(--text); border-color: var(--text); }
-  .tag-btn.juego.active  { background: var(--accent-teal); border-color: var(--accent-teal); }
-  .tag-btn.herramienta.active { background: var(--accent-amber); border-color: var(--accent-amber); }
-  .tag-btn.articulo.active    { background: var(--accent-blue); border-color: var(--accent-blue); }
-  .tag-btn.rol.active    { background: var(--accent-purple); border-color: var(--accent-purple); }
-  .tag-btn.diseno.active { background: var(--accent-pink); border-color: var(--accent-pink); }
-  .tag-btn.otro.active   { background: var(--accent-gray); border-color: var(--accent-gray); }
-
-  .search-wrap {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    border: 1px solid var(--border);
-    padding: 5px 10px;
-    border-radius: 2px;
-  }
-
-  .search-wrap:focus-within { border-color: var(--border-hover); }
-
-  .search-wrap input {
-    background: none;
-    border: none;
-    outline: none;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    width: 180px;
-  }
-
-  .search-wrap input::placeholder { color: var(--muted); }
-  .search-icon { color: var(--muted); font-size: 11px; }
-
-  /* ─── CATEGORY SECTIONS ─── */
-  #grid {
-    max-width: var(--max);
-    margin: 0 auto;
-    padding: 0 2rem 2rem;
-  }
-
-  .cat-section {
-    margin-top: 2.5rem;
-  }
-
-  .cat-section.hidden { display: none; }
-
-  .cat-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .cat-title {
-    font-family: var(--display);
-    font-weight: 700;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-  }
-
-  .cat-title.juego       { color: var(--accent-teal); }
-  .cat-title.herramienta { color: var(--accent-amber); }
-  .cat-title.articulo    { color: var(--accent-blue); }
-  .cat-title.rol         { color: var(--accent-purple); }
-  .cat-title.diseno      { color: var(--accent-pink); }
-  .cat-title.otro        { color: var(--accent-gray); }
-
-  .cat-line {
-    flex: 1;
-    height: 1px;
-  }
-
-  .cat-line.juego       { background: linear-gradient(90deg, rgba(45,191,138,0.3), transparent); }
-  .cat-line.herramienta { background: linear-gradient(90deg, rgba(240,160,32,0.3), transparent); }
-  .cat-line.articulo    { background: linear-gradient(90deg, rgba(77,157,232,0.3), transparent); }
-  .cat-line.rol         { background: linear-gradient(90deg, rgba(155,125,234,0.3), transparent); }
-  .cat-line.diseno      { background: linear-gradient(90deg, rgba(224,92,163,0.3), transparent); }
-  .cat-line.otro        { background: linear-gradient(90deg, rgba(170,170,170,0.2), transparent); }
-
-  .cat-count {
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-  }
-
-  /* Card grid within each section */
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-  }
-
-  /* ─── CARD ─── */
-  .card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    padding: 1.5rem;
-    transition: background 0.15s;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    position: relative;
-    text-decoration: none;
-    color: inherit;
-    overflow: hidden;
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-
-  .card:hover { background: var(--surface); }
-  .card:hover::before { opacity: 1; }
-
-  .card.juego::before       { background: var(--accent-teal); }
-  .card.herramienta::before { background: var(--accent-amber); }
-  .card.articulo::before    { background: var(--accent-blue); }
-  .card.rol::before         { background: var(--accent-purple); }
-  .card.diseno::before      { background: var(--accent-pink); }
-  .card.otro::before        { background: var(--accent-gray); }
-
-  .card-name {
-    font-family: var(--display);
-    font-weight: 700;
-    font-size: 0.82rem;
-    letter-spacing: -0.01em;
-    color: var(--text);
-    line-height: 1.2;
-    text-transform: lowercase;
-  }
-
-  .card-desc {
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.6;
-    flex: 1;
-  }
-
-  .card-url {
-    font-size: 10px;
-    color: #444;
-    margin-top: auto;
-    transition: color 0.15s;
-  }
-
-  .card:hover .card-url { color: var(--muted); }
-  .card.hidden { display: none; }
-
-  /* ─── FOOTER ─── */
-  footer {
-    max-width: var(--max);
-    margin: 0 auto;
-    padding: 2rem;
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  footer p { font-size: 11px; color: #444; }
-
-  .count-display {
-    font-family: var(--display);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-  }
-
-  @media (max-width: 700px) {
-    header, .showcase-wrap, .controls, #grid, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
-    .showcase-grid { grid-template-columns: 1fr; gap: 1rem; }
-    .cards-grid { grid-template-columns: 1fr; }
-    .stats { gap: 1.25rem; }
-    .search-wrap { margin-left: 0; width: 100%; }
-    .search-wrap input { width: 100%; }
-  }
+  :focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
 <header>
-  <div class="logo-block">
-    <h1>gato<span>.</span>red</h1>
-    <p>colección de proyectos, herramientas y experimentos</p>
-  </div>
-  <div class="stats">
-    <div>
-      <div class="stat-n" id="total-count">38</div>
-      <div class="stat-l">proyectos</div>
-    </div>
-    <div>
-      <div class="stat-n">6</div>
-      <div class="stat-l">categorías</div>
+  <div class="wrap">
+    <a href="#top" class="logo-block">
+      <div class="logo-main">gato<span class="dot">.</span>red</div>
+      <div class="logo-tag" id="logoTag">El Gato Media — diagnóstico &amp; desarrollo web</div>
+    </a>
+    <div class="header-right">
+      <nav>
+        <a href="#servicios" id="navServicios">Servicios</a>
+        <a href="#portfolio" id="navPortfolio">Proyectos</a>
+        <a href="#proceso" id="navProceso">Cómo trabajo</a>
+        <a href="#sobre" id="navSobre">Sobre mí</a>
+        <a href="#contacto" id="navContacto">Contacto</a>
+      </nav>
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button class="lang-btn" data-lang="es" aria-pressed="true">ES</button>
+        <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
     </div>
   </div>
 </header>
 
-<!-- SHOWCASE — generado automáticamente por JS desde data-featured="true" -->
-<div class="showcase-wrap" id="showcase-wrap">
-  <div class="section-label">// proyectos destacados</div>
-  <div class="showcase-grid" id="showcase-grid"></div>
-</div>
+<main id="top">
 
-<!-- FILTERS -->
-<div class="controls">
-  <span class="filter-label">filtrar //</span>
-  <button class="tag-btn all active" data-cat="all">todo</button>
-  <button class="tag-btn juego" data-cat="juego">juegos</button>
-  <button class="tag-btn herramienta" data-cat="herramienta">herramientas</button>
-  <button class="tag-btn articulo" data-cat="articulo">artículos</button>
-  <button class="tag-btn rol" data-cat="rol">rol & universo</button>
-  <button class="tag-btn diseno" data-cat="diseno">diseño</button>
-  <button class="tag-btn otro" data-cat="otro">otros</button>
-  <div class="search-wrap">
-    <span class="search-icon">_</span>
-    <input type="text" id="search" placeholder="buscar proyecto..." autocomplete="off">
-  </div>
-</div>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <h1><span id="heroLine1">Antes de vender,</span><br><span class="accent" id="heroLine2">diagnostico.</span></h1>
+      <p class="hero-sub" id="heroSub"></p>
 
-<!-- GRID POR SECCIONES -->
-<div id="grid">
-
-  <!-- JUEGOS -->
-  <div class="cat-section" data-section="juego">
-    <div class="cat-header">
-      <span class="cat-title juego">juegos</span>
-      <div class="cat-line juego"></div>
-      <span class="cat-count" id="count-juego"></span>
+      <div class="hero-chips" id="heroChips">
+        <button class="chip" data-need="convierte" id="heroChip1"></button>
+        <button class="chip" data-need="empezar" id="heroChip2"></button>
+        <button class="chip" data-need="rediseno" id="heroChip3"></button>
+        <button class="chip" data-need="otro" id="heroChip4"></button>
+      </div>
+      <span class="hero-hint" id="heroHint"></span>
     </div>
-    <div class="cards-grid">
+  </section>
 
-      <a class="card juego" href="http://www.gato.red/runa" target="_blank" data-featured="true">
-        <span class="card-name">runa</span>
-        <p class="card-desc">Descifra la runa conformada por una palabra de entre 4 y 8 letras.</p>
-        <span class="card-url">gato.red/runa</span>
-      </a>
-     
-      <a class="card juego" href="http://www.gato.red/inocente" target="_blank" data-featured="true">
-        <span class="card-name">inocente</span>
-        <p class="card-desc">Investiga y sobrevive. Juego basado en la novela Inocente: La Sombra del Sello.</p>
-        <span class="card-url">gato.red/inocente</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/catlife" target="_blank">
-        <span class="card-name">cat's life</span>
-        <p class="card-desc">Simulador de vida gatuna. Miau.</p>
-        <span class="card-url">gato.red/catlife</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/kurghaimat" target="_blank" data-featured="true">
-        <span class="card-name">kurghaimat</span>
-        <p class="card-desc">Juego de rol puro basado en texto.</p>
-        <span class="card-url">gato.red/kurghaimat</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/ajedrezenraya" target="_blank">
-        <span class="card-name">ajedrez en raya</span>
-        <p class="card-desc">Cuatro en raya con reglas de ajedrez. 1 o 2 jugadores en el mismo dispositivo.</p>
-        <span class="card-url">gato.red/ajedrezenraya</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/gatorescatanube" target="_blank">
-        <span class="card-name">gato rescata nube</span>
-        <p class="card-desc">Resuelve laberintos para rescatar a la nube. Puzzles progresivos.</p>
-        <span class="card-url">gato.red/gatorescatanube</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/agencia" target="_blank">
-        <span class="card-name">agencia</span>
-        <p class="card-desc">Gestiona una agencia de espías gatunos. Estrategia y sigilo felino.</p>
-        <span class="card-url">gato.red/agencia</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/jubilacion" target="_blank">
-        <span class="card-name">jubilación</span>
-        <p class="card-desc">Rompe bloques para liberar a Dolores y que pueda jubilarse. Acción arcade.</p>
-        <span class="card-url">gato.red/jubilacion</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/restaurantefelino" target="_blank">
-        <span class="card-name">restaurante felino</span>
-        <p class="card-desc">Gestiona un restaurante felino. Cocina, clientes y caos gatuno.</p>
-        <span class="card-url">gato.red/restaurantefelino</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/liberadordegatitos" target="_blank">
-        <span class="card-name">liberador de gatitos</span>
-        <p class="card-desc">RPG de texto: libera a los gatitos cautivos. Decisiones y aventura.</p>
-        <span class="card-url">gato.red/liberadordegatitos</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/montyhall" target="_blank">
-        <span class="card-name">monty hall (en)</span>
-        <p class="card-desc">Experimenta la paradoja de Monty Hall en primera persona.</p>
-        <span class="card-url">gato.red/montyhall</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/paradojamontyhall" target="_blank">
-        <span class="card-name">paradoja monty hall</span>
-        <p class="card-desc">La paradoja de Monty Hall explicada y jugable. Versión en español.</p>
-        <span class="card-url">gato.red/paradojamontyhall</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/quiztorico" target="_blank">
-        <span class="card-name">quiz torico</span>
-        <p class="card-desc">Quiz diario: adivina armas, armaduras y artefactos históricos a partir de una foto.</p>
-        <span class="card-url">gato.red/quiztorico</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/impostor" target="_blank">
-        <span class="card-name">impostor</span>
-        <p class="card-desc">Asigna roles y palabras secretas para el juego del impostor en grupo.</p>
-        <span class="card-url">gato.red/impostor</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/rpg" target="_blank">
-        <span class="card-name">rpg</span>
-        <p class="card-desc">RPG basado en texto para web y móvil.</p>
-        <span class="card-url">gato.red/rpg</span>
-      </a>
-
-      <a class="card juego" href="http://www.gato.red/rpg2" target="_blank">
-        <span class="card-name">rpg 2</span>
-        <p class="card-desc">Segunda iteración del RPG de texto para web y móvil.</p>
-        <span class="card-url">gato.red/rpg2</span>
-      </a>
-
+  <!-- PILLARS -->
+  <section class="pillars">
+    <div class="wrap">
+      <div class="section-label" id="pillarsLabel"></div>
+      <div class="pillars-grid">
+        <div class="pillar diag">
+          <div class="pillar-num">01</div>
+          <h3 id="pillar1Title"></h3>
+          <p id="pillarDiag"></p>
+        </div>
+        <div class="pillar exec">
+          <div class="pillar-num">02</div>
+          <h3 id="pillar2Title"></h3>
+          <p id="pillarExec"></p>
+        </div>
+        <div class="pillar ctrl">
+          <div class="pillar-num">03</div>
+          <h3 id="pillar3Title"></h3>
+          <p id="pillarCtrl"></p>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- HERRAMIENTAS -->
-  <div class="cat-section" data-section="herramienta">
-    <div class="cat-header">
-      <span class="cat-title herramienta">herramientas</span>
-      <div class="cat-line herramienta"></div>
-      <span class="cat-count" id="count-herramienta"></span>
+  <!-- SHOWCASE ANTES / DESPUÉS -->
+  <section class="showcase">
+    <div class="wrap">
+      <div class="section-label" id="showcaseLabel"></div>
+      <h2 id="showcaseTitle"></h2>
+      <p class="showcase-sub" id="showcaseSub"></p>
+
+      <div class="showcase-grid">
+
+        <div class="showcase-item">
+          <span class="mock-tag mock-tag-before" id="beforeLabel"></span>
+          <div class="browser-mock mock-bad">
+            <div class="browser-chrome">
+              <span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span>
+              <span class="browser-addr">negocio-cualquiera.com</span>
+            </div>
+            <div class="mock-body">
+              <div class="fake-nav">
+                <span>HOME</span><span>SOBRE</span><span>TIENDA</span><span>BLOG</span><span>OFERTAS</span><span>CONTACTO</span>
+              </div>
+              <div class="fake-badge" id="showcaseBadge"></div>
+              <div class="fake-line l1"></div>
+              <div class="fake-line l2"></div>
+              <div class="fake-line l3"></div>
+              <div class="fake-btn" id="showcaseBtnBad"></div>
+              <div class="fake-clutter">Copyright © Todos los derechos reservados 2014-2024 · Diseñado en Frontpage</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="showcase-item">
+          <span class="mock-tag mock-tag-after" id="afterLabel"></span>
+          <div class="browser-mock mock-after">
+            <div class="browser-chrome">
+              <span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span>
+              <span class="browser-addr">negocio-cualquiera.com</span>
+            </div>
+
+            <div class="mock-body after-a" data-style-panel="a">
+              <div class="a-eyebrow" id="afterEyebrowA"></div>
+              <div class="a-nav"><span id="afterNav1"></span><span id="afterNav2"></span><span id="afterNav3"></span></div>
+              <div class="a-head" id="afterHeadA"></div>
+              <div class="a-line"></div>
+              <div class="a-body" id="afterBodyA"></div>
+              <div class="a-btn" id="showcaseBtnGood"></div>
+            </div>
+
+            <div class="mock-body after-b" data-style-panel="b" hidden>
+              <div class="b-nav"><span id="afterNav1b"></span><span id="afterNav2b"></span><span id="afterNav3b"></span></div>
+              <div class="b-badge" id="afterBadgeB"></div>
+              <div class="b-head" id="afterHeadB"></div>
+              <div class="b-grid">
+                <div class="b-card"><div class="b-dot"></div><div class="b-bar" style="width:80%"></div><div class="b-bar" style="width:55%"></div></div>
+                <div class="b-card"><div class="b-dot"></div><div class="b-bar" style="width:70%"></div><div class="b-bar" style="width:45%"></div></div>
+              </div>
+              <div style="height:1.25rem"></div>
+              <div class="b-btn" id="showcaseBtnGoodB"></div>
+            </div>
+
+            <div class="mock-body after-c" data-style-panel="c" hidden>
+              <div class="c-nav"><span id="afterNav1c"></span><span id="afterNav2c"></span><span id="afterNav3c"></span></div>
+              <div class="c-head" id="afterHeadC"></div>
+              <div class="c-sub" id="afterSubC"></div>
+              <div class="c-line"></div>
+              <div class="c-btn" id="showcaseBtnGoodC"></div>
+            </div>
+          </div>
+
+          <div class="after-toggle" role="group" aria-label="Estilo visual">
+            <button data-style="a" aria-pressed="true">Editorial</button>
+            <button data-style="b" aria-pressed="false">Tech</button>
+            <button data-style="c" aria-pressed="false">Premium</button>
+          </div>
+        </div>
+
+      </div>
+      <p class="showcase-caption" id="showcaseCaption"></p>
     </div>
-    <div class="cards-grid">
+  </section>
 
-      <a class="card herramienta" href="http://www.gato.red/massresize" target="_blank" data-featured="true">
-        <span class="card-name">mass resize</span>
-        <p class="card-desc">Redimensiona imágenes en masa, reduce peso e inserta logo corporativo.</p>
-        <span class="card-url">gato.red/massresize</span>
-      </a>
+  <!-- DIAGNÓSTICO / CARRITO -->
+  <section class="diagnostico" id="diagnostico">
+    <div class="wrap">
+      <div class="section-label" id="diagLabel"></div>
+      <h2 id="diagTitle"></h2>
+      <p class="lead" id="diagLead"></p>
 
-      <a class="card herramienta" href="http://www.gato.red/gatopaint" target="_blank">
-        <span class="card-name">gatopaint</span>
-        <p class="card-desc">Pinta y codifica imágenes en texto.</p>
-        <span class="card-url">gato.red/gatopaint</span>
-      </a>
+      <div class="diag-grid">
+        <div>
+          <div class="check-list" id="checkList">
+            <label class="check-item" data-need="convierte"><input type="checkbox"><span id="chk1"></span></label>
+            <label class="check-item" data-need="empezar"><input type="checkbox"><span id="chk2"></span></label>
+            <label class="check-item" data-need="rediseno"><input type="checkbox"><span id="chk3"></span></label>
+            <label class="check-item"><input type="checkbox"><span id="chk4"></span></label>
+            <label class="check-item"><input type="checkbox"><span id="chk5"></span></label>
+            <label class="check-item" data-need="otro"><input type="checkbox"><span id="chk6"></span></label>
+          </div>
 
-      <a class="card herramienta" href="http://www.gato.red/comparacero" target="_blank">
-        <span class="card-name">comparacero</span>
-        <p class="card-desc">Comparación técnica de aceros para recreación medieval. Guía de materiales.</p>
-        <span class="card-url">gato.red/comparacero</span>
-      </a>
+          <textarea id="detalle"></textarea>
 
-      <a class="card herramienta" href="http://www.gato.red/steelcompare" target="_blank">
-        <span class="card-name">steel compare (en)</span>
-        <p class="card-desc">Steel comparison tool for medieval recreation. English version of comparacero.</p>
-        <span class="card-url">gato.red/steelcompare</span>
-      </a>
+          <button class="btn-primary" id="btnGenerar" disabled></button>
+        </div>
 
-      <a class="card herramienta" href="http://www.gato.red/expolio" target="_blank">
-        <span class="card-name">expolio</span>
-        <p class="card-desc">Visualiza el expolio estatal vía impuestos. ¿Cuánto te queda realmente?</p>
-        <span class="card-url">gato.red/expolio</span>
-      </a>
-
-      <a class="card herramienta" href="http://www.gato.red/nubehorario" target="_blank">
-        <span class="card-name">nube horario</span>
-        <p class="card-desc">Ordena y asigna horarios de tienda con múltiples empleados de forma visual.</p>
-        <span class="card-url">gato.red/nubehorario</span>
-      </a>
-
-      <a class="card herramienta" href="http://www.gato.red/fachometro" target="_blank">
-        <span class="card-name">fachómetro</span>
-        <p class="card-desc">Test online que evalúa cuán facha eres según tus respuestas.</p>
-        <span class="card-url">gato.red/fachometro</span>
-      </a>
-
-      <a class="card herramienta" href="http://www.gato.red/miyutarot" target="_blank">
-        <span class="card-name">miyu tarot</span>
-        <p class="card-desc">Tarot web con cartas diarias únicas. 3 cartas + carta semanal con interpretación.</p>
-        <span class="card-url">gato.red/miyutarot</span>
-      </a>
-
-      <a class="card herramienta" href="http://www.gato.red/gatodev" target="_blank">
-        <span class="card-name">gato dev</span>
-        <p class="card-desc">Simulador de código en Vite para parecer que estás trabajando duro.</p>
-        <span class="card-url">gato.red/gatodev</span>
-      </a>
-
-      <a class="card herramienta" href="http://www.gato.red/exploracion" target="_blank">
-        <span class="card-name">exploración</span>
-        <p class="card-desc">Simulador del sistema solar interactivo con curiosidades y datos astronómicos.</p>
-        <span class="card-url">gato.red/exploracion</span>
-      </a>
-
+        <div class="diag-summary" id="diagSummary"></div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ARTÍCULOS -->
-  <div class="cat-section" data-section="articulo">
-    <div class="cat-header">
-      <span class="cat-title articulo">artículos</span>
-      <div class="cat-line articulo"></div>
-      <span class="cat-count" id="count-articulo"></span>
+  <!-- PORTFOLIO -->
+  <section class="portfolio" id="portfolio">
+    <div class="wrap">
+      <div class="section-label" id="portfolioLabel"></div>
+      <div class="pf-grid">
+
+        <a class="pf-card" href="https://www.gaffmallorca.tours" target="_blank" rel="noopener">
+          <span class="pf-tag cliente" id="pf1Tag"></span>
+          <span class="pf-name">Gaff Classic Tours</span>
+          <p class="pf-desc" id="pf1Desc"></p>
+          <span class="pf-url">gaffmallorca.tours</span>
+        </a>
+
+        <a class="pf-card" href="https://www.gato.red/massresize" target="_blank" rel="noopener">
+          <span class="pf-tag herramienta" id="pf2Tag"></span>
+          <span class="pf-name">MASSRESIZE</span>
+          <p class="pf-desc" id="pf2Desc"></p>
+          <span class="pf-url">gato.red/massresize</span>
+        </a>
+
+        <a class="pf-card" href="https://www.gato.red/paradojaverde" target="_blank" rel="noopener">
+          <span class="pf-tag articulo" id="pf3Tag"></span>
+          <span class="pf-name">Paradoja Verde</span>
+          <p class="pf-desc" id="pf3Desc"></p>
+          <span class="pf-url">gato.red/paradojaverde</span>
+        </a>
+
+        <a class="pf-card" href="https://www.gato.red/runa" target="_blank" rel="noopener">
+          <span class="pf-tag propio" id="pf4Tag"></span>
+          <span class="pf-name">RUNA</span>
+          <p class="pf-desc" id="pf4Desc"></p>
+          <span class="pf-url">gato.red/runa</span>
+        </a>
+
+      </div>
+      <a class="pf-seeall" href="https://www.gato.red/proyectos" target="_blank" rel="noopener" id="portfolioSeeAll"></a>
     </div>
-    <div class="cards-grid">
+  </section>
 
-                <a class="card articulo" href="http://www.gato.red/rhodesia" target="_blank">
-        <span class="card-name">rhodesia</span>
-        <p class="card-desc">En un Zimbabwe global, todos somos Rhodesia.</p>
-        <span class="card-url">gato.red/rhodesia</span>
-      </a>
-
-      <a class="card articulo" href="http://www.gato.red/paradojaverde" target="_blank"  data-featured="true">
-        <span class="card-name">la paradoja verde de mallorca</span>
-        <p class="card-desc">Un análisis sobre el impacto real de los vehículos eléctricos en un mix energético sucio.</p>
-        <span class="card-url">gato.red/paradojaverde</span>
-      </a>
-
-           <a class="card articulo" href="http://www.gato.red/sistemacisterciense" target="_blank">
-        <span class="card-name">el sistema cisterciense</span>
-        <p class="card-desc">El sistema numérico que nunca fue.</p>
-        <span class="card-url">gato.red/sistemacisterciense</span>
-      </a>
-     
-           <a class="card articulo" href="http://www.gato.red/cocheschinos" target="_blank">
-        <span class="card-name">los coches chinos</span>
-        <p class="card-desc">El coste de los coches baratos.</p>
-        <span class="card-url">gato.red/cocheschinos</span>
-      </a>
-
-      <a class="card articulo" href="http://www.gato.red/blog" target="_blank">
-        <span class="card-name">blog</span>
-        <p class="card-desc">Versión antigua del Blog gato.red.</p>
-        <span class="card-url">gato.red/blog</span>
-      </a>
-
-      <a class="card articulo" href="https://www.gato.red/hydrogen" target="_blank">
-        <span class="card-name">hidrógeno</span>
-        <p class="card-desc">Explicación en web del artículo académico: Solid-State Hydrogen Storage for Light-Duty Vehicles.</p>
-        <span class="card-url">gato.red/hydrogen</span>
-      </a>
-
-      <a class="card articulo" href="https://www.gato.red/systemx" target="_blank">
-        <span class="card-name">system x</span>
-        <p class="card-desc">Una propuesta para un nuevo sistema de medidas.</p>
-        <span class="card-url">gato.red/systemx</span>
-      </a>
-
-      <a class="card articulo" href="http://www.gato.red/riemann" target="_blank">
-        <span class="card-name">riemann (en)</span>
-        <p class="card-desc">Showcase interactivo de la hipótesis de Riemann. Matemáticas visualizadas.</p>
-        <span class="card-url">gato.red/riemann</span>
-      </a>
-
-      <a class="card articulo" href="http://www.gato.red/hocvspocvs" target="_blank">
-        <span class="card-name">hocvs pocvs</span>
-        <p class="card-desc">Virtualización del libro "HOCVS POCVS IVNIOR: La Anatomía del Legerdemain".</p>
-        <span class="card-url">gato.red/hocvspocvs</span>
-      </a>
-
+  <!-- PROCESO -->
+  <section class="proceso" id="proceso">
+    <div class="wrap">
+      <div class="section-label" id="procesoLabel"></div>
+      <div class="proc-grid">
+        <div class="proc-step"><div class="proc-n">01</div><h3 id="procTitle1"></h3><p id="procDiag"></p></div>
+        <div class="proc-step"><div class="proc-n">02</div><h3 id="procTitle2"></h3><p id="procProp"></p></div>
+        <div class="proc-step"><div class="proc-n">03</div><h3 id="procTitle3"></h3><p id="procEjec"></p></div>
+        <div class="proc-step"><div class="proc-n">04</div><h3 id="procTitle4"></h3><p id="procEntr"></p></div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ROL & UNIVERSO -->
-  <div class="cat-section" data-section="rol">
-    <div class="cat-header">
-      <span class="cat-title rol">rol & universo errantes</span>
-      <div class="cat-line rol"></div>
-      <span class="cat-count" id="count-rol"></span>
+  <!-- SOBRE MÍ -->
+  <section class="sobre" id="sobre">
+    <div class="wrap">
+      <div class="section-label" id="sobreLabel"></div>
+      <div class="sobre-grid">
+        <div>
+          <h2 id="sobreName"></h2>
+          <p id="sobreIntro"></p>
+          <p id="sobreP2"></p>
+          <p id="sobreP3"></p>
+        </div>
+        <div class="sobre-facts">
+          <div class="fact"><span class="k" id="factLabel1"></span><span id="factValue1"></span></div>
+          <div class="fact"><span class="k" id="factLabel2"></span><span id="factValue2"></span></div>
+          <div class="fact"><span class="k" id="factLabel3"></span><span id="factValue3"></span></div>
+          <div class="fact"><span class="k" id="factLabel4"></span><span id="factValue4"></span></div>
+        </div>
+      </div>
     </div>
-    <div class="cards-grid">
+  </section>
 
-      <a class="card rol" href="http://www.gato.red/dados" target="_blank" data-featured="true">
-        <span class="card-name">dados</span>
-        <p class="card-desc">Herramienta para lanzar dados (set D&D completo) con opciones de personalizarlos.</p>
-        <span class="card-url">gato.red/dados</span>
-      </a>
+  <!-- SERVICIOS -->
+  <section class="servicios" id="servicios">
+    <div class="wrap">
+      <div class="section-label" id="serviciosLabel"></div>
+      <p class="serv-intro" id="servIntro"></p>
 
-      <a class="card rol" href="http://www.gato.red/errantes" target="_blank">
-        <span class="card-name">errantes</span>
-        <p class="card-desc">Novelización de las partidas de rol de "Los Errantes de Kurghaimat".</p>
-        <span class="card-url">gato.red/errantes</span>
-      </a>
-
-      <a class="card rol" href="http://www.gato.red/mapa" target="_blank">
-        <span class="card-name">mapa</span>
-        <p class="card-desc">Mapa interactivo del mundo de Los Errantes de Kurghaimat para jugadores.</p>
-        <span class="card-url">gato.red/mapa</span>
-      </a>
-
-      <a class="card rol" href="http://www.gato.red/wikierrantes" target="_blank">
-        <span class="card-name">wiki errantes</span>
-        <p class="card-desc">Wiki del universo de Los Errantes de Kurghaimat. Lore, personajes, historia.</p>
-        <span class="card-url">gato.red/wikierrantes</span>
-      </a>
-
-      <a class="card rol" href="http://www.gato.red/sistemagato" target="_blank">
-        <span class="card-name">sistema gato</span>
-        <p class="card-desc">Manual del sistema de rol GATO: Guía de Aventuras Tácticas Orientadas.</p>
-        <span class="card-url">gato.red/sistemagato</span>
-      </a>
-
-      <a class="card rol" href="http://www.gato.red/personajes" target="_blank">
-        <span class="card-name">personajes</span>
-        <p class="card-desc">Crea personajes de rol de mesa basados en el sistema GATO online.</p>
-        <span class="card-url">gato.red/personajes</span>
-      </a>
-
+      <div class="serv-list">
+        <div class="serv-item"><h3 id="serv1Title"></h3><div><p id="serv1Desc"></p></div></div>
+        <div class="serv-item"><h3 id="serv2Title"></h3><div><p id="serv2Desc"></p></div></div>
+        <div class="serv-item"><h3 id="serv3Title"></h3><div><p id="serv3Desc"></p></div></div>
+        <div class="serv-item"><h3 id="serv4Title"></h3><div><p id="serv4Desc"></p><p class="not-included" id="serv4Not"></p></div></div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- DISEÑO -->
-  <div class="cat-section" data-section="diseno">
-    <div class="cat-header">
-      <span class="cat-title diseno">diseño gráfico & web</span>
-      <div class="cat-line diseno"></div>
-      <span class="cat-count" id="count-diseno"></span>
+  <!-- CONTACTO -->
+  <section class="contacto" id="contacto">
+    <div class="wrap">
+      <h2 id="contactoTitle"></h2>
+      <p id="contactoP"></p>
+      <a class="btn-primary" id="btnContacto" href="mailto:gato@gato.red"></a>
+      <span class="email-note" id="contactoNote"></span>
     </div>
-    <div class="cards-grid">
+  </section>
 
-      <a class="card diseno" href="http://www.gato.red/propuestalogo" target="_blank">
-        <span class="card-name">propuesta logo</span>
-        <p class="card-desc">Propuesta personal para el nuevo logo de la asociación de combate y esgrima histórica de La Palma.</p>
-        <span class="card-url">gato.red/propuestalogo</span>
-      </a>
+</main>
 
-      <a class="card diseno" href="http://www.gato.red/directoriocdm" target="_blank">
-        <span class="card-name">directorio cdm</span>
-        <p class="card-desc">Directorio web del Club de Mar: locales en orden aleatorio para móvil y PC.</p>
-        <span class="card-url">gato.red/directoriocdm</span>
-      </a>
-
-      <a class="card diseno" href="http://www.gato.red/gaffclassictours" target="_blank">
-        <span class="card-name">propuesta gaff</span>
-        <p class="card-desc">Propuesta personal para el rediseño web de Gaff Classic Tours.</p>
-        <span class="card-url">gato.red/gaffclassictours</span>
-      </a>
-
-    </div>
-  </div>
-
-  <!-- OTROS -->
-  <div class="cat-section" data-section="otro">
-    <div class="cat-header">
-      <span class="cat-title otro">otros</span>
-      <div class="cat-line otro"></div>
-      <span class="cat-count" id="count-otro"></span>
-    </div>
-    <div class="cards-grid">
-
-      <a class="card otro" href="http://www.gato.red/cv" target="_blank">
-        <span class="card-name">cv</span>
-        <p class="card-desc">Currículum vitae. Lo que hago cuando no estoy haciendo todo lo demás.</p>
-        <span class="card-url">gato.red/cv</span>
-      </a>
-
-    </div>
-  </div>
-
-</div>
-
-<!-- FOOTER -->
 <footer>
-  <p>gato.red — todos los proyectos son de elaboración propia</p>
-  <span class="count-display" id="visible-count">mostrando todos</span>
+  <span id="footerPrefix"></span> <a href="https://www.gato.red/proyectos" target="_blank" rel="noopener">gato.red/proyectos</a>
 </footer>
 
+<!-- TECH LEVEL CONTROL -->
+<div class="tech-control" role="group" aria-label="Nivel de detalle">
+  <span class="tc-label" id="techLabel"></span>
+  <button class="tech-btn" data-level="0" aria-pressed="false" id="techBtn0"></button>
+  <button class="tech-btn" data-level="1" aria-pressed="true" id="techBtn1"></button>
+  <button class="tech-btn" data-level="2" aria-pressed="false" id="techBtn2"></button>
+</div>
+
 <script>
-  const cards = document.querySelectorAll('.card');
-  const sections = document.querySelectorAll('.cat-section');
-  const filterBtns = document.querySelectorAll('.tag-btn');
-  const searchInput = document.getElementById('search');
-  const visibleCountEl = document.getElementById('visible-count');
+  // ══════════════════════════════════════════════════════════════
+  // CONTENIDO ESTÁTICO (varía solo por idioma)
+  // ══════════════════════════════════════════════════════════════
+  const S = {
+    es: {
+      pageTitle: 'gato.red — El Gato Media',
+      metaDesc: 'Consultoría digital, diseño y desarrollo web, y SEO técnico. Diagnóstico honesto, ejecución sin humo, y control total de lo tuyo desde el primer día.',
+      logoTag: 'El Gato Media — diagnóstico &amp; desarrollo web',
+      navServicios: 'Servicios', navPortfolio: 'Proyectos', navProceso: 'Cómo trabajo', navSobre: 'Sobre mí', navContacto: 'Contacto',
+      heroLine1: 'Antes de vender,', heroLine2: 'diagnostico.',
+      heroChip1: 'la web no funciona', heroChip2: 'no sé por dónde empezar', heroChip3: 'quiero rediseñar algo que ya tengo', heroChip4: 'otra cosa',
+      heroHint: 'Elige una opción y bajamos directamente al diagnóstico ↓',
+      pillarsLabel: 'por qué trabajar conmigo',
+      pillar1Title: 'Diagnóstico honesto', pillar2Title: 'Ejecución técnica', pillar3Title: 'Control total',
+      showcaseLabel: 'lo que puedes esperar',
+      showcaseTitle: 'Antes de Gato / Después de Gato',
+      showcaseSub: 'Ejemplo ilustrativo, no un cliente real — así de mal a así de bien.',
+      beforeLabel: 'ANTES', afterLabel: 'DESPUÉS',
+      showcaseBadge: '¡OFERTA!!!', showcaseBtnBad: '¡COMPRA YA!!!',
+      showcaseBtnGood: 'Contactar', showcaseBtnGoodB: 'Contactar', showcaseBtnGoodC: 'Contactar',
+      afterEyebrowA: 'estilo editorial',
+      afterNav1: 'Inicio', afterNav2: 'Trabajo', afterNav3: 'Contacto',
+      afterNav1b: 'INICIO', afterNav2b: 'SISTEMA', afterNav3b: 'CONTACTO',
+      afterNav1c: 'Inicio', afterNav2c: 'Experiencia', afterNav3c: 'Contacto',
+      afterHeadA: 'Menos ruido, más claridad.',
+      afterBodyA: 'Cada elemento está ahí porque cumple una función. Nada decorativo, nada de relleno.',
+      afterBadgeB: 'EN LÍNEA',
+      afterHeadB: 'Construido para escalar, no para aparentar.',
+      afterHeadC: 'Una experiencia que se siente cuidada.',
+      afterSubC: 'El detalle se nota, y el cliente lo percibe.',
+      showcaseCaption: 'esto es lo que cambia cuando alguien diagnostica antes de diseñar — el estilo se adapta a cada marca, el cuidado no cambia',
+      diagLabel: 'empieza aquí', diagTitle: 'Cuéntame qué te pasa',
+      diagLead: 'Marca lo que te suene, añade detalles si quieres, y te preparo un email con todo listo para enviar. Nada de formularios eternos.',
+      detallePlaceholder: 'Añade cualquier detalle que creas que me ayuda a entender tu caso...',
+      btnGenerar: 'Preparar email',
+      diagSummaryLabel: 'resumen que se enviará', diagSummaryEmpty: 'Marca al menos una opción para generar el resumen.',
+      portfolioLabel: 'trabajos destacados',
+      pf1Tag: 'cliente real', pf1Desc: 'Rediseño web completo, SEO y contenido para un charter en velero clásico en Mallorca. El diagnóstico inicial: el producto que le habían vendido no servía. El resultado: el negocio remontó.',
+      pf2Tag: 'herramienta', pf2Desc: 'Redimensionador de imágenes en lote, sin servidor, todo en el navegador. Tiene tráfico real — la usa gente que no me conoce de nada.',
+      pf3Tag: 'artículo', pf3Desc: 'Análisis de ciclo de vida completo sobre por qué un eléctrico puede contaminar más que un diésel en las Baleares. Investigación con datos, no opinión.',
+      pf4Tag: 'proyecto propio', pf4Desc: 'Juego de palabras propio, en camino de publicarse en Google Play. De prototipo web a producto real en tienda.',
+      portfolioSeeAll: 'Ver todos los proyectos en gato.red/proyectos →',
+      procesoLabel: 'cómo trabajo',
+      procTitle1: 'Diagnóstico', procTitle2: 'Propuesta', procTitle3: 'Ejecución', procTitle4: 'Entrega',
+      sobreLabel: 'sobre mí', sobreName: 'Soy el Gato.',
+      sobreP2: 'No trabajo con cualquiera. Elijo bien con quién colaboro, y prefiero un proyecto bien hecho a diez a medias. Si noto que alguien quiere vender humo — a mí o a sus propios clientes — paso.',
+      sobreP3: 'Mi regla es simple: <strong>underpromise and overdeliver.</strong> Prefiero prometer menos y entregar más que al revés.',
+      factLabel1: 'Formación', factValue1: 'Business Management, The Open University.',
+      factLabel2: 'Trayectoria', factValue2: 'Gestión técnica y digital en un club náutico, análisis y seguimiento, escritura publicada, desarrollo de herramientas propias.',
+      factLabel3: 'Autor publicado', factValue3: 'Varios libros publicados de forma independiente, incluyendo novela negra.',
+      factLabel4: 'Idiomas', factValue4: 'Español e inglés, bilingüe.',
+      serviciosLabel: 'en qué te puedo ayudar',
+      serv1Title: 'Consultoría digital', serv1Desc: 'Para cuando no sabes por dónde empezar. Miro tu situación y te doy un plan claro, con o sin ejecución posterior.',
+      serv2Title: 'Diseño y desarrollo web', serv2Desc: 'Webs a medida, sin plantillas genéricas. Código propio, sin dependencias innecesarias, a tu nombre desde el primer día.',
+      serv3Title: 'Rediseño de webs existentes', serv3Desc: 'Si ya tienes algo pero no funciona, te digo por qué y lo arreglo. Es lo que mejor se me da.',
+      serv4Title: 'SEO técnico y de contenido', serv4Desc: 'Sin relleno de palabras clave ni trucos que penalizan a largo plazo. SEO real, hecho bien.',
+      serv4Not: 'No incluyo: gestión continuada de redes sociales.',
+      contactoTitle: '¿Hablamos?',
+      contactoP: 'Solo por email. Sin WhatsApp, sin teléfono — el email es para pensar antes de responder, y eso me gusta.',
+      contactoBtn: 'Escríbeme a gato@gato.red',
+      contactoNote: 'Si has rellenado el diagnóstico arriba, el email ya vendrá con todo listo.',
+      footerPrefix: 'el gato media — más proyectos en',
+      techLabel: 'te hablo como quieras que te hable',
+      techBtn0: 'sencillo', techBtn1: 'equilibrado', techBtn2: 'técnico',
+      mailSubject: 'Diagnóstico - El Gato Media',
+      mailIntro: 'Hola,\n\nEsto es lo que me pasa:\n\n',
+      mailExtra: '\nDetalles adicionales:\n',
+      mailFooter: '\n---\nEnviado desde el diagnóstico de gato.red'
+    },
+    en: {
+      pageTitle: 'gato.red — El Gato Media',
+      metaDesc: 'Digital consulting, web design & development, and technical SEO. Honest diagnosis, no-fluff execution, and full control of what\u2019s yours from day one.',
+      logoTag: 'El Gato Media — diagnosis &amp; web development',
+      navServicios: 'Services', navPortfolio: 'Projects', navProceso: 'How I work', navSobre: 'About', navContacto: 'Contact',
+      heroLine1: 'Before selling,', heroLine2: 'I diagnose.',
+      heroChip1: "my website isn't working", heroChip2: "I don't know where to start", heroChip3: 'I want to redesign something I already have', heroChip4: 'something else',
+      heroHint: "Pick one and we'll jump straight to the diagnosis ↓",
+      pillarsLabel: 'why work with me',
+      pillar1Title: 'Honest diagnosis', pillar2Title: 'Technical execution', pillar3Title: 'Full control',
+      showcaseLabel: 'what you can expect',
+      showcaseTitle: 'Before Gato / After Gato',
+      showcaseSub: 'Illustrative example, not a real client — from this bad to this good.',
+      beforeLabel: 'BEFORE', afterLabel: 'AFTER',
+      showcaseBadge: 'SALE!!!', showcaseBtnBad: 'BUY NOW!!!',
+      showcaseBtnGood: 'Contact', showcaseBtnGoodB: 'Contact', showcaseBtnGoodC: 'Contact',
+      afterEyebrowA: 'editorial style',
+      afterNav1: 'Home', afterNav2: 'Work', afterNav3: 'Contact',
+      afterNav1b: 'HOME', afterNav2b: 'SYSTEM', afterNav3b: 'CONTACT',
+      afterNav1c: 'Home', afterNav2c: 'Experience', afterNav3c: 'Contact',
+      afterHeadA: 'Less noise, more clarity.',
+      afterBodyA: "Every element is there because it does a job. Nothing decorative, nothing padded.",
+      afterBadgeB: 'LIVE',
+      afterHeadB: 'Built to scale, not to show off.',
+      afterHeadC: 'An experience that feels considered.',
+      afterSubC: 'The client notices the care that went in.',
+      showcaseCaption: 'this is what changes when someone diagnoses before designing — the style adapts to the brand, the care doesn\u2019t',
+      diagLabel: 'start here', diagTitle: "Tell me what's going on",
+      diagLead: "Tick whatever sounds familiar, add details if you want, and I'll prepare an email with everything ready to send. No endless forms.",
+      detallePlaceholder: 'Add any detail you think helps me understand your situation...',
+      btnGenerar: 'Prepare email',
+      diagSummaryLabel: 'summary that will be sent', diagSummaryEmpty: 'Tick at least one option to generate the summary.',
+      portfolioLabel: 'featured work',
+      pf1Tag: 'real client', pf1Desc: "Full website redesign, SEO and content for a classic sailing charter in Mallorca. Initial diagnosis: what he'd been sold didn't work. Result: the business turned around.",
+      pf2Tag: 'tool', pf2Desc: "Batch image resizer, no server, all in the browser. It has real traffic — used by people who've never heard of me.",
+      pf3Tag: 'article', pf3Desc: 'Full life-cycle analysis on why an EV can pollute more than a diesel car in the Balearics. Research backed by data, not opinion.',
+      pf4Tag: 'own project', pf4Desc: "My own word game, on its way to Google Play. From web prototype to a real store product.",
+      portfolioSeeAll: 'See all projects at gato.red/proyectos →',
+      procesoLabel: 'how I work',
+      procTitle1: 'Diagnosis', procTitle2: 'Proposal', procTitle3: 'Execution', procTitle4: 'Handover',
+      sobreLabel: 'about me', sobreName: "I'm the Gato.",
+      sobreP2: "I don't work with just anyone. I choose carefully who I collaborate with, and I'd rather do one project well than ten half-done. If I sense someone's selling smoke — to me or to their own customers — I pass.",
+      sobreP3: 'My rule is simple: <strong>underpromise and overdeliver.</strong> I\u2019d rather promise less and deliver more than the other way around.',
+      factLabel1: 'Background', factValue1: 'Business Management, The Open University.',
+      factLabel2: 'Track record', factValue2: 'Technical and digital management at a yacht club, analysis and tracking work, published writing, own tools built from scratch.',
+      factLabel3: 'Published author', factValue3: 'Several independently published books, including crime noir.',
+      factLabel4: 'Languages', factValue4: 'Spanish and English, fully bilingual.',
+      serviciosLabel: 'how I can help',
+      serv1Title: 'Digital consulting', serv1Desc: "For when you don't know where to start. I look at your situation and give you a clear plan, with or without follow-up execution.",
+      serv2Title: 'Web design & development', serv2Desc: "Custom websites, no generic templates. Own code, no unnecessary dependencies, in your name from day one.",
+      serv3Title: 'Redesigning existing websites', serv3Desc: "If you already have something that isn't working, I'll tell you why and fix it. It's what I'm best at.",
+      serv4Title: 'Technical & content SEO', serv4Desc: "No keyword stuffing, no tricks that backfire long-term. Real SEO, done properly.",
+      serv4Not: 'Not included: ongoing social media management.',
+      contactoTitle: "Let's talk?",
+      contactoP: 'Email only. No WhatsApp, no phone — email means thinking before replying, and I like that.',
+      contactoBtn: 'Email me at gato@gato.red',
+      contactoNote: "If you filled in the diagnosis above, the email will already have everything ready.",
+      footerPrefix: 'el gato media — more projects at',
+      techLabel: "I'll talk however you like",
+      techBtn0: 'simple', techBtn1: 'balanced', techBtn2: 'technical',
+      mailSubject: 'Diagnosis - El Gato Media',
+      mailIntro: "Hi,\n\nHere's what's going on:\n\n",
+      mailExtra: '\nAdditional details:\n',
+      mailFooter: '\n---\nSent from the gato.red diagnosis tool'
+    }
+  };
 
-  // ── SHOWCASE dinámico ──────────────────────────────────────────────────
-  // Para destacar un proyecto: añade data-featured="true" a su <a class="card ...">
-  // Para quitarlo: elimina ese atributo. Sin duplicar código.
-  const showcaseGrid = document.getElementById('showcase-grid');
-  const featuredCards = document.querySelectorAll('.card[data-featured="true"]');
+  // ══════════════════════════════════════════════════════════════
+  // CONTENIDO VARIABLE POR NIVEL TÉCNICO (0=sencillo,1=equilibrado,2=técnico) Y POR IDIOMA
+  // ══════════════════════════════════════════════════════════════
+  const T = {
+    heroSub: {
+      es: [
+        "Miro tu web o tu idea, te explico qué está fallando de forma sencilla, y decides si quieres que lo arregle.",
+        "Reviso tu web o tu proyecto, te digo qué falla y por qué, y decides si seguimos. Sin compromiso, sin rodeos.",
+        "Auditoría de arquitectura de información, rendimiento y conversión antes de tocar una sola línea de código. Sin dependencias innecesarias, sin deuda técnica heredada."
+      ],
+      en: [
+        "I look at your website or idea, explain what's wrong in plain words, and you decide if you want me to fix it.",
+        "I review your website or project, tell you what's broken and why, and you decide if we go ahead. No commitment, no fluff.",
+        "Information architecture, performance and conversion audit before a single line of code gets touched. No unnecessary dependencies, no inherited technical debt."
+      ]
+    },
+    pillarDiag: {
+      es: [
+        "Si algo está mal hecho, te lo digo tal cual. Aunque ya lo hayas pagado a otra persona.",
+        "Te digo la verdad sobre lo que tienes, aunque no sea lo que esperabas oír. Sin embellecer el diagnóstico.",
+        "Análisis técnico real: arquitectura, rendimiento, SEO on-page y experiencia de usuario. Si algo no sirve, te lo digo aunque ya lo hayas pagado."
+      ],
+      en: [
+        "If something's badly made, I'll tell you straight. Even if you already paid someone else for it.",
+        "I tell you the truth about what you have, even if it's not what you wanted to hear. No sugar-coating.",
+        "Real technical analysis: architecture, performance, on-page SEO and UX. If something doesn't work, I'll say so even if you already paid for it."
+      ]
+    },
+    pillarExec: {
+      es: [
+        "Hago la web bien hecha, rápida, y sin líos que luego nadie sabe arreglar.",
+        "Construyo webs rápidas, limpias y fáciles de mantener, sin meter tecnología de más porque sí.",
+        "HTML/CSS/JS sin frameworks innecesarios, código semántico y mantenible, sin dependencias de terceros que no aporten valor real."
+      ],
+      en: [
+        "I build the site properly — fast, and without messes nobody can fix later.",
+        "I build fast, clean websites that are easy to maintain, without adding tech just for the sake of it.",
+        "HTML/CSS/JS without unnecessary frameworks — semantic, maintainable code, no third-party dependencies that don't add real value."
+      ]
+    },
+    pillarCtrl: {
+      es: [
+        "Todo queda a tu nombre. Si un día no quieres seguir conmigo, te lo llevas todo sin líos.",
+        "Todo lo tuyo, a tu nombre, desde el primer día. Si un día no seguimos trabajando juntos, te llevas todo.",
+        "Dominio, repositorio y credenciales a tu nombre desde el primer día. Sin dependencias estructurales del proveedor."
+      ],
+      en: [
+        "Everything stays in your name. If you ever want to stop working with me, you take it all, no hassle.",
+        "Everything's yours, in your name, from day one. If we ever stop working together, you keep everything.",
+        "Domain, repository and credentials under your name from day one. No structural vendor lock-in."
+      ]
+    },
+    procDiag: {
+      es: [
+        "Miro lo que tienes ahora mismo y te cuento, sin rodeos, qué es lo que hay que hacer.",
+        "Reviso lo que tienes (o lo que quieres montar) y te doy un diagnóstico claro, sin tecnicismos innecesarios.",
+        "Auditoría inicial de tu situación digital: qué tienes, qué falta, qué está mal, y qué prioridad tiene arreglarlo."
+      ],
+      en: [
+        "I look at what you have right now and tell you straight what needs doing.",
+        "I review what you have (or what you want to build) and give you a clear diagnosis, without unnecessary jargon.",
+        "Initial audit of your digital setup: what you have, what's missing, what's broken, and what to prioritise."
+      ]
+    },
+    procProp: {
+      es: [
+        "Te digo qué haría y cuánto tardaría. Sin venderte cosas que no necesitas.",
+        "Te propongo qué hacer y cómo, con tiempos realistas. Nada de venderte más de lo necesario.",
+        "Alcance del proyecto, stack técnico y estimación de tiempos, ajustado a lo que necesitas — no a lo que sería bonito vender."
+      ],
+      en: [
+        "I tell you what I'd do and how long it'd take. No selling you things you don't need.",
+        "I propose what to do and how, with realistic timelines. No upselling beyond what's necessary.",
+        "Project scope, technical stack and time estimate, scoped to what you actually need — not what's easy to sell."
+      ]
+    },
+    procEjec: {
+      es: [
+        "Te voy enseñando cómo va, poco a poco. Nada de desaparecer y aparecer con un 'ya está'.",
+        "Trabajo con avances visibles. No desaparezco tres semanas para enseñarte todo el último día.",
+        "Desarrollo iterativo con checkpoints regulares, código versionado, sin caja negra."
+      ],
+      en: [
+        "I show you how it's going, step by step. No disappearing and popping up with a 'done'.",
+        "I work with visible progress. I don't vanish for three weeks and show you everything on the last day.",
+        "Iterative development with regular checkpoints, version-controlled code, no black box."
+      ]
+    },
+    procEntr: {
+      es: [
+        "Te doy todo lo tuyo, a tu nombre, y te explico lo justo para que no dependas de mí si no quieres.",
+        "Te entrego todo a tu nombre, con lo básico para que puedas mantenerlo si quieres seguir sin mí.",
+        "Traspaso completo: dominio, repositorio, credenciales y documentación básica de mantenimiento."
+      ],
+      en: [
+        "I hand over everything that's yours, in your name, and explain just enough that you don't depend on me if you don't want to.",
+        "I hand over everything in your name, with the basics so you can maintain it if you want to go it alone.",
+        "Full handover: domain, repository, credentials and basic maintenance documentation."
+      ]
+    },
+    servIntro: {
+      es: [
+        "Esto es en lo que te puedo ayudar. No hago de todo, hago esto y lo hago bien.",
+        "Esto es lo que hago. No ofrezco de todo — ofrezco esto, y lo hago bien.",
+        "Cuatro líneas de trabajo, sin diluirlas en un catálogo interminable de servicios genéricos."
+      ],
+      en: [
+        "This is what I can help you with. I don't do everything — I do this, and I do it well.",
+        "This is what I do. I don't offer everything — I offer this, and I do it well.",
+        "Four defined lines of work, not diluted into an endless catalogue of generic services."
+      ]
+    },
+    sobreIntro: {
+      es: [
+        "He tocado muchos palos distintos, y eso me ayuda a ver rápido qué falla en un proyecto y por qué.",
+        "He hecho de todo un poco — desarrollo, análisis, escritura, gestión — y ahora lo aplico a entender rápido qué le pasa a un negocio digital.",
+        "Perfil multidisciplinar: desarrollo, análisis de datos, redacción técnica y gestión operativa, aplicado ahora a diagnosticar negocios digitales con rigor."
+      ],
+      en: [
+        "I've done a lot of different things, and that helps me quickly spot what's wrong with a project and why.",
+        "I've done a bit of everything — development, analysis, writing, management — and now I use that to quickly understand what's wrong with a digital business.",
+        "Multidisciplinary background: development, data analysis, technical writing and operations management, now applied to rigorous digital business diagnostics."
+      ]
+    },
+    chk1: {
+      es: ["La gente entra en mi web pero no compra ni me escribe.", "Mi web recibe visitas pero no convierte.", "Tráfico estable, tasa de conversión baja o sin definir."],
+      en: ["People visit my website but don't buy or contact me.", "My website gets visits but doesn't convert.", "Stable traffic, low or undefined conversion rate."]
+    },
+    chk2: {
+      es: ["No tengo página web y no sé por dónde empezar.", "No tengo web o proyecto digital, y no sé por dónde empezar.", "Sin presencia digital establecida; necesito definir alcance y stack desde cero."],
+      en: ["I don't have a website and I don't know where to start.", "I don't have a website or digital project, and I don't know where to start.", "No established digital presence; need to define scope and stack from scratch."]
+    },
+    chk3: {
+      es: ["Tengo una web pero ya no me gusta o no funciona bien.", "Tengo una web que ya no me representa, o que directamente no funciona bien.", "Sitio existente con deuda técnica o de diseño que requiere auditoría y rediseño."],
+      en: ["I have a website but I don't like it anymore, or it just doesn't work well.", "I have a website that no longer represents me, or that simply doesn't work well.", "Existing site with technical or design debt requiring audit and redesign."]
+    },
+    chk4: {
+      es: ["No me encuentran en Google.", "Mi SEO es flojo o inexistente y quiero que se me encuentre mejor.", "SEO técnico deficiente: metadatos, velocidad, indexación o schema sin optimizar."],
+      en: ["People can't find me on Google.", "My SEO is weak or non-existent and I want to be found more easily.", "Poor technical SEO: unoptimized metadata, speed, indexing or schema markup."]
+    },
+    chk5: {
+      es: ["No sé si lo que ya me hicieron está bien hecho.", "No sé si lo que ya me han hecho está bien hecho.", "Necesito una segunda opinión técnica sobre un desarrollo ya entregado."],
+      en: ["I don't know if what I already paid for was done well.", "I don't know if what's already been built for me was done properly.", "I need a second technical opinion on a project that's already been delivered."]
+    },
+    chk6: {
+      es: ["Otra cosa, lo explico abajo.", "Otra cosa — lo explico abajo.", "Otro (especificar más abajo)."],
+      en: ["Something else, I'll explain below.", "Something else — I'll explain below.", "Other (specify below)."]
+    }
+  };
 
-  featuredCards.forEach(card => {
-    const cat = card.classList[1]; // juego / herramienta / etc.
-    const name = card.querySelector('.card-name').textContent;
-    const desc = card.querySelector('.card-desc').textContent;
-    const url  = card.querySelector('.card-url').textContent;
-    const href = card.getAttribute('href');
+  // ══════════════════════════════════════════════════════════════
+  // ESTADO Y RENDERIZADO
+  // ══════════════════════════════════════════════════════════════
+  let state = { lang: 'es', level: 1 };
 
-    const sc = document.createElement('a');
-    sc.className = 'showcase-card ' + cat;
-    sc.href = href;
-    sc.target = '_blank';
-    sc.innerHTML = `
-      <span class="showcase-cat">${cat === 'diseno' ? 'diseño' : cat}</span>
-      <div class="showcase-name">${name}</div>
-      <p class="showcase-desc">${desc}</p>
-      <span class="showcase-url">${url}</span>
-    `;
-    showcaseGrid.appendChild(sc);
-  });
-
-  // Ocultar showcase si no hay destacados
-  if (featuredCards.length === 0) {
-    document.getElementById('showcase-wrap').style.display = 'none';
+  function renderStatic() {
+    const s = S[state.lang];
+    document.documentElement.lang = state.lang;
+    document.documentElement.dataset.lang = state.lang;
+    document.getElementById('pageTitle').textContent = s.pageTitle;
+    document.getElementById('metaDesc').setAttribute('content', s.metaDesc);
+    Object.keys(s).forEach(key => {
+      const el = document.getElementById(key);
+      if (el && key !== 'contactoBtn') {
+        el.innerHTML = s[key];
+      }
+    });
+    document.getElementById('detalle').placeholder = s.detallePlaceholder;
+    document.getElementById('btnGenerar').textContent = s.btnGenerar;
+    document.getElementById('btnContacto').textContent = s.contactoBtn;
+    document.getElementById('techBtn0').textContent = s.techBtn0;
+    document.getElementById('techBtn1').textContent = s.techBtn1;
+    document.getElementById('techBtn2').textContent = s.techBtn2;
+    document.querySelectorAll('.lang-btn').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === state.lang ? 'true' : 'false'));
+    updateSummary();
   }
 
-  // ── CONTEOS ────────────────────────────────────────────────────────────
-  const totalCount = cards.length;
-  document.getElementById('total-count').textContent = totalCount;
+  function renderTech() {
+    Object.keys(T).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = T[id][state.lang][state.level];
+    });
+    document.querySelectorAll('.tech-btn').forEach(btn => {
+      btn.setAttribute('aria-pressed', btn.dataset.level === String(state.level) ? 'true' : 'false');
+    });
+    updateSummary();
+  }
 
-  const catNames = ['juego', 'herramienta', 'articulo', 'rol', 'diseno', 'otro'];
-  catNames.forEach(cat => {
-    const n = document.querySelectorAll('.card.' + cat).length;
-    const el = document.getElementById('count-' + cat);
-    if (el) el.textContent = n + ' proyectos';
+  function renderAll() { renderStatic(); renderTech(); }
+
+  document.querySelectorAll('.tech-btn').forEach(btn => {
+    btn.addEventListener('click', () => { state.level = parseInt(btn.dataset.level, 10); renderTech(); });
+  });
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => { state.lang = btn.dataset.lang; renderStatic(); renderTech(); });
   });
 
-  // ── FILTROS & BÚSQUEDA ─────────────────────────────────────────────────
-  let currentCat = 'all';
-  let currentSearch = '';
-
-  function update() {
-    let visible = 0;
-
-    sections.forEach(section => {
-      const secCat = section.dataset.section;
-      const catMatch = currentCat === 'all' || currentCat === secCat;
-      const sectionCards = section.querySelectorAll('.card');
-      let sectionVisible = 0;
-
-      sectionCards.forEach(card => {
-        const text = card.innerText.toLowerCase();
-        const searchOk = !currentSearch || text.includes(currentSearch);
-        if (catMatch && searchOk) {
-          card.classList.remove('hidden');
-          sectionVisible++;
-          visible++;
-        } else {
-          card.classList.add('hidden');
-        }
+  // ══════════════════════════════════════════════════════════════
+  // EVITAR SALTOS DE MAQUETA AL CAMBIAR TEXTO
+  // ══════════════════════════════════════════════════════════════
+  function lockHeights() {
+    Object.keys(T).forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.minHeight = '0px';
+      const w = el.clientWidth;
+      const clone = el.cloneNode(false);
+      clone.style.position = 'absolute';
+      clone.style.visibility = 'hidden';
+      clone.style.height = 'auto';
+      clone.style.minHeight = '0';
+      clone.style.width = w + 'px';
+      document.body.appendChild(clone);
+      let max = 0;
+      ['es', 'en'].forEach(l => {
+        T[id][l].forEach(txt => {
+          clone.textContent = txt;
+          max = Math.max(max, clone.scrollHeight);
+        });
       });
-
-      section.classList.toggle('hidden', sectionVisible === 0);
+      document.body.removeChild(clone);
+      el.style.minHeight = max + 'px';
     });
-
-    visibleCountEl.textContent = visible === totalCount
-      ? 'mostrando todos'
-      : 'mostrando ' + visible + ' de ' + totalCount;
   }
 
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentCat = btn.dataset.cat;
-      update();
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(lockHeights, 200);
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // HERO CHIPS → marcan checklist y hacen scroll
+  // ══════════════════════════════════════════════════════════════
+  const heroChips = document.querySelectorAll('.chip');
+  heroChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      heroChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const need = chip.dataset.need;
+      const target = document.querySelector('.check-item[data-need="' + need + '"] input');
+      if (target && !target.checked) {
+        target.checked = true;
+        target.closest('.check-item').classList.add('checked');
+        updateSummary();
+      }
+      document.getElementById('diagnostico').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 
-  searchInput.addEventListener('input', e => {
-    currentSearch = e.target.value.toLowerCase().trim();
-    update();
+  // ══════════════════════════════════════════════════════════════
+  // CARRITO DE DIAGNÓSTICO
+  // ══════════════════════════════════════════════════════════════
+  const checkItems = document.querySelectorAll('.check-item');
+  const detalle = document.getElementById('detalle');
+  const btnGenerar = document.getElementById('btnGenerar');
+  const diagSummary = document.getElementById('diagSummary');
+  const btnContacto = document.getElementById('btnContacto');
+
+  checkItems.forEach(item => {
+    const input = item.querySelector('input');
+    item.addEventListener('click', (e) => {
+      if (e.target !== input) input.checked = !input.checked;
+      item.classList.toggle('checked', input.checked);
+      updateSummary();
+    });
   });
 
-  update();
+  detalle.addEventListener('input', updateSummary);
+
+  function updateSummary() {
+    const s = S[state.lang];
+    const checked = Array.from(document.querySelectorAll('.check-item input:checked'))
+      .map(i => i.closest('.check-item').querySelector('span').textContent);
+    const extra = detalle.value.trim();
+
+    if (checked.length === 0 && !extra) {
+      diagSummary.innerHTML = '<span class="label">' + s.diagSummaryLabel + '</span><p class="empty">' + s.diagSummaryEmpty + '</p>';
+      btnGenerar.disabled = true;
+      return;
+    }
+
+    let html = '<span class="label">' + s.diagSummaryLabel + '</span>';
+    if (checked.length) html += '<ul>' + checked.map(c => '<li>' + c + '</li>').join('') + '</ul>';
+    if (extra) html += '<p style="margin-top:0.75rem;color:var(--text);">"' + extra + '"</p>';
+    diagSummary.innerHTML = html;
+    btnGenerar.disabled = false;
+  }
+
+  btnGenerar.addEventListener('click', () => {
+    const s = S[state.lang];
+    const checked = Array.from(document.querySelectorAll('.check-item input:checked'))
+      .map(i => i.closest('.check-item').querySelector('span').textContent);
+    const extra = detalle.value.trim();
+
+    let body = s.mailIntro;
+    checked.forEach(c => { body += '- ' + c + '\n'; });
+    if (extra) body += s.mailExtra + extra + '\n';
+    body += s.mailFooter;
+
+    const mailto = 'mailto:gato@gato.red?subject=' + encodeURIComponent(s.mailSubject) + '&body=' + encodeURIComponent(body);
+    btnContacto.href = mailto;
+    window.location.href = mailto;
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // TOGGLE DE ESTILOS DEL MOCKUP "DESPUÉS"
+  // ══════════════════════════════════════════════════════════════
+  const afterToggleBtns = document.querySelectorAll('.after-toggle button');
+  afterToggleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      afterToggleBtns.forEach(b => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+      document.querySelectorAll('[data-style-panel]').forEach(panel => {
+        panel.hidden = panel.dataset.stylePanel !== btn.dataset.style;
+      });
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // CURSOR PERSONALIZADO CON FÍSICA DE SEGUIMIENTO
+  // ══════════════════════════════════════════════════════════════
+  if (!window.matchMedia('(hover: none)').matches) {
+    const cur = document.getElementById('cur');
+    const ring = document.getElementById('cur-ring');
+    let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+    let rx = mx, ry = my;
+
+    window.addEventListener('mousemove', (e) => {
+      mx = e.clientX; my = e.clientY;
+      cur.style.left = mx + 'px';
+      cur.style.top = my + 'px';
+    });
+
+    function loop() {
+      rx += (mx - rx) * 0.16;
+      ry += (my - ry) * 0.16;
+      ring.style.left = rx + 'px';
+      ring.style.top = ry + 'px';
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    const growSelector = 'a, button, .chip, .check-item, .tech-btn, .lang-btn, input[type="checkbox"]';
+    document.addEventListener('mouseover', (e) => {
+      if (e.target.closest(growSelector)) {
+        ring.style.width = '54px'; ring.style.height = '54px';
+        cur.style.width = '14px'; cur.style.height = '14px';
+      }
+    });
+    document.addEventListener('mouseout', (e) => {
+      if (e.target.closest(growSelector)) {
+        ring.style.width = '34px'; ring.style.height = '34px';
+        cur.style.width = '8px'; cur.style.height = '8px';
+      }
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // INIT
+  // ══════════════════════════════════════════════════════════════
+  renderAll();
+  requestAnimationFrame(() => requestAnimationFrame(lockHeights));
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(lockHeights);
+  }
 </script>
 
 </body>
