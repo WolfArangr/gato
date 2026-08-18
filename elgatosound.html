@@ -503,7 +503,8 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
 .panel-wrap{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; min-height:0; }
 
 @media (max-width:899px){
-  #search-inline{ display:none; }
+  #search-inline{ width:150px; flex:0 0 auto; }
+  #search-inline:focus-within{ width:190px; }
   .brand small{ display:none; }
   #topbar{
     gap:8px; padding:0 12px;
@@ -761,9 +762,9 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
     <div class="settings-section">
       <div class="settings-label">Library</div>
       <button class="mode-btn" id="btn-refresh">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-right:6px;"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 4v6h-6"/></svg>Refresh library from GitHub
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-right:6px;"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 4v6h-6"/></svg>Refresh library
       </button>
-      <p class="settings-hint">Re-scans every album's folder for new or removed tracks. Normally cached for a few hours so this isn't needed often.</p>
+      <p class="settings-hint">Re-scans every album for new or removed tracks. Only matters for albums without a fixed "count" in the config, since those are read live rather than generated — normally cached for a few hours so this isn't needed often.</p>
     </div>
   </div>
 </div>
@@ -778,7 +779,7 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
    ============================================================ */
 const MUSIC_CONFIG = {
   // GitHub repository that hosts /elgatomusic, as "owner/repo".
-  // Only used as a fallback discovery method — see discoveryMode below.
+  // Only used by the manifest/API fallback discovery methods — see below.
   repository: "WolfArangr/gato",
   branch: "main",
   // Folder in the repo (and on the published site) that contains album folders.
@@ -791,26 +792,28 @@ const MUSIC_CONFIG = {
   // than the music, change this to the full URL instead, e.g. "https://gato.red/elgatomusic".
   publicBase: "/elgatomusic",
 
-  // How tracks get discovered inside each album folder:
+  // Fallback discovery for any album that ISN'T sequentially named (no "count" set
+  // below) — irrelevant for albums that use "count", since those need no discovery
+  // step at all.
   //  "manifest"   — reads a small static /elgatomusic/<folder>/library.json listing the
-  //                 filenames. Served by the same CDN as the MP3s, so it's fast and has
-  //                 no rate limit. This is why an album occasionally shows fewer tracks
-  //                 than it should: unauthenticated GitHub API calls are capped at 60/hour
-  //                 per IP address, shared across *everyone* hitting the site from that
-  //                 IP (common on mobile networks and office wifi) — once that's used up,
-  //                 discovery silently returns nothing until the window resets. A
-  //                 GitHub Action can regenerate these manifests automatically every time
-  //                 you push new MP3s — see elgatomusic/readme.md for the workflow.
-  //  "github-api" — the original approach: lists folder contents live via api.github.com.
-  //                 Zero setup, but subject to the rate limit above.
-  // If a manifest is missing for a given album (e.g. you haven't set up the Action yet),
-  // that album automatically falls back to the API, so nothing breaks either way.
+  //                 filenames. No rate limit, but needs the file to exist.
+  //  "github-api" — lists folder contents live via api.github.com. Zero setup, but
+  //                 unauthenticated calls are capped at 60/hour per IP, shared across
+  //                 everyone hitting the site from that IP — can silently return
+  //                 nothing on mobile networks or shared wifi once that's used up.
   discoveryMode: "manifest",
 
   // === ADD YOUR ALBUMS HERE ===
-  // Only "title" and "folder" are required — "folder" must match the folder name you
-  // create under /elgatomusic in the repo (see elgatomusic/readme.md). Tracks inside it
-  // are discovered automatically; you never list individual .mp3 files.
+  // Simplest and most reliable: name every track in the folder sequentially — e.g.
+  // "shoegaze (1).mp3" … "shoegaze (29).mp3" — then just give the count. The app
+  // builds the file list directly from that pattern, so there's no discovery step
+  // at all: no GitHub API call, no rate limit, no manifest file to keep in sync.
+  //   { title: "Album Name", folder: "folder-name", count: 29 }
+  // Only rename to a different pattern if "<folder> (<n>).mp3" doesn't match what
+  // you actually used, via namePattern — e.g. namePattern: "track-{n}.mp3".
+  //
+  // If a folder's tracks aren't sequentially named/renumbered, omit "count" and the
+  // app falls back to manifest/API discovery instead (see discoveryMode above).
   //
   // Cover art: drop an image named "cover.jpg" / "cover.png" / "cover.jpeg" / "cover.webp"
   // directly in the album's folder (e.g. /elgatomusic/shoegaze/cover.png) and it's picked
@@ -819,8 +822,8 @@ const MUSIC_CONFIG = {
   // cover file is found, a generative cover is drawn from the album title instead. Only
   // set "artwork" below if you want a specific filename other than "cover.*".
   albums: [
-    { title: "Music to edit your summer videos to", folder: "shoegaze" },
-    { title: "Music to listen while you're sad", folder: "triphop" }
+    { title: "Music to edit your summer videos to", folder: "shoegaze", count: 29 },
+    { title: "Music to listen while you're sad", folder: "triphop", count: 17 }
     // { title: "Another Album", folder: "another-folder", artwork: "cover.jpg" },
   ]
 };
@@ -975,6 +978,14 @@ const Library = {
   cacheKey(folder){ return "libcache:" + folder; },
 
   async discoverAlbum(albumCfg){
+    // Sequentially-named albums need no discovery step at all — the file
+    // list is just generated from the count, with zero network requests
+    // and therefore no rate limit to hit. This takes priority over
+    // manifest/API discovery whenever "count" is set.
+    if (albumCfg.count && albumCfg.count > 0){
+      return this.buildAlbum(albumCfg, this.generateSequentialFiles(albumCfg));
+    }
+
     const cacheKey = this.cacheKey(albumCfg.folder);
     const cached = Store.get(cacheKey, null);
     if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS){
@@ -996,6 +1007,18 @@ const Library = {
     }
     Store.set(cacheKey, { ts: Date.now(), files });
     return this.buildAlbum(albumCfg, files);
+  },
+
+  // Builds "<folder> (1).mp3" … "<folder> (<count>).mp3" directly — matches the
+  // naming this project uses when tracks are bulk-renamed to a sequential pattern.
+  // Override the pattern per-album with "namePattern", e.g. "track-{n}.mp3".
+  generateSequentialFiles(albumCfg){
+    const pattern = albumCfg.namePattern || `${albumCfg.folder} ({n}).mp3`;
+    const files = [];
+    for (let n = 1; n <= albumCfg.count; n++){
+      files.push(pattern.replace("{n}", n));
+    }
+    return files;
   },
 
   // Reads a small static /elgatomusic/<folder>/library.json — same CDN as the MP3s,
@@ -2214,6 +2237,11 @@ const UI = {
   },
 
   openAlbum(album){
+    if (this.currentView === "album" && this.openAlbumFolder === album.folder){
+      this.showView("library");
+      return;
+    }
+    this.openAlbumFolder = album.folder;
     Prefs.lastAlbum = album.folder; Prefs.save();
     $("#album-art-lg").innerHTML = "";
     $("#album-art-lg").appendChild(artworkElement(album, 320));
