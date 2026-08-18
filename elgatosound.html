@@ -778,7 +778,7 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
    ============================================================ */
 const MUSIC_CONFIG = {
   // GitHub repository that hosts /elgatomusic, as "owner/repo".
-  // Used ONLY to auto-discover filenames via the GitHub Contents API.
+  // Only used as a fallback discovery method — see discoveryMode below.
   repository: "WolfArangr/gato",
   branch: "main",
   // Folder in the repo (and on the published site) that contains album folders.
@@ -790,6 +790,22 @@ const MUSIC_CONFIG = {
   // "gato" repo's Pages deployment. If you ever host the player on a different domain
   // than the music, change this to the full URL instead, e.g. "https://gato.red/elgatomusic".
   publicBase: "/elgatomusic",
+
+  // How tracks get discovered inside each album folder:
+  //  "manifest"   — reads a small static /elgatomusic/<folder>/library.json listing the
+  //                 filenames. Served by the same CDN as the MP3s, so it's fast and has
+  //                 no rate limit. This is why an album occasionally shows fewer tracks
+  //                 than it should: unauthenticated GitHub API calls are capped at 60/hour
+  //                 per IP address, shared across *everyone* hitting the site from that
+  //                 IP (common on mobile networks and office wifi) — once that's used up,
+  //                 discovery silently returns nothing until the window resets. A
+  //                 GitHub Action can regenerate these manifests automatically every time
+  //                 you push new MP3s — see elgatomusic/readme.md for the workflow.
+  //  "github-api" — the original approach: lists folder contents live via api.github.com.
+  //                 Zero setup, but subject to the rate limit above.
+  // If a manifest is missing for a given album (e.g. you haven't set up the Action yet),
+  // that album automatically falls back to the API, so nothing breaks either way.
+  discoveryMode: "manifest",
 
   // === ADD YOUR ALBUMS HERE ===
   // Only "title" and "folder" are required — "folder" must match the folder name you
@@ -804,7 +820,7 @@ const MUSIC_CONFIG = {
   // set "artwork" below if you want a specific filename other than "cover.*".
   albums: [
     { title: "Music to edit your summer videos to", folder: "shoegaze" },
-	{ title: "Music to be sad at night", folder: "triphop" }
+    { title: "Music to listen while you're sad", folder: "triphop" }
     // { title: "Another Album", folder: "another-folder", artwork: "cover.jpg" },
   ]
 };
@@ -964,26 +980,53 @@ const Library = {
     if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS){
       return this.buildAlbum(albumCfg, cached.files);
     }
-    try {
-      const apiUrl = `https://api.github.com/repos/${MUSIC_CONFIG.repository}/contents/` +
-        encodePath(`${MUSIC_CONFIG.musicPath}/${albumCfg.folder}`) +
-        `?ref=${encodeURIComponent(MUSIC_CONFIG.branch)}`;
-      const res = await fetch(apiUrl, { headers: { "Accept": "application/vnd.github+json" } });
-      if (!res.ok){
-        if (cached) return this.buildAlbum(albumCfg, cached.files);
-        throw new Error("GitHub API " + res.status);
-      }
-      const data = await res.json();
-      const files = (Array.isArray(data) ? data : [])
-        .filter(f => f.type === "file" && AUDIO_EXT.test(f.name))
-        .map(f => f.name)
-        .sort(naturalCompare);
-      Store.set(cacheKey, { ts: Date.now(), files });
-      return this.buildAlbum(albumCfg, files);
-    } catch(err){
-      if (cached) return this.buildAlbum(albumCfg, cached.files);
-      return this.buildAlbum(albumCfg, [], err);
+
+    let files = null, lastErr = null;
+    if (MUSIC_CONFIG.discoveryMode === "manifest"){
+      try { files = await this.discoverAlbumViaManifest(albumCfg); }
+      catch(err){ lastErr = err; } // no manifest yet for this album — fall through to the API
     }
+    if (!files){
+      try { files = await this.discoverAlbumViaApi(albumCfg); }
+      catch(err){
+        lastErr = err;
+        if (cached) return this.buildAlbum(albumCfg, cached.files);
+        return this.buildAlbum(albumCfg, [], lastErr);
+      }
+    }
+    Store.set(cacheKey, { ts: Date.now(), files });
+    return this.buildAlbum(albumCfg, files);
+  },
+
+  // Reads a small static /elgatomusic/<folder>/library.json — same CDN as the MP3s,
+  // no rate limit. Generate/refresh these with the GitHub Action described in
+  // elgatomusic/readme.md so new uploads show up automatically.
+  async discoverAlbumViaManifest(albumCfg){
+    const url = MUSIC_CONFIG.publicBase.replace(/\/$/, "") + "/" + encodePath(albumCfg.folder) + "/library.json";
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Manifest missing (" + res.status + ")");
+    const list = await res.json();
+    if (!Array.isArray(list)) throw new Error("Malformed manifest");
+    return list.filter(f => AUDIO_EXT.test(f)).sort(naturalCompare);
+  },
+
+  // Lists folder contents live via the GitHub Contents API. Works with zero setup, but
+  // unauthenticated calls are capped at 60/hour per IP — shared by everyone hitting the
+  // site from that IP, so this can silently return nothing under shared/mobile networks.
+  async discoverAlbumViaApi(albumCfg){
+    const apiUrl = `https://api.github.com/repos/${MUSIC_CONFIG.repository}/contents/` +
+      encodePath(`${MUSIC_CONFIG.musicPath}/${albumCfg.folder}`) +
+      `?ref=${encodeURIComponent(MUSIC_CONFIG.branch)}`;
+    const res = await fetch(apiUrl, { headers: { "Accept": "application/vnd.github+json" } });
+    if (!res.ok){
+      const reason = res.status === 403 ? "GitHub API rate limit hit" : ("GitHub API " + res.status);
+      throw new Error(reason);
+    }
+    const data = await res.json();
+    return (Array.isArray(data) ? data : [])
+      .filter(f => f.type === "file" && AUDIO_EXT.test(f.name))
+      .map(f => f.name)
+      .sort(naturalCompare);
   },
 
   buildAlbum(albumCfg, files, error){
@@ -1216,6 +1259,7 @@ const AudioEngine = (function(){
   let currentTrack = null;
   let listeners = {};
   let suppressEndedFor = null;
+  let loadToken = 0; // guards against a superseded play() request wrongly blacklisting a track
 
   elA.preload = "auto"; elB.preload = "auto";
   elA.crossOrigin = "anonymous"; elB.crossOrigin = "anonymous";
@@ -1257,7 +1301,8 @@ const AudioEngine = (function(){
       emit("ended");
     });
     el.addEventListener("error", () => {
-      emit("error", { tag, track: tag === active ? currentTrack : null });
+      if (tag !== active) return; // idle/preloading deck erroring is not this track's problem
+      emit("error", { tag, track: currentTrack });
     });
     el.addEventListener("progress", () => {
       if (active !== tag) return;
@@ -1302,7 +1347,7 @@ const AudioEngine = (function(){
     emit("volumechange");
   }
 
-  async function playTrack(track){
+  async function playTrack(track, isRetry){
     ensureCtx();
     if (ctx.state === "suspended") { try { await ctx.resume(); } catch(e){} }
     crossfadeArmed = false;
@@ -1312,13 +1357,24 @@ const AudioEngine = (function(){
     other.pause();
     curGain.gain.cancelScheduledValues(ctx.currentTime);
     curGain.gain.setValueAtTime(1, ctx.currentTime);
+    const myToken = ++loadToken;
     cur.src = track.url;
     currentTrack = track;
     emit("trackchange", track);
     try {
       await cur.play();
+      if (myToken !== loadToken) return; // a newer track already took over — nothing to correct
       track.available = true;
     } catch(err){
+      if (myToken !== loadToken) return; // superseded mid-request — not a real failure
+      if (err && err.name === "AbortError") return; // interrupted by another load/pause, not actually broken
+      if (!isRetry){
+        // one retry after a short delay — covers a transient network blip
+        // (cold CDN edge, a dropped request) instead of permanently
+        // blacklisting a perfectly good file on a single fluke
+        setTimeout(() => { if (myToken === loadToken) playTrack(track, true); }, 600);
+        return;
+      }
       track.available = false;
       emit("error", { track, err });
     }
@@ -1330,6 +1386,7 @@ const AudioEngine = (function(){
     const e = els();
     const otherTag = active === "A" ? "B" : "A";
     const { cur, curGain, other, otherGain } = e;
+    const myToken = ++loadToken;
     other.src = track.url;
     otherGain.gain.cancelScheduledValues(ctx.currentTime);
     otherGain.gain.setValueAtTime(0, ctx.currentTime);
@@ -1338,8 +1395,11 @@ const AudioEngine = (function(){
       await other.play();
     } catch(err){
       crossfading = false; crossfadeArmed = false;
+      if (myToken !== loadToken) return; // superseded — a newer request is already handling playback
+      if (err && err.name === "AbortError") return; // interrupted, not actually broken
       return playTrack(track);
     }
+    if (myToken !== loadToken){ crossfading = false; crossfadeArmed = false; return; } // superseded mid-fade
     const now = ctx.currentTime;
     curGain.gain.cancelScheduledValues(now);
     otherGain.gain.cancelScheduledValues(now);
@@ -1697,10 +1757,11 @@ const Visualizer = (function(){
   }
 
   function currentAccent(){
-    const track = AudioEngine.getCurrentTrack();
-    if (!track) return getComputedStyle(document.documentElement).getPropertyValue("--accent-1").trim();
-    const album = Library.getAlbum(track.albumFolder);
-    return album ? accentForSeed(album.colorSeed) : "#4cc9c0";
+    // Always read the live CSS var — Theme keeps this in sync for all
+    // three modes (album-adaptive, fixed, RGB shift). Recomputing from
+    // the album here would silently ignore fixed/RGB modes.
+    const v = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+    return v || "#4cc9c0";
   }
 
   function hexToRgb(hex){
@@ -1866,14 +1927,19 @@ const Visualizer = (function(){
     ctx2d.beginPath(); ctx2d.arc(cx,cy,coreR*3,0,Math.PI*2); ctx2d.fill();
   }
 
-  // Audio-reactive Julia set. Rendered at low internal resolution into an
-  // offscreen buffer (cheap per-pixel iteration), then scaled up onto the
-  // visible canvas — genuinely fractal, still light enough for mobile.
+  // Audio-reactive Julia set that continuously dives inward — the zoom
+  // depth is state that persists across frames and accelerates with
+  // bass/loudness/beats, so the descent is visibly driven by the music
+  // rather than just breathing in and out. Rendered at a modest internal
+  // resolution (cheap per-pixel iteration) then scaled up with a slight
+  // blur baked into the draw call to hide the upscale instead of looking
+  // blocky.
   let fractalBuf = null, fractalCtx = null, fractalImg = null;
-  function fractalScale(){ return isCoarsePointer ? 7 : 4.5; }
+  let zoomDepth = 1, driftAngle = 0.6;
+  function fractalScale(){ return isCoarsePointer ? 5.2 : 3.1; }
   function ensureFractalBuf(){
-    const fw = Math.max(40, Math.round(w / fractalScale()));
-    const fh = Math.max(24, Math.round(h / fractalScale()));
+    const fw = Math.max(48, Math.round(w / fractalScale()));
+    const fh = Math.max(28, Math.round(h / fractalScale()));
     if (fractalBuf && fractalBuf.width === fw && fractalBuf.height === fh) return;
     fractalBuf = document.createElement("canvas");
     fractalBuf.width = fw; fractalBuf.height = fh;
@@ -1887,19 +1953,47 @@ const Visualizer = (function(){
     const rgb = hexToRgb(accent);
     const baseHue = rgbToHue(rgb.r, rgb.g, rgb.b);
 
-    // audio drives the Julia constant — orbits a region of the boundary
-    // known to produce rich, connected filament structure
-    const drift = t * 0.00006;
-    const cRe = -0.74 + Math.sin(drift + bands.mid*3) * (0.06 + bands.bass*0.12);
-    const cIm = 0.14 + Math.cos(drift*1.3) * (0.05 + bands.high*0.1);
-    const zoom = 1.6 - bands.level*0.5 - beat*0.25;
-    const maxIter = isCoarsePointer ? 22 : 30;
+    // c drifts slowly so the underlying shape morphs gently rather than
+    // erratically — the zoom is the main event, not the shape flickering.
+    const drift = t * 0.000018;
+    const cRe = -0.74 + Math.sin(drift + bands.mid*1.4) * (0.025 + bands.bass*0.05);
+    const cIm = 0.14 + Math.cos(drift*1.3) * (0.02 + bands.high*0.045);
+
+    // --- continuous zoom, accelerated by the music ------------------
+    // Baseline creep keeps it always descending; bass/loudness/beats push
+    // it faster, so louder or more rhythmic passages visibly dive harder.
+    const drive = bands.bass*0.9 + bands.level*0.45 + beat*1.1;
+    zoomDepth *= (1 + 0.0016 + drive*0.009);
+    driftAngle += 0.00006 + bands.high*0.0009;
+    if (zoomDepth > 2600){
+      // reset before float precision or iteration budget runs out —
+      // timed to a beat when possible so the "warp" reads as musical
+      zoomDepth = 1;
+      driftAngle += 2.1 + Math.random()*1.3;
+    }
+    // orbit the zoom target around the origin — most of a connected
+    // Julia set's interesting filament detail lives at this radius band
+    const targetR = 0.5 + Math.sin(driftAngle*0.6)*0.16;
+    const tx = Math.cos(driftAngle) * targetR;
+    const ty = Math.sin(driftAngle) * targetR;
+
+    const span = 3.0 / zoomDepth;
+    const aspect = fw / fh;
+    const ax = aspect >= 1 ? aspect : 1;
+    const ay = aspect >= 1 ? 1 : 1/aspect;
+
+    // deeper zoom needs more iterations to resolve fine filaments, or the
+    // image degrades into muddy noise — scale the budget with depth
+    const maxIter = Math.min(
+      isCoarsePointer ? 30 : 46,
+      (isCoarsePointer ? 18 : 26) + Math.floor(Math.log2(zoomDepth) * 3.2)
+    );
 
     let p = 0;
     for (let py = 0; py < fh; py++){
-      const y0 = (py / fh - 0.5) * zoom * (fh/fw < 1 ? 1 : fh/fw);
+      const y0 = ty + (py / fh - 0.5) * span * ay;
       for (let px = 0; px < fw; px++){
-        let zr = (px / fw - 0.5) * zoom;
+        let zr = tx + (px / fw - 0.5) * span * ax;
         let zi = y0;
         let iter = 0;
         while (zr*zr + zi*zi < 4 && iter < maxIter){
@@ -1909,21 +2003,28 @@ const Visualizer = (function(){
           iter++;
         }
         if (iter >= maxIter){
-          data[p]=0; data[p+1]=0; data[p+2]=0; data[p+3]=255;
+          data[p]=3; data[p+1]=2; data[p+2]=5; data[p+3]=255;
         } else {
-          const ratio = iter / maxIter;
-          const hue = (baseHue + ratio*160 + t*0.01) % 360;
-          const light = 18 + ratio*55 + beat*10;
-          const [r,g,b] = hslToRgbArr(hue, 80, Math.min(78,light));
+          // smooth (normalized) escape count — avoids the hard banding
+          // that reads as "noisy"/nonsensical at low iteration counts
+          const mag = Math.sqrt(zr*zr + zi*zi);
+          const smooth = iter + 1 - Math.log(Math.log(Math.max(mag,1.0001))) / Math.LN2;
+          const ratio = Math.max(0, Math.min(1, smooth / maxIter));
+          const hue = (baseHue + ratio*150 + t*0.012) % 360;
+          const light = 16 + ratio*58 + beat*8;
+          const [r,g,b] = hslToRgbArr(hue, 82, Math.min(80,light));
           data[p]=r; data[p+1]=g; data[p+2]=b; data[p+3]=255;
         }
         p += 4;
       }
     }
     fractalCtx.putImageData(fractalImg, 0, 0);
-    ctx2d.imageSmoothingEnabled = true;
     ctx2d.clearRect(0,0,w,h);
+    ctx2d.imageSmoothingEnabled = true;
+    ctx2d.imageSmoothingQuality = "high";
+    ctx2d.filter = "blur(1px)";
     ctx2d.drawImage(fractalBuf, 0, 0, fw, fh, 0, 0, w, h);
+    ctx2d.filter = "none";
   }
   function hslToRgbArr(h,s,l){
     s/=100; l/=100;
