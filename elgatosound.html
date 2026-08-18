@@ -503,19 +503,33 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
 @media (max-width:899px){
   #search-inline{ display:none; }
   .brand small{ display:none; }
-  #topbar{ gap:10px; padding:0 12px; }
+  #topbar{
+    gap:8px; padding:0 12px;
+    overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
+  }
+  #topbar::-webkit-scrollbar{ display:none; }
+  .topbar-spacer{ flex:0 0 14px; }
+  .icon-btn{ width:34px; height:34px; }
   .tab-btn{ padding:7px 10px; font-size:11px; }
   #content{ padding:12px; }
   .album-grid{ grid-template-columns:repeat(auto-fill, minmax(128px,1fr)); gap:11px; }
-  #player{ padding:0 10px; gap:8px; height:84px; }
-  #player .np{ width:auto; flex:1 1 auto; }
-  #player .right{ width:auto; }
-  #player .center{ display:none; }
+
+  #player{
+    flex-wrap:wrap; height:auto; padding:10px 12px 12px; gap:6px 10px;
+  }
+  #player .np{ width:auto; flex:1 1 auto; order:1; }
+  #player .right{ width:auto; order:2; gap:0; }
+  #player .right .vol-track{ display:none; } /* adjust with device volume on mobile */
+  #player .center{ display:flex; order:3; width:100%; flex:0 0 auto; }
+  .transport{ justify-content:center; gap:14px; }
+  .seek-row{ max-width:none; }
+
   #view-album .art-lg{ width:100px; height:100px; }
   #view-album .ah-title{ font-size:19px; }
   #queue-drawer{ width:100%; max-width:100%; }
   .track-row{ grid-template-columns:22px 1fr auto auto; gap:8px; }
   .track-row .dur{ display:none; }
+  #toasts{ bottom:150px; }
 }
 @media (min-width:1400px){
   .album-grid{ grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); }
@@ -738,6 +752,8 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
         <button data-mode="orbit">Orbit</button>
         <button data-mode="waves">Waves</button>
         <button data-mode="cosmos">Cosmos</button>
+        <button data-mode="kaleido">Kaleidoscope</button>
+        <button data-mode="fractal">Fractal</button>
         <button data-mode="minimal">Minimal</button>
       </div>
       <p class="settings-hint">Also cycles with the <kbd>V</kbd> key.</p>
@@ -772,8 +788,15 @@ const MUSIC_CONFIG = {
   // Only "title" and "folder" are required — "folder" must match the folder name you
   // create under /elgatomusic in the repo (see elgatomusic/readme.md). Tracks inside it
   // are discovered automatically; you never list individual .mp3 files.
+  //
+  // Cover art: drop an image named "cover.jpg" / "cover.png" / "cover.jpeg" / "cover.webp"
+  // directly in the album's folder (e.g. /elgatomusic/shoegaze/cover.png) and it's picked
+  // up automatically — no config edit needed. Portrait art (2:3) works fine; every cover
+  // tile in the UI is a square, so it's center-cropped to fit (top/bottom trimmed). If no
+  // cover file is found, a generative cover is drawn from the album title instead. Only
+  // set "artwork" below if you want a specific filename other than "cover.*".
   albums: [
-    { title: "Music to Edit your Summer Videos to", folder: "shoegaze" }
+    { title: "Music to edit your summer videos to", folder: "shoegaze" }
     // { title: "Another Album", folder: "another-folder", artwork: "cover.jpg" },
   ]
 };
@@ -959,11 +982,12 @@ const Library = {
     const folder = albumCfg.folder;
     const tracks = files.map((filename, i) => {
       const url = MUSIC_CONFIG.publicBase.replace(/\/$/, "") + "/" + encodePath(folder) + "/" + encodeURIComponent(filename);
+      const index = i + 1;
       return {
         id: this.trackId(folder, filename),
-        index: i + 1,
+        index,
         filename,
-        title: niceFilename(filename),
+        title: `${albumCfg.title} - Track ${String(index).padStart(2, "0")}`,
         url,
         albumFolder: folder,
         albumTitle: albumCfg.title,
@@ -1152,16 +1176,22 @@ function renderArtwork(album, size){
   return canvas.cloneNode(true);
 }
 
+const COVER_AUTODETECT = ["cover.jpg", "cover.png", "cover.jpeg", "cover.webp"];
+
 function artworkElement(album, size){
-  if (album.artwork){
-    const img = document.createElement("img");
-    img.src = MUSIC_CONFIG.publicBase.replace(/\/$/,"") + "/" + encodePath(album.folder) + "/" + encodeURIComponent(album.artwork);
-    img.loading = "lazy";
-    img.alt = album.title;
-    img.onerror = () => { img.replaceWith(renderArtwork(album, size)); };
-    return img;
+  const img = document.createElement("img");
+  img.loading = "lazy";
+  img.alt = album.title;
+  const candidates = album.artwork ? [album.artwork] : COVER_AUTODETECT;
+  let i = 0;
+  function tryNext(){
+    if (i >= candidates.length){ img.replaceWith(renderArtwork(album, size)); return; }
+    img.src = MUSIC_CONFIG.publicBase.replace(/\/$/,"") + "/" + encodePath(album.folder) + "/" + encodeURIComponent(candidates[i]);
+    i++;
   }
-  return renderArtwork(album, size);
+  img.onerror = tryNext;
+  tryNext();
+  return img;
 }
 
 /* ============================================================
@@ -1599,6 +1629,7 @@ const Visualizer = (function(){
   let mode = Prefs.vizMode;
   let particles = [];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
 
   function resize(){
     const rect = canvas.parentElement.getBoundingClientRect();
@@ -1606,6 +1637,7 @@ const Visualizer = (function(){
     canvas.width = w * dpr; canvas.height = h * dpr;
     canvas.style.width = w + "px"; canvas.style.height = h + "px";
     ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+    fractalBuf = null; // force re-alloc at new size
   }
   window.addEventListener("resize", resize);
 
@@ -1628,12 +1660,32 @@ const Visualizer = (function(){
     const bass = avg(freq, 0, Math.floor(n * 0.08));
     const mid = avg(freq, Math.floor(n * 0.08), Math.floor(n * 0.35));
     const high = avg(freq, Math.floor(n * 0.35), Math.floor(n * 0.85));
-    return { bass, mid, high };
+    const level = avg(freq, 0, n);
+    return { bass, mid, high, level };
   }
   function avg(arr, from, to){
     let s = 0, c = 0;
     for (let i = from; i < to; i++){ s += arr[i]; c++; }
     return c ? s / c / 255 : 0;
+  }
+
+  // --- Beat / transient detection ---------------------------------
+  // Tracks a short rolling average of bass energy; a sudden spike above
+  // that average fires a "beat", which decays over a couple of frames
+  // and is fed into every visualizer as a punch of extra motion.
+  let bassHistory = [];
+  let beatPulse = 0;
+  let lastBeatAt = 0;
+  function updateBeat(bass, t){
+    bassHistory.push(bass);
+    if (bassHistory.length > 40) bassHistory.shift();
+    const mean = bassHistory.reduce((a,b)=>a+b,0) / bassHistory.length;
+    if (bass > mean * 1.22 && bass > 0.16 && (t - lastBeatAt) > 130){
+      beatPulse = Math.min(1, (bass - mean) * 3.2 + 0.5);
+      lastBeatAt = t;
+    }
+    beatPulse *= 0.88; // decay
+    return beatPulse;
   }
 
   function currentAccent(){
@@ -1648,88 +1700,232 @@ const Visualizer = (function(){
     const n = parseInt(hex, 16);
     return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
   }
+  function rgbToHue(r,g,b){
+    r/=255; g/=255; b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    let hh=0; const d=max-min;
+    if (d!==0){
+      if (max===r) hh = ((g-b)/d) % 6;
+      else if (max===g) hh = (b-r)/d + 2;
+      else hh = (r-g)/d + 4;
+      hh *= 60; if (hh<0) hh += 360;
+    }
+    return hh;
+  }
 
-  function drawSpectrum(freq, bands, accent){
+  function drawSpectrum(freq, bands, accent, beat){
     ctx2d.clearRect(0,0,w,h);
     const bars = 64;
     const step = Math.floor(freq.length / bars);
     const bw = w / bars;
     const rgb = hexToRgb(accent);
+    const punch = 1 + beat * 0.6;
     for (let i = 0; i < bars; i++){
       const v = avg(freq, i*step, i*step+step);
-      const bh = v * h * 0.62 * (0.4 + bands.bass * 0.6);
+      const bh = v * h * 0.66 * punch * (0.4 + bands.bass * 0.7);
       const x = i * bw;
       const grad = ctx2d.createLinearGradient(0, h/2 - bh, 0, h/2 + bh);
-      grad.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},.85)`);
+      grad.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${Math.min(1, 0.85 + beat*0.3)})`);
       grad.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},.08)`);
       ctx2d.fillStyle = grad;
       ctx2d.fillRect(x+1, h/2 - bh, bw-2, bh*2);
     }
+    if (beat > 0.4){
+      ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${beat*0.06})`;
+      ctx2d.fillRect(0,0,w,h);
+    }
   }
 
-  function drawOrbit(freq, bands, accent, t){
-    ctx2d.fillStyle = "rgba(8,8,10,0.22)";
+  function drawOrbit(freq, bands, accent, t, beat){
+    ctx2d.fillStyle = "rgba(8,8,10,0.2)";
     ctx2d.fillRect(0,0,w,h);
     const cx = w/2, cy = h/2;
     const rgb = hexToRgb(accent);
-    const coreR = 26 + bands.bass * 60;
-    const g = ctx2d.createRadialGradient(cx,cy,0,cx,cy,coreR*2.4);
-    g.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},.9)`);
+
+    // pulsing glowing core — snaps hard on a beat instead of drifting
+    const coreR = (28 + bands.bass * 70) * (1 + beat * 0.9);
+    const g = ctx2d.createRadialGradient(cx,cy,0,cx,cy,coreR*2.6);
+    g.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${0.85 + beat*0.15})`);
     g.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
     ctx2d.fillStyle = g;
-    ctx2d.beginPath(); ctx2d.arc(cx,cy,coreR*2.4,0,Math.PI*2); ctx2d.fill();
+    ctx2d.beginPath(); ctx2d.arc(cx,cy,coreR*2.6,0,Math.PI*2); ctx2d.fill();
 
-    particles.forEach(p => {
+    // whole system rotates continuously — this is what was missing before
+    const globalSpin = t * 0.00022 + beat * 0.4;
+
+    // two counter-rotating rings for depth
+    particles.forEach((p, i) => {
       const bandVal = p.band === 0 ? bands.bass : p.band === 1 ? bands.mid : bands.high;
-      p.a += p.speed * 0.006 * (0.4 + bandVal);
-      const rr = p.r * (0.7 + bandVal * 0.6);
-      const x = cx + Math.cos(p.a) * rr;
-      const y = cy + Math.sin(p.a) * rr * 0.72;
+      const dir = i % 2 === 0 ? 1 : -0.6;
+      p.a += p.speed * 0.045 * dir * (0.6 + bandVal * 2.4 + beat * 1.5);
+      const rr = p.r * (0.65 + bandVal * 0.9 + beat * 0.35);
+      const ang = p.a + globalSpin;
+      const x = cx + Math.cos(ang) * rr;
+      const y = cy + Math.sin(ang) * rr * 0.72;
+      const size = p.size + bandVal*3.2 + beat*2.5;
       ctx2d.beginPath();
-      ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.35 + bandVal*0.5})`;
-      ctx2d.arc(x, y, p.size + bandVal*2.5, 0, Math.PI*2);
+      ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.3 + bandVal*0.55 + beat*0.15})`;
+      ctx2d.arc(x, y, size, 0, Math.PI*2);
       ctx2d.fill();
+      // trailing spoke back to core on strong hits — reads as an audio "spark"
+      if (bandVal > 0.55){
+        ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${(bandVal-0.55)*0.5})`;
+        ctx2d.lineWidth = 1;
+        ctx2d.beginPath(); ctx2d.moveTo(cx,cy); ctx2d.lineTo(x,y); ctx2d.stroke();
+      }
     });
   }
 
-  function drawWaves(freq, bands, accent, t){
+  function drawWaves(freq, bands, accent, t, beat){
     ctx2d.clearRect(0,0,w,h);
     const rgb = hexToRgb(accent);
-    const layers = 3;
+    const layers = 4;
     for (let l = 0; l < layers; l++){
       ctx2d.beginPath();
-      const amp = (16 + bands.mid*90 + bands.bass*40) * (1 - l*0.22);
-      const freqMul = 0.008 + l*0.004;
-      for (let x = 0; x <= w; x += 6){
-        const y = h/2 + Math.sin(x*freqMul + t*0.0016 + l*2) * amp + Math.sin(x*freqMul*2.3 - t*0.0009) * amp*0.35;
+      const amp = (18 + bands.mid*130 + bands.bass*70) * (1 - l*0.2) * (1 + beat*0.5);
+      const freqMul = 0.007 + l*0.0045;
+      const speed = t*(0.0016 + l*0.0004);
+      for (let x = 0; x <= w; x += 5){
+        const y = h/2 + Math.sin(x*freqMul + speed + l*2) * amp + Math.sin(x*freqMul*2.3 - speed*0.7) * amp*0.4;
         if (x===0) ctx2d.moveTo(x,y); else ctx2d.lineTo(x,y);
       }
-      ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.55 - l*0.15})`;
-      ctx2d.lineWidth = 2.4 - l*0.6;
+      ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${(0.6 - l*0.13) + beat*0.2})`;
+      ctx2d.lineWidth = 2.6 - l*0.5;
       ctx2d.stroke();
     }
   }
 
-  function drawCosmos(freq, bands, accent, t){
-    ctx2d.fillStyle = "rgba(8,8,10,0.16)";
+  function drawCosmos(freq, bands, accent, t, beat){
+    ctx2d.fillStyle = "rgba(8,8,10,0.14)";
     ctx2d.fillRect(0,0,w,h);
     const rgb = hexToRgb(accent);
     const cx = w/2, cy = h/2;
     particles.forEach((p, i) => {
       const bandVal = p.band === 0 ? bands.bass : p.band === 1 ? bands.mid : bands.high;
-      p.a += p.speed * 0.004;
-      const drift = Math.sin(t*0.0003 + i) * 30;
-      const rr = p.r + bandVal * 180 + drift;
+      p.a += p.speed * (0.008 + beat*0.02);
+      const drift = Math.sin(t*0.0004 + i) * 34;
+      const rr = p.r * 0.6 + bandVal * 220 + drift + beat*70;
       const x = cx + Math.cos(p.a) * rr;
       const y = cy + Math.sin(p.a * 1.3) * rr * 0.6;
       ctx2d.beginPath();
-      ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.2 + bandVal*0.6})`;
-      ctx2d.arc(x, y, p.size*0.6 + bandVal*3, 0, Math.PI*2);
+      ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.2 + bandVal*0.65 + beat*0.15})`;
+      ctx2d.arc(x, y, p.size*0.6 + bandVal*3.6 + beat*2, 0, Math.PI*2);
       ctx2d.fill();
     });
   }
 
-  function drawMinimal(freq, bands, accent, timeData){
+  // Mirrored, rotating wedge of reactive spokes — a mandala built from
+  // the live spectrum. Cheap to draw (one wedge, repeated via rotate/
+  // mirror transforms) but reads as intricately symmetric.
+  function drawKaleido(freq, bands, accent, t, beat){
+    ctx2d.fillStyle = "rgba(8,8,10,0.18)";
+    ctx2d.fillRect(0,0,w,h);
+    const rgb = hexToRgb(accent);
+    const cx = w/2, cy = h/2;
+    const segments = 10;
+    const wedge = (Math.PI*2) / segments;
+    const bars = 28;
+    const maxLen = Math.min(w,h) * 0.46;
+    const rot = t * 0.00012 + beat*0.15;
+
+    for (let s = 0; s < segments; s++){
+      ctx2d.save();
+      ctx2d.translate(cx, cy);
+      ctx2d.rotate(wedge * s + rot);
+      if (s % 2 === 1) ctx2d.scale(1, -1); // mirror alternate wedges
+      ctx2d.beginPath();
+      for (let i = 0; i < bars; i++){
+        const idx = Math.floor((i/bars) * freq.length * 0.5);
+        const v = freq[idx]/255;
+        const ang = (i/bars) * wedge;
+        const len = 30 + v * maxLen * (1 + beat*0.5);
+        const x = Math.cos(ang) * len;
+        const y = Math.sin(ang) * len;
+        if (i===0) ctx2d.moveTo(0,0);
+        ctx2d.lineTo(x,y);
+      }
+      ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.5 + beat*0.3})`;
+      ctx2d.lineWidth = 1.4;
+      ctx2d.stroke();
+      ctx2d.restore();
+    }
+
+    const coreR = 10 + bands.bass*26 + beat*18;
+    const g = ctx2d.createRadialGradient(cx,cy,0,cx,cy,coreR*3);
+    g.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},.8)`);
+    g.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
+    ctx2d.fillStyle = g;
+    ctx2d.beginPath(); ctx2d.arc(cx,cy,coreR*3,0,Math.PI*2); ctx2d.fill();
+  }
+
+  // Audio-reactive Julia set. Rendered at low internal resolution into an
+  // offscreen buffer (cheap per-pixel iteration), then scaled up onto the
+  // visible canvas — genuinely fractal, still light enough for mobile.
+  let fractalBuf = null, fractalCtx = null, fractalImg = null;
+  function fractalScale(){ return isCoarsePointer ? 7 : 4.5; }
+  function ensureFractalBuf(){
+    const fw = Math.max(40, Math.round(w / fractalScale()));
+    const fh = Math.max(24, Math.round(h / fractalScale()));
+    if (fractalBuf && fractalBuf.width === fw && fractalBuf.height === fh) return;
+    fractalBuf = document.createElement("canvas");
+    fractalBuf.width = fw; fractalBuf.height = fh;
+    fractalCtx = fractalBuf.getContext("2d");
+    fractalImg = fractalCtx.createImageData(fw, fh);
+  }
+  function drawFractal(freq, bands, accent, t, beat){
+    ensureFractalBuf();
+    const fw = fractalBuf.width, fh = fractalBuf.height;
+    const data = fractalImg.data;
+    const rgb = hexToRgb(accent);
+    const baseHue = rgbToHue(rgb.r, rgb.g, rgb.b);
+
+    // audio drives the Julia constant — orbits a region of the boundary
+    // known to produce rich, connected filament structure
+    const drift = t * 0.00006;
+    const cRe = -0.74 + Math.sin(drift + bands.mid*3) * (0.06 + bands.bass*0.12);
+    const cIm = 0.14 + Math.cos(drift*1.3) * (0.05 + bands.high*0.1);
+    const zoom = 1.6 - bands.level*0.5 - beat*0.25;
+    const maxIter = isCoarsePointer ? 22 : 30;
+
+    let p = 0;
+    for (let py = 0; py < fh; py++){
+      const y0 = (py / fh - 0.5) * zoom * (fh/fw < 1 ? 1 : fh/fw);
+      for (let px = 0; px < fw; px++){
+        let zr = (px / fw - 0.5) * zoom;
+        let zi = y0;
+        let iter = 0;
+        while (zr*zr + zi*zi < 4 && iter < maxIter){
+          const nzr = zr*zr - zi*zi + cRe;
+          zi = 2*zr*zi + cIm;
+          zr = nzr;
+          iter++;
+        }
+        if (iter >= maxIter){
+          data[p]=0; data[p+1]=0; data[p+2]=0; data[p+3]=255;
+        } else {
+          const ratio = iter / maxIter;
+          const hue = (baseHue + ratio*160 + t*0.01) % 360;
+          const light = 18 + ratio*55 + beat*10;
+          const [r,g,b] = hslToRgbArr(hue, 80, Math.min(78,light));
+          data[p]=r; data[p+1]=g; data[p+2]=b; data[p+3]=255;
+        }
+        p += 4;
+      }
+    }
+    fractalCtx.putImageData(fractalImg, 0, 0);
+    ctx2d.imageSmoothingEnabled = true;
+    ctx2d.clearRect(0,0,w,h);
+    ctx2d.drawImage(fractalBuf, 0, 0, fw, fh, 0, 0, w, h);
+  }
+  function hslToRgbArr(h,s,l){
+    s/=100; l/=100;
+    const k = n => (n + h/30) % 12;
+    const a = s * Math.min(l, 1-l);
+    const f = n => l - a*Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n), 1)));
+    return [Math.round(f(0)*255), Math.round(f(8)*255), Math.round(f(4)*255)];
+  }
+
+  function drawMinimal(freq, bands, accent, timeData, beat){
     ctx2d.clearRect(0,0,w,h);
     const rgb = hexToRgb(accent);
     ctx2d.beginPath();
@@ -1737,11 +1933,11 @@ const Visualizer = (function(){
     for (let i = 0; i < timeData.length; i++){
       const v = (timeData[i] - 128) / 128;
       const x = i * step;
-      const y = h/2 + v * h * 0.28 * (0.5 + bands.bass);
+      const y = h/2 + v * h * 0.3 * (0.5 + bands.bass + beat*0.4);
       if (i===0) ctx2d.moveTo(x,y); else ctx2d.lineTo(x,y);
     }
-    ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},.8)`;
-    ctx2d.lineWidth = 1.6;
+    ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.75 + beat*0.25})`;
+    ctx2d.lineWidth = 1.6 + beat*1.2;
     ctx2d.stroke();
   }
 
@@ -1773,14 +1969,17 @@ const Visualizer = (function(){
     analyser.getByteFrequencyData(freq);
     analyser.getByteTimeDomainData(timeData);
     const bands = getBands(freq);
+    const beat = updateBeat(bands.bass, t);
 
     switch(mode){
-      case "spectrum": drawSpectrum(freq, bands, accent); break;
-      case "orbit": drawOrbit(freq, bands, accent, t); break;
-      case "waves": drawWaves(freq, bands, accent, t); break;
-      case "cosmos": drawCosmos(freq, bands, accent, t); break;
-      case "minimal": drawMinimal(freq, bands, accent, timeData); break;
-      default: drawSpectrum(freq, bands, accent);
+      case "spectrum": drawSpectrum(freq, bands, accent, beat); break;
+      case "orbit": drawOrbit(freq, bands, accent, t, beat); break;
+      case "waves": drawWaves(freq, bands, accent, t, beat); break;
+      case "cosmos": drawCosmos(freq, bands, accent, t, beat); break;
+      case "kaleido": drawKaleido(freq, bands, accent, t, beat); break;
+      case "fractal": drawFractal(freq, bands, accent, t, beat); break;
+      case "minimal": drawMinimal(freq, bands, accent, timeData, beat); break;
+      default: drawSpectrum(freq, bands, accent, beat);
     }
   }
 
@@ -2272,7 +2471,7 @@ const UI = {
         case "s": case "S": Player.toggleShuffle(); break;
         case "r": case "R": Player.cycleRepeat(); break;
         case "f": case "F": { const t = AudioEngine.getCurrentTrack(); if (t){ Favorites.toggle(t); this.syncNowPlayingFav(); this.refreshFavButtons(t); } break; }
-        case "v": case "V": { const modes=["spectrum","orbit","waves","cosmos","minimal"]; const i=(modes.indexOf(Visualizer.getMode())+1)%modes.length; Visualizer.setMode(modes[i]); this.syncVizSwitch(); break; }
+        case "v": case "V": { const modes=["spectrum","orbit","waves","cosmos","kaleido","fractal","minimal"]; const i=(modes.indexOf(Visualizer.getMode())+1)%modes.length; Visualizer.setMode(modes[i]); this.syncVizSwitch(); break; }
         case "q": case "Q": $("#queue-drawer").classList.toggle("open"); break;
         case "/": e.preventDefault(); $("#search-input").focus(); break;
         case "Escape":
