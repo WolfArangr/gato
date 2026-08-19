@@ -502,16 +502,30 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
 
 .panel-wrap{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; min-height:0; }
 
+#btn-more{ display:none; }
+#more-menu{
+  display:none; position:fixed; top:calc(var(--topbar-h) + 8px); right:12px; z-index:90;
+  background:rgba(18,18,21,.96); backdrop-filter:blur(18px);
+  border:1px solid var(--line-soft); border-radius:12px; padding:6px;
+  min-width:210px; box-shadow:0 12px 32px rgba(0,0,0,.5);
+  flex-direction:column; gap:2px;
+}
+#more-menu.open{ display:flex; }
+.more-menu-item{
+  display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:8px;
+  font-size:12.5px; color:var(--text-dim); text-align:left; width:100%;
+}
+.more-menu-item svg{ width:16px; height:16px; flex:0 0 auto; }
+.more-menu-item:hover, .more-menu-item:active{ background:var(--line-soft); color:var(--text); }
+
 @media (max-width:899px){
   #search-inline{ width:150px; flex:0 0 auto; }
   #search-inline:focus-within{ width:190px; }
   .brand small{ display:none; }
-  #topbar{
-    gap:8px; padding:0 12px;
-    overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
-  }
-  #topbar::-webkit-scrollbar{ display:none; }
-  .topbar-spacer{ flex:0 0 14px; }
+  #topbar{ gap:6px; padding:0 10px; }
+  #btn-queue, #btn-help, #btn-tv, #btn-settings{ display:none; }
+  #btn-more{ display:flex; }
+  .topbar-spacer{ flex:0 0 8px; }
   .icon-btn{ width:34px; height:34px; }
   .tab-btn{ padding:7px 10px; font-size:11px; }
   #content{ padding:12px; }
@@ -576,7 +590,25 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
     <button class="icon-btn" id="btn-settings" title="Appearance & visualizer">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06A1.65 1.65 0 0 0 8.92 4.7h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
+    <button class="icon-btn" id="btn-more" title="More">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+    </button>
   </header>
+
+  <div id="more-menu">
+    <button class="more-menu-item" data-proxy="btn-queue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Queue
+    </button>
+    <button class="more-menu-item" data-proxy="btn-help">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.9.4-1.4 1-1.4 2.1"/><circle cx="12" cy="17" r=".4" fill="currentColor"/></svg>Keyboard shortcuts
+    </button>
+    <button class="more-menu-item" data-proxy="btn-tv">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M9 21h6"/></svg>Visual mode (TV)
+    </button>
+    <button class="more-menu-item" data-proxy="btn-settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06A1.65 1.65 0 0 0 8.92 4.7h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Appearance & visualizer
+    </button>
+  </div>
 
   <div id="main">
     <div id="viz-layer">
@@ -1729,8 +1761,58 @@ const Visualizer = (function(){
     canvas.style.width = w + "px"; canvas.style.height = h + "px";
     ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
     fractalBuf = null; // force re-alloc at new size
+    vignetteGrad = null; // rebuilt lazily at the new size
   }
   window.addEventListener("resize", resize);
+
+  // Ambient vignette — a soft, accent-tinted darkening toward the edges,
+  // drawn on top of every mode so the whole thing reads as one cohesive
+  // installation rather than a raw plot. Gradient is cached and only
+  // rebuilt on resize/accent change to keep this essentially free.
+  let vignetteGrad = null, vignetteAccent = null;
+  function drawVignette(accent){
+    if (!vignetteGrad || vignetteAccent !== accent){
+      const rgb = hexToRgb(accent);
+      const r = Math.max(w,h) * 0.75;
+      vignetteGrad = ctx2d.createRadialGradient(w/2,h/2, r*0.35, w/2,h/2, r);
+      vignetteGrad.addColorStop(0, "rgba(0,0,0,0)");
+      vignetteGrad.addColorStop(0.7, `rgba(${Math.round(rgb.r*0.06)},${Math.round(rgb.g*0.04)},${Math.round(rgb.b*0.08)},.25)`);
+      vignetteGrad.addColorStop(1, "rgba(3,3,5,.62)");
+      vignetteAccent = accent;
+    }
+    ctx2d.fillStyle = vignetteGrad;
+    ctx2d.fillRect(0,0,w,h);
+  }
+
+  // Smooth crossfade between visualizer modes — captures the last drawn
+  // frame and fades it out over the new mode's first few hundred ms
+  // instead of hard-cutting, which otherwise reads as a glitch.
+  let transitionCanvas = null, transitioning = false, transitionStart = 0;
+  const TRANSITION_MS = 380;
+  function captureTransitionSnapshot(){
+    if (!transitionCanvas) transitionCanvas = document.createElement("canvas");
+    if (transitionCanvas.width !== canvas.width || transitionCanvas.height !== canvas.height){
+      transitionCanvas.width = canvas.width; transitionCanvas.height = canvas.height;
+    }
+    transitionCanvas.getContext("2d").drawImage(canvas, 0, 0);
+    transitioning = true;
+    transitionStart = performance.now();
+  }
+  function drawTransitionOverlay(t){
+    if (!transitioning) return;
+    const elapsed = t - transitionStart;
+    if (elapsed >= TRANSITION_MS){ transitioning = false; return; }
+    const alpha = 1 - (elapsed / TRANSITION_MS);
+    ctx2d.save();
+    ctx2d.setTransform(1,0,0,1,0,0); // draw the raw-pixel snapshot outside the dpr-scaled space
+    ctx2d.globalAlpha = alpha;
+    ctx2d.drawImage(transitionCanvas, 0, 0);
+    ctx2d.restore();
+  }
+
+  // Rolling peak-hold values for the Spectrum meter — snap up instantly,
+  // fall slowly, like a real level meter.
+  let spectrumPeaks = new Array(64).fill(0);
 
   function initParticles(n){
     particles = [];
@@ -1812,16 +1894,29 @@ const Visualizer = (function(){
     const bw = w / bars;
     const rgb = hexToRgb(accent);
     const punch = 1 + beat * 0.6;
+    ctx2d.shadowColor = `rgba(${rgb.r},${rgb.g},${rgb.b},.9)`;
     for (let i = 0; i < bars; i++){
       const v = avg(freq, i*step, i*step+step);
       const bh = v * h * 0.66 * punch * (0.4 + bands.bass * 0.7);
       const x = i * bw;
+      ctx2d.shadowBlur = 6 + v*16 + beat*10;
       const grad = ctx2d.createLinearGradient(0, h/2 - bh, 0, h/2 + bh);
       grad.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${Math.min(1, 0.85 + beat*0.3)})`);
       grad.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},.08)`);
       ctx2d.fillStyle = grad;
       ctx2d.fillRect(x+1, h/2 - bh, bw-2, bh*2);
+
+      // peak-hold caps — snap up instantly, fall slowly, like a real meter
+      spectrumPeaks[i] = bh > spectrumPeaks[i] ? bh : spectrumPeaks[i] * 0.965;
+      const pk = spectrumPeaks[i];
+      if (pk > 3){
+        ctx2d.shadowBlur = 4;
+        ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},.95)`;
+        ctx2d.fillRect(x+1, h/2 - pk - 1.5, bw-2, 2);
+        ctx2d.fillRect(x+1, h/2 + pk - 0.5, bw-2, 2);
+      }
     }
+    ctx2d.shadowBlur = 0;
     if (beat > 0.4){
       ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${beat*0.06})`;
       ctx2d.fillRect(0,0,w,h);
@@ -1840,7 +1935,10 @@ const Visualizer = (function(){
     g.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${0.85 + beat*0.15})`);
     g.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
     ctx2d.fillStyle = g;
+    ctx2d.shadowColor = `rgba(${rgb.r},${rgb.g},${rgb.b},.8)`;
+    ctx2d.shadowBlur = 30 + beat*30;
     ctx2d.beginPath(); ctx2d.arc(cx,cy,coreR*2.6,0,Math.PI*2); ctx2d.fill();
+    ctx2d.shadowBlur = 0;
 
     // whole system rotates continuously — this is what was missing before
     const globalSpin = t * 0.00022 + beat * 0.4;
@@ -1855,23 +1953,28 @@ const Visualizer = (function(){
       const x = cx + Math.cos(ang) * rr;
       const y = cy + Math.sin(ang) * rr * 0.72;
       const size = p.size + bandVal*3.2 + beat*2.5;
+      ctx2d.shadowColor = `rgba(${rgb.r},${rgb.g},${rgb.b},.9)`;
+      ctx2d.shadowBlur = 4 + bandVal*10 + beat*8;
       ctx2d.beginPath();
       ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.3 + bandVal*0.55 + beat*0.15})`;
       ctx2d.arc(x, y, size, 0, Math.PI*2);
       ctx2d.fill();
       // trailing spoke back to core on strong hits — reads as an audio "spark"
       if (bandVal > 0.55){
+        ctx2d.shadowBlur = 0;
         ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${(bandVal-0.55)*0.5})`;
         ctx2d.lineWidth = 1;
         ctx2d.beginPath(); ctx2d.moveTo(cx,cy); ctx2d.lineTo(x,y); ctx2d.stroke();
       }
     });
+    ctx2d.shadowBlur = 0;
   }
 
   function drawWaves(freq, bands, accent, t, beat){
     ctx2d.clearRect(0,0,w,h);
     const rgb = hexToRgb(accent);
     const layers = 4;
+    ctx2d.shadowColor = `rgba(${rgb.r},${rgb.g},${rgb.b},.85)`;
     for (let l = 0; l < layers; l++){
       ctx2d.beginPath();
       const amp = (18 + bands.mid*130 + bands.bass*70) * (1 - l*0.2) * (1 + beat*0.5);
@@ -1881,10 +1984,12 @@ const Visualizer = (function(){
         const y = h/2 + Math.sin(x*freqMul + speed + l*2) * amp + Math.sin(x*freqMul*2.3 - speed*0.7) * amp*0.4;
         if (x===0) ctx2d.moveTo(x,y); else ctx2d.lineTo(x,y);
       }
+      ctx2d.shadowBlur = (10 - l*2) + beat*12;
       ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${(0.6 - l*0.13) + beat*0.2})`;
       ctx2d.lineWidth = 2.6 - l*0.5;
       ctx2d.stroke();
     }
+    ctx2d.shadowBlur = 0;
   }
 
   function drawCosmos(freq, bands, accent, t, beat){
@@ -1892,6 +1997,7 @@ const Visualizer = (function(){
     ctx2d.fillRect(0,0,w,h);
     const rgb = hexToRgb(accent);
     const cx = w/2, cy = h/2;
+    const pts = [];
     particles.forEach((p, i) => {
       const bandVal = p.band === 0 ? bands.bass : p.band === 1 ? bands.mid : bands.high;
       p.a += p.speed * (0.008 + beat*0.02);
@@ -1899,11 +2005,34 @@ const Visualizer = (function(){
       const rr = p.r * 0.6 + bandVal * 220 + drift + beat*70;
       const x = cx + Math.cos(p.a) * rr;
       const y = cy + Math.sin(p.a * 1.3) * rr * 0.6;
+      pts.push({ x, y, bandVal });
+    });
+
+    // constellation threads — connect nearby particles for a nebula/
+    // star-map feel instead of a loose particle cloud
+    ctx2d.lineWidth = 1;
+    const threshold2 = (isCoarsePointer ? 70 : 95) ** 2;
+    for (let i = 0; i < pts.length; i++){
+      for (let j = i+1; j < pts.length; j++){
+        const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+        const d2 = dx*dx + dy*dy;
+        if (d2 < threshold2){
+          const a = (1 - d2/threshold2) * 0.16 * (0.5 + beat);
+          ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`;
+          ctx2d.beginPath(); ctx2d.moveTo(pts[i].x,pts[i].y); ctx2d.lineTo(pts[j].x,pts[j].y); ctx2d.stroke();
+        }
+      }
+    }
+
+    ctx2d.shadowColor = `rgba(${rgb.r},${rgb.g},${rgb.b},.9)`;
+    pts.forEach(pt => {
+      ctx2d.shadowBlur = 3 + pt.bandVal*9 + beat*6;
       ctx2d.beginPath();
-      ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.2 + bandVal*0.65 + beat*0.15})`;
-      ctx2d.arc(x, y, p.size*0.6 + bandVal*3.6 + beat*2, 0, Math.PI*2);
+      ctx2d.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.2 + pt.bandVal*0.65 + beat*0.15})`;
+      ctx2d.arc(pt.x, pt.y, 1.4 + pt.bandVal*3.6 + beat*2, 0, Math.PI*2);
       ctx2d.fill();
     });
+    ctx2d.shadowBlur = 0;
   }
 
   // Mirrored, rotating wedge of reactive spokes — a mandala built from
@@ -1920,6 +2049,8 @@ const Visualizer = (function(){
     const maxLen = Math.min(w,h) * 0.46;
     const rot = t * 0.00012 + beat*0.15;
 
+    ctx2d.shadowColor = `rgba(${rgb.r},${rgb.g},${rgb.b},.85)`;
+    ctx2d.shadowBlur = 8 + beat*14;
     for (let s = 0; s < segments; s++){
       ctx2d.save();
       ctx2d.translate(cx, cy);
@@ -1941,13 +2072,16 @@ const Visualizer = (function(){
       ctx2d.stroke();
       ctx2d.restore();
     }
+    ctx2d.shadowBlur = 0;
 
     const coreR = 10 + bands.bass*26 + beat*18;
     const g = ctx2d.createRadialGradient(cx,cy,0,cx,cy,coreR*3);
     g.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},.8)`);
     g.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
     ctx2d.fillStyle = g;
+    ctx2d.shadowBlur = 24 + beat*20;
     ctx2d.beginPath(); ctx2d.arc(cx,cy,coreR*3,0,Math.PI*2); ctx2d.fill();
+    ctx2d.shadowBlur = 0;
   }
 
   // Audio-reactive Julia set that continuously dives inward — the zoom
@@ -2068,9 +2202,12 @@ const Visualizer = (function(){
       const y = h/2 + v * h * 0.3 * (0.5 + bands.bass + beat*0.4);
       if (i===0) ctx2d.moveTo(x,y); else ctx2d.lineTo(x,y);
     }
+    ctx2d.shadowColor = `rgba(${rgb.r},${rgb.g},${rgb.b},.7)`;
+    ctx2d.shadowBlur = 6 + beat*10;
     ctx2d.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.75 + beat*0.25})`;
     ctx2d.lineWidth = 1.6 + beat*1.2;
     ctx2d.stroke();
+    ctx2d.shadowBlur = 0;
   }
 
   function idleDrift(t, accent){
@@ -2083,7 +2220,11 @@ const Visualizer = (function(){
     g.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},.28)`);
     g.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
     ctx2d.fillStyle = g;
+    ctx2d.shadowColor = `rgba(${rgb.r},${rgb.g},${rgb.b},.5)`;
+    ctx2d.shadowBlur = 20;
     ctx2d.beginPath(); ctx2d.arc(cx,cy,r*3,0,Math.PI*2); ctx2d.fill();
+    ctx2d.shadowBlur = 0;
+    drawVignette(accent);
   }
 
   function loop(t){
@@ -2094,6 +2235,7 @@ const Visualizer = (function(){
 
     if (!analyser || AudioEngine.isPaused()){
       idleDrift(t, accent);
+      drawTransitionOverlay(t);
       return;
     }
     const freq = new Uint8Array(analyser.frequencyBinCount);
@@ -2113,12 +2255,17 @@ const Visualizer = (function(){
       case "minimal": drawMinimal(freq, bands, accent, timeData, beat); break;
       default: drawSpectrum(freq, bands, accent, beat);
     }
+    if (mode !== "fractal") drawVignette(accent); // fractal frames the whole canvas itself
+    drawTransitionOverlay(t);
   }
 
   return {
     start(){ resize(); if (!raf) raf = requestAnimationFrame(loop); },
     stop(){ if (raf) cancelAnimationFrame(raf); raf = null; },
-    setMode(m){ mode = m; Prefs.vizMode = m; Prefs.save(); },
+    setMode(m){
+      if (m !== mode) captureTransitionSnapshot();
+      mode = m; Prefs.vizMode = m; Prefs.save();
+    },
     getMode(){ return mode; },
     resize
   };
@@ -2138,6 +2285,7 @@ const UI = {
     this.bindHelp();
     this.bindSettings();
     this.bindTV();
+    this.bindMoreMenu();
     this.bindKeyboard();
     this.bindResize();
     this.syncVolumeUI();
@@ -2579,6 +2727,26 @@ const UI = {
       this.syncVizSwitch();
     }));
   },
+
+  bindMoreMenu(){
+    const btn = $("#btn-more"), menu = $("#more-menu");
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.classList.toggle("open");
+    });
+    $$(".more-menu-item").forEach(item => {
+      item.addEventListener("click", () => {
+        menu.classList.remove("open");
+        const target = $("#" + item.dataset.proxy);
+        if (target) target.click(); // reuse the exact same handler as the desktop icon
+      });
+    });
+    document.addEventListener("click", (e) => {
+      if (menu.classList.contains("open") && !menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)){
+        menu.classList.remove("open");
+      }
+    });
+  },
   toggleTVMode(){
     const app = $("#app");
     app.classList.toggle("tv-mode");
@@ -2615,7 +2783,8 @@ const UI = {
         case "q": case "Q": $("#queue-drawer").classList.toggle("open"); break;
         case "/": e.preventDefault(); $("#search-input").focus(); break;
         case "Escape":
-          if ($("#help-modal").classList.contains("open")) $("#help-modal").classList.remove("open");
+          if ($("#more-menu").classList.contains("open")) $("#more-menu").classList.remove("open");
+          else if ($("#help-modal").classList.contains("open")) $("#help-modal").classList.remove("open");
           else if ($("#settings-modal").classList.contains("open")) $("#settings-modal").classList.remove("open");
           else if ($("#queue-drawer").classList.contains("open")) $("#queue-drawer").classList.remove("open");
           else if ($("#app").classList.contains("tv-mode")) $("#app").classList.remove("tv-mode");
