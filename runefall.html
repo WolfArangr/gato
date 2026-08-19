@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -54,6 +54,11 @@ canvas{display:block;touch-action:none;}
 }
 @keyframes grainShift{
   0%{transform:translate(0,0)}33%{transform:translate(-2%,1%)}66%{transform:translate(1%,-2%)}100%{transform:translate(0,0)}
+}
+#frost{
+  position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0;
+  background:radial-gradient(120% 90% at 50% 50%, rgba(120,200,255,.10) 0%, rgba(90,170,255,.42) 100%);
+  transition:opacity .3s linear;
 }
 #danger{
   position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0;
@@ -241,6 +246,50 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
   box-shadow:0 0 14px rgba(217,164,65,.5);
   transition:transform .3s ease;
 }
+.multi{
+  position:absolute;right:calc(env(safe-area-inset-right) + 12px);
+  top:calc(env(safe-area-inset-top) + 76px);
+  width:clamp(78px,13vmin,110px);opacity:0;transform:translateY(-6px);
+  transition:opacity .2s ease, transform .2s ease;
+}
+.multi.on{opacity:1;transform:none;}
+.multi b{
+  display:block;text-align:right;font-family:"Cinzel",serif;font-weight:900;
+  font-size:clamp(15px,2.9vmin,26px);color:#ffdf9c;letter-spacing:.04em;
+  text-shadow:0 0 16px rgba(255,150,50,.6);font-variant-numeric:tabular-nums;
+}
+.multi .mbar{
+  height:4px;margin-top:3px;background:rgba(6,4,12,.8);
+  border:1px solid rgba(217,164,65,.3);overflow:hidden;
+}
+.multi .mbar i{
+  display:block;height:100%;transform-origin:right;transform:scaleX(1);
+  background:linear-gradient(90deg,#7b3f12,#ffb200 60%,#ffe6a8);
+}
+.multi .streak{
+  display:flex;gap:2px;justify-content:flex-end;margin-top:4px;
+}
+.multi .streak span{
+  width:4px;height:4px;border-radius:50%;background:rgba(217,164,65,.28);
+}
+.multi .streak span.lit{background:#ffd48a;box-shadow:0 0 6px #ffb200;}
+
+.stars{
+  display:flex;justify-content:center;gap:clamp(6px,1.4vmin,12px);
+  margin:clamp(6px,1.4vmin,12px) 0;
+}
+.stars span{
+  font-size:clamp(24px,5.4vmin,46px);line-height:1;color:rgba(217,164,65,.22);
+  text-shadow:none;transition:color .3s;
+}
+.stars span.on{
+  color:#f6d98b;text-shadow:0 0 20px rgba(255,180,60,.75);
+  animation:starPop .5s cubic-bezier(.2,1.4,.4,1) both;
+}
+.stars span.on:nth-child(2){animation-delay:.16s}
+.stars span.on:nth-child(3){animation-delay:.32s}
+@keyframes starPop{0%{transform:scale(.3) rotate(-25deg);opacity:0}100%{transform:none;opacity:1}}
+
 .combo{
   position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 52px);transform:translateX(-50%);
   font-family:"Cinzel",serif;font-weight:900;letter-spacing:.12em;
@@ -336,6 +385,7 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
 <div id="stage"></div>
 <div class="vignette"></div>
 <div class="grain"></div>
+<div id="frost"></div>
 <div id="danger"></div>
 <div id="fx"></div>
 
@@ -355,6 +405,11 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
         </div>
       </div>
     </div>
+  </div>
+  <div class="multi" id="hudMulti">
+    <b id="multiVal">&times;1</b>
+    <div class="mbar"><i id="multiBar"></i></div>
+    <div class="streak" id="multiStreak"></div>
   </div>
   <div class="combo" id="hudCombo"></div>
   <div class="hud-bot">
@@ -392,6 +447,7 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
     <div class="rule"></div>
     <p class="body" style="text-align:center;opacity:.55;font-size:clamp(11px,1.7vmin,15px)">
       <span data-i18n="menu.best">Furthest reached</span>: <b id="menuBest">—</b>
+      &nbsp;&nbsp;<span style="color:#f6d98b">&#9733;</span> <b id="menuStars">0</b>
     </p>
   </div>
 </div>
@@ -448,6 +504,8 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
     <p class="body" data-i18n="how.p2">Line up three or more orbs of one colour to shatter them. Gaps close on their own — when they close on a matching colour, the chain keeps breaking and your score multiplies.</p>
     <p class="body" data-i18n="how.p3">Press the swap rune (or the space bar, or right-click) to exchange the loaded orb for the next one.</p>
     <p class="body" data-i18n="how.p4">Clear every orb before the line reaches the abyss.</p>
+    <p class="body" data-i18n="how.p5">Large breaks drop a relic onto the floor. Shoot it to claim it: frost halts the march, recoil drives the line back, blast shatters everything nearby, and purge banishes every orb sharing your loaded colour.</p>
+    <p class="body" data-i18n="how.p6">Clear without missing and your multiplier climbs. Threading a shot through a gap in the line pays a bounty.</p>
     <div class="rule"></div>
     <div class="menu"><button class="btn primary" id="btnHowBack" data-i18n="ui.back">Back</button></div>
   </div>
@@ -473,6 +531,7 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
   <div class="panel">
     <span class="corner-tr"></span><span class="corner-bl"></span>
     <h2 class="head" data-i18n="win.title">Level cleared</h2>
+    <div class="stars" id="winStars"><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span></div>
     <div class="rule"></div>
     <p class="body" style="text-align:center;font-size:clamp(16px,3vmin,26px)">
       <span data-i18n="win.gained">Gained</span> <b id="winGain">0</b><br>
@@ -579,7 +638,11 @@ var I18N = {
     'lose.title': 'The abyss is fed', 'lose.reached': 'Reached level', 'lose.retry': 'Try again',
     'hud.level': 'Level', 'hud.score': 'Score', 'hud.horde': 'The horde', 'hud.loaded': 'Loaded',
     'boot': 'Kindling the braziers',
-    'combo.chain': 'CHAIN', 'combo.x': 'RUNEFALL'
+    'combo.chain': 'CHAIN', 'combo.x': 'RUNEFALL',
+    'how.p5': 'Large breaks drop a relic onto the floor. Shoot it to claim it: frost halts the march, recoil drives the line back, blast shatters everything nearby, and purge banishes every orb sharing your loaded colour.',
+    'how.p6': 'Clear without missing and your multiplier climbs. Threading a shot through a gap in the line pays a bounty.',
+    'fx.gap': 'THREADED!', 'fx.frost': 'FROST', 'fx.reverse': 'RECOIL',
+    'fx.bomb': 'BLAST', 'fx.cull': 'PURGE'
   },
   es: {
     'menu.tag': 'La rueda gira. Los orbes marchan hacia el abismo.',
@@ -600,10 +663,14 @@ var I18N = {
     'lose.title': 'El abismo se ha saciado', 'lose.reached': 'Nivel alcanzado', 'lose.retry': 'Reintentar',
     'hud.level': 'Nivel', 'hud.score': 'Puntos', 'hud.horde': 'La horda', 'hud.loaded': 'Cargado',
     'boot': 'Encendiendo los braseros',
-    'combo.chain': 'CADENA', 'combo.x': 'RUNEFALL'
+    'combo.chain': 'CADENA', 'combo.x': 'RUNEFALL',
+    'how.p5': 'Las roturas grandes dejan caer una reliquia al suelo. Dispárale para reclamarla: la escarcha detiene la marcha, el retroceso empuja la fila hacia atrás, el estallido rompe todo lo cercano y la purga destierra cada orbe del color que llevas cargado.',
+    'how.p6': 'Encadena aciertos sin fallar y el multiplicador sube. Colar un disparo por un hueco de la fila paga recompensa.',
+    'fx.gap': '¡LIMPIO!', 'fx.frost': 'ESCARCHA', 'fx.reverse': 'RETROCESO',
+    'fx.bomb': 'ESTALLIDO', 'fx.cull': 'PURGA'
   }
 };
-var lang = Store.get('rf_lang', (navigator.language || 'en').slice(0, 2).toLowerCase());
+var lang = Store.get('rf_lang', 'es');   // Spanish unless the player chooses otherwise
 if (!I18N[lang]) lang = 'en';
 function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
 function applyLang() {
@@ -734,6 +801,28 @@ var Snd = {
     this.tone({ f: 78, f2: 52, dur: 0.5, g: 0.28, type: 'sine' });
     this.noise({ f: 220, f2: 90, dur: 0.5, g: 0.1, q: 2 });
   },
+  power: function (type) {
+    if (!this.ctx) return;
+    var seq = type === 'frost' ? [1046, 1318, 1568, 2093]
+      : type === 'reverse' ? [523, 392, 311, 262]
+      : type === 'bomb' ? [140, 90, 62] : [523, 659, 784, 1046];
+    for (var i = 0; i < seq.length; i++) {
+      this.tone({
+        f: seq[i], dur: type === 'bomb' ? 0.55 : 0.4, g: 0.2,
+        type: type === 'bomb' ? 'sawtooth' : 'triangle',
+        lp: type === 'bomb' ? 700 : 4000,
+        t: this.ctx.currentTime + i * 0.07
+      });
+    }
+    if (type === 'bomb') this.noise({ f: 1800, f2: 90, dur: 0.7, g: 0.3, q: 0.7 });
+  },
+  gap: function () {
+    if (!this.ctx) return;
+    var seq = [784, 1046, 1318];
+    for (var i = 0; i < seq.length; i++) {
+      this.tone({ f: seq[i], dur: 0.3, g: 0.14, type: 'sine', t: this.ctx.currentTime + i * 0.05 });
+    }
+  },
   win: function () {
     if (!this.ctx) return;
     var seq = [392, 523.25, 659.25, 784, 1046.5];
@@ -845,6 +934,9 @@ var ORB_COLORS = [
   { hex: 0xd8cdb0, css: '#d8cdb0', core: 'torus', em: 0.04, rim: 0.30 }
 ];
 
+var POWERS = ['frost', 'reverse', 'bomb', 'cull'];
+var POWER_COLOR = { frost: 0x7fd4ff, reverse: 0xffa03c, bomb: 0xff4530, cull: 0xc08bff };
+
 var IS_TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 var quality = Store.get('rf_qual', (IS_TOUCH ? 'low' : 'high'));
 if (quality !== 'low' && quality !== 'high') quality = 'high';
@@ -853,14 +945,19 @@ if (quality !== 'low' && quality !== 'high') quality = 'high';
    RENDERER / SCENE
    ===================================================================== */
 var renderer, scene, camera, composer, bloomPass, clock;
+// 'low' now only means fewer shadows and lighter bloom — never a soft image,
+// which is what made phones look muddy
+function pixelCap() {
+  return Math.min(window.devicePixelRatio || 1, quality === 'high' ? 2 : 1.9);
+}
 var arena = null, envRT = null;
 var camTarget = new THREE.Vector3(0, 0, 0);
 var camPitch = 0.95;
 var fitPoints = [];
 
 function initThree() {
-  renderer = new THREE.WebGLRenderer({ antialias: quality === 'high', powerPreference: 'high-performance', alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === 'high' ? 2 : 1.4));
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: false });
+  renderer.setPixelRatio(pixelCap());
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -884,7 +981,7 @@ function initThree() {
     composer.addPass(new THREE.RenderPass(scene, camera));
     bloomPass = new THREE.UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      quality === 'high' ? 0.7 : 0.5, 0.5, 0.88
+      quality === 'high' ? 0.7 : 0.6, 0.5, 0.88
     );
     composer.addPass(bloomPass);
     composer.setSize(window.innerWidth, window.innerHeight);
@@ -958,14 +1055,48 @@ function stoneCanvas(size, base, veins) {
   return c;
 }
 
-function grainCanvas(size) {
-  var c = document.createElement('canvas'); c.width = c.height = size;
-  var g = c.getContext('2d');
-  g.fillStyle = '#808080'; g.fillRect(0, 0, size, size);
-  for (var i = 0; i < size * size * 0.5; i++) {
-    var v = 128 + (Math.random() - 0.5) * 74;
-    g.fillStyle = 'rgb(' + (v | 0) + ',' + (v | 0) + ',' + (v | 0) + ')';
-    g.fillRect(Math.random() * size, Math.random() * size, 1.4, 1.4);
+var RUNE_STROKES = [
+  [[0,-1,0,1],[-0.7,-0.35,0.7,-0.35],[-0.7,0.35,0.7,0.35]],
+  [[0,-1,0,1],[0,0,0.8,-0.8],[0,0,0.8,0.8]],
+  [[-0.7,-1,-0.7,1],[-0.7,-1,0.7,0],[-0.7,1,0.7,0]],
+  [[0,-1,0,1],[-0.75,-0.6,0.75,0.6]],
+  [[-0.7,1,0,-1],[0,-1,0.7,1],[-0.35,0,0.35,0]],
+  [[0,-1,-0.7,0],[-0.7,0,0,1],[0,1,0.7,0],[0.7,0,0,-1]]
+];
+function orbSurfaceCanvas(idx) {
+  var S = 256, c = document.createElement('canvas'); c.width = c.height = S;
+  var g = c.getContext('2d'), i;
+  g.fillStyle = '#ffffff'; g.fillRect(0, 0, S, S);
+  // soft marbling — light and dark pools
+  for (i = 0; i < 120; i++) {
+    var x = Math.random() * S, y = Math.random() * S, r = 10 + Math.random() * 46;
+    var v = Math.random() < 0.5 ? 176 : 238;
+    var rg = g.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, 'rgba(' + v + ',' + v + ',' + v + ',0.55)');
+    rg.addColorStop(1, 'rgba(' + v + ',' + v + ',' + v + ',0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+  }
+  // veining
+  g.strokeStyle = 'rgba(120,120,120,0.30)'; g.lineWidth = 2.2; g.lineCap = 'round';
+  for (i = 0; i < 14; i++) {
+    var px = Math.random() * S, py = Math.random() * S;
+    g.beginPath(); g.moveTo(px, py);
+    for (var k = 0; k < 5; k++) { px += (Math.random() - 0.5) * 70; py += (Math.random() - 0.5) * 70; g.lineTo(px, py); }
+    g.stroke();
+  }
+  // three carved runes, unique per colour: gives the eye something to track
+  var strokes = RUNE_STROKES[idx % RUNE_STROKES.length];
+  g.strokeStyle = 'rgba(64,64,64,0.85)'; g.lineWidth = 7; g.lineCap = 'round';
+  var spots = [[0.26, 0.34, 26], [0.68, 0.30, 22], [0.46, 0.72, 24]];
+  for (i = 0; i < spots.length; i++) {
+    var cx = spots[i][0] * S, cy = spots[i][1] * S, sc = spots[i][2];
+    for (var m = 0; m < strokes.length; m++) {
+      var t2 = strokes[m];
+      g.beginPath();
+      g.moveTo(cx + t2[0] * sc, cy + t2[1] * sc);
+      g.lineTo(cx + t2[2] * sc, cy + t2[3] * sc);
+      g.stroke();
+    }
   }
   return c;
 }
@@ -1003,9 +1134,9 @@ function buildEnvironment() {
   TEX.stone.encoding = THREE.sRGBEncoding;
   TEX.stone.wrapS = TEX.stone.wrapT = THREE.RepeatWrapping;
   TEX.glow = new THREE.CanvasTexture(glowSprite());
-  TEX.grain = new THREE.CanvasTexture(grainCanvas(256));
-  TEX.grain.wrapS = TEX.grain.wrapT = THREE.RepeatWrapping;
-  TEX.grain.repeat.set(3, 2);
+  TEX.rock = new THREE.CanvasTexture(stoneCanvas(512, '#a9a9a9', true));
+  TEX.rock.encoding = THREE.sRGBEncoding;
+  TEX.rock.wrapS = TEX.rock.wrapT = THREE.RepeatWrapping;
 }
 
 /* =====================================================================
@@ -1015,7 +1146,7 @@ function makePathPoints(kind, rng, aspect) {
   var pts = [];
   var turns, rOut, rIn, dir, phase, i, th, r, y, n;
   var sx = 1, sz = 1;
-  if (aspect < 0.85) { sx = 0.80; sz = 1.16; }        // portrait: taller wheel
+  if (aspect < 0.85) { sx = 0.72; sz = 1.22; }        // portrait: taller, narrower wheel
   else if (aspect > 1.5) { sx = 1.16; sz = 0.88; }    // landscape: wider wheel
 
   switch (kind) {
@@ -1058,6 +1189,47 @@ function disposeObject(obj) {
   });
 }
 
+/* Sweeps a cross-section profile along a curve. uv.x runs along the length
+   (scaled by uScale so a tiling texture repeats sensibly), uv.y across it. */
+function buildRibbon(curve, lanes, segs, uScale, useColor) {
+  var P = lanes.length, n = (segs + 1) * P;
+  var pos = new Float32Array(n * 3);
+  var uv = new Float32Array(n * 2);
+  var col = useColor ? new Float32Array(n * 3) : null;
+  var pt = new THREE.Vector3(), tan = new THREE.Vector3(), side = new THREE.Vector3();
+  var up = new THREE.Vector3(0, 1, 0), c = new THREE.Color();
+  var i, j, k, t;
+  for (i = 0; i <= segs; i++) {
+    t = i / segs;
+    curve.getPointAt(t, pt);
+    curve.getTangentAt(t, tan);
+    side.crossVectors(tan, up).normalize();
+    for (j = 0; j < P; j++) {
+      k = i * P + j;
+      pos[k * 3] = pt.x + side.x * lanes[j].w;
+      pos[k * 3 + 1] = pt.y + lanes[j].y;
+      pos[k * 3 + 2] = pt.z + side.z * lanes[j].w;
+      uv[k * 2] = t * uScale;
+      uv[k * 2 + 1] = j / (P - 1);
+      if (col) { c.setHex(lanes[j].c); col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b; }
+    }
+  }
+  var idx = [];
+  for (i = 0; i < segs; i++) {
+    for (j = 0; j < P - 1; j++) {
+      var a = i * P + j, b = a + 1, d = a + P, e = d + 1;
+      idx.push(a, d, b, b, d, e);
+    }
+  }
+  var g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  if (col) g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
 var Arena = {
   group: null, curve: null, len: 0, pit: null, gate: null,
   launcher: null, head: null, ring: null, muzzleOrb: null, nextOrb: null,
@@ -1084,6 +1256,13 @@ var Arena = {
       maxR = Math.max(maxR, Math.sqrt(p.x * p.x + p.z * p.z));
       fitPoints.push(p.clone());
     }
+    // coarse centreline samples, tagged with arc length, for gap-shot detection
+    this.samples = [];
+    var SN = 360;
+    for (i = 0; i <= SN; i++) {
+      var sp = curve.getPointAt(i / SN);
+      this.samples.push({ x: sp.x, z: sp.z, s: i / SN * this.len });
+    }
     this.radius = maxR;
 
     this.buildFloor(maxR);
@@ -1095,12 +1274,8 @@ var Arena = {
     this.buildLights();
     this.buildMotes(maxR);
 
-    // frame the wheel
-    fitPoints.push(new THREE.Vector3(0, 4.5, 0));
-    fitPoints.push(new THREE.Vector3(maxR + 2, 0, 0));
-    fitPoints.push(new THREE.Vector3(-maxR - 2, 0, 0));
-    fitPoints.push(new THREE.Vector3(0, 0, maxR + 2));
-    fitPoints.push(new THREE.Vector3(0, 0, -maxR - 2));
+    // frame the wheel itself — the pillar ring is meant to bleed off the edges
+    fitPoints.push(new THREE.Vector3(0, 4.0, 0));
     fitCamera();
   },
 
@@ -1129,21 +1304,39 @@ var Arena = {
   },
 
   buildTrack: function (curve) {
-    // carved channel
-    var chan = new THREE.TubeBufferGeometry(curve, 620, BALL_R * 1.5, 14, false);
-    var chanMat = new THREE.MeshStandardMaterial({
-      map: TEX.stone, color: 0x4a4258, roughness: 0.85, metalness: 0.12,
-      envMapIntensity: 0.5
-    });
-    var chanMesh = new THREE.Mesh(chan, chanMat);
-    chanMesh.position.y = -BALL_R * 1.05;
-    chanMesh.receiveShadow = quality === 'high';
-    this.group.add(chanMesh);
+    var len = this.len;
 
-    // rune line running the length of the track
-    var runeGeo = new THREE.TubeBufferGeometry(curve, 620, 0.075, 6, false);
+    // A profile swept along the curve: raised kerbs either side of a sunken
+    // groove. Far more legible than a tube at small sizes, because the light
+    // kerb / dark groove contrast survives any zoom level.
+    var LANES = [
+      { w: -1.62, y:  0.20, c: 0x4a4058 },   // outer skirt, blends into the floor
+      { w: -1.14, y:  0.38, c: 0xd6c9ea },   // kerb crest, catches the moonlight
+      { w: -0.88, y:  0.02, c: 0x6b5e82 },   // inner wall
+      { w: -0.62, y: -0.30, c: 0x2c2438 },   // groove floor
+      { w:  0.62, y: -0.30, c: 0x2c2438 },
+      { w:  0.88, y:  0.02, c: 0x6b5e82 },
+      { w:  1.14, y:  0.38, c: 0xd6c9ea },
+      { w:  1.62, y:  0.20, c: 0x4a4058 }
+    ];
+    var segs = quality === 'high' ? 700 : 460;
+    var geo = buildRibbon(curve, LANES, segs, len / 3.2, true);
+    var mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+      map: TEX.rock, vertexColors: true, roughness: 0.88, metalness: 0.06,
+      envMapIntensity: 0.4, side: THREE.DoubleSide
+    }));
+    mesh.receiveShadow = quality === 'high';
+    this.group.add(mesh);
+
+    // rune stripe down the centre of the groove
+    var STRIPE = [
+      { w: -0.17, y: -0.275, c: 0xffffff },
+      { w:  0.00, y: -0.255, c: 0xffffff },
+      { w:  0.17, y: -0.275, c: 0xffffff }
+    ];
     this.runeMat = new THREE.ShaderMaterial({
       transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+      side: THREE.DoubleSide,
       uniforms: { uTime: { value: 0 }, uHeat: { value: 0 } },
       vertexShader: [
         'varying vec2 vUv;',
@@ -1152,18 +1345,17 @@ var Arena = {
       fragmentShader: [
         'uniform float uTime; uniform float uHeat; varying vec2 vUv;',
         'void main(){',
-        '  float pulse = 0.55 + 0.45*sin(vUv.x*140.0 - uTime*2.4);',
+        '  float pulse = 0.55 + 0.45*sin(vUv.x*160.0 - uTime*2.4);',
         '  float travel = smoothstep(0.0,0.35,fract(vUv.x*3.0 - uTime*0.12));',
-        '  vec3 cold = vec3(0.85,0.66,0.28);',
-        '  vec3 hot  = vec3(1.0,0.35,0.12);',
-        '  vec3 col = mix(cold,hot,uHeat) * (0.5 + 0.9*pulse*travel);',
-        '  gl_FragColor = vec4(col, 0.85);',
+        '  float edge = 1.0 - abs(vUv.y*2.0 - 1.0);',
+        '  vec3 cold = vec3(0.90,0.70,0.30);',
+        '  vec3 hot  = vec3(1.0,0.34,0.10);',
+        '  vec3 col = mix(cold,hot,uHeat) * (0.55 + 0.95*pulse*travel);',
+        '  gl_FragColor = vec4(col, 0.9*edge);',
         '}'
       ].join('\n')
     });
-    var runeMesh = new THREE.Mesh(runeGeo, this.runeMat);
-    runeMesh.position.y = -BALL_R * 1.05 + 0.02;
-    this.group.add(runeMesh);
+    this.group.add(new THREE.Mesh(buildRibbon(curve, STRIPE, segs, 1, false), this.runeMat));
   },
 
   buildPit: function (curve) {
@@ -1443,9 +1635,11 @@ var Arena = {
 /* =====================================================================
    ORB MESHES + POOL
    ===================================================================== */
-var orbGeo = null;
+var orbGeo = null, relicGeo = null, relicRingGeo = null;
 function initOrbGeos() {
-  orbGeo = new THREE.SphereBufferGeometry(BALL_R, quality === 'high' ? 32 : 20, quality === 'high' ? 24 : 14);
+  orbGeo = new THREE.SphereBufferGeometry(BALL_R, quality === 'high' ? 32 : 26, quality === 'high' ? 24 : 20);
+  relicGeo = new THREE.OctahedronBufferGeometry(0.6, 0);
+  relicRingGeo = new THREE.TorusBufferGeometry(1.0, 0.07, 8, 26);
 }
 var orbMats = [];
 function orbMaterial(ci) {
@@ -1459,7 +1653,13 @@ function orbMaterial(ci) {
       emissive: c.hex,
       emissiveIntensity: c.em === undefined ? 0.13 : c.em
     });
-    if (quality === 'high') { m.bumpMap = TEX.grain; m.bumpScale = 0.009; }
+    if (!TEX.orb) TEX.orb = [];
+    if (!TEX.orb[ci]) {
+      TEX.orb[ci] = new THREE.CanvasTexture(orbSurfaceCanvas(ci));
+      TEX.orb[ci].encoding = THREE.sRGBEncoding;
+    }
+    m.map = TEX.orb[ci];
+    if (quality === 'high') { m.bumpMap = TEX.orb[ci]; m.bumpScale = 0.014; }
 
     // soft rim light in the orb's own colour: gives a matte sphere its form
     // without adding a specular hotspot
@@ -1593,7 +1793,7 @@ var Particles = {
 var camBasis = { u: new THREE.Vector3(), v: new THREE.Vector3(), f: new THREE.Vector3() };
 function fitCamera() {
   var aspect = window.innerWidth / window.innerHeight;
-  camPitch = aspect < 0.9 ? 1.10 : (aspect > 1.7 ? 0.82 : 0.94);
+  camPitch = aspect < 0.9 ? 1.16 : (aspect > 1.7 ? 0.82 : 0.94);
   var dir = new THREE.Vector3(0, Math.sin(camPitch), Math.cos(camPitch)).normalize();
 
   camera.aspect = aspect;
@@ -1614,7 +1814,7 @@ function fitCamera() {
     var c = tmp.dot(camBasis.f);
     D = Math.max(D, a / tanH - c, b / tanV - c);
   }
-  D *= aspect < 0.9 ? 1.14 : 1.08;
+  D *= aspect < 0.9 ? 1.03 : 1.05;
   D = clamp(D, 24, 190);
   camera.position.copy(camTarget).addScaledVector(dir, D);
   camera.lookAt(camTarget);
@@ -1625,7 +1825,7 @@ function fitCamera() {
 function onResize() {
   var w = window.innerWidth, h = window.innerHeight;
   renderer.setSize(w, h);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === 'high' ? 2 : 1.4));
+  renderer.setPixelRatio(pixelCap());
   if (composer) composer.setSize(w, h);
   if (bloomPass) bloomPass.setSize(w, h);
   camera.aspect = w / h;
@@ -1642,8 +1842,40 @@ var G = {
   hold: 0, combo: 0, comboTimer: 0, shotCd: 0,
   cur: 0, next: 0, projectiles: [],
   aim: new THREE.Vector3(0, PATH_Y, 1), aimAngle: 0,
+  pickups: [], freeze: 0, reverseLeft: 0, streak: 0,
   danger: false, over: false, bag: [], time: 0, shake: 0
 };
+
+function multiplier() {
+  return 1 + 0.45 * clamp(G.combo - 1, 0, 5) + 0.2 * Math.min(G.streak, 10);
+}
+
+/* ---- star ratings, stored per level ---- */
+function getStars() {
+  try { return JSON.parse(Store.get('rf_stars', '{}')) || {}; } catch (e) { return {}; }
+}
+function setStars(lv, n) {
+  var m = getStars();
+  if (!m[lv] || m[lv] < n) { m[lv] = n; Store.set('rf_stars', JSON.stringify(m)); }
+}
+function totalStars() {
+  var m = getStars(), s = 0, k;
+  for (k in m) if (m.hasOwnProperty(k)) s += m[k];
+  return s;
+}
+function starsFor(lv, play) {
+  var cfg = levelConfig(lv);
+  if (play >= cfg.total * 16) return 3;
+  if (play >= cfg.total * 10) return 2;
+  return 1;
+}
+function renderStars(el, n) {
+  var kids = el.children;
+  for (var i = 0; i < kids.length; i++) {
+    kids[i].classList.remove('on');
+    if (i < n) { void kids[i].offsetWidth; kids[i].classList.add('on'); }
+  }
+}
 
 function levelConfig(n) {
   return {
@@ -1675,7 +1907,10 @@ function startLevel(n) {
   G.balls = [];
   G.projectiles.forEach(function (p) { releaseOrb(p.mesh); });
   G.projectiles = [];
+  while (G.pickups.length) killRelic(0);
   G.hold = 0; G.combo = 0; G.comboTimer = 0; G.shotCd = 0; G.danger = false; G.over = false;
+  G.freeze = 0; G.reverseLeft = 0; G.streak = 0;
+  $('frost').style.opacity = '0';
   G.bag = buildBag(cfg);
   Arena.build(cfg);
   G.cur = randColor(); G.next = randColor();
@@ -1715,14 +1950,15 @@ function randColor() {
 function spawnBall() {
   var color = G.bag.pop();
   if (color === undefined) color = Math.floor(Math.random() * G.colorCount);
-  var b = { color: color, dist: 0, off: 0, entry: null, mesh: acquireOrb(color) };
+  var b = { color: color, dist: 0, off: 0, rd: null, entry: null, mesh: acquireOrb(color) };
   if (G.balls.length) b.dist = G.balls[G.balls.length - 1].dist - GAP;
   G.balls.push(b);
   G.toSpawn--;
   return b;
 }
 
-var _pp = new THREE.Vector3();
+var _pp = new THREE.Vector3(), _rt = new THREE.Vector3(), _rs = new THREE.Vector3();
+var _up = new THREE.Vector3(0, 1, 0), _q = new THREE.Quaternion();
 function placeBall(b, dt) {
   var d = b.dist + b.off;
   if (d < 0 && !b.entry) { b.mesh.visible = false; return; }
@@ -1749,8 +1985,18 @@ function placeBall(b, dt) {
   } else {
     b.mesh.position.copy(_pp);
   }
-  b.mesh.rotation.y += 0.02;
-  b.mesh.rotation.x += 0.013;
+
+  // roll: angular velocity is (travel direction x up) / radius, so the contact
+  // patch stays still against the groove instead of the orb skidding
+  if (b.rd === null) b.rd = d;
+  var ds = d - b.rd;
+  b.rd = d;
+  if (ds !== 0) {
+    Arena.curve.getTangentAt(u, _rt);
+    _rs.crossVectors(_up, _rt).normalize();
+    _q.setFromAxisAngle(_rs, ds / BALL_R);
+    b.mesh.quaternion.premultiply(_q);
+  }
 }
 
 function resolveMatches(anchor, chained) {
@@ -1763,7 +2009,7 @@ function resolveMatches(anchor, chained) {
   var count = j - i + 1;
   if (count < 3) return 0;
 
-  G.combo++; G.comboTimer = 2.6;
+  G.combo++; G.comboTimer = 3.0;
   var mid = b[Math.floor((i + j) / 2)].mesh.position.clone();
   for (var k = i; k <= j; k++) {
     var ball = b[k];
@@ -1772,7 +2018,7 @@ function resolveMatches(anchor, chained) {
   }
   b.splice(i, count);
 
-  var gain = Math.round(10 * count * (1 + (G.combo - 1) * 0.55));
+  var gain = Math.round(10 * count * multiplier());
   G.score += gain; G.levelScore += gain;
   $('hudScore').textContent = G.score;
   popText(mid, '+' + gain);
@@ -1780,16 +2026,20 @@ function resolveMatches(anchor, chained) {
   G.shake = Math.min(1, 0.35 + count * 0.06);
 
   if (chained || G.combo > 1) {
-    showCombo((chained ? t('combo.chain') : '') + (G.combo > 1 ? '  ×' + G.combo : ''));
+    showCombo((chained ? t('combo.chain') : '') + '  ×' + multiplier().toFixed(1));
     Snd.chain(G.combo);
   }
   Snd.match(count, G.combo);
+
+  // a big break shakes a relic loose
+  var dropOdds = count >= 5 ? 1 : (count === 4 ? 0.35 : 0.10);
+  if (Math.random() < dropOdds) dropRelic(mid);
   return count;
 }
 
 function insertBall(idx, color, dist, fromPos) {
   var b = G.balls;
-  var nb = { color: color, dist: dist, off: 0, entry: null, mesh: acquireOrb(color) };
+  var nb = { color: color, dist: dist, off: 0, rd: null, entry: null, mesh: acquireOrb(color) };
   b.splice(idx, 0, nb);
   if (idx > 0) {
     var maxD = b[idx - 1].dist - GAP;
@@ -1825,14 +2075,22 @@ function updateChain(dt) {
   }
   groups.push([s, b.length - 1]);
 
+  // recoil drives the whole line backwards without disturbing its spacing
+  if (G.reverseLeft > 0) {
+    var back = Math.min(G.reverseLeft, 16 * dt);
+    for (i = 0; i < b.length; i++) b[i].dist -= back;
+    G.reverseLeft -= back;
+  }
+
   var spawning = G.toSpawn > 0;
   var base = G.speed * (spawning ? 1 : 1.4);
+  var stalled = G.hold > 0 || G.freeze > 0 || G.reverseLeft > 0;
   var merged = null;
 
   for (var gi = 0; gi < groups.length; gi++) {
     var a = groups[gi][0], z = groups[gi][1], move = 0;
     if (gi === 0) {
-      move = G.hold > 0 ? 0 : base * dt;
+      move = stalled ? 0 : base * dt;
     } else {
       var prevEnd = groups[gi - 1][1];
       var gap = b[prevEnd].dist - b[a].dist - GAP;
@@ -1875,6 +2133,98 @@ function updateChain(dt) {
   if (b[0].dist >= Arena.len) lose();
 }
 
+/* ---------- relics ---------- */
+function dropRelic(pos) {
+  if (G.pickups.length >= 3) return;
+  var type = POWERS[Math.floor(Math.random() * POWERS.length)];
+  var col = POWER_COLOR[type];
+  var g = new THREE.Group();
+
+  var core = new THREE.Mesh(relicGeo, new THREE.MeshStandardMaterial({
+    color: col, emissive: col, emissiveIntensity: 0.85, roughness: 0.28, metalness: 0.5
+  }));
+  g.add(core);
+  var ring = new THREE.Mesh(relicRingGeo, new THREE.MeshBasicMaterial({ color: col }));
+  ring.rotation.x = -Math.PI / 2; g.add(ring);
+  var halo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: TEX.glow, color: col, blending: THREE.AdditiveBlending,
+    depthWrite: false, transparent: true, opacity: 0.8
+  }));
+  halo.scale.set(3.6, 3.6, 1); g.add(halo);
+
+  // nudge it off the track, toward the open floor, so it is clearly shootable
+  var r = Math.sqrt(pos.x * pos.x + pos.z * pos.z) || 1;
+  var nr = clamp(r - 3.0, 4.6, Arena.radius + 2);
+  g.position.set(pos.x / r * nr, 2.2, pos.z / r * nr);
+  scene.add(g);
+
+  G.pickups.push({ type: type, mesh: g, core: core, ring: ring, halo: halo, life: 11, t: Math.random() * 6 });
+}
+
+function killRelic(i) {
+  var pk = G.pickups[i];
+  scene.remove(pk.mesh);
+  pk.core.material.dispose(); pk.ring.material.dispose(); pk.halo.material.dispose();
+  G.pickups.splice(i, 1);
+}
+
+function updateRelics(dt) {
+  for (var i = G.pickups.length - 1; i >= 0; i--) {
+    var pk = G.pickups[i];
+    pk.life -= dt; pk.t += dt;
+    pk.mesh.position.y = 2.2 + Math.sin(pk.t * 2.2) * 0.24;
+    pk.core.rotation.y += dt * 1.9; pk.core.rotation.x += dt * 1.1;
+    pk.ring.rotation.z += dt * 1.5;
+    var f = pk.life < 2 ? clamp(pk.life / 2, 0, 1) : 1;
+    pk.halo.material.opacity = 0.8 * f * (0.7 + 0.3 * Math.sin(pk.t * 6));
+    pk.mesh.scale.setScalar(f);
+    if (pk.life <= 0) killRelic(i);
+  }
+}
+
+/* remove an arbitrary set of chain indices (ascending) and pay for them */
+function removeSet(list, pos, count3) {
+  if (!list.length) return 0;
+  G.combo++; G.comboTimer = 3.0;
+  var gain = Math.round(12 * list.length * multiplier());
+  for (var k = list.length - 1; k >= 0; k--) {
+    var b = G.balls[list[k]];
+    Particles.burst(b.mesh.position, ORB_COLORS[b.color].hex, quality === 'high' ? 20 : 11, 6);
+    releaseOrb(b.mesh);
+    G.balls.splice(list[k], 1);
+  }
+  G.score += gain; G.levelScore += gain;
+  $('hudScore').textContent = G.score;
+  popText(pos, '+' + gain);
+  G.hold = 0.3;
+  Snd.match(Math.min(list.length, 6), G.combo);
+  void count3;
+  return list.length;
+}
+
+function applyPower(type, pos, projColor) {
+  Snd.power(type);
+  popText(pos, t('fx.' + type));
+  var i, list = [];
+  if (type === 'frost') {
+    G.freeze = 4.5;
+  } else if (type === 'reverse') {
+    G.reverseLeft = 10;
+    G.shake = Math.max(G.shake, 0.5);
+  } else if (type === 'bomb') {
+    for (i = 0; i < G.balls.length; i++) {
+      if (G.balls[i].dist >= 0 && G.balls[i].mesh.position.distanceTo(pos) < 4.4) list.push(i);
+    }
+    Particles.burst(pos, 0xff7a2b, quality === 'high' ? 60 : 30, 11);
+    removeSet(list, pos, 0);
+    G.shake = 1.1;
+  } else if (type === 'cull') {
+    for (i = 0; i < G.balls.length; i++) if (G.balls[i].color === projColor) list.push(i);
+    removeSet(list, pos, 0);
+    G.shake = Math.max(G.shake, 0.6);
+  }
+}
+
 /* ---------- shooting ---------- */
 function shoot() {
   if (G.state !== 'play' || G.shotCd > 0) return;
@@ -1883,7 +2233,7 @@ function shoot() {
   var p = {
     color: G.cur,
     pos: Arena.launchPos.clone().addScaledVector(dir, 2.2),
-    dir: dir, mesh: acquireOrb(G.cur), life: 3.4
+    dir: dir, mesh: acquireOrb(G.cur), life: 3.4, gap: false
   };
   p.mesh.position.copy(p.pos);
   G.projectiles.push(p);
@@ -1909,24 +2259,69 @@ function updateProjectiles(dt) {
   var speed = 30;
   for (var pi = G.projectiles.length - 1; pi >= 0; pi--) {
     var p = G.projectiles[pi];
-    var remaining = speed * dt, hit = -1;
+    var remaining = speed * dt, hit = -1, pick = -1;
     var steps = Math.ceil(remaining / (BALL_R * 0.7));
     var stepLen = remaining / steps;
-    for (var s = 0; s < steps && hit < 0; s++) {
+    var i, s;
+
+    for (s = 0; s < steps && hit < 0 && pick < 0; s++) {
       p.pos.addScaledVector(p.dir, stepLen);
+
+      // relics are collected before orbs
+      for (i = 0; i < G.pickups.length; i++) {
+        var pk = G.pickups[i];
+        var px = pk.mesh.position.x - p.pos.x, pz = pk.mesh.position.z - p.pos.z;
+        if (px * px + pz * pz < 2.25) { pick = i; break; }
+      }
+      if (pick >= 0) break;
+
       var bestD = Infinity;
-      for (var i = 0; i < G.balls.length; i++) {
+      for (i = 0; i < G.balls.length; i++) {
         var b = G.balls[i];
         if (b.dist < 0) continue;
         var dx = b.mesh.position.x - p.pos.x, dz = b.mesh.position.z - p.pos.z;
         var d2 = dx * dx + dz * dz;
         if (d2 < (GAP * 0.94) * (GAP * 0.94) && d2 < bestD) { bestD = d2; hit = i; }
       }
+
+      // did it thread an actual gap in the line? only counts inside the span the
+      // chain occupies, so crossing empty stretches of track is not a gap shot
+      if (hit < 0 && !p.gap && G.balls.length > 1) {
+        var sm = Arena.samples, bs = -1, bd = Infinity;
+        for (i = 0; i < sm.length; i++) {
+          var sx = sm[i].x - p.pos.x, sz = sm[i].z - p.pos.z;
+          var sd2 = sx * sx + sz * sz;
+          if (sd2 < bd) { bd = sd2; bs = i; }
+        }
+        if (bd < 1.44) {
+          var arc = sm[bs].s;
+          if (arc < G.balls[0].dist && arc > G.balls[G.balls.length - 1].dist) {
+            var near = false;
+            for (i = 0; i < G.balls.length; i++) {
+              if (Math.abs(G.balls[i].dist - arc) < GAP * 0.85) { near = true; break; }
+            }
+            if (!near) p.gap = true;
+          }
+        }
+      }
     }
+
     p.life -= dt;
     p.pos.y += (PATH_Y + BALL_LIFT - p.pos.y) * Math.min(1, dt * 12);
     p.mesh.position.copy(p.pos);
-    p.mesh.userData.core.rotation.y += 0.25;
+    _rs.crossVectors(_up, p.dir).normalize();
+    _q.setFromAxisAngle(_rs, (speed * dt) / BALL_R);
+    p.mesh.quaternion.premultiply(_q);
+
+    if (pick >= 0) {
+      var type = G.pickups[pick].type;
+      var at = G.pickups[pick].mesh.position.clone();
+      killRelic(pick);
+      applyPower(type, at, p.color);
+      releaseOrb(p.mesh);
+      G.projectiles.splice(pi, 1);
+      continue;
+    }
 
     if (hit >= 0) {
       var target = G.balls[hit];
@@ -1939,16 +2334,30 @@ function updateProjectiles(dt) {
       else { idx = hit + 1; d = target.dist - GAP; }
       var nb = insertBall(idx, p.color, d, p.pos);
       placeBall(nb, dt);
+      var wasGap = p.gap;
       releaseOrb(p.mesh);
       G.projectiles.splice(pi, 1);
       var got = resolveMatches(idx, false);
-      if (!got) { Snd.land(); G.combo = 0; }
+      if (got) {
+        G.streak++;
+        if (wasGap) {
+          var bonus = Math.round(120 * multiplier());
+          G.score += bonus; G.levelScore += bonus;
+          $('hudScore').textContent = G.score;
+          popText(nb.mesh.position, t('fx.gap') + ' +' + bonus);
+          Snd.gap();
+        }
+      } else {
+        Snd.land(); G.combo = 0; G.streak = 0;
+      }
       continue;
     }
+
     var rr = Math.sqrt(p.pos.x * p.pos.x + p.pos.z * p.pos.z);
     if (p.life <= 0 || rr > Arena.radius + 10) {
       releaseOrb(p.mesh);
       G.projectiles.splice(pi, 1);
+      G.streak = 0;              // a shot into the void breaks the streak, nothing more
     }
   }
 }
@@ -1957,6 +2366,10 @@ function updateProjectiles(dt) {
 function win() {
   if (G.state !== 'play') return;
   G.state = 'win';
+  var play = G.levelScore;
+  var st = starsFor(G.level, play);
+  setStars(G.level, st);
+  renderStars($('winStars'), st);
   var bonus = 250 + G.level * 100;
   G.score += bonus; G.levelScore += bonus;
   $('winGain').textContent = G.levelScore;
@@ -1985,6 +2398,26 @@ function lose() {
 /* =====================================================================
    HUD helpers
    ===================================================================== */
+var _streakDots = 0;
+function updateMultiHud() {
+  var el = $('hudMulti');
+  if (G.combo > 0 || G.streak > 0) {
+    el.classList.add('on');
+    $('multiVal').textContent = '\u00d7' + multiplier().toFixed(1);
+    $('multiBar').style.transform = 'scaleX(' + clamp(G.comboTimer / 3.0, 0, 1) + ')';
+    var n = Math.min(G.streak, 10);
+    if (n !== _streakDots) {
+      _streakDots = n;
+      var html = '';
+      for (var i = 0; i < 10; i++) html += '<span class="' + (i < n ? 'lit' : '') + '"></span>';
+      $('multiStreak').innerHTML = html;
+    }
+  } else {
+    el.classList.remove('on');
+    _streakDots = -1;
+  }
+}
+
 function setBar(v) { $('hudBar').style.transform = 'scaleX(' + clamp(v, 0, 1) + ')'; }
 function updateHudOrbs() {
   $('orbCur').style.color = ORB_COLORS[G.cur].css;
@@ -2111,6 +2544,7 @@ function bindUI() {
   var savedLevel = parseInt(Store.get('rf_level', '1'), 10) || 1;
   $('btnContinue').disabled = savedLevel <= 1;
   $('menuBest').textContent = Store.get('rf_best', '1');
+  $('menuStars').textContent = totalStars();
 
   $('btnPlay').onclick = function () { Snd.resume(); Snd.ui(); G.score = 0; hideAll(); startLevel(1); Snd.startMusic(); };
   $('btnContinue').onclick = function () {
@@ -2136,9 +2570,10 @@ function bindUI() {
 
   $('btnReset').onclick = function () {
     Snd.ui();
-    Store.set('rf_level', '1'); Store.set('rf_best', '1');
+    Store.set('rf_level', '1'); Store.set('rf_best', '1'); Store.set('rf_stars', '{}');
     $('btnContinue').disabled = true;
     $('menuBest').textContent = '1';
+    $('menuStars').textContent = '0';
   };
 
   // segmented controls
@@ -2170,8 +2605,8 @@ function bindUI() {
   seg('segSfx', function () { return Snd.sfx ? 1 : 0; }, function (v) { Snd.setSfx(v === '1'); });
   seg('segQual', function () { return quality; }, function (v) {
     quality = v; Store.set('rf_qual', v);
-    if (bloomPass) bloomPass.strength = v === 'high' ? 0.7 : 0.5;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, v === 'high' ? 2 : 1.4));
+    if (bloomPass) bloomPass.strength = v === 'high' ? 0.7 : 0.6;
+    renderer.setPixelRatio(pixelCap());
     renderer.shadowMap.enabled = v === 'high';
     onResize();
   });
@@ -2182,9 +2617,11 @@ function quitToMenu() {
   G.state = 'menu';
   G.balls.forEach(function (b) { releaseOrb(b.mesh); }); G.balls = [];
   G.projectiles.forEach(function (p) { releaseOrb(p.mesh); }); G.projectiles = [];
-  $('danger').style.opacity = '0';
+  while (G.pickups.length) killRelic(0);
+  $('danger').style.opacity = '0'; $('frost').style.opacity = '0';
   $('btnContinue').disabled = (parseInt(Store.get('rf_level', '1'), 10) || 1) <= 1;
   $('menuBest').textContent = Store.get('rf_best', '1');
+  $('menuStars').textContent = totalStars();
   show('scrMenu');
 }
 
@@ -2241,8 +2678,12 @@ function animate() {
     G.hold = Math.max(0, G.hold - dt);
     G.shotCd = Math.max(0, G.shotCd - dt);
     if (G.comboTimer > 0) { G.comboTimer -= dt; if (G.comboTimer <= 0) G.combo = 0; }
+    if (G.freeze > 0) G.freeze = Math.max(0, G.freeze - dt);
+    $('frost').style.opacity = G.freeze > 0 ? '1' : '0';
     updateChain(dt);
     updateProjectiles(dt);
+    updateRelics(dt);
+    updateMultiHud();
     var cfg = levelConfig(G.level);
     setBar((G.toSpawn + G.balls.length) / cfg.total);
     if (G.toSpawn <= 0 && G.balls.length === 0 && G.projectiles.length === 0) win();
