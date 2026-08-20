@@ -153,25 +153,6 @@ nav.tabs{ display:flex; gap:4px; }
 .icon-btn.on{ color:var(--accent); }
 .icon-btn svg{ width:18px; height:18px; }
 
-#search-inline{
-  display:flex; align-items:center; gap:8px;
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:100px;
-  padding:0 12px;
-  height:36px;
-  width:220px;
-  transition:width .3s var(--ease), border-color .2s var(--ease);
-}
-#search-inline:focus-within{ border-color:var(--accent-line); width:280px; }
-#search-inline svg{ width:14px; height:14px; color:var(--text-faint); flex:0 0 auto; }
-#search-inline input{
-  background:none; border:none; color:var(--text);
-  font-family:var(--font-mono); font-size:12.5px;
-  width:100%; height:100%;
-}
-#search-inline input::placeholder{ color:var(--text-faint); }
-
 #main{
   flex:1 1 auto;
   position:relative;
@@ -348,9 +329,6 @@ nav.tabs{ display:flex; gap:4px; }
 .track-row .row-btn.fav.on{ color:var(--accent-4); }
 .track-row .row-btn svg{ width:14px; height:14px; }
 
-#view-search .results-group{ margin-bottom:20px; }
-#view-search .results-group h4{ font-size:10.5px; letter-spacing:.1em; color:var(--text-faint); margin:0 0 8px 4px; }
-
 #queue-drawer{
   position:absolute; top:0; right:0; bottom:0;
   width:320px; max-width:88vw;
@@ -502,32 +480,17 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
 
 .panel-wrap{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; min-height:0; }
 
-#btn-more{ display:none; }
-#more-menu{
-  display:none; position:fixed; top:calc(var(--topbar-h) + 8px); right:12px; z-index:90;
-  background:rgba(18,18,21,.96); backdrop-filter:blur(18px);
-  border:1px solid var(--line-soft); border-radius:12px; padding:6px;
-  min-width:210px; box-shadow:0 12px 32px rgba(0,0,0,.5);
-  flex-direction:column; gap:2px;
-}
-#more-menu.open{ display:flex; }
-.more-menu-item{
-  display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:8px;
-  font-size:12.5px; color:var(--text-dim); text-align:left; width:100%;
-}
-.more-menu-item svg{ width:16px; height:16px; flex:0 0 auto; }
-.more-menu-item:hover, .more-menu-item:active{ background:var(--line-soft); color:var(--text); }
-
 @media (max-width:899px){
-  #search-inline{ width:150px; flex:0 0 auto; }
-  #search-inline:focus-within{ width:190px; }
   .brand small{ display:none; }
-  #topbar{ gap:6px; padding:0 10px; }
-  #btn-queue, #btn-help, #btn-tv, #btn-settings{ display:none; }
-  #btn-more{ display:flex; }
-  .topbar-spacer{ flex:0 0 8px; }
-  .icon-btn{ width:34px; height:34px; }
-  .tab-btn{ padding:7px 10px; font-size:11px; }
+  .brand{ font-size:11px; letter-spacing:.06em; gap:6px; }
+  #topbar{
+    gap:5px; padding:0 10px;
+    overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
+  }
+  #topbar::-webkit-scrollbar{ display:none; }
+  .topbar-spacer{ flex:0 0 6px; }
+  .icon-btn{ width:32px; height:32px; flex:0 0 auto; }
+  .tab-btn{ padding:6px 9px; font-size:10.5px; flex:0 0 auto; }
   #content{ padding:12px; }
   .album-grid{ grid-template-columns:repeat(auto-fill, minmax(128px,1fr)); gap:11px; }
 
@@ -574,10 +537,6 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
       <button class="tab-btn" data-view="favorites">Favorites</button>
     </nav>
     <div class="topbar-spacer"></div>
-    <div id="search-inline">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input id="search-input" type="text" placeholder="Search tracks or albums…" autocomplete="off">
-    </div>
     <button class="icon-btn" id="btn-queue" title="Queue">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
     </button>
@@ -590,25 +549,7 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
     <button class="icon-btn" id="btn-settings" title="Appearance & visualizer">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06A1.65 1.65 0 0 0 8.92 4.7h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
-    <button class="icon-btn" id="btn-more" title="More">
-      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
-    </button>
   </header>
-
-  <div id="more-menu">
-    <button class="more-menu-item" data-proxy="btn-queue">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Queue
-    </button>
-    <button class="more-menu-item" data-proxy="btn-help">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.9.4-1.4 1-1.4 2.1"/><circle cx="12" cy="17" r=".4" fill="currentColor"/></svg>Keyboard shortcuts
-    </button>
-    <button class="more-menu-item" data-proxy="btn-tv">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M9 21h6"/></svg>Visual mode (TV)
-    </button>
-    <button class="more-menu-item" data-proxy="btn-settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06A1.65 1.65 0 0 0 8.92 4.7h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Appearance & visualizer
-    </button>
-  </div>
 
   <div id="main">
     <div id="viz-layer">
@@ -665,11 +606,6 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
           </div>
         </div>
         <div class="scroll-area" id="album-tracklist"></div>
-      </section>
-
-      <section class="view" id="view-search">
-        <div class="view-head"><h2>Search results</h2><span class="count" id="search-count">—</span></div>
-        <div class="scroll-area" id="search-results"></div>
       </section>
 
     </div>
@@ -745,7 +681,6 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
       <div class="kbd-row"><span>Repeat</span><kbd>R</kbd></div>
       <div class="kbd-row"><span>Visualizer mode</span><kbd>V</kbd></div>
       <div class="kbd-row"><span>Fullscreen</span><kbd>F11</kbd></div>
-      <div class="kbd-row"><span>Search</span><kbd>/</kbd></div>
       <div class="kbd-row"><span>Queue</span><kbd>Q</kbd></div>
       <div class="kbd-row"><span>Close / back</span><kbd>Esc</kbd></div>
     </div>
@@ -1468,6 +1403,14 @@ const AudioEngine = (function(){
     active = otherTag;
     currentTrack = track;
     emit("trackchange", track);
+    // Manual skips (Player.next/prev) already advance Queue's cursor
+    // before calling crossfadeTo. An auto-triggered crossfade (the
+    // natural "track just ended" progression) is the one path that
+    // never did — leaving the cursor one step behind the audio that's
+    // actually playing. The next auto-crossfade would then peek the
+    // *current* track as "next" and crossfade into itself, which is
+    // exactly the "same track restarts" bug.
+    if (isAuto) Queue.advance();
 
     setTimeout(() => {
       try { oldEl.pause(); } catch(err){}
@@ -2280,12 +2223,10 @@ const UI = {
   init(){
     this.bindTabs();
     this.bindPlayerControls();
-    this.bindSearch();
     this.bindQueueDrawer();
     this.bindHelp();
     this.bindSettings();
     this.bindTV();
-    this.bindMoreMenu();
     this.bindKeyboard();
     this.bindResize();
     this.syncVolumeUI();
@@ -2312,8 +2253,9 @@ const UI = {
     $$(".tab-btn").forEach(b => b.addEventListener("click", () => {
       this.showView(b.dataset.view);
       if (b.dataset.view === "favorites") this.renderFavorites();
+      else if (b.dataset.view === "library") this.renderLibrary();
     }));
-    $("#brand-home").addEventListener("click", () => this.showView("library"));
+    $("#brand-home").addEventListener("click", () => { this.showView("library"); this.renderLibrary(); });
   },
 
   renderLibrary(){
@@ -2474,53 +2416,6 @@ const UI = {
   },
   onFavoritesChanged(){
     if (this.currentView === "favorites") this.renderFavorites();
-  },
-
-  bindSearch(){
-    const input = $("#search-input");
-    let t = null;
-    input.addEventListener("input", () => {
-      clearTimeout(t);
-      t = setTimeout(() => this.runSearch(input.value), 90);
-    });
-    input.addEventListener("focus", () => { if (input.value.trim()) this.showView("search"); });
-  },
-  runSearch(q){
-    if (!q.trim()){ if (this.currentView === "search") this.showView("library"); return; }
-    this.showView("search");
-    const { albums, tracks } = Library.search(q);
-    $("#search-count").textContent = (albums.length + tracks.length) + " results";
-    const wrap = $("#search-results");
-    wrap.innerHTML = "";
-    if (!albums.length && !tracks.length){
-      const empty = document.createElement("div");
-      empty.className = "empty-state";
-      empty.innerHTML = `<div class="glyph">∅</div><h3>No results for "${escapeHtml(q)}"</h3><p>Try a different album or track name.</p>`;
-      wrap.appendChild(empty);
-      return;
-    }
-    if (albums.length){
-      const g = document.createElement("div"); g.className = "results-group";
-      g.innerHTML = `<h4>ALBUMS</h4>`;
-      const grid = document.createElement("div"); grid.className = "album-grid";
-      albums.forEach(album => {
-        const card = document.createElement("div");
-        card.className = "album-card";
-        const art = document.createElement("div"); art.className = "album-art"; art.appendChild(artworkElement(album, 220));
-        const meta = document.createElement("div"); meta.className = "album-meta";
-        meta.innerHTML = `<div class="t">${escapeHtml(album.title)}</div><div class="n">${album.tracks.length} tracks</div>`;
-        card.appendChild(art); card.appendChild(meta);
-        card.addEventListener("click", () => this.openAlbum(album));
-        grid.appendChild(card);
-      });
-      g.appendChild(grid); wrap.appendChild(g);
-    }
-    if (tracks.length){
-      const g = document.createElement("div"); g.className = "results-group";
-      g.innerHTML = `<h4>TRACKS</h4>`;
-      tracks.forEach(track => g.appendChild(this.buildTrackRow(track, tracks, { type:"search" })));
-      wrap.appendChild(g);
-    }
   },
 
   bindQueueDrawer(){
@@ -2727,26 +2622,6 @@ const UI = {
       this.syncVizSwitch();
     }));
   },
-
-  bindMoreMenu(){
-    const btn = $("#btn-more"), menu = $("#more-menu");
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      menu.classList.toggle("open");
-    });
-    $$(".more-menu-item").forEach(item => {
-      item.addEventListener("click", () => {
-        menu.classList.remove("open");
-        const target = $("#" + item.dataset.proxy);
-        if (target) target.click(); // reuse the exact same handler as the desktop icon
-      });
-    });
-    document.addEventListener("click", (e) => {
-      if (menu.classList.contains("open") && !menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)){
-        menu.classList.remove("open");
-      }
-    });
-  },
   toggleTVMode(){
     const app = $("#app");
     app.classList.toggle("tv-mode");
@@ -2781,14 +2656,12 @@ const UI = {
         case "f": case "F": { const t = AudioEngine.getCurrentTrack(); if (t){ Favorites.toggle(t); this.syncNowPlayingFav(); this.refreshFavButtons(t); } break; }
         case "v": case "V": { const modes=["spectrum","orbit","waves","cosmos","kaleido","fractal","minimal"]; const i=(modes.indexOf(Visualizer.getMode())+1)%modes.length; Visualizer.setMode(modes[i]); this.syncVizSwitch(); break; }
         case "q": case "Q": $("#queue-drawer").classList.toggle("open"); break;
-        case "/": e.preventDefault(); $("#search-input").focus(); break;
         case "Escape":
-          if ($("#more-menu").classList.contains("open")) $("#more-menu").classList.remove("open");
-          else if ($("#help-modal").classList.contains("open")) $("#help-modal").classList.remove("open");
+          if ($("#help-modal").classList.contains("open")) $("#help-modal").classList.remove("open");
           else if ($("#settings-modal").classList.contains("open")) $("#settings-modal").classList.remove("open");
           else if ($("#queue-drawer").classList.contains("open")) $("#queue-drawer").classList.remove("open");
           else if ($("#app").classList.contains("tv-mode")) $("#app").classList.remove("tv-mode");
-          else if (this.currentView === "album" || this.currentView === "search") this.showView("library");
+          else if (this.currentView === "album") this.showView("library");
           break;
       }
     });
