@@ -123,10 +123,55 @@ h1.title{
   color:#f4e6c0;
   text-shadow:0 0 26px rgba(217,164,65,.38), 0 2px 0 rgba(0,0,0,.7);
 }
-h1.title span{
+h1.title .gilt,
+h1.title .flip i{
   background:linear-gradient(180deg,#fff4d8 0%,#e6bd63 46%,#a8762a 72%,#f3dfa8 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
   -webkit-text-fill-color:transparent;
+}
+/* the F of FALL rolls over into a B every few seconds, then rolls back */
+h1.title .flip{
+  display:inline-block;position:relative;
+  transform-style:preserve-3d;perspective:600px;
+  vertical-align:baseline;
+}
+h1.title .flip i{
+  display:inline-block;font-style:normal;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  transform-origin:50% 50%;
+}
+h1.title .flip .b{
+  position:absolute;left:50%;top:0;transform:translateX(-50%);
+  background:linear-gradient(180deg,#fff8e4 0%,#ffd680 40%,#ff9f2e 74%,#ffe9b0 100%);
+  -webkit-background-clip:text;background-clip:text;
+  filter:drop-shadow(0 0 18px rgba(255,170,60,.75));
+}
+h1.title .flip .a{animation:runeFlipOut 9s cubic-bezier(.7,0,.3,1) infinite;}
+h1.title .flip .b{animation:runeFlipIn 9s cubic-bezier(.7,0,.3,1) infinite;}
+@keyframes runeFlipOut{
+  0%,30%   {transform:rotateX(0deg)   scale(1);   opacity:1}
+  36%,56%  {transform:rotateX(-90deg) scale(1.06);opacity:0}
+  62%,100% {transform:rotateX(0deg)   scale(1);   opacity:1}
+}
+@keyframes runeFlipIn{
+  0%,30%   {transform:translateX(-50%) rotateX(90deg)  scale(1.06);opacity:0}
+  36%      {transform:translateX(-50%) rotateX(0deg)   scale(1.14);opacity:1}
+  42%,50%  {transform:translateX(-50%) rotateX(0deg)   scale(1);   opacity:1}
+  56%,100% {transform:translateX(-50%) rotateX(90deg)  scale(1.06);opacity:0}
+}
+/* a spark of light sweeps the title as the letter turns */
+h1.title .flip::after{
+  content:"";position:absolute;left:50%;top:50%;width:2.6em;height:2.6em;
+  margin:-1.3em 0 0 -1.3em;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,196,90,.55),rgba(255,150,40,0) 68%);
+  opacity:0;animation:runeSpark 9s ease-out infinite;
+}
+@keyframes runeSpark{
+  0%,31%{opacity:0;transform:scale(.3)}
+  37%{opacity:1;transform:scale(1)}
+  48%{opacity:0;transform:scale(1.5)}
+  55%{opacity:.7;transform:scale(.9)}
+  64%,100%{opacity:0;transform:scale(1.4)}
 }
 .tagline{
   text-align:center;font-style:italic;opacity:.72;margin:.5em 0 0;
@@ -274,6 +319,46 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
 }
 .multi .streak span.lit{background:#ffd48a;box-shadow:0 0 6px #ffb200;}
 
+#intro,#count{
+  position:fixed;inset:0;z-index:9;display:none;pointer-events:none;
+  align-items:center;justify-content:center;flex-direction:column;text-align:center;
+}
+#intro.on,#count.on{display:flex;}
+#intro .lv{
+  font-family:"Cinzel",serif;font-size:clamp(10px,1.7vmin,14px);letter-spacing:.42em;
+  text-indent:.42em;opacity:.7;text-transform:uppercase;color:#e8d6a8;
+}
+#intro .nm{
+  font-family:"Cinzel",serif;font-weight:900;letter-spacing:.1em;text-indent:.1em;
+  font-size:clamp(24px,6.4vmin,58px);margin-top:.18em;
+  background:linear-gradient(180deg,#fff4d8,#e6bd63 52%,#a8762a 78%,#f3dfa8);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 22px rgba(217,164,65,.4));
+}
+#intro .bar{
+  width:min(46vw,240px);height:1px;margin-top:1.1em;
+  background:linear-gradient(90deg,transparent,rgba(217,164,65,.7),transparent);
+}
+#intro.on .lv,#intro.on .nm,#intro.on .bar{animation:introIn 2.0s ease-out both;}
+#intro.on .nm{animation-delay:.07s}
+#intro.on .bar{animation-delay:.14s}
+@keyframes introIn{
+  0%{opacity:0;transform:translateY(14px) scale(.97);letter-spacing:.4em}
+  22%{opacity:1;transform:none}
+  70%{opacity:1}
+  100%{opacity:0;transform:translateY(-10px)}
+}
+#count .n{
+  font-family:"Cinzel",serif;font-weight:900;font-size:clamp(56px,17vmin,150px);
+  color:#f6d98b;text-shadow:0 0 46px rgba(255,170,60,.6);
+  font-variant-numeric:tabular-nums;line-height:1;
+}
+#count .n.tick{animation:countTick .62s cubic-bezier(.2,1,.3,1);}
+@keyframes countTick{
+  0%{opacity:0;transform:scale(1.9)}
+  30%{opacity:1;transform:scale(1)}
+  100%{opacity:.25;transform:scale(.92)}
+}
 .stars{
   display:flex;justify-content:center;gap:clamp(6px,1.4vmin,12px);
   margin:clamp(6px,1.4vmin,12px) 0;
@@ -388,6 +473,12 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
 <div id="frost"></div>
 <div id="danger"></div>
 <div id="fx"></div>
+<div id="intro">
+  <div class="lv" id="introLevel">Level 1</div>
+  <div class="nm" id="introName">The Spiral</div>
+  <div class="bar"></div>
+</div>
+<div id="count"><div class="n" id="countNum">3</div></div>
 
 <!-- ============ HUD ============ -->
 <div id="hud">
@@ -435,12 +526,13 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
       <path d="M32 6v52M6 32h52" opacity=".35"/>
       <path d="M32 16l6 10-6 10-6-10z" fill="#d9a441" opacity=".55" stroke="none"/>
     </svg>
-    <h1 class="title"><span>RUNEFALL</span></h1>
+    <h1 class="title"><span class="gilt">RUNE</span><span class="flip"><i class="a">F</i><i class="b">B</i></span><span class="gilt">ALL</span></h1>
     <p class="tagline" data-i18n="menu.tag">The wheel turns. The orbs march to the abyss.</p>
     <div class="rule"></div>
     <div class="menu">
       <button class="btn primary" id="btnContinue" data-i18n="menu.continue">Continue</button>
       <button class="btn" id="btnPlay" data-i18n="menu.play">New game</button>
+      <button class="btn" id="btnEndless" data-i18n="menu.endless">Endless siege</button>
       <button class="btn" id="btnHow" data-i18n="menu.how">How to play</button>
       <button class="btn" id="btnOpt" data-i18n="menu.options">Options</button>
     </div>
@@ -448,6 +540,7 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
     <p class="body" style="text-align:center;opacity:.55;font-size:clamp(11px,1.7vmin,15px)">
       <span data-i18n="menu.best">Furthest reached</span>: <b id="menuBest">—</b>
       &nbsp;&nbsp;<span style="color:#f6d98b">&#9733;</span> <b id="menuStars">0</b>
+      <br><span data-i18n="menu.endlessBest">Longest siege</span>: <b id="menuEndless">0</b>
     </p>
   </div>
 </div>
@@ -480,6 +573,42 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
       </div>
     </div>
     <div class="row">
+      <span class="lab" data-i18n="opt.aim">Aim guide</span>
+      <div class="seg" id="segAim">
+        <button data-v="1" data-i18n="opt.on">On</button>
+        <button data-v="0" data-i18n="opt.off">Off</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lab" data-i18n="opt.marks">Colour marks</span>
+      <div class="seg" id="segMarks">
+        <button data-v="1" data-i18n="opt.on">On</button>
+        <button data-v="0" data-i18n="opt.off">Off</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lab" data-i18n="opt.vib">Vibration</span>
+      <div class="seg" id="segVib">
+        <button data-v="1" data-i18n="opt.on">On</button>
+        <button data-v="0" data-i18n="opt.off">Off</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lab" data-i18n="opt.diff">Difficulty</span>
+      <div class="seg" id="segDiff">
+        <button data-v="0" data-i18n="opt.normal">Normal</button>
+        <button data-v="1" data-i18n="opt.hard">Hard</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lab" data-i18n="opt.engine">War engine</span>
+      <div class="seg" id="segCannon">
+        <button data-v="wyrm" data-i18n="opt.wyrm">Cannon</button>
+        <button data-v="orrery" data-i18n="opt.orrery">Magic</button>
+        <button data-v="ballista" data-i18n="opt.ballista">Ballista</button>
+      </div>
+    </div>
+    <div class="row">
       <span class="lab" data-i18n="opt.quality">Detail</span>
       <div class="seg" id="segQual">
         <button data-v="high" data-i18n="opt.high">High</button>
@@ -500,9 +629,9 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
     <span class="corner-tr"></span><span class="corner-bl"></span>
     <h2 class="head" data-i18n="how.title">How to play</h2>
     <div class="rule"></div>
-    <p class="body" data-i18n="how.p1">Aim with the pointer or your finger. Tap anywhere to loose an orb from the ballista.</p>
+    <p class="body" data-i18n="how.p1">Point with the mouse, or drag a finger anywhere across the board to swing the engine round. Lift your finger — or tap once — to loose the orb.</p>
     <p class="body" data-i18n="how.p2">Line up three or more orbs of one colour to shatter them. Gaps close on their own — when they close on a matching colour, the chain keeps breaking and your score multiplies.</p>
-    <p class="body" data-i18n="how.p3">Press the swap rune (or the space bar, or right-click) to exchange the loaded orb for the next one.</p>
+    <p class="body" data-i18n="how.p3">Tap the war engine itself to trade the loaded orb for the next one — or use the swap rune, the space bar, or right-click.</p>
     <p class="body" data-i18n="how.p4">Clear every orb before the line reaches the abyss.</p>
     <p class="body" data-i18n="how.p5">Large breaks drop a relic onto the floor. Shoot it to claim it: frost halts the march, recoil drives the line back, blast shatters everything nearby, and purge banishes every orb sharing your loaded colour.</p>
     <p class="body" data-i18n="how.p6">Clear without missing and your multiplier climbs. Threading a shot through a gap in the line pays a bounty.</p>
@@ -552,7 +681,7 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
     <h2 class="head" style="color:#ff9a6a" data-i18n="lose.title">The abyss is fed</h2>
     <div class="rule"></div>
     <p class="body" style="text-align:center;font-size:clamp(16px,3vmin,26px)">
-      <span data-i18n="lose.reached">Reached level</span> <b id="loseLevel">1</b><br>
+      <span id="loseLead" data-i18n="lose.reached">Reached level</span> <b id="loseLevel">1</b><br>
       <span style="opacity:.6" data-i18n="hud.score">Score</span>: <b id="loseScore">0</b>
     </p>
     <div class="rule"></div>
@@ -589,6 +718,7 @@ p.body{margin:.4em 0;line-height:1.5;opacity:.86;font-size:clamp(14px,2.1vmin,20
 var clamp = function (v, a, b) { return v < a ? a : (v > b ? b : v); };
 var lerp = function (a, b, t) { return a + (b - a) * t; };
 var TAU = Math.PI * 2;
+function smoothstep(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
 function mulberry32(a) {
   return function () {
     a |= 0; a = a + 0x6D2B79F5 | 0;
@@ -625,12 +755,17 @@ var I18N = {
     'menu.how': 'How to play', 'menu.best': 'Furthest reached',
     'opt.title': 'Options', 'opt.lang': 'Language', 'opt.music': 'Music', 'opt.sfx': 'Sounds',
     'opt.quality': 'Detail', 'opt.high': 'High', 'opt.low': 'Low',
+    'opt.diff': 'Difficulty', 'opt.normal': 'Normal', 'opt.hard': 'Hard',
+    'opt.aim': 'Aim guide', 'opt.marks': 'Colour marks', 'opt.vib': 'Vibration',
+    'menu.endless': 'Endless siege', 'menu.endlessBest': 'Longest siege',
+    'hud.level': 'Level', 'lose.survived': 'Survived',
+    'opt.engine': 'War engine', 'opt.wyrm': 'Cannon', 'opt.orrery': 'Magic', 'opt.ballista': 'Ballista',
     'opt.on': 'On', 'opt.off': 'Off', 'opt.reset': 'Erase progress',
     'ui.back': 'Back',
     'how.title': 'How to play',
-    'how.p1': 'Aim with the pointer or your finger. Tap anywhere to loose an orb from the ballista.',
+    'how.p1': 'Point with the mouse, or drag a finger anywhere across the board to swing the engine round. Lift your finger — or tap once — to loose the orb.',
     'how.p2': 'Line up three or more orbs of one colour to shatter them. Gaps close on their own — when they close on a matching colour, the chain keeps breaking and your score multiplies.',
-    'how.p3': 'Press the swap rune (or the space bar, or right-click) to exchange the loaded orb for the next one.',
+    'how.p3': 'Tap the war engine itself to trade the loaded orb for the next one — or use the swap rune, the space bar, or right-click.',
     'how.p4': 'Clear every orb before the line reaches the abyss.',
     'pause.title': 'Paused', 'pause.resume': 'Resume', 'pause.restart': 'Restart level',
     'pause.quit': 'Leave to the gate',
@@ -642,7 +777,14 @@ var I18N = {
     'how.p5': 'Large breaks drop a relic onto the floor. Shoot it to claim it: frost halts the march, recoil drives the line back, blast shatters everything nearby, and purge banishes every orb sharing your loaded colour.',
     'how.p6': 'Clear without missing and your multiplier climbs. Threading a shot through a gap in the line pays a bounty.',
     'fx.gap': 'THREADED!', 'fx.frost': 'FROST', 'fx.reverse': 'RECOIL',
-    'fx.bomb': 'BLAST', 'fx.cull': 'PURGE'
+    'fx.bomb': 'BLAST', 'fx.cull': 'PURGE',
+    'track.1': 'The Spiral', 'track.2': 'The Ellipse', 'track.3': 'Wavering Coil',
+    'track.4': 'The Twin Spiral', 'track.5': 'Squared Coil', 'track.6': 'The Pentacle',
+    'track.7': 'The Cogwheel', 'track.8': 'Twin Spiral Reversed', 'track.9': 'The Triquetra',
+    'track.10': 'Fluted Column', 'track.11': 'The Twin Lobes', 'track.12': 'Tall Clover',
+    'track.13': 'The Hexagram', 'track.14': 'Wide Twin Spiral', 'track.15': 'The Long Ellipse',
+    'track.16': 'The Trefoil', 'track.17': 'Studded Coil', 'track.18': 'The Quadrant',
+    'track.endless': 'Endless Siege'
   },
   es: {
     'menu.tag': 'La rueda gira. Los orbes marchan hacia el abismo.',
@@ -650,12 +792,17 @@ var I18N = {
     'menu.how': 'Cómo jugar', 'menu.best': 'Nivel más lejano',
     'opt.title': 'Opciones', 'opt.lang': 'Idioma', 'opt.music': 'Música', 'opt.sfx': 'Sonidos',
     'opt.quality': 'Detalle', 'opt.high': 'Alto', 'opt.low': 'Bajo',
+    'opt.diff': 'Dificultad', 'opt.normal': 'Normal', 'opt.hard': 'Difícil',
+    'opt.aim': 'Guía de tiro', 'opt.marks': 'Marcas de color', 'opt.vib': 'Vibración',
+    'menu.endless': 'Asedio sin fin', 'menu.endlessBest': 'Asedio más largo',
+    'lose.survived': 'Resististe',
+    'opt.engine': 'Ingenio', 'opt.wyrm': 'Cañón', 'opt.orrery': 'Magia', 'opt.ballista': 'Balista',
     'opt.on': 'Sí', 'opt.off': 'No', 'opt.reset': 'Borrar progreso',
     'ui.back': 'Volver',
     'how.title': 'Cómo jugar',
-    'how.p1': 'Apunta con el puntero o el dedo. Toca en cualquier parte para disparar un orbe desde la ballesta.',
+    'how.p1': 'Apunta con el ratón o arrastra el dedo por el tablero para girar el ingenio. Levanta el dedo, o toca una vez, para lanzar el orbe.',
     'how.p2': 'Junta tres o más orbes del mismo color para romperlos. Los huecos se cierran solos: si al cerrarse coinciden los colores, la cadena sigue y la puntuación se multiplica.',
-    'how.p3': 'Pulsa la runa de cambio (o la barra espaciadora, o el botón derecho) para intercambiar el orbe cargado por el siguiente.',
+    'how.p3': 'Toca el propio ingenio para cambiar el orbe cargado por el siguiente, o usa la runa de cambio, la barra espaciadora o el botón derecho.',
     'how.p4': 'Elimina todos los orbes antes de que la fila llegue al abismo.',
     'pause.title': 'En pausa', 'pause.resume': 'Reanudar', 'pause.restart': 'Reiniciar nivel',
     'pause.quit': 'Salir al portón',
@@ -667,7 +814,14 @@ var I18N = {
     'how.p5': 'Las roturas grandes dejan caer una reliquia al suelo. Dispárale para reclamarla: la escarcha detiene la marcha, el retroceso empuja la fila hacia atrás, el estallido rompe todo lo cercano y la purga destierra cada orbe del color que llevas cargado.',
     'how.p6': 'Encadena aciertos sin fallar y el multiplicador sube. Colar un disparo por un hueco de la fila paga recompensa.',
     'fx.gap': '¡LIMPIO!', 'fx.frost': 'ESCARCHA', 'fx.reverse': 'RETROCESO',
-    'fx.bomb': 'ESTALLIDO', 'fx.cull': 'PURGA'
+    'fx.bomb': 'ESTALLIDO', 'fx.cull': 'PURGA',
+    'track.1': 'La Espiral', 'track.2': 'La Elipse', 'track.3': 'Bobina Ondulante',
+    'track.4': 'La Espiral Gemela', 'track.5': 'Bobina Cuadrada', 'track.6': 'El Pentáculo',
+    'track.7': 'La Rueda Dentada', 'track.8': 'Espiral Gemela Invertida', 'track.9': 'La Triqueta',
+    'track.10': 'Columna Estriada', 'track.11': 'Los Lóbulos Gemelos', 'track.12': 'Trébol Alto',
+    'track.13': 'El Hexagrama', 'track.14': 'Espiral Gemela Ancha', 'track.15': 'La Elipse Larga',
+    'track.16': 'El Trébol', 'track.17': 'Bobina Tachonada', 'track.18': 'El Cuadrante',
+    'track.endless': 'Asedio sin Fin'
   }
 };
 var lang = Store.get('rf_lang', 'es');   // Spanish unless the player chooses otherwise
@@ -920,6 +1074,119 @@ var Snd = {
 /* =====================================================================
    VISUAL CONSTANTS
    ===================================================================== */
+/* =====================================================================
+   ==========  TUNING  ==================================================
+   Everything you are likely to want to fine-tune lives in this one
+   object. Edit the numbers, save, reload — no other changes needed.
+   ===================================================================== */
+var TUNING = {
+
+  // ---- HOW MANY ORBS PER LEVEL ----------------------------------------
+  // total orbs = orbsBase + (level * orbsPerLevel), never above orbsMax
+  //   level 1 -> 30 + 5  = 35 orbs
+  //   level 5 -> 30 + 25 = 55 orbs
+  //   level 14+          = 96 orbs (the cap)
+  orbsBase:      30,
+  orbsPerLevel:  5,
+  orbsMax:       96,
+
+  // ---- HOW FAST THE LINE MARCHES (world units per second) -------------
+  speedBase:     1.20,
+  speedPerLevel: 0.09,
+  speedMax:      3.00,
+
+  // ---- HOW MANY COLOURS -----------------------------------------------
+  // colours = colorsBase + floor((level + 1) / 2), clamped to colorsMax
+  //   level 1 -> 4    level 3 -> 5    level 5+ -> 6
+  colorsBase:    3,
+  colorsMax:     6,
+
+  // ---- RELIC (power-up) DROP RATES ------------------------------------
+  // chance that a break of N orbs shakes a relic loose
+  relicOddsFive:  0.28,   // breaks of 5 or more
+  relicOddsFour:  0.09,   // breaks of exactly 4
+  relicOddsThree: 0.015,  // breaks of exactly 3
+  relicMaxActive: 2,      // never more than this many on the floor at once
+  relicCooldown:  12,     // seconds that must pass between drops
+  relicLife:      10,     // seconds before an uncollected relic fades
+
+  // ---- SCORING ---------------------------------------------------------
+  scorePerOrb:   10,
+  chainStep:     0.45,    // multiplier added per chained break (max 5 steps)
+  streakStep:    0.20,    // multiplier added per no-miss shot (max 10)
+  gapBonus:      120,     // paid for threading a gap, times the multiplier
+  clearBonus:    250,     // level completion, plus 100 per level
+  starPar:       10,      // 2 stars at (orbs * starPar) play score
+  starGold:      16,      // 3 stars at (orbs * starGold)
+
+  // ---- HARD MODE MULTIPLIERS -------------------------------------------
+  hardOrbs:      1.35,
+  hardSpeed:     1.32,
+  hardColors:    1,       // extra colours from the start
+  hardScore:     1.60,    // all scoring multiplied by this
+  hardRelics:    0.55     // relic odds multiplied by this
+};
+
+/* ---- TRACK LIBRARY: levels cycle through these in order ----
+   turns  : how many times round the wheel
+   rOut   : radius where the orbs enter    rIn : radius at the abyss
+   dir    : 1 clockwise, -1 anticlockwise
+   harm   : number of lobes in the radial wobble (0 = none)
+   amp    : how deep those lobes are
+   ecc    : horizontal stretch (1 = circular)
+   poly   : polygonal feel — 3 triangular, 5 pentagonal (0 = none)
+   squircle / double : special shapes                                    */
+var PATHS = [
+  { turns: 2.6, rOut: 13.4, rIn: 6.4, dir:  1 },                                  // 1  plain spiral
+  { turns: 2.2, rOut: 13.8, rIn: 6.8, dir: -1, ecc: 1.20 },                       // 2  elliptical spiral
+  { turns: 2.4, rOut: 13.6, rIn: 6.4, dir:  1, harm: 6,  amp: 0.80 },             // 3  wavy ring
+  { turns: 1.5, rOut: 14.0, rIn: 6.4, dir:  1, double: true },                    // 4  double spiral
+  { turns: 2.7, rOut: 14.2, rIn: 6.6, dir:  1, squircle: true },                  // 5  squircle spiral
+  { turns: 2.3, rOut: 13.8, rIn: 6.8, dir: -1, poly: 5, polyAmp: 0.13 },          // 6  pentagon spiral
+  { turns: 2.2, rOut: 13.2, rIn: 6.6, dir: -1, harm: 9,  amp: 0.50 },             // 7  cogwheel
+  { turns: 1.6, rOut: 14.2, rIn: 6.4, dir: -1, double: true },                    // 8  double spiral, reversed
+  { turns: 2.2, rOut: 13.6, rIn: 7.0, dir:  1, poly: 3, polyAmp: 0.16 },          // 9  triquetra spiral
+  { turns: 2.8, rOut: 14.4, rIn: 6.2, dir: -1, harm: 12, amp: 0.35 },             // 10 fluted column
+  { turns: 2.0, rOut: 13.0, rIn: 8.2, dir:  1, harm: 2,  amp: 2.20 },             // 11 lobed ring
+  { turns: 2.4, rOut: 14.6, rIn: 6.8, dir: -1, ecc: 0.88, harm: 4, amp: 0.80 },   // 12 tall clover
+  { turns: 2.3, rOut: 13.9, rIn: 6.9, dir:  1, poly: 6, polyAmp: 0.12 },          // 13 hexagon spiral
+  { turns: 1.4, rOut: 14.4, rIn: 6.6, dir: -1, double: true },                    // 14 wide twin spiral
+  { turns: 2.6, rOut: 14.8, rIn: 6.6, dir:  1, ecc: 1.32 },                       // 15 long ellipse
+  { turns: 2.2, rOut: 13.4, rIn: 6.6, dir: -1, harm: 3, amp: 1.10 },              // 16 trefoil ring
+  { turns: 3.1, rOut: 14.6, rIn: 6.4, dir:  1, squircle: true, harm: 8, amp: 0.30 }, // 17 studded squircle
+  { turns: 2.0, rOut: 13.2, rIn: 7.6, dir: -1, poly: 4, polyAmp: 0.17 }           // 18 quadrant ring
+];
+
+/* ---- the courtyard changes colour as you travel; themes cycle out of step
+       with the tracks (18 and 7 share no factor) so pairings keep changing ---- */
+var THEMES = [
+  { name: 'moon',   fog: 0x0a0812, floor: 0x6a6076, kerb: 0xd6c9ea, groove: 0x2c2438, skirt: 0x4a4058,
+    amb: 0x2b2f52, hemi: 0x6d80cc, moon: 0xa8bcf5, fire: 0xff8433, rune: [0.90, 0.70, 0.30],
+    banners: [0x8e2233, 0x1f3d7a, 0x3f6b32, 0x5a2c6b] },
+  { name: 'forge',  fog: 0x140806, floor: 0x7a5a4c, kerb: 0xf0c9a8, groove: 0x361d18, skirt: 0x5a3428,
+    amb: 0x4a2418, hemi: 0xcc7040, moon: 0xffb07a, fire: 0xff5a1e, rune: [1.0, 0.55, 0.18],
+    banners: [0x9e2b18, 0x6b2410, 0xc4761f, 0x3a1a10] },
+  { name: 'frost',  fog: 0x060e16, floor: 0x6d7f92, kerb: 0xdcf0ff, groove: 0x1c2c3a, skirt: 0x3c5063,
+    amb: 0x24405c, hemi: 0x7fb4e0, moon: 0xd8f0ff, fire: 0x64c8ff, rune: [0.62, 0.88, 1.0],
+    banners: [0x1f4d7a, 0x2f6b8e, 0x14304a, 0x5a8cb0] },
+  { name: 'verdant',fog: 0x08120b, floor: 0x5f7460, kerb: 0xcfe6bd, groove: 0x1c2c1e, skirt: 0x3a4c3a,
+    amb: 0x24422c, hemi: 0x6fae72, moon: 0xc8ecc0, fire: 0xa8d84a, rune: [0.70, 0.95, 0.45],
+    banners: [0x2f6b32, 0x1d4a24, 0x6b8e2f, 0x143018] },
+  { name: 'amethyst',fog: 0x0e0818, floor: 0x6e5f86, kerb: 0xe0cdf6, groove: 0x2a1e3c, skirt: 0x453660,
+    amb: 0x3a2a5c, hemi: 0x9a72d0, moon: 0xd0b8ff, fire: 0xb45cff, rune: [0.82, 0.58, 1.0],
+    banners: [0x5a2c6b, 0x3a1c50, 0x8e3fa0, 0x241040] },
+  { name: 'reliquary',fog:0x120e04, floor: 0x8a7a58, kerb: 0xf6e6b0, groove: 0x362c14, skirt: 0x5a4c2c,
+    amb: 0x4c3c18, hemi: 0xd0b060, moon: 0xffe8b0, fire: 0xffc531, rune: [1.0, 0.86, 0.42],
+    banners: [0x8a6a20, 0x5a4410, 0xc4a03c, 0x342808] },
+  { name: 'abyss',  fog: 0x04100f, floor: 0x4a6a68, kerb: 0xb8f0ea, groove: 0x122826, skirt: 0x2c4442,
+    amb: 0x184240, hemi: 0x4ca8a0, moon: 0x9ce8e0, fire: 0x2fd0c0, rune: [0.42, 0.95, 0.88],
+    banners: [0x186a62, 0x0e4440, 0x2f9e90, 0x08302c] }
+];
+function themeFor(level) { return THEMES[(level - 1) % THEMES.length]; }
+
+var MODE_HARD = Store.get('rf_hard', '0') === '1';
+function K(base) { return MODE_HARD ? base + '_h' : base; }
+
 var BALL_R = 0.62;
 var GAP = BALL_R * 2;
 var PATH_Y = 1.0;
@@ -938,6 +1205,15 @@ var POWERS = ['frost', 'reverse', 'bomb', 'cull'];
 var POWER_COLOR = { frost: 0x7fd4ff, reverse: 0xffa03c, bomb: 0xff4530, cull: 0xc08bff };
 
 var IS_TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+var showAim = Store.get('rf_aim', '1') === '1';
+var showMarks = Store.get('rf_marks', '1') === '1';
+var useVib = Store.get('rf_vib', '1') === '1';
+function buzz(ms) {
+  if (!useVib || !navigator.vibrate) return;
+  try { navigator.vibrate(ms); } catch (e) { /* unsupported */ }
+}
+var cannon = Store.get('rf_cannon', 'wyrm');
+if (['wyrm', 'orrery', 'ballista'].indexOf(cannon) < 0) cannon = 'wyrm';
 var quality = Store.get('rf_qual', (IS_TOUCH ? 'low' : 'high'));
 if (quality !== 'low' && quality !== 'high') quality = 'high';
 
@@ -1084,12 +1360,29 @@ function orbSurfaceCanvas(idx) {
     for (var k = 0; k < 5; k++) { px += (Math.random() - 0.5) * 70; py += (Math.random() - 0.5) * 70; g.lineTo(px, py); }
     g.stroke();
   }
-  // three carved runes, unique per colour: gives the eye something to track
+  // A sigil unique to each colour. With colour marks on it is large and high
+  // contrast so the orb can be told apart by shape alone; with them off it is
+  // faint surface detail whose only job is to make the roll readable.
   var strokes = RUNE_STROKES[idx % RUNE_STROKES.length];
-  g.strokeStyle = 'rgba(64,64,64,0.85)'; g.lineWidth = 7; g.lineCap = 'round';
-  var spots = [[0.26, 0.34, 26], [0.68, 0.30, 22], [0.46, 0.72, 24]];
+  var spots = showMarks
+    ? [[0.25, 0.36, 46], [0.72, 0.32, 42], [0.48, 0.76, 44]]
+    : [[0.26, 0.34, 26], [0.68, 0.30, 22], [0.46, 0.72, 24]];
+  g.strokeStyle = showMarks ? 'rgba(28,28,28,0.92)' : 'rgba(64,64,64,0.85)';
+  g.lineWidth = showMarks ? 13 : 7;
+  g.lineCap = 'round';
   for (i = 0; i < spots.length; i++) {
     var cx = spots[i][0] * S, cy = spots[i][1] * S, sc = spots[i][2];
+    if (showMarks) {                       // a pale halo so the mark reads on any hue
+      g.save();
+      g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 24;
+      for (var h = 0; h < strokes.length; h++) {
+        g.beginPath();
+        g.moveTo(cx + strokes[h][0] * sc, cy + strokes[h][1] * sc);
+        g.lineTo(cx + strokes[h][2] * sc, cy + strokes[h][3] * sc);
+        g.stroke();
+      }
+      g.restore();
+    }
     for (var m = 0; m < strokes.length; m++) {
       var t2 = strokes[m];
       g.beginPath();
@@ -1142,33 +1435,52 @@ function buildEnvironment() {
 /* =====================================================================
    PATH GENERATION — annulus spirals, centre kept clear for the ballista
    ===================================================================== */
-function makePathPoints(kind, rng, aspect) {
-  var pts = [];
-  var turns, rOut, rIn, dir, phase, i, th, r, y, n;
+function makePathPoints(cfg, rng, aspect) {
+  var pts = [], i, th, r, y, u, uu;
+  var phase = rng() * TAU;
   var sx = 1, sz = 1;
   if (aspect < 0.85) { sx = 0.72; sz = 1.22; }        // portrait: taller, narrower wheel
   else if (aspect > 1.5) { sx = 1.16; sz = 0.88; }    // landscape: wider wheel
+  if (cfg.ecc) { sx *= cfg.ecc; sz /= cfg.ecc; }
 
-  switch (kind) {
-    case 0: turns = 2.6; rOut = 13.4; rIn = 6.4; dir = 1; break;
-    case 1: turns = 2.2; rOut = 13.8; rIn = 6.8; dir = -1; break;
-    case 2: turns = 3.0; rOut = 13.6; rIn = 6.6; dir = 1; break;
-    case 3: turns = 2.4; rOut = 14.0; rIn = 7.0; dir = -1; break;
-    case 4: turns = 3.3; rOut = 14.2; rIn = 6.4; dir = 1; break;
-    default: turns = 2.8; rOut = 13.2; rIn = 6.6; dir = -1; break;
-  }
-  phase = rng() * TAU;
-  n = Math.max(60, Math.floor(turns * 46));
+  var span = cfg.rOut - cfg.rIn;
+  var sep = span / cfg.turns / 2;                     // half the coil pitch
+  var n = Math.max(70, Math.floor(cfg.turns * (cfg.double ? 92 : 48)));
+
   for (i = 0; i <= n; i++) {
-    var u = i / n;
-    th = phase + dir * u * turns * TAU;
-    r = lerp(rOut, rIn, Math.pow(u, 0.92));
-    if (kind === 2) r += Math.sin(u * turns * TAU * 2 + phase) * 1.35;     // wavy ring
-    if (kind === 3) r += Math.sin(u * Math.PI * 3) * 1.1;                   // breathing ring
-    if (kind === 4) r *= 1 / Math.pow(Math.pow(Math.abs(Math.cos(th)), 4) + Math.pow(Math.abs(Math.sin(th)), 4), 0.25) * 0.92; // squircle
-    if (kind === 5) r += Math.sin(u * turns * TAU * 3 + phase) * 0.8;
+    u = i / n;
+    if (cfg.double) {
+      // spirals inward, turns at the eye, then threads back out between its
+      // own coils — the U-turn is eased in so the radius stays continuous
+      if (u < 0.5) {
+        uu = u / 0.5;
+        th = phase + cfg.dir * uu * cfg.turns * TAU;
+        r = lerp(cfg.rOut, cfg.rIn, uu);
+      } else {
+        uu = (u - 0.5) / 0.5;
+        th = phase + cfg.dir * cfg.turns * TAU - cfg.dir * uu * cfg.turns * TAU;
+        r = lerp(cfg.rIn, cfg.rOut, uu) + sep * smoothstep(0, 0.10, uu);
+      }
+    } else {
+      th = phase + cfg.dir * u * cfg.turns * TAU;
+      r = lerp(cfg.rOut, cfg.rIn, Math.pow(u, 0.92));
+    }
+    if (cfg.harm) r += Math.sin(th * cfg.harm + phase) * cfg.amp;
+    if (cfg.poly) r *= 1 + cfg.polyAmp * Math.cos(cfg.poly * th + phase);
+    if (cfg.squircle) {
+      r *= 0.92 / Math.pow(Math.pow(Math.abs(Math.cos(th)), 4) + Math.pow(Math.abs(Math.sin(th)), 4), 0.25);
+    }
     y = PATH_Y + Math.sin(th * 1.5 + phase) * 0.40 + Math.sin(u * Math.PI) * 0.24;
     pts.push(new THREE.Vector3(Math.cos(th) * r * sx, y, Math.sin(th) * r * sz));
+  }
+  // never let a track crowd the middle of the wheel: push the whole shape out
+  var minR = 1e9, i2;
+  for (i2 = 0; i2 < pts.length; i2++) {
+    minR = Math.min(minR, Math.sqrt(pts[i2].x * pts[i2].x + pts[i2].z * pts[i2].z));
+  }
+  if (minR < 5.6) {
+    var k = 5.6 / minR;
+    for (i2 = 0; i2 < pts.length; i2++) { pts[i2].x *= k; pts[i2].z *= k; }
   }
   return pts;
 }
@@ -1240,9 +1552,12 @@ var Arena = {
     this.group = new THREE.Group(); scene.add(this.group);
     this.flames = []; this.lights = [];
 
+    var TH = themeFor(levelCfg.theme === undefined ? G.level : levelCfg.theme);
+    this.theme = TH;
+    scene.fog.color.setHex(TH.fog);
     var rng = mulberry32(levelCfg.seed);
     var aspect = window.innerWidth / window.innerHeight;
-    var pts = makePathPoints(levelCfg.path, rng, aspect);
+    var pts = makePathPoints(PATHS[levelCfg.path], rng, aspect);
     var curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
     curve.arcLengthDivisions = 3000;
     curve.updateArcLengths();
@@ -1255,6 +1570,12 @@ var Arena = {
       var p = curve.getPointAt(i / 120);
       maxR = Math.max(maxR, Math.sqrt(p.x * p.x + p.z * p.z));
       fitPoints.push(p.clone());
+    }
+    // how close the track comes to the middle — the engine is scaled to fit
+    this.clear = 999;
+    for (i = 0; i <= 240; i++) {
+      var cp = curve.getPointAt(i / 240);
+      this.clear = Math.min(this.clear, Math.sqrt(cp.x * cp.x + cp.z * cp.z));
     }
     // coarse centreline samples, tagged with arc length, for gap-shot detection
     this.samples = [];
@@ -1283,7 +1604,7 @@ var Arena = {
     var geo = new THREE.CircleBufferGeometry(maxR + 12, 96);
     geo.rotateX(-Math.PI / 2);
     var mat = new THREE.MeshStandardMaterial({
-      map: TEX.floor, color: 0x6a6076, roughness: 0.94, metalness: 0.05
+      map: TEX.floor, color: this.theme.floor, roughness: 0.94, metalness: 0.05
     });
     var floor = new THREE.Mesh(geo, mat);
     floor.receiveShadow = quality === 'high';
@@ -1309,15 +1630,17 @@ var Arena = {
     // A profile swept along the curve: raised kerbs either side of a sunken
     // groove. Far more legible than a tube at small sizes, because the light
     // kerb / dark groove contrast survives any zoom level.
+    var TH = this.theme;
+    var wallC = new THREE.Color(TH.kerb).lerp(new THREE.Color(TH.groove), 0.55).getHex();
     var LANES = [
-      { w: -1.62, y:  0.20, c: 0x4a4058 },   // outer skirt, blends into the floor
-      { w: -1.14, y:  0.38, c: 0xd6c9ea },   // kerb crest, catches the moonlight
-      { w: -0.88, y:  0.02, c: 0x6b5e82 },   // inner wall
-      { w: -0.62, y: -0.30, c: 0x2c2438 },   // groove floor
-      { w:  0.62, y: -0.30, c: 0x2c2438 },
-      { w:  0.88, y:  0.02, c: 0x6b5e82 },
-      { w:  1.14, y:  0.38, c: 0xd6c9ea },
-      { w:  1.62, y:  0.20, c: 0x4a4058 }
+      { w: -1.30, y:  0.18, c: TH.skirt },   // outer skirt, blends into the floor
+      { w: -0.99, y:  0.38, c: TH.kerb },    // kerb crest, catches the light
+      { w: -0.82, y:  0.02, c: wallC },      // inner wall
+      { w: -0.62, y: -0.30, c: TH.groove },  // groove floor
+      { w:  0.62, y: -0.30, c: TH.groove },
+      { w:  0.82, y:  0.02, c: wallC },
+      { w:  0.99, y:  0.38, c: TH.kerb },
+      { w:  1.30, y:  0.18, c: TH.skirt }
     ];
     var segs = quality === 'high' ? 700 : 460;
     var geo = buildRibbon(curve, LANES, segs, len / 3.2, true);
@@ -1337,18 +1660,21 @@ var Arena = {
     this.runeMat = new THREE.ShaderMaterial({
       transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
       side: THREE.DoubleSide,
-      uniforms: { uTime: { value: 0 }, uHeat: { value: 0 } },
+      uniforms: {
+        uTime: { value: 0 }, uHeat: { value: 0 },
+        uCold: { value: new THREE.Vector3(TH.rune[0], TH.rune[1], TH.rune[2]) }
+      },
       vertexShader: [
         'varying vec2 vUv;',
         'void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }'
       ].join('\n'),
       fragmentShader: [
-        'uniform float uTime; uniform float uHeat; varying vec2 vUv;',
+        'uniform float uTime; uniform float uHeat; uniform vec3 uCold; varying vec2 vUv;',
         'void main(){',
         '  float pulse = 0.55 + 0.45*sin(vUv.x*160.0 - uTime*2.4);',
         '  float travel = smoothstep(0.0,0.35,fract(vUv.x*3.0 - uTime*0.12));',
         '  float edge = 1.0 - abs(vUv.y*2.0 - 1.0);',
-        '  vec3 cold = vec3(0.90,0.70,0.30);',
+        '  vec3 cold = uCold;',
         '  vec3 hot  = vec3(1.0,0.34,0.10);',
         '  vec3 col = mix(cold,hot,uHeat) * (0.55 + 0.95*pulse*travel);',
         '  gl_FragColor = vec4(col, 0.9*edge);',
@@ -1423,42 +1749,154 @@ var Arena = {
     g.position.set(start.x, 0, start.z);
     g.rotation.y = Math.atan2(tan.x, tan.z);
 
-    var stoneMat = new THREE.MeshStandardMaterial({ map: TEX.stone, color: 0x55496a, roughness: 0.85, metalness: 0.1 });
-    var arch = new THREE.Mesh(new THREE.TorusBufferGeometry(1.9, 0.42, 10, 26, Math.PI), stoneMat);
-    arch.position.y = 2.3; arch.castShadow = quality === 'high';
-    g.add(arch);
-    var l = new THREE.Mesh(new THREE.BoxBufferGeometry(0.85, 2.6, 0.85), stoneMat);
-    l.position.set(-1.9, 1.3, 0); l.castShadow = quality === 'high'; g.add(l);
-    var r = l.clone(); r.position.x = 1.9; g.add(r);
+    var stone = new THREE.MeshStandardMaterial({
+      map: TEX.stone, color: 0x584b70, roughness: 0.88, metalness: 0.08, envMapIntensity: 0.5
+    });
+    var darkStone = new THREE.MeshStandardMaterial({
+      map: TEX.stone, color: 0x3a3149, roughness: 0.92, metalness: 0.06
+    });
+    var iron = new THREE.MeshStandardMaterial({
+      color: 0x2a2430, roughness: 0.42, metalness: 0.9, envMapIntensity: 1.1
+    });
+    var gold = new THREE.MeshStandardMaterial({
+      color: 0xc9973c, roughness: 0.3, metalness: 0.95, envMapIntensity: 1.4
+    });
 
-    var portalGeo = new THREE.PlaneBufferGeometry(3.4, 3.9);
+    // --- curtain wall with a gothic opening cut through it ---
+    var W = 3.5, H = 6.4, AW = 1.75, AS = 3.0, AP = 5.5;
+    var wall = new THREE.Shape();
+    wall.moveTo(-W, 0); wall.lineTo(-W, H); wall.lineTo(-W * 0.72, H + 0.55);
+    wall.lineTo(W * 0.72, H + 0.55); wall.lineTo(W, H); wall.lineTo(W, 0);
+    wall.lineTo(-W, 0);
+    var arch = new THREE.Path();
+    arch.moveTo(-AW, 0); arch.lineTo(-AW, AS);
+    arch.quadraticCurveTo(-AW, AP, 0, AP + 0.35);
+    arch.quadraticCurveTo(AW, AP, AW, AS);
+    arch.lineTo(AW, 0); arch.lineTo(-AW, 0);
+    wall.holes.push(arch);
+    var wallGeo = new THREE.ExtrudeBufferGeometry(wall, {
+      depth: 1.5, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 2, curveSegments: 14
+    });
+    wallGeo.translate(0, 0, -0.75);
+    var wallMesh = new THREE.Mesh(wallGeo, stone);
+    wallMesh.castShadow = quality === 'high';
+    wallMesh.receiveShadow = quality === 'high';
+    g.add(wallMesh);
+
+    // --- flanking towers, crenellated ---
+    var ti, tj, ang;
+    for (ti = 0; ti < 2; ti++) {
+      var sx = ti ? 1 : -1;
+      var tower = new THREE.Mesh(new THREE.CylinderBufferGeometry(1.5, 1.7, 9.2, 12), stone);
+      tower.position.set(sx * (W + 0.55), 4.6, 0);
+      tower.castShadow = quality === 'high';
+      g.add(tower);
+      var band = new THREE.Mesh(new THREE.TorusBufferGeometry(1.55, 0.12, 6, 20), gold);
+      band.rotation.x = -Math.PI / 2; band.position.set(sx * (W + 0.55), 6.8, 0);
+      g.add(band);
+      for (tj = 0; tj < 8; tj++) {
+        ang = tj / 8 * TAU;
+        var merlon = new THREE.Mesh(new THREE.BoxBufferGeometry(0.62, 0.9, 0.5), darkStone);
+        merlon.position.set(sx * (W + 0.55) + Math.cos(ang) * 1.45, 9.55, Math.sin(ang) * 1.45);
+        merlon.rotation.y = -ang;
+        g.add(merlon);
+      }
+      var roof = new THREE.Mesh(new THREE.ConeBufferGeometry(1.9, 2.6, 12), darkStone);
+      roof.position.set(sx * (W + 0.55), 11.2, 0);
+      roof.castShadow = quality === 'high';
+      g.add(roof);
+      var finial = new THREE.Mesh(new THREE.OctahedronBufferGeometry(0.28), gold);
+      finial.position.set(sx * (W + 0.55), 12.7, 0);
+      g.add(finial);
+
+      // sconce and flame either side of the opening
+      var sconce = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.34, 0.18, 0.5, 8), iron);
+      sconce.position.set(sx * 2.5, 4.1, 0.85);
+      g.add(sconce);
+      var fl = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: TEX.glow, color: 0xffa24a, blending: THREE.AdditiveBlending,
+        depthWrite: false, transparent: true, opacity: 0.9
+      }));
+      fl.scale.set(1.7, 2.2, 1);
+      fl.position.set(sx * 2.5, 4.9, 0.85);
+      g.add(fl);
+      this.flames.push({ s: fl, seed: Math.random() * 10, w: 1.5, h: 2.0 });
+    }
+
+    // --- crenellated parapet across the top of the wall ---
+    for (ti = -3; ti <= 3; ti++) {
+      var m2 = new THREE.Mesh(new THREE.BoxBufferGeometry(0.6, 0.8, 1.7), darkStone);
+      m2.position.set(ti * 0.92, H + 0.95, 0);
+      g.add(m2);
+    }
+
+    // --- keystone and voussoir studs around the arch ---
+    var key = new THREE.Mesh(new THREE.OctahedronBufferGeometry(0.46), gold);
+    key.position.set(0, AP + 0.5, 0.8);
+    g.add(key);
+    for (ti = 0; ti < 7; ti++) {
+      var a2 = Math.PI * (0.12 + 0.76 * (ti / 6));
+      var stud = new THREE.Mesh(new THREE.BoxBufferGeometry(0.3, 0.3, 0.22), gold);
+      stud.position.set(-Math.cos(a2) * (AW + 0.32), AS + Math.sin(a2) * 2.3, 0.82);
+      g.add(stud);
+    }
+
+    // --- portcullis, hauled up but still hanging in the opening ---
+    var barGeo = new THREE.CylinderBufferGeometry(0.075, 0.075, 2.5, 6);
+    for (ti = -3; ti <= 3; ti++) {
+      var bar = new THREE.Mesh(barGeo, iron);
+      bar.position.set(ti * 0.5, AP - 0.9, 0.55);
+      g.add(bar);
+    }
+    for (ti = 0; ti < 2; ti++) {
+      var xbar = new THREE.Mesh(new THREE.BoxBufferGeometry(3.3, 0.14, 0.14), iron);
+      xbar.position.set(0, AP - 0.2 - ti * 1.1, 0.55);
+      g.add(xbar);
+    }
+
+    // --- the portal itself ---
+    var portalGeo = new THREE.PlaneBufferGeometry(AW * 2, AP + 0.3, 1, 1);
     this.portalMat = new THREE.ShaderMaterial({
       transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
       uniforms: { uTime: { value: 0 } },
       vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
       fragmentShader: [
         'uniform float uTime; varying vec2 vUv;',
+        'float hash(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }',
         'void main(){',
         '  vec2 p = vUv*2.0-1.0;',
-        '  float d = length(p*vec2(1.0,0.85));',
-        '  float mask = smoothstep(1.0,0.25,d);',
-        '  float w = sin(p.y*10.0 - uTime*1.6)*0.5+0.5;',
-        '  float w2 = sin(p.x*7.0 + uTime*1.1)*0.5+0.5;',
-        '  vec3 col = mix(vec3(0.24,0.34,0.85), vec3(0.65,0.78,1.0), w*w2);',
-        '  gl_FragColor = vec4(col*mask*(0.35+0.5*w), mask*0.72);',
+        '  float gate = smoothstep(1.05,0.15,length(p*vec2(1.15,0.78)));',
+        // slow vertical curtain of light
+        '  float curt = 0.5+0.5*sin(p.y*7.0 - uTime*1.3 + sin(p.x*4.0+uTime*0.6)*1.4);',
+        // a rune ring turning in the throat of the arch
+        '  float ang = atan(p.y*1.3, p.x);',
+        '  float rad = length(vec2(p.x, p.y*1.3));',
+        '  float ring = smoothstep(0.06,0.0,abs(rad-0.52)) * (0.45+0.55*sin(ang*8.0 - uTime*1.1));',
+        // sparse motes drifting up out of the gate',
+        '  float mote = step(0.986, hash(floor(vec2(p.x*9.0, p.y*5.0 - uTime*0.7))));',
+        '  vec3 cold = vec3(0.26,0.38,0.92);',
+        '  vec3 pale = vec3(0.72,0.84,1.0);',
+        '  vec3 col = mix(cold,pale,curt*0.8) * (0.30+0.5*curt);',
+        '  col += pale*ring*0.9 + pale*mote*0.8;',
+        '  gl_FragColor = vec4(col*gate, gate*(0.55+0.35*curt+0.5*ring));',
         '}'
       ].join('\n')
     });
     var portal = new THREE.Mesh(portalGeo, this.portalMat);
-    portal.position.y = 1.95; g.add(portal);
-    var gl = new THREE.PointLight(0x6f8cff, 1.5, 16, 2);
-    gl.position.y = 2; g.add(gl);
+    portal.position.set(0, (AP + 0.3) / 2, 0.1);
+    g.add(portal);
+
+    var gl2 = new THREE.PointLight(0x6f8cff, 2.0, 20, 2);
+    gl2.position.set(0, 2.6, 1.4); g.add(gl2);
+    var gl3 = new THREE.PointLight(0xff8a3c, 1.0, 12, 2);
+    gl3.position.set(0, 4.9, 1.2); g.add(gl3);
 
     this.gate = g; this.group.add(g);
   },
 
   buildRing: function (maxR) {
     var R = maxR + 7.5;
+    var TH = this.theme;
     var stoneMat = new THREE.MeshStandardMaterial({ map: TEX.stone, color: 0x4c4160, roughness: 0.9, metalness: 0.08 });
     var count = quality === 'high' ? 12 : 8;
     for (var i = 0; i < count; i++) {
@@ -1482,7 +1920,7 @@ var Arena = {
 
       // flame sprite
       var fl = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: TEX.glow, color: 0xff9040, blending: THREE.AdditiveBlending,
+        map: TEX.glow, color: TH.fire, blending: THREE.AdditiveBlending,
         depthWrite: false, transparent: true, opacity: 0.95
       }));
       fl.scale.set(2.6, 3.4, 1); fl.position.y = 9.9;
@@ -1490,7 +1928,7 @@ var Arena = {
       this.flames.push({ s: fl, seed: Math.random() * 10 });
 
       if (i % (count / 4) === 0) {
-        var pl = new THREE.PointLight(0xff8433, 1.4, 34, 2);
+        var pl = new THREE.PointLight(TH.fire, 1.4, 34, 2);
         pl.position.set(px, 9.6, pz);
         this.group.add(pl);
         this.lights.push({ l: pl, base: 1.4, seed: Math.random() * 10 });
@@ -1505,7 +1943,7 @@ var Arena = {
         pos.setZ(v, Math.sin(vy * 1.5 + vx) * 0.16);
       }
       bg.computeVertexNormals();
-      var bcol = [0x8e2233, 0x1f3d7a, 0x3f6b32, 0x5a2c6b][i % 4];
+      var bcol = TH.banners[i % 4];
       var banner = new THREE.Mesh(bg, new THREE.MeshStandardMaterial({
         color: bcol, roughness: 0.95, metalness: 0, side: THREE.DoubleSide
       }));
@@ -1519,8 +1957,54 @@ var Arena = {
   buildLauncher: function () {
     var g = new THREE.Group();
     g.position.set(0, 0, 0);
+    this.runes = [];
+    this.ring = null;
+
+    if (cannon === 'orrery') this.buildOrrery(g);
+    else if (cannon === 'ballista') this.buildBallista(g);
+    else this.buildWyrm(g);
+
+    // shrink the engine if a track passes close to the middle of the wheel
+    var sc = clamp((this.clear - 1.6) / 3.6, 0.58, 1.0);
+    g.scale.setScalar(sc);
+    this.lscale = sc;
+    this.launchPos.set(0, this.headY * sc, 0);
+    this.head.position.y = this.headY;
+
+    this.launcher = g; this.group.add(g);
+
+    // ---- muzzle flash rig (kept on the scene, reused every shot) ----
+    if (!this.flash) {
+      this.flash = new THREE.Group();
+      this.flashCore = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: TEX.glow, blending: THREE.AdditiveBlending, depthWrite: false,
+        transparent: true, opacity: 0
+      }));
+      this.flashRing = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: TEX.glow, blending: THREE.AdditiveBlending, depthWrite: false,
+        transparent: true, opacity: 0
+      }));
+      this.flashLight = new THREE.PointLight(0xffffff, 0, 14, 2);
+      this.flash.add(this.flashCore); this.flash.add(this.flashRing); this.flash.add(this.flashLight);
+      scene.add(this.flash);
+    }
+
+    if (!this.muzzleOrb) {
+      this.muzzleOrb = makeOrbMesh(0);
+      scene.add(this.muzzleOrb);
+      this.nextOrb = makeOrbMesh(1);
+      this.nextOrb.scale.setScalar(0.62);
+      scene.add(this.nextOrb);
+    }
+    this.muzzleOrb.scale.setScalar(sc);
+    this.nextOrb.scale.setScalar(0.62 * sc);
+  },
+
+  /* ---------- A. WYRM MAW — cast bronze dragon head on a rune dais ---------- */
+  buildWyrm: function (g) {
     var stone = new THREE.MeshStandardMaterial({ map: TEX.stone, color: 0x60557a, roughness: 0.8, metalness: 0.15 });
-    var bronze = new THREE.MeshStandardMaterial({ color: 0xc08a3e, roughness: 0.3, metalness: 0.95, envMapIntensity: 1.5 });
+    var bronze = new THREE.MeshStandardMaterial({ color: 0xc08a3e, roughness: 0.28, metalness: 0.95, envMapIntensity: 1.5 });
+    var dark = new THREE.MeshStandardMaterial({ color: 0x4a3418, roughness: 0.5, metalness: 0.8 });
 
     var dais = new THREE.Mesh(new THREE.CylinderBufferGeometry(3.0, 3.4, 0.55, 32), stone);
     dais.position.y = 0.27; dais.receiveShadow = quality === 'high'; g.add(dais);
@@ -1534,52 +2018,179 @@ var Arena = {
     var col = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.55, 0.85, 1.1, 16), bronze);
     col.position.y = 1.5; g.add(col);
 
-    // aiming head — a bronze wyrm maw
-    var head = new THREE.Group(); head.position.y = 2.0;
+    var head = new THREE.Group();
     var neck = new THREE.Mesh(new THREE.SphereBufferGeometry(0.75, 20, 14), bronze);
     head.add(neck);
     var maw = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.30, 0.66, 2.0, 14, 1, true), bronze);
-    maw.rotation.x = Math.PI / 2; maw.position.z = 1.05;
-    head.add(maw);
+    maw.rotation.x = Math.PI / 2; maw.position.z = 1.05; head.add(maw);
+    var throat = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.26, 0.26, 0.1, 12), dark);
+    throat.rotation.x = Math.PI / 2; throat.position.z = 1.9; head.add(throat);
     var lipRing = new THREE.Mesh(new THREE.TorusBufferGeometry(0.33, 0.09, 8, 20), bronze);
     lipRing.position.z = 2.02; head.add(lipRing);
     var horn1 = new THREE.Mesh(new THREE.ConeBufferGeometry(0.16, 1.05, 8), bronze);
-    horn1.position.set(0.45, 0.5, -0.15); horn1.rotation.z = 0.5; horn1.rotation.x = -0.35;
-    head.add(horn1);
+    horn1.position.set(0.45, 0.5, -0.15); horn1.rotation.z = 0.5; horn1.rotation.x = -0.35; head.add(horn1);
     var horn2 = horn1.clone(); horn2.position.x = -0.45; horn2.rotation.z = -0.5; head.add(horn2);
     var jaw = new THREE.Mesh(new THREE.BoxBufferGeometry(0.9, 0.22, 1.1), bronze);
     jaw.position.set(0, -0.5, 0.7); jaw.rotation.x = 0.12; head.add(jaw);
+    for (var e = 0; e < 2; e++) {
+      var eye = new THREE.Mesh(new THREE.SphereBufferGeometry(0.13, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffca4a }));
+      eye.position.set((e ? 1 : -1) * 0.42, 0.28, 0.42); head.add(eye);
+    }
     head.traverse(function (o) { if (o.isMesh) o.castShadow = quality === 'high'; });
-    g.add(head); this.head = head;
+    g.add(head);
 
-    // orbiting runes
-    this.runes = [];
     for (var i = 0; i < 3; i++) {
-      var rr = new THREE.Mesh(
-        new THREE.TorusBufferGeometry(0.22, 0.045, 6, 16),
-        new THREE.MeshBasicMaterial({ color: 0xffd48a })
-      );
+      var rr = new THREE.Mesh(new THREE.TorusBufferGeometry(0.22, 0.045, 6, 16), new THREE.MeshBasicMaterial({ color: 0xffd48a }));
       g.add(rr); this.runes.push(rr);
     }
+    this.head = head; this.headY = 2.0; this.muzzleR = 2.25;
+  },
 
-    this.launchPos.set(0, 2.0, 0);
-    this.launcher = g; this.group.add(g);
+  /* ---------- B. ARCANE ORRERY — a levitating focus inside armillary rings ---------- */
+  buildOrrery: function (g) {
+    var obsidian = new THREE.MeshStandardMaterial({ color: 0x16121f, roughness: 0.32, metalness: 0.55, envMapIntensity: 1.2 });
+    var brass = new THREE.MeshStandardMaterial({ color: 0xd7a94e, roughness: 0.26, metalness: 0.98, envMapIntensity: 1.6 });
+    var glowMat = new THREE.MeshBasicMaterial({ color: 0x9fd8ff });
 
-    // loaded + queued orbs live on the scene, never inside the disposable group
-    if (!this.muzzleOrb) {
-      this.muzzleOrb = makeOrbMesh(0);
-      this.muzzleOrb.scale.setScalar(1);
-      scene.add(this.muzzleOrb);
-      this.nextOrb = makeOrbMesh(1);
-      this.nextOrb.scale.setScalar(0.62);
-      scene.add(this.nextOrb);
+    // low plinth of stacked slabs, deliberately small — the engine floats
+    var p1 = new THREE.Mesh(new THREE.CylinderBufferGeometry(2.5, 2.8, 0.34, 6), obsidian);
+    p1.position.y = 0.17; p1.receiveShadow = quality === 'high'; g.add(p1);
+    var p2 = new THREE.Mesh(new THREE.CylinderBufferGeometry(1.5, 1.9, 0.3, 6), obsidian);
+    p2.position.y = 0.5; g.add(p2);
+
+    // four standing stones around it, tips lit
+    for (var i = 0; i < 4; i++) {
+      var a = i / 4 * TAU + 0.4;
+      var men = new THREE.Mesh(new THREE.BoxBufferGeometry(0.42, 2.3, 0.42), obsidian);
+      men.position.set(Math.cos(a) * 2.55, 1.15, Math.sin(a) * 2.55);
+      men.rotation.y = -a; men.rotation.z = Math.cos(a) * 0.06;
+      men.castShadow = quality === 'high';
+      g.add(men);
+      var tip = new THREE.Mesh(new THREE.OctahedronBufferGeometry(0.17), glowMat);
+      tip.position.set(Math.cos(a) * 2.55, 2.45, Math.sin(a) * 2.55);
+      g.add(tip); this.runes.push(tip);
     }
+
+    // armillary rings, each on its own axis
+    this.orreryRings = [];
+    var tilts = [[0, 0, 0], [Math.PI / 2.4, 0, 0.5], [0.7, 0.9, 0]];
+    for (i = 0; i < 3; i++) {
+      var band = new THREE.Mesh(new THREE.TorusBufferGeometry(1.55 + i * 0.34, 0.055 + i * 0.012, 8, 64), brass);
+      band.rotation.set(tilts[i][0], tilts[i][1], tilts[i][2]);
+      band.position.y = 2.1;
+      g.add(band);
+      this.orreryRings.push({ m: band, sp: 0.35 + i * 0.22, ax: i });
+    }
+    var equator = new THREE.Mesh(new THREE.TorusBufferGeometry(2.45, 0.05, 8, 72), new THREE.MeshBasicMaterial({ color: 0xf6d98b }));
+    equator.rotation.x = -Math.PI / 2; equator.position.y = 2.1;
+    g.add(equator); this.ring = equator;
+
+    // the aiming head: a dark core with a crystal lance that swings to face the shot
+    var head = new THREE.Group();
+    var core = new THREE.Mesh(new THREE.IcosahedronBufferGeometry(0.62, 1), obsidian);
+    head.add(core);
+    var cage = new THREE.Mesh(new THREE.TorusBufferGeometry(0.78, 0.05, 6, 24), brass);
+    cage.rotation.y = Math.PI / 2; head.add(cage);
+    var lance = new THREE.Mesh(new THREE.OctahedronBufferGeometry(0.42), glowMat);
+    lance.scale.set(0.55, 0.55, 2.6); lance.position.z = 1.5; head.add(lance);
+    var tipRing = new THREE.Mesh(new THREE.TorusBufferGeometry(0.3, 0.055, 6, 20), brass);
+    tipRing.position.z = 2.05; head.add(tipRing);
+    var vane = new THREE.Mesh(new THREE.BoxBufferGeometry(0.06, 0.9, 0.7), brass);
+    vane.position.z = 0.55; head.add(vane);
+    var vane2 = vane.clone(); vane2.rotation.z = Math.PI / 2; head.add(vane2);
+    head.traverse(function (o) { if (o.isMesh) o.castShadow = quality === 'high'; });
+    g.add(head);
+
+    var lamp = new THREE.PointLight(0x8fc8ff, 1.5, 12, 2);
+    lamp.position.y = 2.1; g.add(lamp);
+
+    this.head = head; this.headY = 2.1; this.muzzleR = 2.3;
+  },
+
+  /* ---------- C. SIEGE BALLISTA — timber, torsion rope and iron ---------- */
+  buildBallista: function (g) {
+    var timber = new THREE.MeshStandardMaterial({ color: 0x6b4526, roughness: 0.92, metalness: 0.02, envMapIntensity: 0.3 });
+    var darkTimber = new THREE.MeshStandardMaterial({ color: 0x452b16, roughness: 0.95, metalness: 0.02 });
+    var iron = new THREE.MeshStandardMaterial({ color: 0x3c3640, roughness: 0.4, metalness: 0.92, envMapIntensity: 1.2 });
+    var rope = new THREE.MeshStandardMaterial({ color: 0xbca173, roughness: 0.98, metalness: 0 });
+
+    // planked deck on cross beams
+    var deck = new THREE.Mesh(new THREE.BoxBufferGeometry(5.4, 0.32, 5.4), darkTimber);
+    deck.position.y = 0.16; deck.receiveShadow = quality === 'high'; g.add(deck);
+    for (var i = -2; i <= 2; i++) {
+      var plank = new THREE.Mesh(new THREE.BoxBufferGeometry(5.2, 0.16, 0.92), timber);
+      plank.position.set(0, 0.38, i * 1.0); g.add(plank);
+    }
+    for (i = 0; i < 4; i++) {
+      var a = i / 4 * TAU + Math.PI / 4;
+      var brace = new THREE.Mesh(new THREE.BoxBufferGeometry(0.3, 0.3, 2.1), iron);
+      brace.position.set(Math.cos(a) * 2.1, 0.52, Math.sin(a) * 2.1);
+      brace.rotation.y = -a + Math.PI / 2; g.add(brace);
+    }
+    // turntable ring
+    var turn = new THREE.Mesh(new THREE.TorusBufferGeometry(1.85, 0.13, 8, 36), iron);
+    turn.rotation.x = -Math.PI / 2; turn.position.y = 0.62;
+    g.add(turn); this.ring = turn;
+
+    // the carriage itself rotates to aim
+    var head = new THREE.Group();
+    var post = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.42, 0.55, 1.5, 10), timber);
+    post.position.y = -0.7; head.add(post);
+    var stock = new THREE.Mesh(new THREE.BoxBufferGeometry(0.52, 0.42, 3.3), timber);
+    stock.position.z = 0.55; head.add(stock);
+    var trough = new THREE.Mesh(new THREE.BoxBufferGeometry(0.72, 0.16, 2.6), darkTimber);
+    trough.position.set(0, 0.28, 0.75); head.add(trough);
+
+    // torsion springs and throwing arms
+    for (i = 0; i < 2; i++) {
+      var sx = i ? 1 : -1;
+      var spring = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.3, 0.3, 0.8, 10), rope);
+      spring.rotation.z = Math.PI / 2; spring.position.set(sx * 0.95, 0.18, -0.15);
+      head.add(spring);
+      var cap = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.34, 0.34, 0.16, 10), iron);
+      cap.rotation.z = Math.PI / 2; cap.position.set(sx * 1.42, 0.18, -0.15);
+      head.add(cap);
+      var arm = new THREE.Mesh(new THREE.BoxBufferGeometry(0.2, 0.2, 1.9), timber);
+      arm.position.set(sx * 1.15, 0.18, 0.55); arm.rotation.y = sx * 0.55;
+      head.add(arm);
+      var tipIron = new THREE.Mesh(new THREE.BoxBufferGeometry(0.26, 0.26, 0.26), iron);
+      tipIron.position.set(sx * 1.62, 0.18, 1.35); head.add(tipIron);
+    }
+    // bowstring across the arm tips, and the cradle
+    var str = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.045, 0.045, 3.3, 6), rope);
+    str.rotation.z = Math.PI / 2; str.position.set(0, 0.18, 1.35);
+    head.add(str);
+    var cradle = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.42, 0.34, 0.4, 10, 1, true), iron);
+    cradle.rotation.x = Math.PI / 2; cradle.position.set(0, 0.28, 1.75);
+    head.add(cradle);
+    // windlass at the back
+    var wl = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.24, 0.24, 1.0, 8), timber);
+    wl.rotation.z = Math.PI / 2; wl.position.set(0, 0.25, -0.95);
+    head.add(wl);
+    for (i = 0; i < 2; i++) {
+      var spoke = new THREE.Mesh(new THREE.BoxBufferGeometry(0.09, 0.7, 0.09), iron);
+      spoke.position.set((i ? 1 : -1) * 0.6, 0.25, -0.95); spoke.rotation.x = 0.5;
+      head.add(spoke);
+    }
+    head.traverse(function (o) { if (o.isMesh) o.castShadow = quality === 'high'; });
+    g.add(head);
+
+    // a lantern hanging off the frame
+    var lant = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: TEX.glow, color: 0xffb45c, blending: THREE.AdditiveBlending,
+      depthWrite: false, transparent: true, opacity: 0.85
+    }));
+    lant.scale.set(1.5, 1.9, 1); lant.position.set(1.9, 1.5, 1.9);
+    g.add(lant);
+    this.flames.push({ s: lant, seed: Math.random() * 10, w: 1.3, h: 1.7 });
+
+    this.head = head; this.headY = 1.65; this.muzzleR = 2.4;
   },
 
   buildLights: function () {
-    var amb = new THREE.AmbientLight(0x2b2f52, 0.34); this.group.add(amb);
-    var hemi = new THREE.HemisphereLight(0x6d80cc, 0x2a1c22, 0.28); this.group.add(hemi);
-    var moon = new THREE.DirectionalLight(0xa8bcf5, 0.85);
+    var amb = new THREE.AmbientLight(this.theme.amb, 0.34); this.group.add(amb);
+    var hemi = new THREE.HemisphereLight(this.theme.hemi, 0x2a1c22, 0.28); this.group.add(hemi);
+    var moon = new THREE.DirectionalLight(this.theme.moon, 0.85);
     moon.position.set(-26, 34, 18);
     if (quality === 'high') {
       moon.castShadow = true;
@@ -1631,6 +2242,82 @@ var Arena = {
     this.group.add(pts);
   }
 };
+
+/* =====================================================================
+   AIM GUIDE — a dotted trace from the muzzle, trimmed at the first orb
+   ===================================================================== */
+var Aim = {
+  N: 34, mesh: null, pos: null, alpha: null,
+  init: function () {
+    var g = new THREE.BufferGeometry();
+    this.pos = new Float32Array(this.N * 3);
+    this.alpha = new Float32Array(this.N);
+    g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
+    g.setAttribute('aA', new THREE.BufferAttribute(this.alpha, 1));
+    this.mesh = new THREE.Points(g, new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
+      uniforms: { uTex: { value: TEX.glow }, uCol: { value: new THREE.Color(0xffffff) } },
+      vertexShader: [
+        'attribute float aA; varying float vA;',
+        'void main(){ vA = aA;',
+        '  vec4 mv = modelViewMatrix * vec4(position,1.0);',
+        '  gl_PointSize = (7.0 + 9.0*aA) * 26.0 / -mv.z;',
+        '  gl_Position = projectionMatrix * mv; }'
+      ].join('\n'),
+      fragmentShader: [
+        'uniform sampler2D uTex; uniform vec3 uCol; varying float vA;',
+        'void main(){ vec4 t = texture2D(uTex, gl_PointCoord);',
+        '  gl_FragColor = vec4(uCol*t.rgb, t.a*vA*0.85); }'
+      ].join('\n')
+    }));
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = 5;
+    this.mesh.visible = false;
+    scene.add(this.mesh);
+  },
+  update: function () {
+    var on = showAim && G.state === 'play' && G.countdown <= 0;
+    this.mesh.visible = on;
+    if (!on) return;
+
+    var dir = _aimD.set(Math.sin(G.aimAngle), 0, Math.cos(G.aimAngle));
+    var ox = Arena.launchPos.x + dir.x * 2.0 * Arena.lscale;
+    var oz = Arena.launchPos.z + dir.z * 2.0 * Arena.lscale;
+    var y = PATH_Y + BALL_LIFT;
+
+    // walk the ray out to the first orb it would strike
+    var stop = 26, i, b, px, pz, along, perp;
+    for (i = 0; i < G.balls.length; i++) {
+      b = G.balls[i];
+      if (b.dist < 0 || !b.mesh.visible) continue;
+      px = b.mesh.position.x - ox; pz = b.mesh.position.z - oz;
+      along = px * dir.x + pz * dir.z;
+      if (along <= 0 || along >= stop) continue;
+      perp = Math.abs(px * dir.z - pz * dir.x);
+      if (perp < GAP * 0.94) {
+        var back = Math.sqrt(Math.max(0, GAP * GAP * 0.884 - perp * perp));
+        stop = Math.min(stop, along - back);
+      }
+    }
+    stop = Math.max(stop, 1.2);
+
+    var col = this.mesh.material.uniforms.uCol.value;
+    col.setHex(ORB_COLORS[G.cur].hex);
+    var crawl = (G.time * 2.4) % 1;
+    for (i = 0; i < this.N; i++) {
+      var f = (i + crawl) / this.N;
+      var d = f * stop;
+      this.pos[i * 3] = ox + dir.x * d;
+      this.pos[i * 3 + 1] = y;
+      this.pos[i * 3 + 2] = oz + dir.z * d;
+      // brightest near the muzzle, tapering out, with a soft cap at the end
+      this.alpha[i] = (1 - f) * (1 - f) * 0.9 + (f > 0.93 ? 0.5 : 0);
+    }
+    this.mesh.geometry.attributes.position.needsUpdate = true;
+    this.mesh.geometry.attributes.aA.needsUpdate = true;
+  }
+};
+var _aimD = new THREE.Vector3();
 
 /* =====================================================================
    ORB MESHES + POOL
@@ -1693,6 +2380,20 @@ function setOrbColor(mesh, ci) {
   mesh.userData.sphere.material = orbMaterial(ci);
   mesh.userData.ci = ci;
 }
+function refreshOrbSkins() {
+  var i;
+  for (i = 0; i < orbMats.length; i++) if (orbMats[i]) orbMats[i].dispose();
+  if (TEX.orb) for (i = 0; i < TEX.orb.length; i++) if (TEX.orb[i]) TEX.orb[i].dispose();
+  orbMats.length = 0; TEX.orb = null;
+  var apply = function (m) {
+    if (m && m.userData && m.userData.sphere) m.userData.sphere.material = orbMaterial(m.userData.ci);
+  };
+  for (i = 0; i < G.balls.length; i++) apply(G.balls[i].mesh);
+  for (i = 0; i < G.projectiles.length; i++) apply(G.projectiles[i].mesh);
+  for (i = 0; i < orbPool.length; i++) apply(orbPool[i]);
+  apply(Arena.muzzleOrb); apply(Arena.nextOrb);
+}
+
 var orbPool = [];
 function acquireOrb(ci) {
   var m = orbPool.pop();
@@ -1842,21 +2543,24 @@ var G = {
   hold: 0, combo: 0, comboTimer: 0, shotCd: 0,
   cur: 0, next: 0, projectiles: [],
   aim: new THREE.Vector3(0, PATH_Y, 1), aimAngle: 0,
-  pickups: [], freeze: 0, reverseLeft: 0, streak: 0,
-  danger: false, over: false, bag: [], time: 0, shake: 0
+  pickups: [], freeze: 0, reverseLeft: 0, streak: 0, relicCd: 0,
+  danger: false, over: false, bag: [], time: 0, shake: 0,
+  flashT: 0, kick: 0, flashCol: 0xffffff,
+  countdown: 0, endless: false, survived: 0
 };
 
 function multiplier() {
-  return 1 + 0.45 * clamp(G.combo - 1, 0, 5) + 0.2 * Math.min(G.streak, 10);
+  var m = 1 + TUNING.chainStep * clamp(G.combo - 1, 0, 5) + TUNING.streakStep * Math.min(G.streak, 10);
+  return MODE_HARD ? m * TUNING.hardScore : m;
 }
 
 /* ---- star ratings, stored per level ---- */
 function getStars() {
-  try { return JSON.parse(Store.get('rf_stars', '{}')) || {}; } catch (e) { return {}; }
+  try { return JSON.parse(Store.get(K('rf_stars'), '{}')) || {}; } catch (e) { return {}; }
 }
 function setStars(lv, n) {
   var m = getStars();
-  if (!m[lv] || m[lv] < n) { m[lv] = n; Store.set('rf_stars', JSON.stringify(m)); }
+  if (!m[lv] || m[lv] < n) { m[lv] = n; Store.set(K('rf_stars'), JSON.stringify(m)); }
 }
 function totalStars() {
   var m = getStars(), s = 0, k;
@@ -1865,8 +2569,8 @@ function totalStars() {
 }
 function starsFor(lv, play) {
   var cfg = levelConfig(lv);
-  if (play >= cfg.total * 16) return 3;
-  if (play >= cfg.total * 10) return 2;
+  if (play >= cfg.total * TUNING.starGold) return 3;
+  if (play >= cfg.total * TUNING.starPar) return 2;
   return 1;
 }
 function renderStars(el, n) {
@@ -1878,12 +2582,30 @@ function renderStars(el, n) {
 }
 
 function levelConfig(n) {
+  var T = TUNING, H = MODE_HARD;
+  var total = Math.min(T.orbsBase + n * T.orbsPerLevel, T.orbsMax);
+  var speed = Math.min(T.speedBase + n * T.speedPerLevel, T.speedMax);
+  var colors = T.colorsBase + Math.floor((n + 1) / 2) + (H ? T.hardColors : 0);
   return {
-    seed: 1337 + n * 7919,
-    path: (n - 1) % 6,
-    colors: clamp(3 + Math.floor((n + 1) / 2), 3, 6),
-    total: Math.min(30 + n * 5, 96),
-    speed: Math.min(1.2 + n * 0.09, 3.0)
+    seed: 1337 + n * 7919 + (H ? 4441 : 0),
+    path: (n - 1) % PATHS.length,
+    colors: clamp(colors, 3, T.colorsMax),
+    total: Math.round(total * (H ? T.hardOrbs : 1)),
+    speed: speed * (H ? T.hardSpeed : 1)
+  };
+}
+
+function endlessConfig() {
+  var T = TUNING, H = MODE_HARD;
+  var lv = 1 + Math.floor(Math.random() * PATHS.length);
+  return {
+    seed: (Date.now() & 0xffff) * 31 + 7,
+    path: lv - 1,
+    theme: lv,
+    colors: clamp(5 + (H ? 1 : 0), 3, T.colorsMax),
+    total: 999999,
+    speed: (T.speedBase + 0.5) * (H ? T.hardSpeed : 1),
+    endless: true
   };
 }
 
@@ -1899,9 +2621,11 @@ function buildBag(cfg) {
   return bag;
 }
 
-function startLevel(n) {
+function startLevel(n, endlessCfg) {
   G.level = n; G.levelScore = 0;
-  var cfg = levelConfig(n);
+  G.endless = !!endlessCfg;
+  G.survived = 0;
+  var cfg = endlessCfg || levelConfig(n);
   G.colorCount = cfg.colors; G.toSpawn = cfg.total; G.speed = cfg.speed;
   G.balls.forEach(function (b) { releaseOrb(b.mesh); });
   G.balls = [];
@@ -1909,21 +2633,26 @@ function startLevel(n) {
   G.projectiles = [];
   while (G.pickups.length) killRelic(0);
   G.hold = 0; G.combo = 0; G.comboTimer = 0; G.shotCd = 0; G.danger = false; G.over = false;
-  G.freeze = 0; G.reverseLeft = 0; G.streak = 0;
+  G.freeze = 0; G.reverseLeft = 0; G.streak = 0; G.relicCd = 0;
   $('frost').style.opacity = '0';
-  G.bag = buildBag(cfg);
+  G.bag = G.endless ? [] : buildBag(cfg);
+  G.baseSpeed = cfg.speed;
   Arena.build(cfg);
   G.cur = randColor(); G.next = randColor();
   setOrbColor(Arena.muzzleOrb, G.cur);
   setOrbColor(Arena.nextOrb, G.next);
   updateHudOrbs();
-  $('hudLevel').textContent = n;
+  $('hudLevel').textContent = G.endless ? '\u221E' : n;
+  showIntro(cfg);
+  G.countdown = 1.7;
   $('hudScore').textContent = G.score;
   setBar(1);
   G.state = 'play';
-  Store.set('rf_level', n);
-  var best = parseInt(Store.get('rf_best', '1'), 10) || 1;
-  if (n > best) Store.set('rf_best', n);
+  if (!G.endless) {
+    Store.set(K('rf_level'), n);
+    var best = parseInt(Store.get(K('rf_best'), '1'), 10) || 1;
+    if (n > best) Store.set(K('rf_best'), n);
+  }
 }
 
 function presentColors() {
@@ -2018,7 +2747,7 @@ function resolveMatches(anchor, chained) {
   }
   b.splice(i, count);
 
-  var gain = Math.round(10 * count * multiplier());
+  var gain = Math.round(TUNING.scorePerOrb * count * multiplier());
   G.score += gain; G.levelScore += gain;
   $('hudScore').textContent = G.score;
   popText(mid, '+' + gain);
@@ -2030,10 +2759,13 @@ function resolveMatches(anchor, chained) {
     Snd.chain(G.combo);
   }
   Snd.match(count, G.combo);
+  buzz(count >= 5 ? 40 : 18);
 
   // a big break shakes a relic loose
-  var dropOdds = count >= 5 ? 1 : (count === 4 ? 0.35 : 0.10);
-  if (Math.random() < dropOdds) dropRelic(mid);
+  var T = TUNING;
+  var dropOdds = count >= 5 ? T.relicOddsFive : (count === 4 ? T.relicOddsFour : T.relicOddsThree);
+  if (MODE_HARD) dropOdds *= T.hardRelics;
+  if (G.relicCd <= 0 && Math.random() < dropOdds) dropRelic(mid);
   return count;
 }
 
@@ -2111,6 +2843,9 @@ function updateChain(dt) {
     }
   }
 
+  // a merge can resolve the final orbs away — the chain is empty from here on
+  if (!b.length) return;
+
   // draw — visual offsets relax back, which reads as the chain absorbing the shot
   var relax = Math.exp(-dt * 13);
   for (i = 0; i < b.length; i++) {
@@ -2127,7 +2862,7 @@ function updateChain(dt) {
   if (dg !== G.danger) {
     G.danger = dg;
     $('danger').style.opacity = dg ? '1' : '0';
-    if (dg) Snd.danger();
+    if (dg) { Snd.danger(); buzz([0, 90, 60, 90]); }
   }
   if (Arena.runeMat) Arena.runeMat.uniforms.uHeat.value = clamp((head - 0.5) * 2.2, 0, 1);
   if (b[0].dist >= Arena.len) lose();
@@ -2135,7 +2870,8 @@ function updateChain(dt) {
 
 /* ---------- relics ---------- */
 function dropRelic(pos) {
-  if (G.pickups.length >= 3) return;
+  if (G.pickups.length >= TUNING.relicMaxActive) return;
+  G.relicCd = TUNING.relicCooldown;
   var type = POWERS[Math.floor(Math.random() * POWERS.length)];
   var col = POWER_COLOR[type];
   var g = new THREE.Group();
@@ -2158,7 +2894,7 @@ function dropRelic(pos) {
   g.position.set(pos.x / r * nr, 2.2, pos.z / r * nr);
   scene.add(g);
 
-  G.pickups.push({ type: type, mesh: g, core: core, ring: ring, halo: halo, life: 11, t: Math.random() * 6 });
+  G.pickups.push({ type: type, mesh: g, core: core, ring: ring, halo: halo, life: TUNING.relicLife, t: Math.random() * 6 });
 }
 
 function killRelic(i) {
@@ -2169,6 +2905,7 @@ function killRelic(i) {
 }
 
 function updateRelics(dt) {
+  if (G.relicCd > 0) G.relicCd -= dt;
   for (var i = G.pickups.length - 1; i >= 0; i--) {
     var pk = G.pickups[i];
     pk.life -= dt; pk.t += dt;
@@ -2204,6 +2941,7 @@ function removeSet(list, pos, count3) {
 
 function applyPower(type, pos, projColor) {
   Snd.power(type);
+  buzz([12, 30, 12, 60]);
   popText(pos, t('fx.' + type));
   var i, list = [];
   if (type === 'frost') {
@@ -2227,7 +2965,7 @@ function applyPower(type, pos, projColor) {
 
 /* ---------- shooting ---------- */
 function shoot() {
-  if (G.state !== 'play' || G.shotCd > 0) return;
+  if (G.state !== 'play' || G.shotCd > 0 || G.countdown > 0) return;
   G.shotCd = 0.17;
   var dir = new THREE.Vector3(Math.sin(G.aimAngle), 0, Math.cos(G.aimAngle));
   var p = {
@@ -2237,6 +2975,17 @@ function shoot() {
   };
   p.mesh.position.copy(p.pos);
   G.projectiles.push(p);
+
+  // muzzle discharge: light, flare, ring, sparks and a mechanical kick
+  G.flashT = 1; G.kick = 1;
+  G.flashCol = ORB_COLORS[G.cur].hex;
+  Arena.flash.position.copy(Arena.launchPos).addScaledVector(dir, 1.9 * Arena.lscale);
+  Arena.flash.position.y = Arena.launchPos.y;
+  Arena.flashCore.material.color.setHex(G.flashCol);
+  Arena.flashRing.material.color.setHex(G.flashCol);
+  Arena.flashLight.color.setHex(G.flashCol);
+  Particles.burst(Arena.flash.position, G.flashCol, quality === 'high' ? 16 : 9, 4.5);
+
   G.cur = G.next; G.next = randColor();
   setOrbColor(Arena.muzzleOrb, G.cur);
   setOrbColor(Arena.nextOrb, G.next);
@@ -2341,7 +3090,7 @@ function updateProjectiles(dt) {
       if (got) {
         G.streak++;
         if (wasGap) {
-          var bonus = Math.round(120 * multiplier());
+          var bonus = Math.round(TUNING.gapBonus * multiplier());
           G.score += bonus; G.levelScore += bonus;
           $('hudScore').textContent = G.score;
           popText(nb.mesh.position, t('fx.gap') + ' +' + bonus);
@@ -2364,29 +3113,38 @@ function updateProjectiles(dt) {
 
 /* ---------- win / lose ---------- */
 function win() {
-  if (G.state !== 'play') return;
+  if (G.state !== 'play' || G.endless) return;
   G.state = 'win';
   var play = G.levelScore;
   var st = starsFor(G.level, play);
   setStars(G.level, st);
   renderStars($('winStars'), st);
-  var bonus = 250 + G.level * 100;
+  var bonus = TUNING.clearBonus + G.level * 100;
   G.score += bonus; G.levelScore += bonus;
   $('winGain').textContent = G.levelScore;
   $('winTotal').textContent = G.score;
   Snd.win();
-  var best = parseInt(Store.get('rf_best', '1'), 10) || 1;
-  if (G.level + 1 > best) Store.set('rf_best', G.level + 1);
-  Store.set('rf_level', G.level + 1);
+  var best = parseInt(Store.get(K('rf_best'), '1'), 10) || 1;
+  if (G.level + 1 > best) Store.set(K('rf_best'), G.level + 1);
+  Store.set(K('rf_level'), G.level + 1);
   setTimeout(function () { show('scrWin'); }, 650);
 }
 function lose() {
   if (G.state !== 'play') return;
   G.state = 'lose';
   G.over = true;
-  $('loseLevel').textContent = G.level;
+  if (G.endless) {
+    $('loseLead').textContent = t('lose.survived');
+    $('loseLevel').textContent = Math.floor(G.survived) + 's';
+    var eb = parseInt(Store.get(K('rf_endless'), '0'), 10) || 0;
+    if (G.score > eb) Store.set(K('rf_endless'), G.score);
+  } else {
+    $('loseLead').textContent = t('lose.reached');
+    $('loseLevel').textContent = G.level;
+  }
   $('loseScore').textContent = G.score;
   Snd.lose();
+  buzz([0, 140, 70, 240]);
   G.shake = 1.4;
   for (var i = 0; i < Math.min(G.balls.length, 12); i++) {
     Particles.burst(G.balls[i].mesh.position, 0xff5522, 14, 6);
@@ -2416,6 +3174,46 @@ function updateMultiHud() {
     el.classList.remove('on');
     _streakDots = -1;
   }
+}
+
+function trackName(cfg) {
+  return G.endless ? t('track.endless') : t('track.' + (cfg.path + 1));
+}
+var _introTimer = null;
+function showIntro(cfg) {
+  $('introLevel').textContent = G.endless
+    ? t('menu.endless')
+    : t('hud.level') + ' ' + G.level;
+  $('introName').textContent = trackName(cfg);
+  var el = $('intro');
+  el.classList.remove('on');
+  void el.offsetWidth;
+  el.classList.add('on');
+  if (_introTimer) clearTimeout(_introTimer);
+  _introTimer = setTimeout(function () { el.classList.remove('on'); }, 2050);
+}
+
+var _lastCount = -1;
+function updateCountdown(dt) {
+  var el = $('count');
+  if (G.countdown <= 0) {
+    if (_lastCount !== -1) { el.classList.remove('on'); _lastCount = -1; }
+    return false;
+  }
+  G.countdown -= dt;
+  if (G.countdown <= 0) { el.classList.remove('on'); _lastCount = -1; return false; }
+  var n = Math.ceil(G.countdown);
+  if (n !== _lastCount) {
+    _lastCount = n;
+    el.classList.add('on');
+    var num = $('countNum');
+    num.textContent = n;
+    num.classList.remove('tick');
+    void num.offsetWidth;
+    num.classList.add('tick');
+    Snd.ui();
+  }
+  return true;
 }
 
 function setBar(v) { $('hudBar').style.transform = 'scaleX(' + clamp(v, 0, 1) + ')'; }
@@ -2480,11 +3278,36 @@ function isUiTarget(e) {
   var el = e.target;
   return !(el === renderer.domElement || el === document.body || el.id === 'stage' || el.id === 'fx');
 }
+
+/* Where the engine sits on screen, and how big its tap target is. */
+var _cs = new THREE.Vector3(), _ce = new THREE.Vector3();
+function cannonScreen() {
+  _cs.copy(Arena.launchPos).project(camera);
+  _ce.copy(Arena.launchPos).addScaledVector(camBasis.u, 2.9 * (Arena.lscale || 1)).project(camera);
+  var x = (_cs.x * 0.5 + 0.5) * window.innerWidth;
+  var y = (-_cs.y * 0.5 + 0.5) * window.innerHeight;
+  var ex = (_ce.x * 0.5 + 0.5) * window.innerWidth;
+  var ey = (-_ce.y * 0.5 + 0.5) * window.innerHeight;
+  // clamp: never let the swap target swallow a large part of the board
+  var lim = Math.min(window.innerWidth, window.innerHeight) * 0.22;
+  var r = clamp(Math.hypot(ex - x, ey - y), 34, lim);
+  return { x: x, y: y, r: r };
+}
+
+var ptr = { down: false, id: null, sx: 0, sy: 0, moved: 0, onCannon: false };
+
 function bindInput() {
   var dom = window;
+
   dom.addEventListener('pointermove', function (e) {
     if (G.state !== 'play') return;
-    if (e.pointerType === 'mouse') pointToAim(e.clientX, e.clientY);
+    if (ptr.down && e.pointerId === ptr.id) {
+      // drag to sweep the aim
+      ptr.moved = Math.max(ptr.moved, Math.hypot(e.clientX - ptr.sx, e.clientY - ptr.sy));
+      if (!ptr.onCannon || ptr.moved > 16) pointToAim(e.clientX, e.clientY);
+    } else if (e.pointerType === 'mouse') {
+      pointToAim(e.clientX, e.clientY);      // hover-aim on desktop
+    }
   }, { passive: true });
 
   dom.addEventListener('pointerdown', function (e) {
@@ -2492,8 +3315,28 @@ function bindInput() {
     if (G.state !== 'play') return;
     if (isUiTarget(e)) return;
     if (e.button === 2) { swap(); return; }
+
+    var c = cannonScreen();
+    ptr.down = true; ptr.id = e.pointerId;
+    ptr.sx = e.clientX; ptr.sy = e.clientY; ptr.moved = 0;
+    ptr.onCannon = Math.hypot(e.clientX - c.x, e.clientY - c.y) < c.r;
+
+    // touching the engine itself is a swap, so do not swing the aim there
+    if (!ptr.onCannon) pointToAim(e.clientX, e.clientY);
+  });
+
+  dom.addEventListener('pointerup', function (e) {
+    if (!ptr.down || e.pointerId !== ptr.id) return;
+    ptr.down = false; ptr.id = null;
+    if (G.state !== 'play') return;
+    // a tap on the engine swaps; anything else looses the orb on release
+    if (ptr.onCannon && ptr.moved < 16) { swap(); return; }
     pointToAim(e.clientX, e.clientY);
     shoot();
+  });
+
+  dom.addEventListener('pointercancel', function () {
+    ptr.down = false; ptr.id = null;
   });
 
   window.addEventListener('keydown', function (e) {
@@ -2537,20 +3380,22 @@ function pause() {
 function resume() {
   if (G.state !== 'pause') return;
   G.state = 'play';
+  G.countdown = 3.0;      // never drop straight back into a moving chain
   hideAll();
 }
 
 function bindUI() {
-  var savedLevel = parseInt(Store.get('rf_level', '1'), 10) || 1;
-  $('btnContinue').disabled = savedLevel <= 1;
-  $('menuBest').textContent = Store.get('rf_best', '1');
-  $('menuStars').textContent = totalStars();
+  refreshMenuStats();
 
   $('btnPlay').onclick = function () { Snd.resume(); Snd.ui(); G.score = 0; hideAll(); startLevel(1); Snd.startMusic(); };
   $('btnContinue').onclick = function () {
     Snd.resume(); Snd.ui(); G.score = 0; hideAll();
-    startLevel(parseInt(Store.get('rf_level', '1'), 10) || 1);
+    startLevel(parseInt(Store.get(K('rf_level'), '1'), 10) || 1);
     Snd.startMusic();
+  };
+  $('btnEndless').onclick = function () {
+    Snd.resume(); Snd.ui(); G.score = 0; hideAll();
+    startLevel(1, endlessConfig()); Snd.startMusic();
   };
   $('btnHow').onclick = function () { Snd.ui(); show('scrHow'); };
   $('btnHowBack').onclick = function () { Snd.ui(); show('scrMenu'); };
@@ -2566,14 +3411,12 @@ function bindUI() {
   $('btnWinQuit').onclick = function () { Snd.ui(); quitToMenu(); };
   $('btnLoseQuit').onclick = function () { Snd.ui(); quitToMenu(); };
   $('btnNext').onclick = function () { Snd.ui(); hideAll(); startLevel(G.level + 1); };
-  $('btnRetry').onclick = function () { Snd.ui(); hideAll(); startLevel(G.level); };
+  $('btnRetry').onclick = function () { Snd.ui(); hideAll(); if (G.endless) { G.score = 0; startLevel(1, endlessConfig()); } else startLevel(G.level); };
 
   $('btnReset').onclick = function () {
     Snd.ui();
-    Store.set('rf_level', '1'); Store.set('rf_best', '1'); Store.set('rf_stars', '{}');
-    $('btnContinue').disabled = true;
-    $('menuBest').textContent = '1';
-    $('menuStars').textContent = '0';
+    Store.set(K('rf_level'), '1'); Store.set(K('rf_best'), '1'); Store.set(K('rf_stars'), '{}'); Store.set(K('rf_endless'), '0');
+    refreshMenuStats();
   };
 
   // segmented controls
@@ -2603,6 +3446,27 @@ function bindUI() {
   });
   seg('segMusic', function () { return Snd.music ? 1 : 0; }, function (v) { Snd.setMusic(v === '1'); });
   seg('segSfx', function () { return Snd.sfx ? 1 : 0; }, function (v) { Snd.setSfx(v === '1'); });
+  seg('segAim', function () { return showAim ? 1 : 0; }, function (v) {
+    showAim = v === '1'; Store.set('rf_aim', v);
+  });
+  seg('segMarks', function () { return showMarks ? 1 : 0; }, function (v) {
+    showMarks = v === '1'; Store.set('rf_marks', v);
+    refreshOrbSkins();
+  });
+  seg('segVib', function () { return useVib ? 1 : 0; }, function (v) {
+    useVib = v === '1'; Store.set('rf_vib', v); buzz(25);
+  });
+  seg('segDiff', function () { return MODE_HARD ? 1 : 0; }, function (v) {
+    MODE_HARD = v === '1';
+    Store.set('rf_hard', MODE_HARD ? '1' : '0');
+    refreshMenuStats();
+    if (G.state === 'play' || G.state === 'pause') { quitToMenu(); show('scrOpt'); optReturn = 'scrMenu'; }
+  });
+  seg('segCannon', function () { return cannon; }, function (v) {
+    cannon = v; Store.set('rf_cannon', v);
+    var playing = (G.state === 'play' || G.state === 'pause');
+    Arena.build(levelConfig(playing ? G.level : 1));
+  });
   seg('segQual', function () { return quality; }, function (v) {
     quality = v; Store.set('rf_qual', v);
     if (bloomPass) bloomPass.strength = v === 'high' ? 0.7 : 0.6;
@@ -2613,15 +3477,23 @@ function bindUI() {
   void paintLang;
 }
 
+function refreshMenuStats() {
+  $('btnContinue').disabled = (parseInt(Store.get(K('rf_level'), '1'), 10) || 1) <= 1;
+  $('menuBest').textContent = Store.get(K('rf_best'), '1');
+  $('menuStars').textContent = totalStars();
+  $('menuEndless').textContent = Store.get(K('rf_endless'), '0');
+}
+
 function quitToMenu() {
   G.state = 'menu';
   G.balls.forEach(function (b) { releaseOrb(b.mesh); }); G.balls = [];
   G.projectiles.forEach(function (p) { releaseOrb(p.mesh); }); G.projectiles = [];
   while (G.pickups.length) killRelic(0);
+  G.countdown = 0; G.endless = false;
+  $('intro').classList.remove('on');
+  $('count').classList.remove('on');
   $('danger').style.opacity = '0'; $('frost').style.opacity = '0';
-  $('btnContinue').disabled = (parseInt(Store.get('rf_level', '1'), 10) || 1) <= 1;
-  $('menuBest').textContent = Store.get('rf_best', '1');
-  $('menuStars').textContent = totalStars();
+  refreshMenuStats();
   show('scrMenu');
 }
 
@@ -2641,10 +3513,34 @@ function animate() {
     if (Arena.portalMat) Arena.portalMat.uniforms.uTime.value = G.time;
     if (Arena.moteMat) Arena.moteMat.uniforms.uTime.value = G.time;
     if (Arena.ring) Arena.ring.rotation.z += dt * 0.25;
+    if (Arena.orreryRings) {
+      for (var oi = 0; oi < Arena.orreryRings.length; oi++) {
+        var orr = Arena.orreryRings[oi];
+        if (orr.ax === 0) orr.m.rotation.z += dt * orr.sp;
+        else if (orr.ax === 1) orr.m.rotation.y += dt * orr.sp;
+        else orr.m.rotation.x += dt * orr.sp;
+      }
+    }
+    // muzzle flash decay
+    if (G.flashT > 0) {
+      G.flashT = Math.max(0, G.flashT - dt / 0.26);
+      var ft = G.flashT, ease = 1 - ft;
+      Arena.flashCore.material.opacity = ft * ft * 0.95;
+      Arena.flashCore.scale.setScalar((1.4 + ease * 1.1) * Arena.lscale);
+      Arena.flashRing.material.opacity = ft * 0.55;
+      Arena.flashRing.scale.setScalar((0.8 + ease * 4.4) * Arena.lscale);
+      Arena.flashLight.intensity = ft * ft * 7;
+    } else if (Arena.flashLight.intensity !== 0) {
+      Arena.flashLight.intensity = 0;
+      Arena.flashCore.material.opacity = 0;
+      Arena.flashRing.material.opacity = 0;
+    }
+    if (G.kick > 0) G.kick = Math.max(0, G.kick - dt / 0.20);
     for (var fi = 0; fi < Arena.flames.length; fi++) {
       var f = Arena.flames[fi];
       var w = 0.82 + Math.sin(G.time * 9 + f.seed) * 0.1 + Math.sin(G.time * 23.7 + f.seed * 3) * 0.06;
-      f.s.scale.set(2.3 * w, 3.5 * w * (0.94 + Math.sin(G.time * 13 + f.seed) * 0.09), 1);
+      var fw = f.w || 2.3, fh = f.h || 3.5;
+      f.s.scale.set(fw * w, fh * w * (0.94 + Math.sin(G.time * 13 + f.seed) * 0.09), 1);
       f.s.material.opacity = 0.78 + Math.sin(G.time * 17 + f.seed) * 0.16;
     }
     for (var li = 0; li < Arena.lights.length; li++) {
@@ -2660,18 +3556,37 @@ function animate() {
       var diff = ((targetA - cur + Math.PI * 3) % TAU) - Math.PI;
       Arena.head.rotation.y = cur + diff * Math.min(1, dt * 14);
       var a = Arena.head.rotation.y;
+      // recoil: the engine rocks back on the shot and settles
+      var kb = Math.sin(G.kick * Math.PI) * 0.55;
+      Arena.head.position.set(-Math.sin(a) * kb, Arena.headY - kb * 0.12, -Math.cos(a) * kb);
+      var mr = Arena.muzzleR * Arena.lscale;
       Arena.muzzleOrb.position.set(
-        Math.sin(a) * 2.25, 2.0 + Math.sin(G.time * 2.4) * 0.04, Math.cos(a) * 2.25
+        Math.sin(a) * mr, Arena.launchPos.y + Math.sin(G.time * 2.4) * 0.04, Math.cos(a) * mr
       );
       Arena.muzzleOrb.rotation.y += dt * 1.4;
-      Arena.nextOrb.position.set(-Math.sin(a) * 1.5, 3.05 + Math.sin(G.time * 1.7) * 0.08, -Math.cos(a) * 1.5);
+      Arena.nextOrb.position.set(
+        -Math.sin(a) * 1.5 * Arena.lscale,
+        Arena.launchPos.y + 1.05 * Arena.lscale + Math.sin(G.time * 1.7) * 0.08,
+        -Math.cos(a) * 1.5 * Arena.lscale
+      );
       Arena.nextOrb.rotation.y -= dt * 1.1;
-      for (var ri = 0; ri < Arena.runes.length; ri++) {
-        var ang = G.time * (0.6 + ri * 0.22) + ri * TAU / 3;
-        Arena.runes[ri].position.set(Math.cos(ang) * 2.7, 1.5 + Math.sin(G.time * 1.4 + ri) * 0.5, Math.sin(ang) * 2.7);
-        Arena.runes[ri].rotation.y = -ang; Arena.runes[ri].rotation.x = G.time * 0.8;
+      if (cannon === 'wyrm') {
+        for (var ri = 0; ri < Arena.runes.length; ri++) {
+          var ang = G.time * (0.6 + ri * 0.22) + ri * TAU / 3;
+          Arena.runes[ri].position.set(Math.cos(ang) * 2.7, 1.5 + Math.sin(G.time * 1.4 + ri) * 0.5, Math.sin(ang) * 2.7);
+          Arena.runes[ri].rotation.y = -ang; Arena.runes[ri].rotation.x = G.time * 0.8;
+        }
+      } else {
+        for (var rj = 0; rj < Arena.runes.length; rj++) Arena.runes[rj].rotation.y += dt * 1.3;
       }
     }
+  }
+
+  if (G.state === 'play' && updateCountdown(dt)) {
+    Aim.update();
+    Particles.update(dt);
+    if (composer) composer.render(); else renderer.render(scene, camera);
+    return;
   }
 
   if (G.state === 'play') {
@@ -2684,9 +3599,17 @@ function animate() {
     updateProjectiles(dt);
     updateRelics(dt);
     updateMultiHud();
-    var cfg = levelConfig(G.level);
-    setBar((G.toSpawn + G.balls.length) / cfg.total);
-    if (G.toSpawn <= 0 && G.balls.length === 0 && G.projectiles.length === 0) win();
+    Aim.update();
+    if (G.endless) {
+      // the siege simply tightens: speed climbs the longer you hold out
+      G.survived += dt;
+      G.speed = Math.min(G.baseSpeed + G.survived * 0.022, 5.5);
+      setBar(G.balls.length ? 1 - clamp(G.balls[0].dist / Arena.len, 0, 1) : 1);
+    } else {
+      var cfg = levelConfig(G.level);
+      setBar((G.toSpawn + G.balls.length) / cfg.total);
+      if (G.toSpawn <= 0 && G.balls.length === 0 && G.projectiles.length === 0) win();
+    }
   }
 
   Particles.update(dt);
@@ -2729,6 +3652,7 @@ function boot() {
   }
   initOrbGeos();
   Particles.init();
+  Aim.init();
   bindUI();
   bindInput();
 
