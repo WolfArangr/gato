@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0B0D11">
+<meta name="description" content="Prism Mechanics — un juego de puzles de luz y cristal.">
+<title>Prism Mechanics</title>
+<style>
+:root{
+  --ink:#0B0D11; --bone:#EDEFF5;
+  --r:#FF2D4A; --g:#39FF88; --b:#3D7BFF;
+  --pad-t:env(safe-area-inset-top,0px); --pad-b:env(safe-area-inset-bottom,0px);
+  --pad-l:env(safe-area-inset-left,0px); --pad-r:env(safe-area-inset-right,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{position:fixed;inset:0;overflow:hidden;background:var(--ink);
+  touch-action:none;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  font-family:ui-sans-serif,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  color:var(--bone);}
+canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
+#ui{position:absolute;inset:0;pointer-events:none;z-index:10}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:2.2rem;pointer-events:auto;
+  padding:calc(var(--pad-t) + 1rem) calc(var(--pad-r) + 1rem) calc(var(--pad-b) + 1rem) calc(var(--pad-l) + 1rem);
+  background:rgba(11,13,17,.82);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.scr.on{display:flex}
+.brand{font-size:clamp(1.9rem,9vw,3.4rem);font-weight:200;letter-spacing:.34em;
+  text-transform:lowercase;text-indent:.34em;opacity:.95;text-align:center;line-height:1.25}
+.brand small{display:block;font-size:.26em;letter-spacing:.5em;opacity:.4;margin-top:1.1em}
+.menu{display:flex;flex-direction:column;gap:1.15rem;align-items:center}
+.mi{font-size:clamp(.86rem,3.6vw,1rem);font-weight:300;letter-spacing:.28em;
+  text-transform:lowercase;text-indent:.28em;opacity:.55;background:none;border:0;
+  color:inherit;cursor:pointer;padding:.5rem 1rem;transition:opacity .22s,text-shadow .22s;
+  font-family:inherit;touch-action:manipulation}
+.mi:hover,.mi:focus-visible{opacity:1;text-shadow:0 0 18px rgba(237,239,245,.55);outline:none}
+.mi[disabled]{opacity:.16;cursor:default}
+.mi .v{opacity:.5;margin-left:.6em;letter-spacing:.18em}
+#lvl-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.5rem;
+  width:min(92vw,26rem)}
+.lv{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.25rem;background:none;border:0;color:inherit;font-family:inherit;cursor:pointer;
+  opacity:.28;transition:opacity .2s,text-shadow .2s;padding:0}
+.lv.un{opacity:.6}.lv.done{opacity:.95}
+.lv:hover:not([disabled]){opacity:1;text-shadow:0 0 16px rgba(237,239,245,.6)}
+.lv[disabled]{cursor:default}
+.lv .n{font-size:1.05rem;font-weight:200;letter-spacing:.06em}
+.lv .d{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0}
+.lv.done .d{opacity:.9;box-shadow:0 0 10px currentColor}
+#hud{position:absolute;top:0;left:0;right:0;display:none;justify-content:space-between;
+  align-items:flex-start;pointer-events:none;
+  padding:calc(var(--pad-t) + .85rem) calc(var(--pad-r) + 1rem) 0 calc(var(--pad-l) + 1rem)}
+#hud.on{display:flex}
+#hud-l{font-size:.7rem;letter-spacing:.3em;text-transform:lowercase;opacity:.35;line-height:1.9}
+#hud-r{display:flex;gap:.35rem;pointer-events:auto}
+.gl{background:none;border:0;color:inherit;font-family:inherit;font-size:1.05rem;
+  line-height:1;opacity:.35;cursor:pointer;padding:.45rem .55rem;transition:opacity .2s}
+.gl:hover{opacity:.9}
+#intro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:.9rem;pointer-events:none;opacity:0;transition:opacity .5s}
+#intro-num{font-size:.68rem;letter-spacing:.46em;text-indent:.46em;opacity:.35}
+#intro-name{font-size:clamp(1.5rem,7vw,2.4rem);font-weight:200;letter-spacing:.28em;
+  text-indent:.28em;text-transform:lowercase}
+#cd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  font-size:clamp(3rem,18vw,7rem);font-weight:100;opacity:.8;pointer-events:none}
+#cd.on{display:flex}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;
+  transition:opacity .18s linear;z-index:20}
+#toast{position:absolute;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--pad-b) + 2.2rem);font-size:.68rem;letter-spacing:.26em;
+  text-transform:lowercase;opacity:0;transition:opacity .4s;pointer-events:none}
+#boot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;letter-spacing:.3em;opacity:.4;text-transform:lowercase;z-index:30}
+@media (prefers-reduced-motion: reduce){*{transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="boot">cargando…</div>
+
+<div id="ui">
+  <div id="hud">
+    <div id="hud-l"><span id="hud-num"></span><br><span id="hud-name"></span></div>
+    <div id="hud-r">
+      <button class="gl" id="btn-reset" aria-label="restart">↺</button>
+      <button class="gl" id="btn-pause" aria-label="pause">‖</button>
+    </div>
+  </div>
+
+  <div id="intro"><div id="intro-num"></div><div id="intro-name"></div></div>
+  <div id="cd"></div>
+
+  <div class="scr on" id="scr-title">
+    <div class="brand">prism<small data-i18n="sub">mechanics</small></div>
+    <div class="menu">
+      <button class="mi" id="btn-play" data-i18n="play">continuar</button>
+      <button class="mi" id="btn-levels" data-i18n="levels">salas</button>
+      <button class="mi" id="btn-opts" data-i18n="opts">ajustes</button>
+    </div>
+  </div>
+
+  <div class="scr" id="scr-levels">
+    <div id="lvl-grid"></div>
+    <button class="mi" id="lvl-back" data-i18n="back">volver</button>
+  </div>
+
+  <div class="scr" id="scr-pause">
+    <div class="brand" style="font-size:clamp(1.1rem,5vw,1.6rem)" data-i18n="paused">pausa</div>
+    <div class="menu">
+      <button class="mi" id="p-resume" data-i18n="resume">seguir</button>
+      <button class="mi" id="p-restart" data-i18n="restart">reiniciar</button>
+      <button class="mi" id="p-opts" data-i18n="opts">ajustes</button>
+      <button class="mi" id="p-quit" data-i18n="quit">salir</button>
+    </div>
+  </div>
+
+  <div class="scr" id="scr-opts">
+    <div class="menu">
+      <button class="mi" id="o-music"><span data-i18n="music">música</span><span class="v" id="v-music"></span></button>
+      <button class="mi" id="o-sfx"><span data-i18n="sfx">sonido</span><span class="v" id="v-sfx"></span></button>
+      <button class="mi" id="o-hap"><span data-i18n="hap">vibración</span><span class="v" id="v-hap"></span></button>
+      <button class="mi" id="o-cb"><span data-i18n="cb">daltonismo</span><span class="v" id="v-cb"></span></button>
+      <button class="mi" id="o-qual"><span data-i18n="qual">detalle</span><span class="v" id="v-qual"></span></button>
+      <button class="mi" id="o-lang"><span data-i18n="lang">idioma</span><span class="v" id="v-lang"></span></button>
+      <button class="mi" id="o-back" data-i18n="back">volver</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+<div id="flash"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+<script id="core">
+/* ============================================================================
+   PRISM MECHANICS — OPTICS CORE
+   Pure, DOM-free, Three-free. This is the whole game rule set.
+   Channels are a bitmask: R=1, G=2, B=4. White = 7.
+   The world is 2D (x, z). The 3D presentation is a camera trick.
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  /* ---- TUNING BLOCK -------------------------------------------------------
+     Every number a designer would want to touch lives here.
+  -------------------------------------------------------------------------*/
+  var CFG = {
+    SPREAD_DEG: 18,       // angular offset of the R and B slots from the G slot
+    PRISM_R: 0.9,         // hit radius of a prism
+    COMB_R: 0.9,          // hit radius of a combiner
+    TARGET_R: 1.0,        // hit radius of a target  (== the aiming tolerance)
+    MIRROR_LEN: 2.4,      // default mirror segment length
+    FILTER_LEN: 3.0,      // default filter segment length
+    MAX_DIST: 70,         // how far an unobstructed ray travels before it dies
+    MAX_BOUNCES: 10,      // reflections/filter crossings per ray
+    MAX_ITER: 14,         // fixed-point passes for node feedback
+    DETENT_DEG: 15,       // rotation snaps to multiples of this
+    DETENT_MAGNET: 2.5,   // ...when within this many degrees
+    EPS: 1e-4
+  };
+
+  var D2R = Math.PI / 180;
+
+  /* ---- small 2D helpers -------------------------------------------------*/
+  function dirOf(deg) { var a = deg * D2R; return [Math.cos(a), Math.sin(a)]; }
+
+  // ray (o + t*d) vs circle (c, r) -> smallest t > eps, or -1
+  function hitCircle(ox, oz, dx, dz, cx, cz, r) {
+    var mx = ox - cx, mz = oz - cz;
+    var b = mx * dx + mz * dz;
+    var c = mx * mx + mz * mz - r * r;
+    if (c > 0 && b > 0) return -1;
+    var disc = b * b - c;
+    if (disc < 0) return -1;
+    var s = Math.sqrt(disc);
+    var t = -b - s;
+    if (t < CFG.EPS) t = -b + s;
+    return t < CFG.EPS ? -1 : t;
+  }
+
+  // ray vs finite segment p->q -> t or -1
+  function hitSeg(ox, oz, dx, dz, px, pz, qx, qz) {
+    var ex = qx - px, ez = qz - pz;
+    var den = dx * ez - dz * ex;
+    if (Math.abs(den) < 1e-9) return -1;          // parallel
+    var rx = px - ox, rz = pz - oz;
+    var t = (rx * ez - rz * ex) / den;            // along the ray
+    var u = (rx * dz - rz * dx) / den;            // along the segment
+    if (t < CFG.EPS || u < 0 || u > 1) return -1;
+    return t;
+  }
+
+  function segEnds(e) {
+    var len = e.len || CFG.MIRROR_LEN;
+    var d = dirOf(e.rot || 0), h = len * 0.5;
+    return [e.x - d[0] * h, e.z - d[1] * h, e.x + d[0] * h, e.z + d[1] * h];
+  }
+
+  function rectSegs(e) {
+    var d = dirOf(e.rot || 0);            // local +x
+    var hx = (e.w || 2) * 0.5, hz = (e.d || 0.8) * 0.5;
+    var ux = d[0], uz = d[1], vx = -d[1], vz = d[0];
+    var c = [];
+    for (var i = 0; i < 4; i++) {
+      var sx = (i === 0 || i === 3) ? 1 : -1;
+      var sz = (i < 2) ? 1 : -1;
+      c.push([e.x + ux * hx * sx + vx * hz * sz, e.z + uz * hx * sx + vz * hz * sz]);
+    }
+    return c;
+  }
+
+  /* ---- element resolution -----------------------------------------------
+     `state` is a sparse map { index: {x,z,rot} } holding player overrides.
+  -------------------------------------------------------------------------*/
+  function resolve(level, state) {
+    var out = [];
+    for (var i = 0; i < level.elements.length; i++) {
+      var e = level.elements[i], s = state && state[i];
+      var o = { t: e.t, x: e.x, z: e.z, rot: e.rot || 0, mask: e.mask,
+                len: e.len, w: e.w, d: e.d, move: !!e.move, spin: !!e.spin, i: i };
+      if (s) {
+        if (s.x !== undefined) o.x = s.x;
+        if (s.z !== undefined) o.z = s.z;
+        if (s.rot !== undefined) o.rot = s.rot;
+      }
+      out.push(o);
+    }
+    return out;
+  }
+
+  function radiusOf(e) {
+    if (e.t === 'prism') return CFG.PRISM_R;
+    if (e.t === 'comb') return CFG.COMB_R;
+    if (e.t === 'target') return CFG.TARGET_R;
+    return 0;
+  }
+
+  /* ---- the trace ---------------------------------------------------------*/
+
+  // Returns nearest {t, idx} for a ray, ignoring element `skip`.
+  function nearest(els, ox, oz, dx, dz, skip) {
+    var best = Infinity, bi = -1, i, e, t, s, c, j, k;
+    for (i = 0; i < els.length; i++) {
+      if (i === skip) continue;
+      e = els[i];
+      if (e.t === 'prism' || e.t === 'comb' || e.t === 'target') {
+        t = hitCircle(ox, oz, dx, dz, e.x, e.z, radiusOf(e));
+      } else if (e.t === 'mirror' || e.t === 'filter') {
+        s = segEnds(e);
+        t = hitSeg(ox, oz, dx, dz, s[0], s[1], s[2], s[3]);
+      } else if (e.t === 'wall') {
+        c = rectSegs(e); t = -1;
+        for (j = 0; j < 4; j++) {
+          k = (j + 1) % 4;
+          var tt = hitSeg(ox, oz, dx, dz, c[j][0], c[j][1], c[k][0], c[k][1]);
+          if (tt > 0 && (t < 0 || tt < t)) t = tt;
+        }
+      } else { t = -1; }
+      if (t > 0 && t < best) { best = t; bi = i; }
+    }
+    return { t: best, idx: bi };
+  }
+
+  // Cast one ray. Pushes segments into `segs`; accumulates into nodeIn / tgtIn.
+  function cast(els, ox, oz, dx, dz, mask, skip, segs, nodeIn, tgtIn) {
+    var bounces = 0;
+    while (bounces++ < CFG.MAX_BOUNCES) {
+      var h = nearest(els, ox, oz, dx, dz, skip);
+      if (h.idx < 0) {
+        segs.push({ ax: ox, az: oz, bx: ox + dx * CFG.MAX_DIST, bz: oz + dz * CFG.MAX_DIST,
+                    mask: mask, open: true });
+        return;
+      }
+      var hx = ox + dx * h.t, hz = oz + dz * h.t, e = els[h.idx];
+      segs.push({ ax: ox, az: oz, bx: hx, bz: hz, mask: mask, open: false });
+
+      if (e.t === 'prism' || e.t === 'comb') { nodeIn[h.idx] |= mask; return; }
+      if (e.t === 'target') { tgtIn[h.idx] |= mask; return; }
+      if (e.t === 'wall') { return; }
+
+      if (e.t === 'mirror') {
+        var s = segEnds(e);
+        var ex = s[2] - s[0], ez = s[3] - s[1];
+        var L = Math.hypot(ex, ez) || 1; ex /= L; ez /= L;
+        var nx = -ez, nz = ex;                       // segment normal
+        var dot = dx * nx + dz * nz;
+        dx = dx - 2 * dot * nx; dz = dz - 2 * dot * nz;
+        ox = hx; oz = hz; skip = h.idx;
+        continue;
+      }
+      if (e.t === 'filter') {
+        mask = mask & (e.mask === undefined ? 7 : e.mask);
+        if (!mask) return;
+        ox = hx; oz = hz; skip = h.idx;
+        continue;
+      }
+      return;
+    }
+  }
+
+  /* Full scene solve. Fixed-point over node inputs so combiners and
+     prism->prism chains settle. Returns render segments + target states. */
+  function traceScene(level, state) {
+    var els = resolve(level, state);
+    var n = els.length, i, j;
+    var nodeIn = new Array(n), prev = new Array(n);
+    for (i = 0; i < n; i++) { nodeIn[i] = 0; prev[i] = 0; }
+
+    var segs = [], tgtIn = new Array(n), iter;
+    var spread = CFG.SPREAD_DEG;
+
+    for (iter = 0; iter < CFG.MAX_ITER; iter++) {
+      segs = [];
+      for (i = 0; i < n; i++) { prev[i] = nodeIn[i]; nodeIn[i] = 0; tgtIn[i] = 0; }
+
+      // emitters
+      for (i = 0; i < level.emitters.length; i++) {
+        var em = level.emitters[i], d = dirOf(em.rot);
+        cast(els, em.x, em.z, d[0], d[1], em.mask === undefined ? 7 : em.mask,
+             -1, segs, nodeIn, tgtIn);
+      }
+      // nodes re-emitting last pass's input
+      for (i = 0; i < n; i++) {
+        var e = els[i];
+        if (!prev[i]) continue;
+        if (e.t === 'prism') {
+          var slots = [[1, -spread], [2, 0], [4, spread]];
+          for (j = 0; j < 3; j++) {
+            if (!(prev[i] & slots[j][0])) continue;
+            var dd = dirOf(e.rot + slots[j][1]);
+            var r = CFG.PRISM_R + 0.01;
+            cast(els, e.x + dd[0] * r, e.z + dd[1] * r, dd[0], dd[1],
+                 slots[j][0], i, segs, nodeIn, tgtIn);
+          }
+        } else if (e.t === 'comb') {
+          var dc = dirOf(e.rot), rc = CFG.COMB_R + 0.01;
+          cast(els, e.x + dc[0] * rc, e.z + dc[1] * rc, dc[0], dc[1],
+               prev[i], i, segs, nodeIn, tgtIn);
+        }
+      }
+
+      var same = true;
+      for (i = 0; i < n; i++) if (nodeIn[i] !== prev[i]) { same = false; break; }
+      if (same && iter > 0) break;
+    }
+
+    // target verdicts
+    var targets = [], done = 0, total = 0;
+    for (i = 0; i < n; i++) {
+      if (els[i].t !== 'target') continue;
+      total++;
+      var got = tgtIn[i] | 0, want = els[i].mask;
+      var lit = got === want;
+      if (lit) done++;
+      targets.push({ i: i, want: want, got: got, lit: lit, sour: got !== 0 && !lit });
+    }
+    return { els: els, segs: segs, targets: targets,
+             done: done, total: total, complete: total > 0 && done === total };
+  }
+
+  /* ---- rotation helper ---------------------------------------------------*/
+  function applyDetent(deg) {
+    var step = CFG.DETENT_DEG;
+    var near = Math.round(deg / step) * step;
+    return Math.abs(deg - near) <= CFG.DETENT_MAGNET ? near : deg;
+  }
+
+  /* ---- LEVELS ------------------------------------------------------------
+     Column format per element:
+       prism  {t,x,z,rot,move,spin}       node: splits its input into R/G/B slots
+       comb   {t,x,z,rot,move,spin}       node: ORs its input into one ray
+       mirror {t,x,z,rot,len,move,spin}   segment: reflects, preserves mask
+       filter {t,x,z,rot,len,mask,move}   segment: ANDs the mask, passes through
+       wall   {t,x,z,rot,w,d}             rectangle: absorbs
+       target {t,x,z,mask}                circle: must receive EXACTLY mask
+     `sol` is the reference solution, asserted by the headless test suite.
+  -------------------------------------------------------------------------*/
+  var LEVELS = [
+    { key: 'l1', emitters: [{ x: -9, z: 0, rot: 0 }], elements: [
+        { t: 'prism', x: 5, z: -6, rot: 90, move: 1 },
+        { t: 'target', x: 0, z: 6, mask: 2 }
+      ], sol: { 0: { x: 0, z: 0 } } },
+
+    { key: 'l2', emitters: [{ x: -9, z: 0, rot: 0 }], elements: [
+        { t: 'prism', x: 0, z: 0, rot: 45, spin: 1 },
+        { t: 'target', x: 0, z: 6, mask: 2 }
+      ], sol: { 0: { rot: 90 } } },
+
+    { key: 'l3', emitters: [{ x: -9, z: -3, rot: 0 }], elements: [
+        { t: 'prism', x: 0, z: -3, rot: 70, spin: 1 },
+        { t: 'target', x: 2.781, z: 5.560, mask: 1 },
+        { t: 'target', x: 0, z: 6, mask: 2 },
+        { t: 'target', x: -2.781, z: 5.560, mask: 4 }
+      ], sol: { 0: { rot: 90 } } },
+
+    { key: 'l4', emitters: [{ x: -9, z: 3, rot: 0 }], elements: [
+        { t: 'prism', x: 2, z: -5, rot: 0, move: 1, spin: 1 },
+        { t: 'target', x: -4, z: -7, mask: 2 },
+        { t: 'target', x: -7.090, z: -6.511, mask: 1 },
+        { t: 'target', x: -0.910, z: -6.511, mask: 4 }
+      ], sol: { 0: { x: -4, z: 3, rot: 270 } } },
+
+    { key: 'l5', emitters: [{ x: -9, z: -0.4, rot: 0 }], elements: [
+        { t: 'prism', x: 5, z: -7, rot: 90, move: 1 },
+        { t: 'target', x: 2.404, z: 7, mask: 1 },
+        { t: 'target', x: 0, z: 7, mask: 2 },
+        { t: 'target', x: -2.404, z: 7, mask: 4 }
+      ], sol: { 0: { x: 0, z: -0.4 } } },
+
+    { key: 'l6', emitters: [{ x: -9, z: -3, rot: 0 }], elements: [
+        { t: 'prism', x: 0, z: -3, rot: 70, spin: 1 },
+        { t: 'wall', x: 0, z: 2, rot: 0, w: 2.6, d: 0.8 },
+        { t: 'target', x: 2.781, z: 5.560, mask: 1 },
+        { t: 'target', x: -2.781, z: 5.560, mask: 4 }
+      ], sol: { 0: { rot: 90 } } },
+
+    { key: 'l7', emitters: [{ x: -9, z: -6, rot: 0 }], elements: [
+        { t: 'prism', x: 3, z: -6, rot: 60, move: 1, spin: 1 },
+        { t: 'wall', x: -3.2, z: 0, rot: 0, w: 5, d: 0.8 },
+        { t: 'wall', x: 3.2, z: 0, rot: 0, w: 5, d: 0.8 },
+        { t: 'target', x: 0, z: 7, mask: 2 }
+      ], sol: { 0: { x: 0, z: -6, rot: 90 } } },
+
+    { key: 'l8', emitters: [{ x: -9, z: 0, rot: 0 }], elements: [
+        { t: 'prism', x: 0, z: 0, rot: 20, spin: 1 },
+        { t: 'mirror', x: 7, z: 0, rot: 45, len: 3 },
+        { t: 'target', x: 7, z: 7, mask: 2 }
+      ], sol: { 0: { rot: 0 } } },
+
+    { key: 'l9', emitters: [{ x: -9, z: 4, rot: 0 }], elements: [
+        { t: 'prism', x: -4, z: 4, rot: 200, spin: 1 },
+        { t: 'mirror', x: -4, z: -5, rot: 135, len: 3 },
+        { t: 'wall', x: 0, z: 0, rot: 0, w: 0.8, d: 8 },
+        { t: 'target', x: 6, z: -5, mask: 2 }
+      ], sol: { 0: { rot: 270 } } },
+
+    { key: 'l10', emitters: [{ x: -9, z: 0, rot: 0 }], elements: [
+        { t: 'prism', x: -3, z: 0, rot: 80, spin: 1 },
+        { t: 'prism', x: 2, z: -5, rot: 40, move: 1, spin: 1 },
+        { t: 'target', x: 3, z: 5, mask: 2 }
+      ], sol: { 0: { rot: 90 }, 1: { x: -3, z: 5, rot: 0 } } },
+
+    { key: 'l11', emitters: [{ x: -9, z: 0, rot: 0 }], elements: [
+        { t: 'prism', x: 0, z: 0, rot: 90 },
+        { t: 'mirror', x: 1.236, z: 3.804, rot: 90, len: 1.4 },
+        { t: 'mirror', x: -1.236, z: 3.804, rot: 90, len: 1.4 },
+        { t: 'wall', x: 0, z: 2, rot: 0, w: 0.6, d: 0.5 },
+        { t: 'comb', x: 4, z: 9, rot: 90, move: 1 },
+        { t: 'target', x: 0, z: 11.5, mask: 5 }
+      ], sol: { 4: { x: 0, z: 7.6 } } },
+
+    { key: 'l12', emitters: [{ x: -9, z: 0, rot: 0 }], elements: [
+        { t: 'prism', x: 0, z: 0, rot: 90 },
+        { t: 'mirror', x: 1.236, z: 3.804, rot: 75, len: 1.4, spin: 1 },
+        { t: 'comb', x: -4, z: 9, rot: 90, move: 1 },
+        { t: 'target', x: -2.472, z: 7.608, mask: 4 },
+        { t: 'target', x: 0, z: 11.5, mask: 3 }
+      ], sol: { 1: { rot: 90 }, 2: { x: 0, z: 7.6 } } },
+
+    { key: 'l13', emitters: [{ x: -9, z: -4, rot: 0 }], elements: [
+        { t: 'prism', x: 0, z: -4, rot: 90 },
+        { t: 'mirror', x: 1.236, z: -0.196, rot: 90, len: 1.4 },
+        { t: 'mirror', x: -1.236, z: -0.196, rot: 90, len: 1.4 },
+        { t: 'comb', x: 0, z: 3.608, rot: 90 },
+        { t: 'filter', x: 5, z: 7, rot: 0, len: 3, mask: 1, move: 1 },
+        { t: 'target', x: 0, z: 9, mask: 1 }
+      ], sol: { 4: { x: 0, z: 6.5 } } },
+
+    { key: 'l14', emitters: [{ x: -9, z: 0, rot: 0 }], elements: [
+        { t: 'prism', x: -2, z: -4, rot: 15, move: 1, spin: 1 },
+        { t: 'target', x: 5, z: 5, mask: 2 },
+        { t: 'target', x: 4.086, z: 8.020, mask: 4 },
+        { t: 'target', x: 7.128, z: 3.631, mask: 1 }
+      ], sol: { 0: { x: 0, z: 0, rot: 45 } } },
+
+    { key: 'l15', emitters: [{ x: -10, z: -6, rot: 0 }], elements: [
+        { t: 'prism', x: 0, z: -6, rot: 65, spin: 1 },
+        { t: 'mirror', x: 2.472, z: 1.608, rot: 75, len: 1.4, spin: 1 },
+        { t: 'mirror', x: -2.472, z: 1.608, rot: 105, len: 1.4, spin: 1 },
+        { t: 'comb', x: 5, z: 9, rot: 90, move: 1 },
+        { t: 'target', x: 0, z: -1, mask: 2 },
+        { t: 'target', x: 0, z: 13, mask: 5 }
+      ], sol: { 0: { rot: 90 }, 1: { rot: 90 }, 2: { rot: 90 }, 3: { x: 0, z: 9.216 } } }
+  ];
+
+  function bounds(level) {
+    var minx = Infinity, maxx = -Infinity, minz = Infinity, maxz = -Infinity;
+    function add(x, z) {
+      if (x < minx) minx = x; if (x > maxx) maxx = x;
+      if (z < minz) minz = z; if (z > maxz) maxz = z;
+    }
+    level.emitters.forEach(function (e) { add(e.x, e.z); });
+    level.elements.forEach(function (e) {
+      var r = Math.max(radiusOf(e), (e.len || 0) * 0.5,
+                       Math.max(e.w || 0, e.d || 0) * 0.5, 0.9);
+      add(e.x - r, e.z - r); add(e.x + r, e.z + r);
+    });
+    return { minx: minx, maxx: maxx, minz: minz, maxz: maxz,
+             cx: (minx + maxx) / 2, cz: (minz + maxz) / 2 };
+  }
+
+  var API = { CFG: CFG, LEVELS: LEVELS, traceScene: traceScene, resolve: resolve,
+              applyDetent: applyDetent, bounds: bounds, radiusOf: radiusOf,
+              dirOf: dirOf, segEnds: segEnds, rectSegs: rectSegs };
+
+  root.PM_CORE = API;
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+
+<script id="game">
+/* ============================================================================
+   PRISM MECHANICS — PRESENTATION, INPUT, AUDIO, FLOW
+   ========================================================================== */
+(function () {
+'use strict';
+var C = window.PM_CORE;
+
+/* ---- TUNING (presentation layer) ---------------------------------------- */
+var T = {
+  FOV: 42,
+  PITCH_LANDSCAPE: 52,     // degrees above the floor plane
+  PITCH_PORTRAIT: 66,      // steeper so a tall field still fits
+  FIT_MARGIN: 1.18,        // 18% breathing room around the playfield
+  ELEV: 0.6,               // height of the play plane above the floor
+  BEAM_CORE_R: 0.055,      // the overexposed filament
+  BEAM_SHEATH_R: 0.42,     // the lit air around it
+  BEAM_HALO_R: 1.05,       // the wide, very faint outer bloom
+  BEAM_POOL: 64,
+  SPILL_W: 2.6,            // width of the light the beam throws onto the floor
+  SPILL_OP: 0.20,
+  FLARE_S: 1.5,            // size of the impact flare where a beam terminates
+  SCINT: 0.07,             // scintillation depth (light is never perfectly even)
+  DUST_HIGH: 320, DUST_LOW: 120,
+  DUST_REACH: 3.1,         // how close a mote must be to a beam to glow
+  ROT_LAG: 0.22,           // rotation follows the finger with this much inertia
+  DRAG_THRESH: 16,         // px before a press counts as a drag
+  HOLD_MS: 180,            // press-and-hold to enter rotate mode
+  INTRO_MS: 2000,
+  COMPLETE_HOLD_MS: 700,
+  CONFIRM_MS: 600,        // the chord must RING before the room counts as solved
+  SETTLE_EPS: 0.05,       // rotation this close to its target counts as at rest
+  BLOOM: { strength: 1.05, radius: 0.80, threshold: 0.42 },
+  CB_PULSE: { 1: 1.6, 2: 0, 4: 9.0 }  // Hz of the temporal texture per channel
+};
+
+/* ---- storage with in-memory fallback ------------------------------------ */
+var store = (function () {
+  var mem = {};
+  return {
+    get: function (k, d) {
+      try { var v = localStorage.getItem(k); if (v !== null) return v; } catch (e) {}
+      return (k in mem) ? mem[k] : d;
+    },
+    set: function (k, v) {
+      mem[k] = String(v);
+      try { localStorage.setItem(k, String(v)); } catch (e) {}
+    }
+  };
+})();
+
+/* ---- i18n --------------------------------------------------------------- */
+var STR = {
+  es: { sub:'mechanics', play:'continuar', levels:'salas', opts:'ajustes', back:'volver',
+        paused:'pausa', resume:'seguir', restart:'reiniciar', quit:'salir',
+        music:'música', sfx:'sonido', hap:'vibración', cb:'daltonismo',
+        qual:'detalle', lang:'idioma', on:'sí', off:'no', high:'alto', low:'bajo',
+        langName:'español', room:'sala',
+        l1:'alba', l2:'giro', l3:'espectro', l4:'puntería', l5:'alcance',
+        l6:'muro', l7:'ranura', l8:'espejo', l9:'pliegue', l10:'dos',
+        l11:'mezcla', l12:'aleación', l13:'filtro', l14:'ambos', l15:'acorde',
+        tHold:'mantén pulsado un objeto para girarlo' },
+  en: { sub:'mechanics', play:'continue', levels:'rooms', opts:'settings', back:'back',
+        paused:'paused', resume:'resume', restart:'restart', quit:'quit',
+        music:'music', sfx:'sound', hap:'haptics', cb:'colour-blind',
+        qual:'detail', lang:'language', on:'on', off:'off', high:'high', low:'low',
+        langName:'english', room:'room',
+        l1:'dawn', l2:'turn', l3:'split', l4:'aim', l5:'reach',
+        l6:'wall', l7:'slot', l8:'mirror', l9:'fold', l10:'two',
+        l11:'blend', l12:'alloy', l13:'filter', l14:'both', l15:'chord',
+        tHold:'press and hold an object to rotate it' }
+};
+var lang = store.get('pm.lang', (navigator.language || 'en').slice(0, 2) === 'es' ? 'es' : 'en');
+if (!STR[lang]) lang = 'en';
+function t(k) { return (STR[lang] && STR[lang][k]) || STR.en[k] || k; }
+function applyI18n() {
+  document.documentElement.lang = lang;
+  var ns = document.querySelectorAll('[data-i18n]');
+  for (var i = 0; i < ns.length; i++) ns[i].textContent = t(ns[i].getAttribute('data-i18n'));
+  refreshOptionValues();
+  buildLevelGrid();
+}
+
+/* ---- options ------------------------------------------------------------ */
+var opt = {
+  music: store.get('pm.music', '1') === '1',
+  sfx:   store.get('pm.sfx', '1') === '1',
+  hap:   store.get('pm.hap', '0') === '1',
+  cb:    store.get('pm.cb', '0') === '1',
+  qual:  store.get('pm.qual', '') || 'auto'
+};
+var reduced = false;
+try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+function progress() {
+  var raw = store.get('pm.done', '');
+  var s = {};
+  raw.split(',').forEach(function (v) { if (v !== '') s[+v] = 1; });
+  return s;
+}
+function markDone(i) {
+  var p = progress(); p[i] = 1;
+  store.set('pm.done', Object.keys(p).join(','));
+}
+
+/* ---- DOM ---------------------------------------------------------------- */
+function $(id) {
+  var e = document.getElementById(id);
+  if (!e) throw new Error('missing DOM node: #' + id);
+  return e;
+}
+var dom = {
+  cv:$('cv'), boot:$('boot'), hud:$('hud'), hudNum:$('hud-num'), hudName:$('hud-name'),
+  btnReset:$('btn-reset'), btnPause:$('btn-pause'),
+  intro:$('intro'), introNum:$('intro-num'), introName:$('intro-name'),
+  cd:$('cd'), flash:$('flash'), toast:$('toast'),
+  scrTitle:$('scr-title'), scrLevels:$('scr-levels'), scrPause:$('scr-pause'), scrOpts:$('scr-opts'),
+  btnPlay:$('btn-play'), btnLevels:$('btn-levels'), btnOpts:$('btn-opts'),
+  grid:$('lvl-grid'), lvlBack:$('lvl-back'),
+  pResume:$('p-resume'), pRestart:$('p-restart'), pOpts:$('p-opts'), pQuit:$('p-quit'),
+  oMusic:$('o-music'), oSfx:$('o-sfx'), oHap:$('o-hap'), oCb:$('o-cb'),
+  oQual:$('o-qual'), oLang:$('o-lang'), oBack:$('o-back'),
+  vMusic:$('v-music'), vSfx:$('v-sfx'), vHap:$('v-hap'), vCb:$('v-cb'),
+  vQual:$('v-qual'), vLang:$('v-lang')
+};
+
+/* ---- input hardening ---------------------------------------------------- */
+['gesturestart','gesturechange','gestureend','contextmenu','dblclick','selectstart','dragstart']
+  .forEach(function (ev) { document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive:false }); });
+document.addEventListener('touchmove', function (e) {
+  if (e.touches && e.touches.length > 1) e.preventDefault();
+}, { passive:false });
+window.addEventListener('wheel', function (e) {
+  if (e.ctrlKey) e.preventDefault();
+}, { passive:false });
+
+/* ---- haptics ------------------------------------------------------------ */
+function buzz(pattern) {
+  if (!opt.hap) return;
+  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
+}
+
+/* ============================================================================
+   AUDIO — everything synthesised. Colour is pitch; a solved room is a chord.
+   ========================================================================== */
+var AU = (function () {
+  var ctx = null, busM = null, busS = null, verb = null, ready = false;
+  var drones = {}, fric = null, sched = null, nextNote = 0, step = 0;
+  var FREQ = { 1:146.83, 2:220.00, 4:293.66, 3:196.00, 5:246.94, 6:261.63, 7:329.63 };
+  var ROOT = [0, -2, -5, -4];  // semitone offsets of the ambient progression
+
+  function impulse(sec, decay) {
+    var rate = ctx.sampleRate, len = Math.max(1, (rate * sec) | 0);
+    var buf = ctx.createBuffer(2, len, rate);
+    for (var c = 0; c < 2; c++) {
+      var d = buf.getChannelData(c);
+      for (var i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      }
+    }
+    return buf;
+  }
+
+  function init() {
+    if (ready) return;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      ctx = new AC();
+      busM = ctx.createGain(); busS = ctx.createGain();
+      busM.gain.value = opt.music ? 0.22 : 0;
+      busS.gain.value = opt.sfx ? 0.5 : 0;
+      verb = ctx.createConvolver(); verb.buffer = impulse(4.5, 2.6);
+      var wet = ctx.createGain(); wet.gain.value = 0.55;
+      verb.connect(wet); wet.connect(ctx.destination);
+      busM.connect(ctx.destination); busM.connect(verb);
+      busS.connect(ctx.destination); busS.connect(verb);
+      ready = true;
+      startAmbient();
+    } catch (e) { ready = false; }
+  }
+  function resume() {
+    init();
+    if (ctx && ctx.state === 'suspended') { try { ctx.resume(); } catch (e) {} }
+  }
+  function setBus() {
+    if (!ready) return;
+    busM.gain.setTargetAtTime(opt.music ? 0.22 : 0, ctx.currentTime, 0.05);
+    busS.gain.setTargetAtTime(opt.sfx ? 0.5 : 0, ctx.currentTime, 0.05);
+  }
+
+  function env(node, gain, a, d, when) {
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), when + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + a + d);
+    node.connect(g);
+    return g;
+  }
+
+  function ping(f, gain, a, d, type, bus, when) {
+    if (!ready) return;
+    when = when || ctx.currentTime;
+    var o = ctx.createOscillator();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f, when);
+    var g = env(o, gain, a, d, when);
+    g.connect(bus || busS);
+    o.start(when); o.stop(when + a + d + 0.05);
+  }
+
+  function noiseBurst(gain, dur, f, q, when) {
+    if (!ready) return;
+    when = when || ctx.currentTime;
+    var len = Math.max(1, (ctx.sampleRate * dur) | 0);
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.value = f; bp.Q.value = q || 2;
+    var g = ctx.createGain(); g.gain.value = gain;
+    src.connect(bp); bp.connect(g); g.connect(busS);
+    src.start(when); src.stop(when + dur + 0.02);
+  }
+
+  /* --- the reward: attack, bloom, halo --- */
+  function lock(mask) {
+    if (!ready) return;
+    var f = FREQ[mask] || 220, now = ctx.currentTime;
+    noiseBurst(0.16, 0.05, 2400, 3, now);              // glass-mallet transient
+    ping(f * 4, 0.05, 0.004, 0.20, 'sine', busS, now);
+    ping(f, 0.13, 0.20, 0.55, 'sine', busS, now);       // the note arriving
+    ping(f * 4, 0.035, 0.10, 1.30, 'sine', busS, now + 0.12); // halo
+  }
+  function drone(id, mask) {
+    if (!ready || drones[id]) return;
+    var f = FREQ[mask] || 220;
+    var o = ctx.createOscillator(), g = ctx.createGain(), det = ctx.createOscillator();
+    o.type = 'sine'; o.frequency.value = f;
+    det.type = 'sine'; det.frequency.value = f * 1.005;
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.045, ctx.currentTime + 0.4);
+    o.connect(g); det.connect(g); g.connect(busM);
+    o.start(); det.start();
+    drones[id] = { o:o, det:det, g:g };
+  }
+  function undrone(id) {
+    var d = drones[id]; if (!d || !ready) return;
+    delete drones[id];
+    try {
+      d.g.gain.cancelScheduledValues(ctx.currentTime);
+      d.g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.12);
+      d.o.stop(ctx.currentTime + 0.6); d.det.stop(ctx.currentTime + 0.6);
+    } catch (e) {}
+  }
+  function allDronesOff() { Object.keys(drones).forEach(undrone); }
+  function sour(on) {
+    if (!ready) return;
+    Object.keys(drones).forEach(function (k) {
+      var d = drones[k];
+      try { d.det.frequency.setTargetAtTime(d.o.frequency.value * (on ? 1.018 : 1.005), ctx.currentTime, 0.2); } catch (e) {}
+    });
+  }
+  function cadence() {
+    if (!ready) return;
+    var now = ctx.currentTime;
+    [146.83, 220, 293.66].forEach(function (f, i) {
+      ping(f, 0.12, 0.12, 1.1, 'sine', busS, now + i * 0.03);
+      ping(f * Math.pow(2, 2 / 12), 0.10, 0.30, 1.6, 'sine', busS, now + 0.45 + i * 0.03);
+    });
+    ping(587.33, 0.05, 0.4, 2.0, 'sine', busS, now + 0.5);
+  }
+  function tick() { noiseBurst(0.045, 0.02, 5200, 8); }
+  function settle() { ping(92, 0.11, 0.005, 0.16, 'sine', busS); }
+  function click() { noiseBurst(0.06, 0.03, 1800, 4); }
+
+  /* --- friction while dragging --- */
+  function fricStart() {
+    if (!ready || fric) return;
+    var len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    var src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+    var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 400; bp.Q.value = 1.2;
+    var g = ctx.createGain(); g.gain.value = 0;
+    src.connect(bp); bp.connect(g); g.connect(busS);
+    src.start();
+    fric = { src:src, bp:bp, g:g };
+  }
+  function fricSet(v) {
+    if (!fric || !ready) return;
+    var s = Math.min(1, v);
+    fric.g.gain.setTargetAtTime(0.055 * s, ctx.currentTime, 0.04);
+    fric.bp.frequency.setTargetAtTime(280 + 1500 * s, ctx.currentTime, 0.06);
+  }
+  function fricStop() {
+    if (!fric || !ready) return;
+    var f = fric; fric = null;
+    try {
+      f.g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.05);
+      f.src.stop(ctx.currentTime + 0.3);
+    } catch (e) {}
+  }
+
+  /* --- ambient: drone + sparse bells. No percussion, ever. --- */
+  function startAmbient() {
+    var base = ctx.createOscillator(), bg = ctx.createGain();
+    var flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 320; flt.Q.value = 0.4;
+    base.type = 'sawtooth'; base.frequency.value = 55;
+    bg.gain.value = 0.05;
+    base.connect(flt); flt.connect(bg); bg.connect(busM);
+    base.start();
+    var lfo = ctx.createOscillator(), lg = ctx.createGain();
+    lfo.frequency.value = 0.025; lg.gain.value = 140;
+    lfo.connect(lg); lg.connect(flt.frequency); lfo.start();
+
+    nextNote = ctx.currentTime + 1;
+    sched = setInterval(function () {
+      if (!ready || ctx.state !== 'running') return;
+      var horizon = ctx.currentTime + 0.25;
+      while (nextNote < horizon) {
+        if (Math.random() < 0.34) {
+          var pent = [0, 2, 5, 7, 9];
+          var semi = ROOT[(step >> 2) % ROOT.length] + pent[(Math.random() * 5) | 0] + 12 * ((Math.random() < 0.4) ? 1 : 0);
+          var f = 220 * Math.pow(2, semi / 12);
+          var car = ctx.createOscillator(), mod = ctx.createOscillator(), mg = ctx.createGain();
+          car.frequency.value = f; mod.frequency.value = f * 2.01; mg.gain.value = f * 1.2;
+          mod.connect(mg); mg.connect(car.frequency);
+          var g = ctx.createGain();
+          g.gain.setValueAtTime(0.0001, nextNote);
+          g.gain.exponentialRampToValueAtTime(0.05, nextNote + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.0001, nextNote + 3.2);
+          car.connect(g); g.connect(busM);
+          car.start(nextNote); mod.start(nextNote);
+          car.stop(nextNote + 3.4); mod.stop(nextNote + 3.4);
+        }
+        nextNote += 1.5; step++;
+      }
+    }, 25);
+  }
+
+  return { resume:resume, setBus:setBus, lock:lock, drone:drone, undrone:undrone,
+           allDronesOff:allDronesOff, sour:sour, cadence:cadence, tick:tick,
+           settle:settle, click:click, fricStart:fricStart, fricSet:fricSet, fricStop:fricStop,
+           get ready() { return ready; } };
+})();
+
+/* ============================================================================
+   RENDER
+   ========================================================================== */
+var THREE = window.THREE;
+var renderer, scene, camera, composer, bloomPass = null;
+var levelGroup = null, owned = { geo:[], mat:[], tex:[] };
+var beamCore = [], beamSheath = [], beamHalo = [], beamSpill = [], beamFlare = [];
+var dust = null, dustGeo = null;
+var meshFor = {}, targetMeshes = {}, ringMesh = null;
+var quality = 'high';
+
+var SHARED = {};
+
+function colOf(mask) {
+  var r = (mask & 1) ? 1 : 0, g = (mask & 2) ? 1 : 0, b = (mask & 4) ? 1 : 0;
+  return new THREE.Color(
+    r ? 1.0 : 0.06, g ? 1.0 : 0.06, b ? 1.0 : 0.06
+  ).lerp(new THREE.Color(
+    r ? 1.0 : 0, g ? 0.98 : 0, b ? 1.0 : 0
+  ), 0.5);
+}
+var HEX = { 1:0xFF2D4A, 2:0x39FF88, 4:0x3D7BFF, 3:0xFFC93D, 5:0xFF4DE0, 6:0x3DF7FF, 7:0xF2F5FF };
+function hexOf(m) { return HEX[m] !== undefined ? HEX[m] : 0xF2F5FF; }
+
+function floorTexture() {
+  var cv = document.createElement('canvas');
+  cv.width = 8; cv.height = 256;
+  var g = cv.getContext('2d');
+  var grd = g.createLinearGradient(0, 0, 0, 256);
+  grd.addColorStop(0, '#05060A');
+  grd.addColorStop(1, '#151A24');
+  g.fillStyle = grd; g.fillRect(0, 0, 8, 256);
+  // faint grain so the matte reads as a surface, not a fill
+  var img = g.getImageData(0, 0, 8, 256);
+  for (var i = 0; i < img.data.length; i += 4) {
+    var n = (Math.random() * 10) | 0;
+    img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n;
+  }
+  g.putImageData(img, 0, 0);
+  var tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function radialGlowTexture() {
+  var cv = document.createElement('canvas');
+  cv.width = cv.height = 128;
+  var g = cv.getContext('2d');
+  var grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0.00, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.12, 'rgba(255,255,255,0.72)');
+  grd.addColorStop(0.34, 'rgba(255,255,255,0.20)');
+  grd.addColorStop(0.62, 'rgba(255,255,255,0.05)');
+  grd.addColorStop(1.00, 'rgba(255,255,255,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(cv);
+}
+function spillTexture() {
+  // one axis only: bright along the beam's ground track, falling off across it
+  var cv = document.createElement('canvas');
+  cv.width = 4; cv.height = 128;
+  var g = cv.getContext('2d');
+  var grd = g.createLinearGradient(0, 0, 0, 128);
+  grd.addColorStop(0.00, 'rgba(255,255,255,0)');
+  grd.addColorStop(0.34, 'rgba(255,255,255,0.10)');
+  grd.addColorStop(0.48, 'rgba(255,255,255,0.85)');
+  grd.addColorStop(0.52, 'rgba(255,255,255,0.85)');
+  grd.addColorStop(0.66, 'rgba(255,255,255,0.10)');
+  grd.addColorStop(1.00, 'rgba(255,255,255,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 4, 128);
+  return new THREE.CanvasTexture(cv);
+}
+
+/* A beam is a cylinder of glowing medium. What you see at any pixel is the
+   depth of medium the eye looks through, which peaks along the tube's visual
+   centre and vanishes at its silhouette — that is exactly |dot(normal, view)|.
+   Rendering that instead of a flat-shaded tube is the whole difference between
+   "a coloured stick" and "light". */
+var BEAM_VS = [
+  'varying vec3 vN; varying vec3 vV; varying vec2 vUv;',
+  'void main(){',
+  '  vUv = uv;',
+  '  vec4 mv = modelViewMatrix * vec4(position, 1.0);',
+  '  vV = -mv.xyz;',
+  '  vN = normalize(normalMatrix * normal);',
+  '  gl_Position = projectionMatrix * mv;',
+  '}'
+].join('\n');
+var BEAM_FS = [
+  'uniform vec3 uColor; uniform float uInt; uniform float uTail;',
+  'uniform float uTime; uniform float uPow; uniform float uScint;',
+  'varying vec3 vN; varying vec3 vV; varying vec2 vUv;',
+  'void main(){',
+  '  float d = abs(dot(normalize(vN), normalize(vV)));',
+  '  float density = pow(clamp(d, 0.0, 1.0), uPow);',      // column depth
+  '  float tail = mix(1.0, smoothstep(1.0, 0.06, vUv.y), uTail);',
+  '  float head = smoothstep(0.0, 0.012, vUv.y);',         // hide the cap seam
+  '  float scint = 1.0 - uScint * (0.5 + 0.5 * sin(vUv.y * 46.0 - uTime * 3.1));',
+  '  float a = density * uInt * tail * head * scint;',
+  '  gl_FragColor = vec4(uColor * a, a);',
+  '}'
+].join('\n');
+
+var beamShaderOK = true;
+function beamMaterial(pow, scint) {
+  if (beamShaderOK && THREE.ShaderMaterial) {
+    try {
+      return new THREE.ShaderMaterial({
+        uniforms: {
+          uColor: { value: new THREE.Color(0xffffff) }, uInt: { value: 1 },
+          uTail: { value: 0 }, uTime: { value: 0 },
+          uPow: { value: pow }, uScint: { value: scint }
+        },
+        vertexShader: BEAM_VS, fragmentShader: BEAM_FS,
+        transparent: true, blending: THREE.AdditiveBlending,
+        depthWrite: false, side: THREE.DoubleSide
+      });
+    } catch (e) { beamShaderOK = false; }
+  }
+  return new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2,
+    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+}
+function setBeamMat(mesh, hex, intensity, tail, time) {
+  var m = mesh.material;
+  if (m.uniforms) {
+    m.uniforms.uColor.value.setHex(hex);
+    m.uniforms.uInt.value = intensity;
+    m.uniforms.uTail.value = tail;
+    m.uniforms.uTime.value = time;
+  } else {
+    m.color.setHex(hex);
+    m.opacity = Math.min(1, intensity * 0.55);
+  }
+}
+
+function initRender() {
+  renderer = new THREE.WebGLRenderer({ canvas: dom.cv, antialias: true, alpha: false });
+  renderer.setClearColor(0x0B0D11, 1);
+  // Never blur to save frames: cap at the device ratio, drop effects instead.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  if (THREE.SRGBColorSpace !== undefined && renderer.outputColorSpace !== undefined)
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+  else if (THREE.sRGBEncoding !== undefined) renderer.outputEncoding = THREE.sRGBEncoding;
+  if (renderer.toneMapping !== undefined) {
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
+  }
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x0B0D11, 0.018);
+  camera = new THREE.PerspectiveCamera(T.FOV, 1, 0.5, 300);
+
+  scene.add(new THREE.HemisphereLight(0x2A3350, 0x05060A, 0.35));
+  var fill = new THREE.DirectionalLight(0x9FB4E8, 0.28);
+  fill.position.set(-6, 14, 12);
+  scene.add(fill);
+
+  var ftex = floorTexture(); ftex.repeat.set(1, 1);
+  var floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(400, 400),
+    new THREE.MeshStandardMaterial({ map: ftex, roughness: 0.96, metalness: 0.0, color: 0xffffff })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.02;
+  scene.add(floor);
+
+  // shared, pooled, never disposed by the level teardown
+  SHARED.cyl = new THREE.CylinderGeometry(1, 1, 1, 12, 1, true);
+  SHARED.ringGeo = new THREE.TorusGeometry(1.35, 0.02, 6, 48);
+  SHARED.spillGeo = new THREE.PlaneGeometry(1, 1);
+  SHARED.spillGeo.rotateX(-Math.PI / 2);       // lies flat; local +X runs along the beam
+  SHARED.glowTex = radialGlowTexture();
+  SHARED.spillTex = spillTexture();
+  SHARED.list = [SHARED.cyl, SHARED.ringGeo, SHARED.spillGeo];
+
+  for (var i = 0; i < T.BEAM_POOL; i++) {
+    // filament: thin, hot, nearly white-hot at the core so bloom catches it
+    var a = new THREE.Mesh(SHARED.cyl, beamMaterial(0.55, 0));
+    // sheath: the lit air, strong column-density falloff
+    var b = new THREE.Mesh(SHARED.cyl, beamMaterial(1.9, T.SCINT));
+    // halo: very wide, very faint — this is what stops the beam looking like a stick
+    var c = new THREE.Mesh(SHARED.cyl, beamMaterial(3.4, 0));
+    // spill: the light the beam throws down onto the matte floor
+    var d = new THREE.Mesh(SHARED.spillGeo, new THREE.MeshBasicMaterial({
+      map: SHARED.spillTex, color: 0xffffff, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    // flare: camera-facing burst where the beam terminates on something
+    var e = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: SHARED.glowTex, color: 0xffffff, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false }));
+    [a, b, c, d, e].forEach(function (o) { o.visible = false; o.frustumCulled = false; scene.add(o); });
+    beamHalo.push(c); beamSpill.push(d); beamSheath.push(b); beamCore.push(a); beamFlare.push(e);
+  }
+  ringMesh = new THREE.Mesh(SHARED.ringGeo,
+    new THREE.MeshBasicMaterial({ color: 0xEDEFF5, transparent: true, opacity: 0 }));
+  ringMesh.rotation.x = -Math.PI / 2;
+  ringMesh.visible = false;
+  scene.add(ringMesh);
+
+  makeDust(T.DUST_HIGH);
+  setupComposer();
+  resize();
+}
+
+function makeDust(n) {
+  if (dust) { scene.remove(dust); dustGeo.dispose(); dust.material.dispose(); dust = null; }
+  dustGeo = new THREE.BufferGeometry();
+  var pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
+  for (var i = 0; i < n; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * 60;
+    pos[i * 3 + 1] = Math.random() * 3.2;
+    pos[i * 3 + 2] = (Math.random() - 0.5) * 60;
+  }
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  dustGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+    size: 0.075, vertexColors: true, transparent: true, opacity: 0.9,
+    blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
+  }));
+  dust.frustumCulled = false;
+  scene.add(dust);
+}
+
+function setupComposer() {
+  composer = null; bloomPass = null;
+  if (quality !== 'high') return;
+  try {
+    if (!THREE.EffectComposer || !THREE.RenderPass || !THREE.UnrealBloomPass) return;
+    composer = new THREE.EffectComposer(renderer);
+    composer.addPass(new THREE.RenderPass(scene, camera));
+    bloomPass = new THREE.UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      T.BLOOM.strength, T.BLOOM.radius, T.BLOOM.threshold);
+    composer.addPass(bloomPass);
+  } catch (e) { composer = null; bloomPass = null; }
+}
+
+/* ---- level meshes ------------------------------------------------------- */
+function own(o) {
+  if (o.geometry && owned.geo.indexOf(o.geometry) < 0 &&
+      (SHARED.list || []).indexOf(o.geometry) < 0) owned.geo.push(o.geometry);
+  if (o.material && owned.mat.indexOf(o.material) < 0) owned.mat.push(o.material);
+  return o;
+}
+function glassMat(hex, opacity) {
+  if (quality === 'high' && THREE.MeshPhysicalMaterial) {
+    return new THREE.MeshPhysicalMaterial({
+      color: hex, metalness: 0, roughness: 0.05, transmission: 0.95, thickness: 1.6,
+      ior: 1.62, transparent: true, opacity: 1, clearcoat: 0.6, clearcoatRoughness: 0.1
+    });
+  }
+  return new THREE.MeshStandardMaterial({
+    color: hex, metalness: 0.05, roughness: 0.12, transparent: true,
+    opacity: opacity === undefined ? 0.42 : opacity
+  });
+}
+
+function buildLevel(lv) {
+  teardown();
+  levelGroup = new THREE.Group();
+  scene.add(levelGroup);
+  meshFor = {}; targetMeshes = {};
+
+  lv.emitters.forEach(function (em) {
+    var g = new THREE.Group();
+    var body = own(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9),
+      new THREE.MeshStandardMaterial({ color: 0x161B26, roughness: 0.9, metalness: 0.1 })));
+    var eye = own(new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10),
+      new THREE.MeshBasicMaterial({ color: 0xF2F5FF })));
+    eye.position.x = 0.42;
+    g.add(body); g.add(eye);
+    if (SHARED.glowTex) {
+      var fl = new THREE.Sprite(own(new THREE.SpriteMaterial({ map: SHARED.glowTex,
+        color: 0xF2F5FF, transparent: true, opacity: 0.5,
+        blending: THREE.AdditiveBlending, depthWrite: false })));
+      fl.scale.set(1.7, 1.7, 1); fl.position.x = 0.42;
+      g.add(fl);
+    }
+    g.position.set(em.x, T.ELEV, em.z);
+    g.rotation.y = -em.rot * Math.PI / 180;
+    levelGroup.add(g);
+  });
+
+  C.resolve(lv, {}).forEach(function (e, i) {
+    var m = null;
+    if (e.t === 'prism') {
+      m = own(new THREE.Mesh(new THREE.CylinderGeometry(C.CFG.PRISM_R, C.CFG.PRISM_R, 1.5, 3),
+        glassMat(0xEAF2FF, 0.38)));
+      // a faint chromatic rim shell: the object announces that it bends colour
+      var rim = own(new THREE.Mesh(new THREE.CylinderGeometry(C.CFG.PRISM_R * 1.06, C.CFG.PRISM_R * 1.06, 1.52, 3),
+        new THREE.MeshBasicMaterial({ color: 0x5A7CFF, transparent: true, opacity: 0.16,
+          blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false })));
+      m.add(rim);
+    } else if (e.t === 'comb') {
+      m = own(new THREE.Mesh(new THREE.IcosahedronGeometry(C.CFG.COMB_R, 1), glassMat(0xFFF2EA, 0.34)));
+    } else if (e.t === 'mirror') {
+      m = own(new THREE.Mesh(new THREE.BoxGeometry(e.len || C.CFG.MIRROR_LEN, 0.9, 0.1),
+        new THREE.MeshStandardMaterial({ color: 0xE8E2D8, roughness: 0.06, metalness: 1.0 })));
+    } else if (e.t === 'filter') {
+      m = own(new THREE.Mesh(new THREE.BoxGeometry(e.len || C.CFG.FILTER_LEN, 0.95, 0.07),
+        new THREE.MeshStandardMaterial({ color: hexOf(e.mask), roughness: 0.2, metalness: 0,
+          transparent: true, opacity: 0.5 })));
+    } else if (e.t === 'wall') {
+      m = own(new THREE.Mesh(new THREE.BoxGeometry(e.w || 2, 1.7, e.d || 0.8),
+        new THREE.MeshStandardMaterial({ color: 0x0E1219, roughness: 0.98, metalness: 0 })));
+    } else if (e.t === 'target') {
+      m = new THREE.Group();
+      var ring = own(new THREE.Mesh(new THREE.TorusGeometry(C.CFG.TARGET_R, 0.055, 8, 40),
+        new THREE.MeshBasicMaterial({ color: hexOf(e.mask), transparent: true, opacity: 0.42 })));
+      ring.rotation.x = -Math.PI / 2;
+      var disc = own(new THREE.Mesh(new THREE.CircleGeometry(C.CFG.TARGET_R * 0.86, 28),
+        new THREE.MeshBasicMaterial({ color: hexOf(e.mask), transparent: true, opacity: 0.05,
+          blending: THREE.AdditiveBlending, depthWrite: false })));
+      disc.rotation.x = -Math.PI / 2; disc.position.y = 0.01;
+      m.add(ring); m.add(disc);
+      targetMeshes[i] = { ring: ring, disc: disc, mask: e.mask };
+    }
+    if (!m) return;
+    m.position.set(e.x, T.ELEV, e.z);
+    m.rotation.y = -(e.rot || 0) * Math.PI / 180;
+    levelGroup.add(m);
+    meshFor[i] = m;
+  });
+}
+
+function teardown() {
+  if (!levelGroup) return;
+  scene.remove(levelGroup);
+  owned.geo.forEach(function (g) { try { g.dispose(); } catch (e) {} });
+  owned.mat.forEach(function (m) { try { m.dispose(); } catch (e) {} });
+  owned = { geo: [], mat: [], tex: [] };
+  levelGroup = null; meshFor = {}; targetMeshes = {};
+}
+
+/* ---- camera fit (analytic, not guessed) --------------------------------- */
+var fitState = { pitch: 52, dist: 30, cx: 0, cz: 0 };
+function fitCamera() {
+  if (!G.level) return;
+  var w = window.innerWidth, h = window.innerHeight;
+  var portrait = h >= w;
+  var pitch = (portrait ? T.PITCH_PORTRAIT : T.PITCH_LANDSCAPE) * Math.PI / 180;
+  var b = C.bounds(G.level);
+  var cx = b.cx, cz = b.cz;
+
+  var dirToCam = new THREE.Vector3(0, Math.sin(pitch), Math.cos(pitch));
+  var right = new THREE.Vector3(1, 0, 0);
+  var upv = new THREE.Vector3(0, Math.cos(pitch), -Math.sin(pitch));
+
+  var aspect = w / Math.max(1, h);
+  var tanV = Math.tan((T.FOV * Math.PI / 180) / 2);
+  var tanH = tanV * aspect;
+
+  var pts = [
+    [b.minx, b.minz], [b.maxx, b.minz], [b.minx, b.maxz], [b.maxx, b.maxz]
+  ];
+  var d = 8;
+  for (var i = 0; i < pts.length; i++) {
+    var q = new THREE.Vector3(pts[i][0] - cx, T.ELEV, pts[i][1] - cz);
+    var a = q.dot(dirToCam);
+    var hx = Math.abs(q.dot(right)), hy = Math.abs(q.dot(upv));
+    d = Math.max(d, a + (hx * T.FIT_MARGIN) / tanH, a + (hy * T.FIT_MARGIN) / tanV);
+  }
+  fitState = { pitch: pitch, dist: d, cx: cx, cz: cz };
+  camera.position.set(cx + dirToCam.x * d, dirToCam.y * d, cz + dirToCam.z * d);
+  camera.lookAt(cx, T.ELEV, cz);
+  camera.aspect = aspect;
+  camera.near = Math.max(0.5, d * 0.02);
+  camera.far = d * 4 + 200;
+  camera.updateProjectionMatrix();
+}
+
+function resize() {
+  var w = window.innerWidth, h = window.innerHeight;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(w, h, false);
+  if (composer) composer.setSize(w, h);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+  fitCamera();
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', function () { setTimeout(resize, 120); });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
+
+/* ============================================================================
+   GAME STATE + FLOW
+   ========================================================================== */
+var G = {
+  idx: 0, level: null, state: {}, trace: null,
+  playing: false, paused: false, frozen: false,
+  introUntil: 0, completeAt: 0, cdUntil: 0,
+  stableSince: 0, confirm: 0,
+  sel: -1, mode: null, litSet: {}
+};
+
+var UP = new THREE.Vector3(0, 1, 0);
+var _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quaternion();
+var _ray = new THREE.Raycaster(), _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -T.ELEV);
+var _ndc = new THREE.Vector2(), _hit = new THREE.Vector3();
+
+function screenToWorld(clientX, clientY, out) {
+  _ndc.x = (clientX / window.innerWidth) * 2 - 1;
+  _ndc.y = -(clientY / window.innerHeight) * 2 + 1;
+  _ray.setFromCamera(_ndc, camera);
+  var p = _ray.ray.intersectPlane(_plane, out || _hit);
+  return p;
+}
+
+function show(el, on) { el.classList.toggle('on', !!on); }
+function screenOff() {
+  [dom.scrTitle, dom.scrLevels, dom.scrPause, dom.scrOpts].forEach(function (s) { show(s, false); });
+}
+
+function toast(msg) {
+  dom.toast.textContent = msg;
+  dom.toast.style.opacity = '.55';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function () { dom.toast.style.opacity = '0'; }, 3200);
+}
+
+function startLevel(i) {
+  G.idx = Math.max(0, Math.min(C.LEVELS.length - 1, i));
+  G.level = C.LEVELS[G.idx];
+  G.state = {};
+  G.level.elements.forEach(function (e, k) {
+    if (e.move || e.spin) G.state[k] = { x: e.x, z: e.z, rot: e.rot || 0, tRot: e.rot || 0 };
+  });
+  G.sel = -1; G.mode = null; G.playing = true; G.paused = false;
+  lastDetent = {};
+  G.frozen = true; G.completeAt = 0; G.litSet = {};
+  G.stableSince = 0; G.confirm = 0;
+  AU.allDronesOff();
+  buildLevel(G.level);
+  fitCamera();
+  screenOff(); show(dom.hud, true);
+  dom.hudNum.textContent = t('room') + ' ' + (G.idx + 1);
+  dom.hudName.textContent = t(G.level.key);
+  dom.introNum.textContent = String(G.idx + 1).padStart(2, '0');
+  dom.introName.textContent = t(G.level.key);
+  dom.intro.style.opacity = '1';
+  G.introUntil = performance.now() + T.INTRO_MS;
+  simulate();
+}
+
+function quitToTitle() {
+  G.playing = false; G.paused = false;
+  AU.allDronesOff(); AU.fricStop();
+  teardown();
+  show(dom.hud, false);
+  screenOff(); show(dom.scrTitle, true);
+  dom.btnPlay.textContent = nextUnsolved() === 0 ? (lang === 'es' ? 'empezar' : 'begin') : t('play');
+}
+
+function nextUnsolved() {
+  var p = progress();
+  for (var i = 0; i < C.LEVELS.length; i++) if (!p[i]) return i;
+  return 0;
+}
+function unlockedCount() {
+  var p = progress(), n = 0;
+  for (var i = 0; i < C.LEVELS.length; i++) { if (p[i]) n = Math.max(n, i + 1); }
+  return Math.min(C.LEVELS.length, n + 1);
+}
+
+function buildLevelGrid() {
+  var p = progress(), un = unlockedCount();
+  dom.grid.innerHTML = '';
+  for (var i = 0; i < C.LEVELS.length; i++) {
+    (function (i) {
+      var b = document.createElement('button');
+      b.className = 'lv' + (p[i] ? ' done' : (i < un ? ' un' : ''));
+      b.innerHTML = '<span class="n">' + String(i + 1).padStart(2, '0') + '</span><span class="d"></span>';
+      if (i >= un) b.disabled = true;
+      b.addEventListener('click', function () { AU.resume(); AU.click(); startLevel(i); });
+      dom.grid.appendChild(b);
+    })(i);
+  }
+}
+
+/* ---- simulation + view sync -------------------------------------------- */
+function simulate() {
+  G.trace = C.traceScene(G.level, G.state);
+  // audio: a drone per lit target, so the room's chord is its completion state
+  var lit = {};
+  G.trace.targets.forEach(function (tg) {
+    if (tg.lit) {
+      lit[tg.i] = 1;
+      if (!G.litSet[tg.i]) { AU.lock(tg.want); AU.drone('t' + tg.i, tg.want); buzz([12, 40, 24]); }
+    }
+  });
+  Object.keys(G.litSet).forEach(function (k) { if (!lit[k]) AU.undrone('t' + k); });
+  G.litSet = lit;
+  AU.sour(G.trace.targets.some(function (x) { return x.sour; }));
+
+  // A room is not solved because the light grazed a target for one frame on
+  // its way past. The configuration has to be at rest, untouched, and correct
+  // for CONFIRM_MS — which is also long enough for the chord to be heard.
+  if (!G.trace.complete) { G.stableSince = 0; G.confirm = 0; return; }
+  if (G.completeAt) return;
+
+  var moving = (ptr && ptr.id !== null);
+  if (!moving) {
+    var keys = Object.keys(G.state);
+    for (var ki = 0; ki < keys.length; ki++) {
+      var st = G.state[keys[ki]];
+      if (st.tRot !== undefined && Math.abs(st.tRot - st.rot) > T.SETTLE_EPS) { moving = true; break; }
+    }
+  }
+  var nowMs = performance.now();
+  if (moving) { G.stableSince = 0; G.confirm = 0; return; }
+  if (!G.stableSince) G.stableSince = nowMs;
+  G.confirm = Math.min(1, (nowMs - G.stableSince) / T.CONFIRM_MS);
+  if (G.confirm >= 1) {
+    G.completeAt = nowMs;
+    G.frozen = true;
+    G.confirm = 1;
+    markDone(G.idx);
+    AU.cadence();
+    buzz([30, 60, 30, 60, 90]);
+  }
+}
+
+function syncMeshes() {
+  Object.keys(G.state).forEach(function (k) {
+    var m = meshFor[k], s = G.state[k];
+    if (!m) return;
+    m.position.x = s.x; m.position.z = s.z;
+    m.rotation.y = -s.rot * Math.PI / 180;
+  });
+}
+
+/* ---- beams -------------------------------------------------------------- */
+function drawBeams(now) {
+  var segs = G.trace ? G.trace.segs : [];
+  var n = Math.min(segs.length, T.BEAM_POOL);
+  var boost = 1 + 0.55 * G.confirm * G.confirm;
+  if (G.completeAt) boost = 1.55 + 2.2 * Math.min(1, (now - G.completeAt) / 320);
+  var tsec = now * 0.001;
+
+  for (var i = 0; i < T.BEAM_POOL; i++) {
+    var core = beamCore[i], sh = beamSheath[i], halo = beamHalo[i];
+    var spill = beamSpill[i], flare = beamFlare[i];
+    if (i >= n) {
+      core.visible = sh.visible = halo.visible = spill.visible = flare.visible = false;
+      continue;
+    }
+    var s = segs[i];
+    _v1.set(s.ax, T.ELEV, s.az);
+    _v2.set(s.bx, T.ELEV, s.bz);
+    var len = _v1.distanceTo(_v2);
+    if (!(len > 0.001)) {
+      core.visible = sh.visible = halo.visible = spill.visible = flare.visible = false;
+      continue;
+    }
+    _v2.sub(_v1).divideScalar(len);
+    _q.setFromUnitVectors(UP, _v2);
+    var midx = s.ax + (s.bx - s.ax) * 0.5, midz = s.az + (s.bz - s.az) * 0.5;
+
+    var col = hexOf(s.mask);
+    var tail = s.open ? 1 : 0;
+
+    // Colour-blind mode moves a beam's identity from hue into rhythm: red
+    // breathes slowly, green is steady, blue shimmers.
+    var amp = 1;
+    if (opt.cb) {
+      var hz = (s.mask === 1) ? T.CB_PULSE[1] : (s.mask === 4) ? T.CB_PULSE[4] : 0;
+      if (hz) amp = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(tsec * hz * Math.PI * 2));
+    }
+    var I = amp * boost;
+
+    core.visible = sh.visible = halo.visible = true;
+    [core, sh, halo].forEach(function (m) {
+      m.position.set(midx, T.ELEV, midz);
+      m.quaternion.copy(_q);
+    });
+    core.scale.set(T.BEAM_CORE_R, len, T.BEAM_CORE_R);
+    sh.scale.set(T.BEAM_SHEATH_R, len, T.BEAM_SHEATH_R);
+    halo.scale.set(T.BEAM_HALO_R, len, T.BEAM_HALO_R);
+
+    // The filament is pushed toward white: a saturated core reads as plastic,
+    // an overexposed one reads as light that happens to be coloured.
+    setBeamMat(core, whiten(col, 0.55), 1.35 * I, tail, tsec);
+    setBeamMat(sh,   col,               0.62 * I, tail, tsec);
+    setBeamMat(halo, col,               0.16 * I, tail, tsec);
+
+    // ground spill
+    if (quality === 'high') {
+      spill.visible = true;
+      spill.position.set(midx, 0.035, midz);
+      spill.rotation.y = -Math.atan2(s.bz - s.az, s.bx - s.ax);
+      spill.scale.set(len, 1, T.SPILL_W);
+      spill.material.color.setHex(col);
+      spill.material.opacity = T.SPILL_OP * amp * Math.min(2, boost) * (s.open ? 0.5 : 1);
+    } else { spill.visible = false; }
+
+    // impact flare wherever the beam actually lands on something
+    if (!s.open) {
+      flare.visible = true;
+      flare.position.set(s.bx, T.ELEV, s.bz);
+      var fs = T.FLARE_S * (0.85 + 0.15 * Math.sin(tsec * 5 + i));
+      flare.scale.set(fs, fs, 1);
+      flare.material.color.setHex(whiten(col, 0.35));
+      flare.material.opacity = Math.min(1, 0.42 * amp * boost);
+    } else { flare.visible = false; }
+  }
+}
+
+// pull a colour toward white by k, so the hot core over-exposes correctly
+function whiten(hex, k) {
+  var r = (hex >> 16) & 255, g = (hex >> 8) & 255, b = hex & 255;
+  r = Math.round(r + (255 - r) * k);
+  g = Math.round(g + (255 - g) * k);
+  b = Math.round(b + (255 - b) * k);
+  return (r << 16) | (g << 8) | b;
+}
+
+/* ---- dust: it knows where the beam is ----------------------------------- */
+function updateDust(now, dt) {
+  if (!dust) return;
+  var pos = dustGeo.attributes.position.array, col = dustGeo.attributes.color.array;
+  var segs = G.trace ? G.trace.segs : [];
+  var n = pos.length / 3, reach = T.DUST_REACH, r2 = reach * reach;
+  for (var i = 0; i < n; i++) {
+    var px = pos[i * 3], py = pos[i * 3 + 1], pz = pos[i * 3 + 2];
+    if (!reduced) {
+      pos[i * 3] = px + Math.sin(now * 0.00013 + i) * 0.0035;
+      pos[i * 3 + 1] = py + Math.cos(now * 0.00011 + i * 1.7) * 0.0025;
+    }
+    var best = r2, bm = 0;
+    for (var j = 0; j < segs.length; j++) {
+      var s = segs[j];
+      var ax = s.ax, az = s.az, bx = s.bx - ax, bz = s.bz - az;
+      var L2 = bx * bx + bz * bz; if (L2 < 1e-6) continue;
+      var tt = ((px - ax) * bx + (pz - az) * bz) / L2;
+      tt = tt < 0 ? 0 : (tt > 1 ? 1 : tt);
+      var dx = px - (ax + bx * tt), dz = pz - (az + bz * tt);
+      var d2 = dx * dx + dz * dz + (py - T.ELEV) * (py - T.ELEV) * 0.6;
+      if (d2 < best) { best = d2; bm = s.mask; }
+    }
+    var k = bm ? (1 - Math.sqrt(best) / reach) : 0;
+    k = k < 0 ? 0 : k * k * 0.85;
+    var hex = hexOf(bm || 7);
+    col[i * 3] = ((hex >> 16 & 255) / 255) * k + 0.012;
+    col[i * 3 + 1] = ((hex >> 8 & 255) / 255) * k + 0.014;
+    col[i * 3 + 2] = ((hex & 255) / 255) * k + 0.02;
+  }
+  dustGeo.attributes.position.needsUpdate = true;
+  dustGeo.attributes.color.needsUpdate = true;
+}
+
+function updateTargets(now) {
+  if (!G.trace) return;
+  G.trace.targets.forEach(function (tg) {
+    var m = targetMeshes[tg.i]; if (!m) return;
+    var pulse = 0.5 + 0.5 * Math.sin(now * 0.0026);
+    if (tg.lit) {
+      m.ring.material.opacity = 1;
+      m.disc.material.opacity = 0.34 + 0.10 * pulse + 0.45 * G.confirm * G.confirm;
+    } else if (tg.sour) {
+      m.ring.material.opacity = 0.30 + 0.22 * pulse;
+      m.disc.material.opacity = 0.04;
+    } else {
+      m.ring.material.opacity = 0.40;
+      m.disc.material.opacity = 0.05;
+    }
+  });
+}
+
+/* ============================================================================
+   INPUT
+   ========================================================================== */
+var ptr = { id: null, downX: 0, downY: 0, moved: false, holdT: 0,
+            grabDX: 0, grabDZ: 0, grabAng: 0, lastW: null, lastMoveT: 0, speed: 0 };
+
+function elementUnder(wx, wz) {
+  var els = C.resolve(G.level, G.state);
+  var best = -1, bd = Infinity;
+  for (var i = 0; i < els.length; i++) {
+    var e = els[i];
+    if (!e.move && !e.spin) continue;
+    var d;
+    if (e.t === 'mirror' || e.t === 'filter') {
+      var s = C.segEnds(e);
+      var ax = s[0], az = s[1], bx = s[2] - ax, bz = s[3] - az;
+      var L2 = bx * bx + bz * bz || 1;
+      var tt = ((wx - ax) * bx + (wz - az) * bz) / L2;
+      tt = tt < 0 ? 0 : (tt > 1 ? 1 : tt);
+      d = Math.hypot(wx - (ax + bx * tt), wz - (az + bz * tt));
+      if (d > 0.9) continue;
+    } else {
+      d = Math.hypot(wx - e.x, wz - e.z);
+      if (d > C.radiusOf(e) + 0.55) continue;
+    }
+    if (d < bd) { bd = d; best = i; }
+  }
+  return best;
+}
+
+function clampToField(s) {
+  var b = C.bounds(G.level), pad = 2.5;
+  s.x = Math.max(b.minx - pad, Math.min(b.maxx + pad, s.x));
+  s.z = Math.max(b.minz - pad, Math.min(b.maxz + pad, s.z));
+}
+
+function canInteract() {
+  return G.playing && !G.paused && !G.completeAt &&
+         performance.now() > G.cdUntil;
+}
+
+dom.cv.addEventListener('pointerdown', function (e) {
+  AU.resume();
+  if (!canInteract()) return;
+  if (ptr.id !== null) return;
+  var w = screenToWorld(e.clientX, e.clientY);
+  if (!w) return;
+  var i = elementUnder(w.x, w.z);
+  if (i < 0) return;
+  try { dom.cv.setPointerCapture(e.pointerId); } catch (err) {}
+  ptr.id = e.pointerId; ptr.downX = e.clientX; ptr.downY = e.clientY;
+  ptr.moved = false; ptr.lastW = { x: w.x, z: w.z }; ptr.speed = 0;
+  G.sel = i;
+  var s = G.state[i], el = G.level.elements[i];
+  ptr.grabDX = s.x - w.x; ptr.grabDZ = s.z - w.z;
+  ptr.grabAng = Math.atan2(w.z - s.z, w.x - s.x) * 180 / Math.PI - s.tRot;
+  G.mode = el.move ? 'move' : 'rot';
+  if (G.mode === 'rot') showRing(true);
+  ptr.holdT = setTimeout(function () {
+    if (!ptr.moved && el.spin) {
+      G.mode = 'rot';
+      var ww = ptr.lastW;
+      ptr.grabAng = Math.atan2(ww.z - s.z, ww.x - s.x) * 180 / Math.PI - s.tRot;
+      showRing(true); AU.tick(); buzz(14);
+    }
+  }, T.HOLD_MS);
+  AU.fricStart();
+});
+
+function showRing(on) {
+  if (!ringMesh) return;
+  ringMesh.visible = !!on;
+  ringMesh.material.opacity = on ? 0.22 : 0;
+  if (on && G.sel >= 0) {
+    var s = G.state[G.sel];
+    ringMesh.position.set(s.x, T.ELEV, s.z);
+  }
+}
+
+dom.cv.addEventListener('pointermove', function (e) {
+  if (ptr.id !== e.pointerId || G.sel < 0) return;
+  if (!canInteract()) return;
+  var dx = e.clientX - ptr.downX, dy = e.clientY - ptr.downY;
+  if (!ptr.moved && Math.hypot(dx, dy) > T.DRAG_THRESH) {
+    ptr.moved = true; clearTimeout(ptr.holdT);
+  }
+  var w = screenToWorld(e.clientX, e.clientY);
+  if (!w) return;
+  var s = G.state[G.sel], el = G.level.elements[G.sel];
+  var now = performance.now();
+  if (ptr.lastW) {
+    var d = Math.hypot(w.x - ptr.lastW.x, w.z - ptr.lastW.z);
+    ptr.speed = ptr.speed * 0.7 + d * 0.3;
+  }
+  ptr.lastW = { x: w.x, z: w.z };
+  AU.fricSet(ptr.speed * 3.2);
+
+  if (G.mode === 'rot' && el.spin) {
+    var a = Math.atan2(w.z - s.z, w.x - s.x) * 180 / Math.PI - ptr.grabAng;
+    s.tRot = C.applyDetent(a);
+    showRing(true);
+  } else if (G.mode === 'move' && el.move) {
+    s.x = w.x + ptr.grabDX; s.z = w.z + ptr.grabDZ;
+    clampToField(s);
+    showRing(false);
+  }
+});
+
+function endPointer(e) {
+  if (ptr.id !== e.pointerId) return;
+  clearTimeout(ptr.holdT);
+  ptr.id = null;
+  showRing(false);
+  AU.fricStop();
+  if (G.sel >= 0) { AU.settle(); buzz(18); }
+  G.mode = null;
+}
+dom.cv.addEventListener('pointerup', endPointer);
+dom.cv.addEventListener('pointercancel', endPointer);
+
+// desktop: wheel rotates whatever is under the cursor
+dom.cv.addEventListener('wheel', function (e) {
+  if (e.ctrlKey || !canInteract()) return;
+  var w = screenToWorld(e.clientX, e.clientY);
+  if (!w) return;
+  var i = elementUnder(w.x, w.z);
+  if (i < 0 || !G.level.elements[i].spin) return;
+  e.preventDefault();
+  G.sel = i;
+  G.state[i].tRot = C.applyDetent(G.state[i].tRot + (e.deltaY > 0 ? 5 : -5));
+}, { passive: false });
+
+window.addEventListener('keydown', function (e) {
+  var k = e.key.toLowerCase();
+  if (k === 'escape' || k === 'p') { if (G.playing) togglePause(); }
+  else if (k === 'r') { if (G.playing && !G.paused) startLevel(G.idx); }
+  else if ((k === 'q' || k === 'e') && G.sel >= 0 && canInteract()) {
+    var el = G.level.elements[G.sel];
+    if (el && el.spin) G.state[G.sel].tRot = C.applyDetent(G.state[G.sel].tRot + (k === 'e' ? 15 : -15));
+  }
+});
+
+/* ---- rotation inertia + detent ticks ------------------------------------ */
+var lastDetent = {};
+function updateRotation(dt) {
+  Object.keys(G.state).forEach(function (k) {
+    var s = G.state[k];
+    if (s.tRot === undefined) return;
+    var d = s.tRot - s.rot;
+    if (Math.abs(d) < 0.02) { s.rot = s.tRot; return; }
+    s.rot += d * Math.min(1, T.ROT_LAG * dt * 60);
+    var idx = Math.round(s.rot / C.CFG.DETENT_DEG);
+    if (lastDetent[k] !== undefined && lastDetent[k] !== idx) { AU.tick(); buzz(10); }
+    lastDetent[k] = idx;
+  });
+}
+
+/* ============================================================================
+   MENUS
+   ========================================================================== */
+function togglePause() {
+  if (G.completeAt) return;
+  if (G.paused) {
+    G.paused = false;
+    show(dom.scrPause, false);
+    G.cdUntil = performance.now() + 3000;
+    show(dom.cd, true);
+  } else {
+    G.paused = true;
+    AU.fricStop();
+    show(dom.scrPause, true);
+  }
+}
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden && G.playing && !G.paused && !G.completeAt) togglePause();
+});
+
+function bind(el, fn) {
+  el.addEventListener('click', function (e) { e.preventDefault(); AU.resume(); AU.click(); fn(); });
+}
+bind(dom.btnPlay, function () { startLevel(nextUnsolved()); });
+bind(dom.btnLevels, function () { buildLevelGrid(); screenOff(); show(dom.scrLevels, true); });
+bind(dom.btnOpts, function () { optsFrom = 'title'; screenOff(); show(dom.scrOpts, true); });
+bind(dom.lvlBack, function () { screenOff(); show(dom.scrTitle, true); });
+bind(dom.btnPause, function () { togglePause(); });
+bind(dom.btnReset, function () { startLevel(G.idx); });
+bind(dom.pResume, function () { togglePause(); });
+bind(dom.pRestart, function () { G.paused = false; show(dom.scrPause, false); startLevel(G.idx); });
+bind(dom.pOpts, function () { optsFrom = 'pause'; show(dom.scrPause, false); show(dom.scrOpts, true); });
+bind(dom.pQuit, function () { quitToTitle(); });
+
+var optsFrom = 'title';
+bind(dom.oBack, function () {
+  show(dom.scrOpts, false);
+  if (optsFrom === 'pause') show(dom.scrPause, true); else show(dom.scrTitle, true);
+});
+bind(dom.oMusic, function () { opt.music = !opt.music; store.set('pm.music', opt.music ? 1 : 0); AU.setBus(); refreshOptionValues(); });
+bind(dom.oSfx, function () { opt.sfx = !opt.sfx; store.set('pm.sfx', opt.sfx ? 1 : 0); AU.setBus(); refreshOptionValues(); });
+bind(dom.oHap, function () { opt.hap = !opt.hap; store.set('pm.hap', opt.hap ? 1 : 0); buzz(18); refreshOptionValues(); });
+bind(dom.oCb, function () { opt.cb = !opt.cb; store.set('pm.cb', opt.cb ? 1 : 0); refreshOptionValues(); });
+bind(dom.oQual, function () {
+  quality = (quality === 'high') ? 'low' : 'high';
+  store.set('pm.qual', quality);
+  setupComposer();
+  makeDust(quality === 'high' ? T.DUST_HIGH : T.DUST_LOW);
+  if (G.level) buildLevel(G.level);
+  refreshOptionValues();
+});
+bind(dom.oLang, function () {
+  lang = (lang === 'es') ? 'en' : 'es';
+  store.set('pm.lang', lang);
+  applyI18n();
+  if (G.level) {
+    dom.hudNum.textContent = t('room') + ' ' + (G.idx + 1);
+    dom.hudName.textContent = t(G.level.key);
+  }
+});
+
+function refreshOptionValues() {
+  dom.vMusic.textContent = opt.music ? t('on') : t('off');
+  dom.vSfx.textContent = opt.sfx ? t('on') : t('off');
+  dom.vHap.textContent = opt.hap ? t('on') : t('off');
+  dom.vCb.textContent = opt.cb ? t('on') : t('off');
+  dom.vQual.textContent = quality === 'high' ? t('high') : t('low');
+  dom.vLang.textContent = t('langName');
+}
+
+/* ============================================================================
+   LOOP
+   ========================================================================== */
+var lastT = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  var dt = Math.min(0.05, (now - lastT) / 1000 || 0.016);
+  lastT = now;
+
+  if (G.playing) {
+    // intro card
+    if (G.introUntil) {
+      if (now > G.introUntil) {
+        dom.intro.style.opacity = '0';
+        G.introUntil = 0; G.frozen = false;
+      }
+    }
+    // resume countdown
+    if (G.cdUntil > now) {
+      dom.cd.textContent = String(Math.ceil((G.cdUntil - now) / 1000));
+      show(dom.cd, true);
+    } else if (dom.cd.classList.contains('on')) {
+      show(dom.cd, false);
+    }
+
+    if (!G.paused) {
+      updateRotation(dt);
+      syncMeshes();
+      simulate();
+      updateTargets(now);
+      drawBeams(now);
+      updateDust(now, dt);
+    }
+
+    // completion: bleach, afterimage, advance
+    if (G.completeAt) {
+      var e = now - G.completeAt;
+      if (!reduced) {
+        if (e < 380) dom.flash.style.opacity = String(Math.min(1, e / 380));
+        else dom.flash.style.opacity = String(Math.max(0, 1 - (e - 380) / 900));
+      }
+      if (e > T.COMPLETE_HOLD_MS && !G.advanced) {
+        G.advanced = true;
+        var nx = G.idx + 1;
+        setTimeout(function () {
+          G.advanced = false;
+          dom.flash.style.opacity = '0';
+          if (nx < C.LEVELS.length) startLevel(nx);
+          else { quitToTitle(); toast(lang === 'es' ? 'todas las salas resueltas' : 'all rooms solved'); }
+        }, 900);
+      }
+    }
+  }
+
+  if (composer) { try { composer.render(); } catch (err) { composer = null; } }
+  else renderer.render(scene, camera);
+}
+
+/* ============================================================================
+   BOOT
+   ========================================================================== */
+function boot() {
+  if (!window.THREE) {
+    dom.boot.textContent = lang === 'es' ? 'no se pudo cargar el motor 3d' : 'could not load the 3d engine';
+    return;
+  }
+  quality = (opt.qual === 'low') ? 'low' : 'high';
+  if (opt.qual === 'auto') {
+    var lowish = (navigator.hardwareConcurrency || 4) <= 4 &&
+                 Math.max(window.innerWidth, window.innerHeight) < 900;
+    quality = lowish ? 'low' : 'high';
+  }
+  initRender();
+  if (quality === 'low') makeDust(T.DUST_LOW);
+  applyI18n();
+  refreshOptionValues();
+  dom.btnPlay.textContent = nextUnsolved() === 0 ? (lang === 'es' ? 'empezar' : 'begin') : t('play');
+  dom.boot.style.display = 'none';
+  setTimeout(function () { toast(t('tHold')); }, 1400);
+  requestAnimationFrame(frame);
+}
+
+try { boot(); }
+catch (err) {
+  dom.boot.textContent = 'error: ' + (err && err.message ? err.message : err);
+  if (window.console) console.error(err);
+}
+
+window.PM = { G: G, C: C, T: T, startLevel: startLevel, simulate: simulate,
+  get camera() { return camera; }, fitCamera: fitCamera,
+  beams: function () { return [].concat(beamCore, beamSheath, beamHalo, beamSpill, beamFlare); } };
+})();
+</script>
+</body>
+</html>
