@@ -121,6 +121,7 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
       <button class="mi" id="o-music"><span data-i18n="music">música</span><span class="v" id="v-music"></span></button>
       <button class="mi" id="o-sfx"><span data-i18n="sfx">sonido</span><span class="v" id="v-sfx"></span></button>
       <button class="mi" id="o-hap"><span data-i18n="hap">vibración</span><span class="v" id="v-hap"></span></button>
+      <button class="mi" id="o-glow"><span data-i18n="glow">intensidad</span><span class="v" id="v-glow"></span></button>
       <button class="mi" id="o-cb"><span data-i18n="cb">daltonismo</span><span class="v" id="v-cb"></span></button>
       <button class="mi" id="o-qual"><span data-i18n="qual">detalle</span><span class="v" id="v-qual"></span></button>
       <button class="mi" id="o-lang"><span data-i18n="lang">idioma</span><span class="v" id="v-lang"></span></button>
@@ -158,6 +159,7 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     PRISM_R: 0.9,         // hit radius of a prism
     COMB_R: 0.9,          // hit radius of a combiner
     TARGET_R: 1.0,        // hit radius of a target  (== the aiming tolerance)
+    EMITTER_R: 0.62,      // the emitter housing is solid: light does not pass through it
     MIRROR_LEN: 2.4,      // default mirror segment length
     FILTER_LEN: 3.0,      // default filter segment length
     MAX_DIST: 70,         // how far an unobstructed ray travels before it dies
@@ -241,6 +243,7 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     if (e.t === 'prism') return CFG.PRISM_R;
     if (e.t === 'comb') return CFG.COMB_R;
     if (e.t === 'target') return CFG.TARGET_R;
+    if (e.t === 'emitter') return CFG.EMITTER_R;
     return 0;
   }
 
@@ -252,7 +255,7 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     for (i = 0; i < els.length; i++) {
       if (i === skip) continue;
       e = els[i];
-      if (e.t === 'prism' || e.t === 'comb' || e.t === 'target') {
+      if (e.t === 'prism' || e.t === 'comb' || e.t === 'target' || e.t === 'emitter') {
         t = hitCircle(ox, oz, dx, dz, e.x, e.z, radiusOf(e));
       } else if (e.t === 'mirror' || e.t === 'filter') {
         s = segEnds(e);
@@ -285,14 +288,20 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 
       if (e.t === 'prism' || e.t === 'comb') { nodeIn[h.idx] |= mask; return; }
       if (e.t === 'target') { tgtIn[h.idx] |= mask; return; }
-      if (e.t === 'wall') { return; }
+      // The emitter housing is opaque. Light folded back onto its own source is
+      // swallowed by the machine that made it, which is both what would happen
+      // and what stops the picture reading as a mistake.
+      if (e.t === 'wall' || e.t === 'emitter') { return; }
 
       if (e.t === 'mirror') {
+        // A front-surfaced mirror has a front. The silvered face looks along
+        // +n; light arriving from behind meets the dark backing and dies there.
         var s = segEnds(e);
         var ex = s[2] - s[0], ez = s[3] - s[1];
         var L = Math.hypot(ex, ez) || 1; ex /= L; ez /= L;
-        var nx = -ez, nz = ex;                       // segment normal
+        var nx = -ez, nz = ex;                       // outward normal of the silvered face
         var dot = dx * nx + dz * nz;
+        if (dot >= 0) return;                        // struck the backing: absorbed
         dx = dx - 2 * dot * nx; dz = dz - 2 * dot * nz;
         ox = hx; oz = hz; skip = h.idx;
         continue;
@@ -311,7 +320,14 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
      prism->prism chains settle. Returns render segments + target states. */
   function traceScene(level, state) {
     var els = resolve(level, state);
-    var n = els.length, i, j;
+    var nEl = els.length, i, j;
+    // emitters join the collision set as solid bodies, after the real elements
+    // so that every index below nEl still means what it meant before
+    for (i = 0; i < level.emitters.length; i++) {
+      var emm = level.emitters[i];
+      els.push({ t: 'emitter', x: emm.x, z: emm.z, rot: emm.rot || 0, i: nEl + i });
+    }
+    var n = els.length;
     var nodeIn = new Array(n), prev = new Array(n);
     for (i = 0; i < n; i++) { nodeIn[i] = 0; prev[i] = 0; }
 
@@ -324,12 +340,13 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 
       // emitters
       for (i = 0; i < level.emitters.length; i++) {
-        var em = level.emitters[i], d = dirOf(em.rot);
-        cast(els, em.x, em.z, d[0], d[1], em.mask === undefined ? 7 : em.mask,
-             -1, segs, nodeIn, tgtIn);
+        var em = level.emitters[i], d = dirOf(em.rot), er = CFG.EMITTER_R + 0.01;
+        cast(els, em.x + d[0] * er, em.z + d[1] * er, d[0], d[1],
+             em.mask === undefined ? 7 : em.mask,
+             nEl + i, segs, nodeIn, tgtIn);
       }
       // nodes re-emitting last pass's input
-      for (i = 0; i < n; i++) {
+      for (i = 0; i < nEl; i++) {
         var e = els[i];
         if (!prev[i]) continue;
         if (e.t === 'prism') {
@@ -355,7 +372,7 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 
     // target verdicts
     var targets = [], done = 0, total = 0;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < nEl; i++) {
       if (els[i].t !== 'target') continue;
       total++;
       var got = tgtIn[i] | 0, want = els[i].mask;
@@ -363,7 +380,11 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
       if (lit) done++;
       targets.push({ i: i, want: want, got: got, lit: lit, sour: got !== 0 && !lit });
     }
-    return { els: els, segs: segs, targets: targets,
+    // `nodes` is what each prism/combiner actually emitted on the settled pass.
+    // The renderer needs it to draw dispersion; the puzzle does not depend on it.
+    // hand back only the real elements: emitters are a collision detail
+    return { els: els.slice(0, nEl), segs: segs, targets: targets,
+             nodes: prev.slice(0, nEl),
              done: done, total: total, complete: total > 0 && done === total };
   }
 
@@ -438,7 +459,7 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 
     { key: 'l9', emitters: [{ x: -9, z: 4, rot: 0 }], elements: [
         { t: 'prism', x: -4, z: 4, rot: 200, spin: 1 },
-        { t: 'mirror', x: -4, z: -5, rot: 135, len: 3 },
+        { t: 'mirror', x: -4, z: -5, rot: 315, len: 3 },
         { t: 'wall', x: 0, z: 0, rot: 0, w: 0.8, d: 8 },
         { t: 'target', x: 6, z: -5, mask: 2 }
       ], sol: { 0: { rot: 270 } } },
@@ -452,7 +473,7 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     { key: 'l11', emitters: [{ x: -9, z: 0, rot: 0 }], elements: [
         { t: 'prism', x: 0, z: 0, rot: 90 },
         { t: 'mirror', x: 1.236, z: 3.804, rot: 90, len: 1.4 },
-        { t: 'mirror', x: -1.236, z: 3.804, rot: 90, len: 1.4 },
+        { t: 'mirror', x: -1.236, z: 3.804, rot: 270, len: 1.4 },
         { t: 'wall', x: 0, z: 2, rot: 0, w: 0.6, d: 0.5 },
         { t: 'comb', x: 4, z: 9, rot: 90, move: 1 },
         { t: 'target', x: 0, z: 11.5, mask: 5 }
@@ -469,7 +490,7 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     { key: 'l13', emitters: [{ x: -9, z: -4, rot: 0 }], elements: [
         { t: 'prism', x: 0, z: -4, rot: 90 },
         { t: 'mirror', x: 1.236, z: -0.196, rot: 90, len: 1.4 },
-        { t: 'mirror', x: -1.236, z: -0.196, rot: 90, len: 1.4 },
+        { t: 'mirror', x: -1.236, z: -0.196, rot: 270, len: 1.4 },
         { t: 'comb', x: 0, z: 3.608, rot: 90 },
         { t: 'filter', x: 5, z: 7, rot: 0, len: 3, mask: 1, move: 1 },
         { t: 'target', x: 0, z: 9, mask: 1 }
@@ -485,11 +506,11 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     { key: 'l15', emitters: [{ x: -10, z: -6, rot: 0 }], elements: [
         { t: 'prism', x: 0, z: -6, rot: 65, spin: 1 },
         { t: 'mirror', x: 2.472, z: 1.608, rot: 75, len: 1.4, spin: 1 },
-        { t: 'mirror', x: -2.472, z: 1.608, rot: 105, len: 1.4, spin: 1 },
+        { t: 'mirror', x: -2.472, z: 1.608, rot: 285, len: 1.4, spin: 1 },
         { t: 'comb', x: 5, z: 9, rot: 90, move: 1 },
         { t: 'target', x: 0, z: -1, mask: 2 },
         { t: 'target', x: 0, z: 13, mask: 5 }
-      ], sol: { 0: { rot: 90 }, 1: { rot: 90 }, 2: { rot: 90 }, 3: { x: 0, z: 9.216 } } }
+      ], sol: { 0: { rot: 90 }, 1: { rot: 90 }, 2: { rot: 270 }, 3: { x: 0, z: 9.216 } } }
   ];
 
   function bounds(level) {
@@ -534,24 +555,31 @@ var T = {
   PITCH_PORTRAIT: 66,      // steeper so a tall field still fits
   FIT_MARGIN: 1.18,        // 18% breathing room around the playfield
   ELEV: 0.6,               // height of the play plane above the floor
-  BEAM_CORE_R: 0.055,      // the overexposed filament
-  BEAM_SHEATH_R: 0.42,     // the lit air around it
-  BEAM_HALO_R: 1.05,       // the wide, very faint outer bloom
+  GLOW: [0.55, 1.0, 1.55], // the intensity setting: soft / medium / bright
+  BEAM_CORE_R: 0.10,       // the filament. Wide and gentle, not a hairline.
+  BEAM_SHEATH_R: 0.85,     // the lit air around it
+  BEAM_HALO_R: 2.60,       // the wide, very faint outer bloom
+  BEAM_FLARE_R: 1.9,       // how much wider the halo grows over its length
   BEAM_POOL: 64,
+  WEDGE_LEN: 16,           // how far the dispersion fan is drawn before it dies
+  WEDGE_SPAN: 1.55,        // fan half-angle as a multiple of the slot spread
+  WEDGE_INT: 0.42,
+  WEDGE_FLOOR: 0.20,       // strength of the spectrum cast down onto the floor
+  WEDGE_MERGE: 0.42,       // fraction of the fan over which colours stay merged
   SPILL_W: 2.6,            // width of the light the beam throws onto the floor
   SPILL_OP: 0.20,
-  FLARE_S: 1.5,            // size of the impact flare where a beam terminates
-  SCINT: 0.07,             // scintillation depth (light is never perfectly even)
+  FLARE_S: 1.7,            // size of the impact flare where a beam terminates
+  SCINT: 0.13,             // scintillation depth (light is never perfectly even)
   DUST_HIGH: 320, DUST_LOW: 120,
   DUST_REACH: 3.1,         // how close a mote must be to a beam to glow
   ROT_LAG: 0.22,           // rotation follows the finger with this much inertia
   DRAG_THRESH: 16,         // px before a press counts as a drag
-  HOLD_MS: 180,            // press-and-hold to enter rotate mode
+  HOLD_MS: 260,            // press-and-hold to switch from rotating to moving
   INTRO_MS: 2000,
   COMPLETE_HOLD_MS: 700,
   CONFIRM_MS: 600,        // the chord must RING before the room counts as solved
   SETTLE_EPS: 0.05,       // rotation this close to its target counts as at rest
-  BLOOM: { strength: 1.05, radius: 0.80, threshold: 0.42 },
+  BLOOM: { strength: 0.90, radius: 0.86, threshold: 0.50 },
   CB_PULSE: { 1: 1.6, 2: 0, 4: 9.0 }  // Hz of the temporal texture per channel
 };
 
@@ -576,20 +604,22 @@ var STR = {
         paused:'pausa', resume:'seguir', restart:'reiniciar', quit:'salir',
         music:'música', sfx:'sonido', hap:'vibración', cb:'daltonismo',
         qual:'detalle', lang:'idioma', on:'sí', off:'no', high:'alto', low:'bajo',
+        glow:'intensidad', gl0:'tenue', gl1:'media', gl2:'alta',
         langName:'español', room:'sala',
         l1:'alba', l2:'giro', l3:'espectro', l4:'puntería', l5:'alcance',
         l6:'muro', l7:'ranura', l8:'espejo', l9:'pliegue', l10:'dos',
         l11:'mezcla', l12:'aleación', l13:'filtro', l14:'ambos', l15:'acorde',
-        tHold:'mantén pulsado un objeto para girarlo' },
+        tHold:'toca para girar · mantén pulsado para mover' },
   en: { sub:'mechanics', play:'continue', levels:'rooms', opts:'settings', back:'back',
         paused:'paused', resume:'resume', restart:'restart', quit:'quit',
         music:'music', sfx:'sound', hap:'haptics', cb:'colour-blind',
         qual:'detail', lang:'language', on:'on', off:'off', high:'high', low:'low',
+        glow:'intensity', gl0:'soft', gl1:'medium', gl2:'bright',
         langName:'english', room:'room',
         l1:'dawn', l2:'turn', l3:'split', l4:'aim', l5:'reach',
         l6:'wall', l7:'slot', l8:'mirror', l9:'fold', l10:'two',
         l11:'blend', l12:'alloy', l13:'filter', l14:'both', l15:'chord',
-        tHold:'press and hold an object to rotate it' }
+        tHold:'tap to rotate \u00b7 press and hold to move' }
 };
 var lang = store.get('pm.lang', (navigator.language || 'en').slice(0, 2) === 'es' ? 'es' : 'en');
 if (!STR[lang]) lang = 'en';
@@ -608,6 +638,7 @@ var opt = {
   sfx:   store.get('pm.sfx', '1') === '1',
   hap:   store.get('pm.hap', '0') === '1',
   cb:    store.get('pm.cb', '0') === '1',
+  glow:  Math.max(0, Math.min(2, parseInt(store.get('pm.glow', '1'), 10) || 0)),
   qual:  store.get('pm.qual', '') || 'auto'
 };
 var reduced = false;
@@ -639,10 +670,10 @@ var dom = {
   btnPlay:$('btn-play'), btnLevels:$('btn-levels'), btnOpts:$('btn-opts'),
   grid:$('lvl-grid'), lvlBack:$('lvl-back'),
   pResume:$('p-resume'), pRestart:$('p-restart'), pOpts:$('p-opts'), pQuit:$('p-quit'),
-  oMusic:$('o-music'), oSfx:$('o-sfx'), oHap:$('o-hap'), oCb:$('o-cb'),
+  oMusic:$('o-music'), oSfx:$('o-sfx'), oHap:$('o-hap'), oCb:$('o-cb'), oGlow:$('o-glow'),
   oQual:$('o-qual'), oLang:$('o-lang'), oBack:$('o-back'),
   vMusic:$('v-music'), vSfx:$('v-sfx'), vHap:$('v-hap'), vCb:$('v-cb'),
-  vQual:$('v-qual'), vLang:$('v-lang')
+  vQual:$('v-qual'), vLang:$('v-lang'), vGlow:$('v-glow')
 };
 
 /* ---- input hardening ---------------------------------------------------- */
@@ -873,8 +904,9 @@ var THREE = window.THREE;
 var renderer, scene, camera, composer, bloomPass = null;
 var levelGroup = null, owned = { geo:[], mat:[], tex:[] };
 var beamCore = [], beamSheath = [], beamHalo = [], beamSpill = [], beamFlare = [];
+var wedges = [], wedgeFloors = [];
 var dust = null, dustGeo = null;
-var meshFor = {}, targetMeshes = {}, ringMesh = null;
+var meshFor = {}, targetMeshes = {}, nodeCores = {}, ringMesh = null;
 var quality = 'high';
 
 var SHARED = {};
@@ -957,27 +989,149 @@ var BEAM_VS = [
 var BEAM_FS = [
   'uniform vec3 uColor; uniform float uInt; uniform float uTail;',
   'uniform float uTime; uniform float uPow; uniform float uScint;',
+  'uniform float uWhite; uniform float uAtten; uniform float uLen;',
+  'uniform float uFringe;',
   'varying vec3 vN; varying vec3 vV; varying vec2 vUv;',
   'void main(){',
+  // column depth: how much glowing medium the eye looks through at this pixel
   '  float d = abs(dot(normalize(vN), normalize(vV)));',
-  '  float density = pow(clamp(d, 0.0, 1.0), uPow);',      // column depth
+  '  float density = pow(clamp(d, 0.0, 1.0), uPow);',
+  // Forward scattering is achromatic; side scattering is not. The deep centre
+  // of the column blows out toward white while the fringe keeps the saturated
+  // hue. That is what a real beam in dust looks like, and it is the single
+  // biggest reason the old version read as a coloured stick.
+  '  vec3 tint = mix(uColor, vec3(1.0), clamp(pow(density, 2.2) * uWhite, 0.0, 1.0));',
+  // Prismatic fringing. A beam carrying more than one wavelength disperses a
+  // little at every glancing edge, so its two silhouettes bleed warm on one
+  // side and cool on the other. Monochrome beams get none of this.
+  '  float edge = 1.0 - density;',
+  '  float side = clamp(vN.x * 2.2, -1.0, 1.0);',
+  '  tint = clamp(tint + vec3(0.42, 0.03, -0.36) * side * edge * uFringe, 0.0, 2.0);',
+  // the medium absorbs: the far end of a long throw is dimmer than its origin
+  '  float atten = exp(-vUv.y * uLen * uAtten);',
+  // three incommensurate frequencies, so the shimmer never visibly repeats
+  '  float n = 0.55 * sin(vUv.y * 13.0 + uTime * 1.10)',
+  '          + 0.30 * sin(vUv.y * 37.0 - uTime * 0.73)',
+  '          + 0.15 * sin(vUv.y *  5.0 + uTime * 0.41);',
+  '  float scint = 1.0 - uScint * (0.5 + 0.5 * n);',
   '  float tail = mix(1.0, smoothstep(1.0, 0.06, vUv.y), uTail);',
-  '  float head = smoothstep(0.0, 0.012, vUv.y);',         // hide the cap seam
-  '  float scint = 1.0 - uScint * (0.5 + 0.5 * sin(vUv.y * 46.0 - uTime * 3.1));',
-  '  float a = density * uInt * tail * head * scint;',
-  '  gl_FragColor = vec4(uColor * a, a);',
+  '  float head = smoothstep(0.0, 0.010, vUv.y);',
+  // Fray the silhouette. A perfectly smooth tube edge is the thing that reads
+  // as "solid object"; scattering media do not have one.
+  '  float fray = 1.0 + 0.16 * sin(vUv.x * 25.0 + vUv.y * 9.0 - uTime * 0.9)',
+  '                   + 0.10 * sin(vUv.x * 61.0 - vUv.y * 17.0 + uTime * 0.5);',
+  '  float raw = density * fray * uInt * atten * tail * head * scint;',
+  // Soft exposure instead of a clamp. A clamp flattens the middle of the beam
+  // into a hard white slab the moment it exceeds 1.0, which is exactly what
+  // made this look like a solid rod. This rolls off smoothly and never clips.
+  '  float a = 1.0 - exp(-max(raw, 0.0) * 1.45);',
+  '  gl_FragColor = vec4(tint * a, a);',
   '}'
 ].join('\n');
 
+/* ---------------------------------------------------------------------------
+   DISPERSION
+   The old version fired three separate coloured rays out of a point, which is
+   not what a prism does. Real white light leaves the exit face still white and
+   only *resolves* into colours with distance, because the components leave at
+   marginally different angles and need room to separate.
+   So the fan is drawn as a continuum: three lobes whose angular width starts
+   wide enough to overlap into white at the exit face and narrows with distance
+   until they are distinct rays. The puzzle still runs on the exact slot model —
+   this is appearance layered over an exact simulation, not a change to it.
+--------------------------------------------------------------------------- */
+var WEDGE_VS = [
+  'varying vec2 vUv;',
+  'void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }'
+].join('\n');
+var WEDGE_FS = [
+  'uniform vec3 uR; uniform vec3 uG; uniform vec3 uB; uniform vec3 uW;',
+  'uniform float uInt; uniform float uLen; uniform float uTime;',
+  'uniform float uMerge; uniform vec3 uSlot;',
+  'varying vec2 vUv;',
+  'void main(){',
+  '  float y = vUv.y;',                                  // 0 at the exit face
+  // separation is a function of distance travelled, not an instant fact
+  '  float sig = mix(0.62, 0.115, smoothstep(0.0, uMerge, y));',
+  '  float t = vUv.x;',
+  '  float wr = uW.r * exp(-pow((t - uSlot.x) / sig, 2.0));',
+  '  float wg = uW.g * exp(-pow((t - uSlot.y) / sig, 2.0));',
+  '  float wb = uW.b * exp(-pow((t - uSlot.z) / sig, 2.0));',
+  '  float amp = wr + wg + wb;',
+  '  if (amp < 0.0015) discard;',
+  '  vec3 col = (uR * wr + uG * wg + uB * wb) / max(amp, 0.0001);',
+  // where the lobes still overlap the sum exceeds one and the fan reads white
+  '  col = mix(col, vec3(1.0), clamp((amp - 1.0) * 0.85, 0.0, 1.0));',
+  '  float fall = exp(-y * uLen * 0.045) * (1.0 - smoothstep(0.30, 1.0, y));',
+  '  float shimmer = 0.90 + 0.10 * sin(y * 19.0 - uTime * 1.6 + t * 7.0);',
+  '  float a = clamp(min(amp, 1.35) * fall * uInt * shimmer, 0.0, 1.0);',
+  '  gl_FragColor = vec4(col * a, a);',
+  '}'
+].join('\n');
+
+function fanGeometry(halfAngleDeg, segA, segR) {
+  var g = new THREE.BufferGeometry();
+  var pos = [], uv = [], idx = [];
+  var ha = halfAngleDeg * Math.PI / 180;
+  for (var j = 0; j <= segR; j++) {
+    var rv = j / segR;
+    for (var i = 0; i <= segA; i++) {
+      var tv = i / segA;
+      var ang = (tv * 2 - 1) * ha;
+      pos.push(Math.cos(ang) * rv, 0, Math.sin(ang) * rv);
+      uv.push(tv, rv);
+    }
+  }
+  var row = segA + 1;
+  for (var jj = 0; jj < segR; jj++) {
+    for (var ii = 0; ii < segA; ii++) {
+      var a0 = jj * row + ii, b0 = a0 + 1, c0 = a0 + row, d0 = c0 + 1;
+      idx.push(a0, c0, b0, b0, c0, d0);
+    }
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pos), 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uv), 2));
+  g.setIndex(new THREE.BufferAttribute(new Uint16Array(idx), 1));
+  return g;
+}
+
+var wedgeShaderOK = true;
+function wedgeMaterial() {
+  if (wedgeShaderOK && THREE.ShaderMaterial) {
+    try {
+      // the slot positions inside the fan: the fan is wider than the slots so
+      // the outer lobes have room to fall off instead of being clipped
+      var inner = 1 / T.WEDGE_SPAN;
+      return new THREE.ShaderMaterial({
+        uniforms: {
+          uR: { value: new THREE.Color(HEX[1]) },
+          uG: { value: new THREE.Color(HEX[2]) },
+          uB: { value: new THREE.Color(HEX[4]) },
+          uW: { value: new THREE.Vector3(1, 1, 1) },
+          uSlot: { value: new THREE.Vector3(0.5 - inner * 0.5, 0.5, 0.5 + inner * 0.5) },
+          uInt: { value: T.WEDGE_INT }, uLen: { value: T.WEDGE_LEN },
+          uTime: { value: 0 }, uMerge: { value: T.WEDGE_MERGE }
+        },
+        vertexShader: WEDGE_VS, fragmentShader: WEDGE_FS,
+        transparent: true, blending: THREE.AdditiveBlending,
+        depthWrite: false, side: THREE.DoubleSide
+      });
+    } catch (e) { wedgeShaderOK = false; }
+  }
+  return null;
+}
+
 var beamShaderOK = true;
-function beamMaterial(pow, scint) {
+function beamMaterial(pow, scint, white, atten) {
   if (beamShaderOK && THREE.ShaderMaterial) {
     try {
       return new THREE.ShaderMaterial({
         uniforms: {
           uColor: { value: new THREE.Color(0xffffff) }, uInt: { value: 1 },
           uTail: { value: 0 }, uTime: { value: 0 },
-          uPow: { value: pow }, uScint: { value: scint }
+          uPow: { value: pow }, uScint: { value: scint },
+          uWhite: { value: white }, uAtten: { value: atten }, uLen: { value: 1 },
+          uFringe: { value: 0 }
         },
         vertexShader: BEAM_VS, fragmentShader: BEAM_FS,
         transparent: true, blending: THREE.AdditiveBlending,
@@ -988,17 +1142,71 @@ function beamMaterial(pow, scint) {
   return new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2,
     blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
 }
-function setBeamMat(mesh, hex, intensity, tail, time) {
+function setBeamMat(mesh, hex, intensity, tail, time, len, fringe) {
   var m = mesh.material;
   if (m.uniforms) {
+    m.uniforms.uFringe.value = fringe || 0;
     m.uniforms.uColor.value.setHex(hex);
     m.uniforms.uInt.value = intensity;
     m.uniforms.uTail.value = tail;
     m.uniforms.uTime.value = time;
+    m.uniforms.uLen.value = len || 1;
   } else {
     m.color.setHex(hex);
     m.opacity = Math.min(1, intensity * 0.55);
   }
+}
+
+/* A target painted one blended hue is a guessing game: magenta and red read
+   the same in peripheral vision, and "is that cyan or blue?" is not a puzzle
+   anyone wanted. So a target states its recipe instead — the ring is split into
+   one arc per channel it requires, each in that channel's own pure colour.
+   A magenta target is visibly a red arc plus a blue arc. */
+var CH_HEX = { 1: '#FF2D4A', 2: '#39FF88', 4: '#3D7BFF' };
+function targetTexture(mask) {
+  SHARED.tgtTex = SHARED.tgtTex || {};
+  if (SHARED.tgtTex[mask]) return SHARED.tgtTex[mask];
+  var S = 256, cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  var g = cv.getContext('2d');
+  var cxp = S / 2, R = S * 0.332;
+
+  var chans = [];
+  if (mask & 1) chans.push(1);
+  if (mask & 2) chans.push(2);
+  if (mask & 4) chans.push(4);
+  if (!chans.length) chans.push(7);
+
+  // soft interior wash in the blended colour, so the target still reads as one thing
+  var blend = hexOf(mask);
+  var grd = g.createRadialGradient(cxp, cxp, 0, cxp, cxp, R * 0.92);
+  grd.addColorStop(0, 'rgba(' + ((blend >> 16) & 255) + ',' + ((blend >> 8) & 255) + ',' + (blend & 255) + ',0.20)');
+  grd.addColorStop(1, 'rgba(' + ((blend >> 16) & 255) + ',' + ((blend >> 8) & 255) + ',' + (blend & 255) + ',0.02)');
+  g.fillStyle = grd;
+  g.beginPath(); g.arc(cxp, cxp, R * 0.92, 0, Math.PI * 2); g.fill();
+
+  // the recipe: one arc per required channel
+  var gap = chans.length > 1 ? 0.20 : 0.0;
+  var span = (Math.PI * 2) / chans.length;
+  g.lineCap = 'butt';
+  for (var i = 0; i < chans.length; i++) {
+    var a0 = -Math.PI / 2 + i * span + gap / 2, a1 = a0 + span - gap;
+    g.strokeStyle = CH_HEX[chans[i]] || '#F2F5FF';
+    g.lineWidth = S * 0.062;
+    g.beginPath(); g.arc(cxp, cxp, R, a0, a1); g.stroke();
+    // pale halo either side so the arc reads on any background
+    g.strokeStyle = 'rgba(255,255,255,0.20)';
+    g.lineWidth = S * 0.010;
+    g.beginPath(); g.arc(cxp, cxp, R * 1.045, a0, a1); g.stroke();
+    g.beginPath(); g.arc(cxp, cxp, R * 0.955, a0, a1); g.stroke();
+  }
+  // centre pip: the aiming point
+  g.fillStyle = 'rgba(255,255,255,0.30)';
+  g.beginPath(); g.arc(cxp, cxp, S * 0.022, 0, Math.PI * 2); g.fill();
+
+  var tex = new THREE.CanvasTexture(cv);
+  SHARED.tgtTex[mask] = tex;
+  return tex;
 }
 
 function initRender() {
@@ -1032,21 +1240,39 @@ function initRender() {
   scene.add(floor);
 
   // shared, pooled, never disposed by the level teardown
-  SHARED.cyl = new THREE.CylinderGeometry(1, 1, 1, 12, 1, true);
+  SHARED.cyl = new THREE.CylinderGeometry(1, 1, 1, 14, 1, true);
+  // top radius > bottom radius: the sheath and halo splay out along the throw
+  SHARED.cone = new THREE.CylinderGeometry(T.BEAM_FLARE_R, 0.55, 1, 14, 1, true);
   SHARED.ringGeo = new THREE.TorusGeometry(1.35, 0.02, 6, 48);
   SHARED.spillGeo = new THREE.PlaneGeometry(1, 1);
   SHARED.spillGeo.rotateX(-Math.PI / 2);       // lies flat; local +X runs along the beam
   SHARED.glowTex = radialGlowTexture();
   SHARED.spillTex = spillTexture();
-  SHARED.list = [SHARED.cyl, SHARED.ringGeo, SHARED.spillGeo];
+  SHARED.fanGeo = fanGeometry(C.CFG.SPREAD_DEG * T.WEDGE_SPAN, 40, 26);
+  SHARED.list = [SHARED.cyl, SHARED.cone, SHARED.ringGeo, SHARED.spillGeo, SHARED.fanGeo];
+
+  for (var wi = 0; wi < 6; wi++) {
+    var wm = wedgeMaterial();
+    if (!wm) break;
+    var wmesh = new THREE.Mesh(SHARED.fanGeo, wm);
+    wmesh.visible = false; wmesh.frustumCulled = false;
+    scene.add(wmesh);
+    wedges.push(wmesh);
+    // the same spectrum, pooled on the matte floor beneath it
+    var wf = wedgeMaterial();
+    var fmesh = new THREE.Mesh(SHARED.fanGeo, wf);
+    fmesh.visible = false; fmesh.frustumCulled = false;
+    scene.add(fmesh);
+    wedgeFloors.push(fmesh);
+  }
 
   for (var i = 0; i < T.BEAM_POOL; i++) {
     // filament: thin, hot, nearly white-hot at the core so bloom catches it
-    var a = new THREE.Mesh(SHARED.cyl, beamMaterial(0.55, 0));
+    var a = new THREE.Mesh(SHARED.cyl, beamMaterial(0.95, 0.05, 0.85, 0.006));
     // sheath: the lit air, strong column-density falloff
-    var b = new THREE.Mesh(SHARED.cyl, beamMaterial(1.9, T.SCINT));
+    var b = new THREE.Mesh(SHARED.cone, beamMaterial(1.30, T.SCINT, 0.42, 0.013));
     // halo: very wide, very faint — this is what stops the beam looking like a stick
-    var c = new THREE.Mesh(SHARED.cyl, beamMaterial(3.4, 0));
+    var c = new THREE.Mesh(SHARED.cone, beamMaterial(2.30, T.SCINT * 0.8, 0.06, 0.026));
     // spill: the light the beam throws down onto the matte floor
     var d = new THREE.Mesh(SHARED.spillGeo, new THREE.MeshBasicMaterial({
       map: SHARED.spillTex, color: 0xffffff, transparent: true, opacity: 0,
@@ -1071,6 +1297,7 @@ function initRender() {
 
 function makeDust(n) {
   if (dust) { scene.remove(dust); dustGeo.dispose(); dust.material.dispose(); dust = null; }
+  n = Math.max(16, n | 0);
   dustGeo = new THREE.BufferGeometry();
   var pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
   for (var i = 0; i < n; i++) {
@@ -1078,14 +1305,57 @@ function makeDust(n) {
     pos[i * 3 + 1] = Math.random() * 3.2;
     pos[i * 3 + 2] = (Math.random() - 0.5) * 60;
   }
+  var siz = new Float32Array(n);
   dustGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   dustGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
-    size: 0.075, vertexColors: true, transparent: true, opacity: 0.9,
-    blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
-  }));
+  dustGeo.setAttribute('aSize', new THREE.BufferAttribute(siz, 1));
+  dust = new THREE.Points(dustGeo, dustMaterial());
   dust.frustumCulled = false;
   scene.add(dust);
+}
+
+/* Dust was drawn with PointsMaterial and no map, which renders every mote as a hard
+   square. Squares are the single least light-like shape available. These are
+   round, soft-edged, and each mote carries its own size so a mote sitting in a
+   beam does not merely brighten — it swells, the way a lit particle does. */
+var DUST_VS = [
+  'attribute float aSize;',
+  'varying vec3 vCol; varying float vA;',
+  'uniform float uScale;',
+  'void main(){',
+  '  vCol = color;',
+  '  vA = clamp(aSize, 0.0, 1.0);',
+  '  vec4 mv = modelViewMatrix * vec4(position, 1.0);',
+  '  gl_PointSize = (2.0 + vA * 16.0) * uScale / max(1.0, -mv.z);',
+  '  gl_Position = projectionMatrix * mv;',
+  '}'
+].join('\n');
+var DUST_FS = [
+  'varying vec3 vCol; varying float vA;',
+  'void main(){',
+  '  vec2 d = gl_PointCoord - vec2(0.5);',
+  '  float r = length(d) * 2.0;',
+  '  if (r > 1.0) discard;',
+  '  float soft = pow(1.0 - r, 2.2);',
+  '  float a = soft * (0.10 + vA * 0.95);',
+  '  gl_FragColor = vec4(vCol * a * (1.0 + vA * 2.2), a);',
+  '}'
+].join('\n');
+
+var dustShaderOK = true;
+function dustMaterial() {
+  if (dustShaderOK && THREE.ShaderMaterial) {
+    try {
+      return new THREE.ShaderMaterial({
+        uniforms: { uScale: { value: 300 } },
+        vertexShader: DUST_VS, fragmentShader: DUST_FS,
+        transparent: true, blending: THREE.AdditiveBlending,
+        depthWrite: false, vertexColors: true
+      });
+    } catch (e) { dustShaderOK = false; }
+  }
+  return new THREE.PointsMaterial({ size: 0.075, vertexColors: true, transparent: true,
+    opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true });
 }
 
 function setupComposer() {
@@ -1097,7 +1367,7 @@ function setupComposer() {
     composer.addPass(new THREE.RenderPass(scene, camera));
     bloomPass = new THREE.UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      T.BLOOM.strength, T.BLOOM.radius, T.BLOOM.threshold);
+      T.BLOOM.strength * T.GLOW[opt.glow], T.BLOOM.radius, T.BLOOM.threshold);
     composer.addPass(bloomPass);
   } catch (e) { composer = null; bloomPass = null; }
 }
@@ -1109,6 +1379,18 @@ function own(o) {
   if (o.material && owned.mat.indexOf(o.material) < 0) owned.mat.push(o.material);
   return o;
 }
+// register a geometry for teardown without needing a mesh to hang it on
+function own2(g) { if (owned.geo.indexOf(g) < 0 && (SHARED.list || []).indexOf(g) < 0) owned.geo.push(g); return g; }
+
+// a soft darkening under every solid object: without it things float
+function contactShadow(size) {
+  var m = own(new THREE.Mesh(SHARED.spillGeo, new THREE.MeshBasicMaterial({
+    map: SHARED.glowTex, color: 0x000000, transparent: true, opacity: 0.55, depthWrite: false })));
+  m.position.y = -T.ELEV + 0.02;
+  m.scale.set(size, 1, size);
+  return m;
+}
+
 function glassMat(hex, opacity) {
   if (quality === 'high' && THREE.MeshPhysicalMaterial) {
     return new THREE.MeshPhysicalMaterial({
@@ -1126,16 +1408,23 @@ function buildLevel(lv) {
   teardown();
   levelGroup = new THREE.Group();
   scene.add(levelGroup);
-  meshFor = {}; targetMeshes = {};
+  meshFor = {}; targetMeshes = {}; nodeCores = {};
 
   lv.emitters.forEach(function (em) {
     var g = new THREE.Group();
-    var body = own(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9),
-      new THREE.MeshStandardMaterial({ color: 0x161B26, roughness: 0.9, metalness: 0.1 })));
-    var eye = own(new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10),
-      new THREE.MeshBasicMaterial({ color: 0xF2F5FF })));
-    eye.position.x = 0.42;
-    g.add(body); g.add(eye);
+    var ER = C.CFG.EMITTER_R;
+    // a machined housing, not a floating cube: light that comes back dies here
+    var barrel = own(new THREE.Mesh(own2(new THREE.CylinderGeometry(ER, ER * 1.12, 1.5, 18)),
+      new THREE.MeshStandardMaterial({ color: 0x151A24, roughness: 0.62, metalness: 0.55 })));
+    barrel.rotation.z = Math.PI / 2;
+    var collar = own(new THREE.Mesh(own2(new THREE.TorusGeometry(ER * 0.86, 0.055, 8, 22)),
+      new THREE.MeshStandardMaterial({ color: 0x2B3448, roughness: 0.35, metalness: 0.8 })));
+    collar.rotation.y = Math.PI / 2; collar.position.x = 0.42;
+    var aperture = own(new THREE.Mesh(own2(new THREE.CircleGeometry(ER * 0.52, 20)),
+      new THREE.MeshBasicMaterial({ color: 0xF6F9FF })));
+    aperture.rotation.y = Math.PI / 2; aperture.position.x = 0.45;
+    g.add(barrel); g.add(collar); g.add(aperture);
+    g.add(contactShadow(ER * 3.2));
     if (SHARED.glowTex) {
       var fl = new THREE.Sprite(own(new THREE.SpriteMaterial({ map: SHARED.glowTex,
         color: 0xF2F5FF, transparent: true, opacity: 0.5,
@@ -1151,36 +1440,107 @@ function buildLevel(lv) {
   C.resolve(lv, {}).forEach(function (e, i) {
     var m = null;
     if (e.t === 'prism') {
-      m = own(new THREE.Mesh(new THREE.CylinderGeometry(C.CFG.PRISM_R, C.CFG.PRISM_R, 1.5, 3),
-        glassMat(0xEAF2FF, 0.38)));
-      // a faint chromatic rim shell: the object announces that it bends colour
-      var rim = own(new THREE.Mesh(new THREE.CylinderGeometry(C.CFG.PRISM_R * 1.06, C.CFG.PRISM_R * 1.06, 1.52, 3),
-        new THREE.MeshBasicMaterial({ color: 0x5A7CFF, transparent: true, opacity: 0.16,
-          blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false })));
-      m.add(rim);
+      m = new THREE.Group();
+      var PR = C.CFG.PRISM_R, PH = 1.7;
+      var bodyGeo = own2(new THREE.CylinderGeometry(PR, PR, PH, 3));
+      var body = own(new THREE.Mesh(bodyGeo, glassMat(0xE8F1FF, 0.30)));
+      if (body.material.flatShading !== undefined) body.material.flatShading = true;
+      // a flat face, not a vertex, points along the exit direction
+      body.rotation.y = Math.PI / 6;
+      m.add(body);
+      // cut-glass edges: this is what makes it read as ground optical glass
+      if (THREE.EdgesGeometry && THREE.LineSegments) {
+        var eg = own2(new THREE.EdgesGeometry(bodyGeo));
+        // Three offset copies of the silhouette in R, G and B. Cut glass
+        // disperses at its own edges before it disperses anything else, and
+        // this is the cheapest honest way to say so.
+        var FR = [[0x8899FF, 0.030, 0.0, 0.30], [0xBFD4FF, 0, 0, 0.62], [0xFF8899, -0.030, 0.0, 0.30]];
+        for (var fi2 = 0; fi2 < FR.length; fi2++) {
+          var ln = new THREE.LineSegments(eg, own(new THREE.LineBasicMaterial({
+            color: FR[fi2][0], transparent: true, opacity: FR[fi2][3],
+            blending: THREE.AdditiveBlending, depthWrite: false })));
+          ln.rotation.y = Math.PI / 6;
+          ln.position.x = FR[fi2][1]; ln.position.z = FR[fi2][2];
+          m.add(ln);
+        }
+      }
+      // the interior: lights up with whatever the prism is currently receiving
+      var coreMesh = own(new THREE.Mesh(
+        own2(new THREE.CylinderGeometry(PR * 0.46, PR * 0.46, PH * 0.86, 3)),
+        new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.0,
+          blending: THREE.AdditiveBlending, depthWrite: false })));
+      coreMesh.rotation.y = Math.PI / 6;
+      m.add(coreMesh);
+      nodeCores[i] = coreMesh;
+      m.add(contactShadow(PR * 2.9));
     } else if (e.t === 'comb') {
-      m = own(new THREE.Mesh(new THREE.IcosahedronGeometry(C.CFG.COMB_R, 1), glassMat(0xFFF2EA, 0.34)));
+      m = new THREE.Group();
+      var cg = own2(new THREE.IcosahedronGeometry(C.CFG.COMB_R, 1));
+      var cb = own(new THREE.Mesh(cg, glassMat(0xFFF4EC, 0.28)));
+      if (cb.material.flatShading !== undefined) cb.material.flatShading = true;
+      m.add(cb);
+      if (THREE.EdgesGeometry && THREE.LineSegments) {
+        m.add(new THREE.LineSegments(own2(new THREE.EdgesGeometry(cg)),
+          own(new THREE.LineBasicMaterial({ color: 0xFFD9BF, transparent: true, opacity: 0.40,
+            blending: THREE.AdditiveBlending, depthWrite: false }))));
+      }
+      var cc = own(new THREE.Mesh(own2(new THREE.IcosahedronGeometry(C.CFG.COMB_R * 0.5, 0)),
+        new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0,
+          blending: THREE.AdditiveBlending, depthWrite: false })));
+      m.add(cc);
+      nodeCores[i] = cc;
+      m.add(contactShadow(C.CFG.COMB_R * 2.9));
     } else if (e.t === 'mirror') {
-      m = own(new THREE.Mesh(new THREE.BoxGeometry(e.len || C.CFG.MIRROR_LEN, 0.9, 0.1),
-        new THREE.MeshStandardMaterial({ color: 0xE8E2D8, roughness: 0.06, metalness: 1.0 })));
+      m = new THREE.Group();
+      var ml = e.len || C.CFG.MIRROR_LEN;
+      // The simulation reflects off the line through the mirror's centre, so
+      // the silvered face must sit exactly there and the backing behind it —
+      // otherwise beams visibly bounce from inside the glass. Local +Z is the
+      // outward normal, which is the side that reflects.
+      var back = own(new THREE.Mesh(own2(new THREE.BoxGeometry(ml, 0.86, 0.14)),
+        new THREE.MeshStandardMaterial({ color: 0x11151C, roughness: 0.92, metalness: 0.15 })));
+      back.position.z = -0.072;
+      var face = own(new THREE.Mesh(own2(new THREE.BoxGeometry(ml * 0.98, 0.74, 0.012)),
+        new THREE.MeshStandardMaterial({ color: 0xF4F0E6, roughness: 0.02, metalness: 1.0 })));
+      face.position.z = 0.006;                       // its front surface is at z = 0
+      m.add(back); m.add(face);
+      m.add(contactShadow(ml * 1.15));
     } else if (e.t === 'filter') {
-      m = own(new THREE.Mesh(new THREE.BoxGeometry(e.len || C.CFG.FILTER_LEN, 0.95, 0.07),
-        new THREE.MeshStandardMaterial({ color: hexOf(e.mask), roughness: 0.2, metalness: 0,
-          transparent: true, opacity: 0.5 })));
+      m = new THREE.Group();
+      var fl = e.len || C.CFG.FILTER_LEN;
+      var pane = own(new THREE.Mesh(own2(new THREE.BoxGeometry(fl, 0.92, 0.05)),
+        new THREE.MeshStandardMaterial({ color: hexOf(e.mask), roughness: 0.15, metalness: 0,
+          transparent: true, opacity: 0.42 })));
+      m.add(pane);
+      var frame = own(new THREE.Mesh(own2(new THREE.BoxGeometry(fl * 1.04, 0.10, 0.12)),
+        new THREE.MeshStandardMaterial({ color: 0x1A2029, roughness: 0.9, metalness: 0.3 })));
+      frame.position.y = 0.50; m.add(frame);
+      var frame2 = frame.clone(); frame2.position.y = -0.50; m.add(frame2);
+      m.add(contactShadow(fl * 1.1));
     } else if (e.t === 'wall') {
-      m = own(new THREE.Mesh(new THREE.BoxGeometry(e.w || 2, 1.7, e.d || 0.8),
-        new THREE.MeshStandardMaterial({ color: 0x0E1219, roughness: 0.98, metalness: 0 })));
+      m = new THREE.Group();
+      var ww = e.w || 2, wd = e.d || 0.8;
+      m.add(own(new THREE.Mesh(own2(new THREE.BoxGeometry(ww, 1.7, wd)),
+        new THREE.MeshStandardMaterial({ color: 0x0D1117, roughness: 0.99, metalness: 0 }))));
+      // a hairline top edge so the silhouette never dissolves into the room
+      var cap = own(new THREE.Mesh(own2(new THREE.BoxGeometry(ww * 1.005, 0.035, wd * 1.005)),
+        new THREE.MeshBasicMaterial({ color: 0x39415A, transparent: true, opacity: 0.75 })));
+      cap.position.y = 0.86; m.add(cap);
+      m.add(contactShadow(Math.max(ww, wd) * 1.25));
     } else if (e.t === 'target') {
       m = new THREE.Group();
-      var ring = own(new THREE.Mesh(new THREE.TorusGeometry(C.CFG.TARGET_R, 0.055, 8, 40),
-        new THREE.MeshBasicMaterial({ color: hexOf(e.mask), transparent: true, opacity: 0.42 })));
-      ring.rotation.x = -Math.PI / 2;
-      var disc = own(new THREE.Mesh(new THREE.CircleGeometry(C.CFG.TARGET_R * 0.86, 28),
-        new THREE.MeshBasicMaterial({ color: hexOf(e.mask), transparent: true, opacity: 0.05,
-          blending: THREE.AdditiveBlending, depthWrite: false })));
-      disc.rotation.x = -Math.PI / 2; disc.position.y = 0.01;
-      m.add(ring); m.add(disc);
-      targetMeshes[i] = { ring: ring, disc: disc, mask: e.mask };
+      // the recipe plate: normal blending, so it stays readable when unlit
+      var plate = own(new THREE.Mesh(new THREE.PlaneGeometry(C.CFG.TARGET_R * 3.0, C.CFG.TARGET_R * 3.0),
+        new THREE.MeshBasicMaterial({ map: targetTexture(e.mask), transparent: true,
+          opacity: 0.92, depthWrite: false })));
+      plate.rotation.x = -Math.PI / 2; plate.position.y = 0.012;
+      // the well: additive glow that fills as the target takes light
+      var glow = own(new THREE.Mesh(new THREE.PlaneGeometry(C.CFG.TARGET_R * 4.4, C.CFG.TARGET_R * 4.4),
+        new THREE.MeshBasicMaterial({ map: SHARED.glowTex, color: hexOf(e.mask), transparent: true,
+          opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false })));
+      glow.rotation.x = -Math.PI / 2; glow.position.y = 0.006;
+      m.add(glow); m.add(plate);
+      targetMeshes[i] = { plate: plate, glow: glow, mask: e.mask };
     }
     if (!m) return;
     m.position.set(e.x, T.ELEV, e.z);
@@ -1196,7 +1556,7 @@ function teardown() {
   owned.geo.forEach(function (g) { try { g.dispose(); } catch (e) {} });
   owned.mat.forEach(function (m) { try { m.dispose(); } catch (e) {} });
   owned = { geo: [], mat: [], tex: [] };
-  levelGroup = null; meshFor = {}; targetMeshes = {};
+  levelGroup = null; meshFor = {}; targetMeshes = {}; nodeCores = {};
 }
 
 /* ---- camera fit (analytic, not guessed) --------------------------------- */
@@ -1257,7 +1617,7 @@ var G = {
   playing: false, paused: false, frozen: false,
   introUntil: 0, completeAt: 0, cdUntil: 0,
   stableSince: 0, confirm: 0,
-  sel: -1, mode: null, litSet: {}
+  sel: -1, locked: -1, mode: null, litSet: {}
 };
 
 var UP = new THREE.Vector3(0, 1, 0);
@@ -1292,7 +1652,7 @@ function startLevel(i) {
   G.level.elements.forEach(function (e, k) {
     if (e.move || e.spin) G.state[k] = { x: e.x, z: e.z, rot: e.rot || 0, tRot: e.rot || 0 };
   });
-  G.sel = -1; G.mode = null; G.playing = true; G.paused = false;
+  G.sel = -1; G.locked = -1; G.mode = null; G.playing = true; G.paused = false;
   lastDetent = {};
   G.frozen = true; G.completeAt = 0; G.litSet = {};
   G.stableSince = 0; G.confirm = 0;
@@ -1433,7 +1793,7 @@ function drawBeams(now) {
       var hz = (s.mask === 1) ? T.CB_PULSE[1] : (s.mask === 4) ? T.CB_PULSE[4] : 0;
       if (hz) amp = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(tsec * hz * Math.PI * 2));
     }
-    var I = amp * boost;
+    var I = amp * boost * T.GLOW[opt.glow];
 
     core.visible = sh.visible = halo.visible = true;
     [core, sh, halo].forEach(function (m) {
@@ -1446,9 +1806,14 @@ function drawBeams(now) {
 
     // The filament is pushed toward white: a saturated core reads as plastic,
     // an overexposed one reads as light that happens to be coloured.
-    setBeamMat(core, whiten(col, 0.55), 1.35 * I, tail, tsec);
-    setBeamMat(sh,   col,               0.62 * I, tail, tsec);
-    setBeamMat(halo, col,               0.16 * I, tail, tsec);
+    // only a beam carrying more than one channel can fringe
+    var chans = ((s.mask & 1) ? 1 : 0) + ((s.mask & 2) ? 1 : 0) + ((s.mask & 4) ? 1 : 0);
+    var fringe = chans > 1 ? (chans === 3 ? 1.0 : 0.7) : 0.0;
+    // weighted toward the outer layers: most of the light lives in the air
+    // around the beam, not in a bright line down its middle
+    setBeamMat(core, col, 0.42 * I, tail, tsec, len, fringe * 0.30);
+    setBeamMat(sh,   col, 0.50 * I, tail, tsec, len, fringe);
+    setBeamMat(halo, col, 0.34 * I, tail, tsec, len, fringe * 1.5);
 
     // ground spill
     if (quality === 'high') {
@@ -1457,7 +1822,9 @@ function drawBeams(now) {
       spill.rotation.y = -Math.atan2(s.bz - s.az, s.bx - s.ax);
       spill.scale.set(len, 1, T.SPILL_W);
       spill.material.color.setHex(col);
-      spill.material.opacity = T.SPILL_OP * amp * Math.min(2, boost) * (s.open ? 0.5 : 1);
+      var falloff = Math.exp(-len * 0.010);
+      spill.material.opacity = T.SPILL_OP * amp * Math.min(2, boost) * falloff *
+                               T.GLOW[opt.glow] * (s.open ? 0.5 : 1);
     } else { spill.visible = false; }
 
     // impact flare wherever the beam actually lands on something
@@ -1466,9 +1833,64 @@ function drawBeams(now) {
       flare.position.set(s.bx, T.ELEV, s.bz);
       var fs = T.FLARE_S * (0.85 + 0.15 * Math.sin(tsec * 5 + i));
       flare.scale.set(fs, fs, 1);
-      flare.material.color.setHex(whiten(col, 0.35));
-      flare.material.opacity = Math.min(1, 0.42 * amp * boost);
+      flare.material.color.setHex(whiten(col, 0.42));
+      flare.material.opacity = Math.min(1, 0.34 * amp * boost * T.GLOW[opt.glow]);
     } else { flare.visible = false; }
+  }
+}
+
+/* Draw one dispersion fan per emitting prism. The fan is cut short at whatever
+   the prism's own output rays actually hit, so it never bleeds through a wall. */
+function drawWedges(now) {
+  var used = 0;
+  if (!wedges.length || !G.trace) return;
+  var nodes = G.trace.nodes || [], els = G.trace.els, segs = G.trace.segs;
+
+  for (var i = 0; i < nodes.length && used < wedges.length; i++) {
+    var mask = nodes[i];
+    if (!mask) continue;
+    var e = els[i];
+    if (e.t !== 'prism') continue;                 // only a prism disperses
+    var chans = ((mask & 1) ? 1 : 0) + ((mask & 2) ? 1 : 0) + ((mask & 4) ? 1 : 0);
+    if (chans < 2) continue;                       // one channel cannot fan out
+
+    // shortest throw leaving this prism sets how far the fan is drawn
+    var shortest = T.WEDGE_LEN;
+    for (var j = 0; j < segs.length; j++) {
+      var sg = segs[j];
+      if (Math.hypot(sg.ax - e.x, sg.az - e.z) > C.CFG.PRISM_R + 0.25) continue;
+      var L = Math.hypot(sg.bx - sg.ax, sg.bz - sg.az);
+      if (L < shortest) shortest = L;
+    }
+    var len = Math.max(2.2, Math.min(T.WEDGE_LEN, shortest * 1.12));
+
+    var w = wedges[used++];
+    w.visible = true;
+    w.position.set(e.x, T.ELEV, e.z);
+    w.rotation.y = -e.rot * Math.PI / 180;
+    w.scale.set(len, 1, len);
+    var u = w.material.uniforms;
+    u.uW.value.set((mask & 1) ? 1 : 0, (mask & 2) ? 1 : 0, (mask & 4) ? 1 : 0);
+    u.uLen.value = len;
+    u.uTime.value = now * 0.001;
+    u.uInt.value = T.WEDGE_INT * (1 + 0.5 * G.confirm) * (opt.cb ? 0.7 : 1) * T.GLOW[opt.glow];
+
+    var f = wedgeFloors[used - 1];
+    if (f) {
+      f.visible = true;
+      f.position.set(e.x, 0.05, e.z);
+      f.rotation.y = w.rotation.y;
+      f.scale.set(len * 1.06, 1, len * 1.06);
+      var uf = f.material.uniforms;
+      uf.uW.value.copy(u.uW.value);
+      uf.uLen.value = len; uf.uTime.value = u.uTime.value;
+      uf.uMerge.value = T.WEDGE_MERGE * 1.25;
+      uf.uInt.value = T.WEDGE_FLOOR * (1 + 0.5 * G.confirm) * (opt.cb ? 0.7 : 1) * T.GLOW[opt.glow];
+    }
+  }
+  for (; used < wedges.length; used++) {
+    wedges[used].visible = false;
+    if (wedgeFloors[used]) wedgeFloors[used].visible = false;
   }
 }
 
@@ -1485,6 +1907,7 @@ function whiten(hex, k) {
 function updateDust(now, dt) {
   if (!dust) return;
   var pos = dustGeo.attributes.position.array, col = dustGeo.attributes.color.array;
+  var siz = dustGeo.attributes.aSize ? dustGeo.attributes.aSize.array : null;
   var segs = G.trace ? G.trace.segs : [];
   var n = pos.length / 3, reach = T.DUST_REACH, r2 = reach * reach;
   for (var i = 0; i < n; i++) {
@@ -1505,30 +1928,68 @@ function updateDust(now, dt) {
       if (d2 < best) { best = d2; bm = s.mask; }
     }
     var k = bm ? (1 - Math.sqrt(best) / reach) : 0;
-    k = k < 0 ? 0 : k * k * 0.85;
+    k = k < 0 ? 0 : k * k;
     var hex = hexOf(bm || 7);
-    col[i * 3] = ((hex >> 16 & 255) / 255) * k + 0.012;
-    col[i * 3 + 1] = ((hex >> 8 & 255) / 255) * k + 0.014;
-    col[i * 3 + 2] = ((hex & 255) / 255) * k + 0.02;
+    // a mote in the beam takes the beam's colour and pushes toward white at
+    // the very centre, the way a real lit particle blows out
+    var wk = k * k * 0.6;
+    var r8 = (hex >> 16) & 255, g8 = (hex >> 8) & 255, b8 = hex & 255;
+    col[i * 3]     = (r8 / 255) * k + wk + 0.010;
+    col[i * 3 + 1] = (g8 / 255) * k + wk + 0.011;
+    col[i * 3 + 2] = (b8 / 255) * k + wk + 0.016;
+    if (siz) {
+      // scintillation: motes twinkle independently, so the air looks alive
+      var tw = 0.72 + 0.28 * Math.sin(now * 0.0021 + i * 2.399);
+      siz[i] = k * tw;
+    }
   }
   dustGeo.attributes.position.needsUpdate = true;
   dustGeo.attributes.color.needsUpdate = true;
+  if (dustGeo.attributes.aSize) dustGeo.attributes.aSize.needsUpdate = true;
+  if (dust.material.uniforms) dust.material.uniforms.uScale.value = window.innerHeight * 0.42;
+}
+
+function updateNodeCores(now) {
+  if (!G.trace) return;
+  var nodes = G.trace.nodes || [];
+  for (var k in nodeCores) {
+    var c = nodeCores[k], mask = nodes[k] | 0;
+    if (!c) continue;
+    if (!mask) { c.material.opacity = 0.04; continue; }
+    c.material.color.setHex(whiten(hexOf(mask), 0.45));
+    c.material.opacity = 0.30 + 0.10 * Math.sin(now * 0.0021 + (+k)) + 0.25 * G.confirm;
+  }
 }
 
 function updateTargets(now) {
   if (!G.trace) return;
+  var tsec = now * 0.001;
   G.trace.targets.forEach(function (tg) {
     var m = targetMeshes[tg.i]; if (!m) return;
     var pulse = 0.5 + 0.5 * Math.sin(now * 0.0026);
+
+    // in colour-blind mode a target breathes at its channel's own rhythm,
+    // matching the beam that will satisfy it
+    var amp = 1;
+    if (opt.cb) {
+      var hz = (tg.want === 1) ? T.CB_PULSE[1] : (tg.want === 4) ? T.CB_PULSE[4] : 0;
+      if (hz) amp = 0.65 + 0.35 * (0.5 + 0.5 * Math.sin(tsec * hz * Math.PI * 2));
+    }
+
     if (tg.lit) {
-      m.ring.material.opacity = 1;
-      m.disc.material.opacity = 0.34 + 0.10 * pulse + 0.45 * G.confirm * G.confirm;
+      m.plate.material.opacity = 1;
+      m.glow.material.opacity = (0.55 + 0.14 * pulse + 0.55 * G.confirm * G.confirm) * amp;
+      var sc = 1 + 0.06 * pulse + 0.10 * G.confirm;
+      m.glow.scale.set(sc, sc, 1);
     } else if (tg.sour) {
-      m.ring.material.opacity = 0.30 + 0.22 * pulse;
-      m.disc.material.opacity = 0.04;
+      // wrong colour arriving: the plate flickers, the well refuses to fill
+      m.plate.material.opacity = (0.55 + 0.30 * pulse) * amp;
+      m.glow.material.opacity = 0.05;
+      m.glow.scale.set(1, 1, 1);
     } else {
-      m.ring.material.opacity = 0.40;
-      m.disc.material.opacity = 0.05;
+      m.plate.material.opacity = 0.92 * amp;
+      m.glow.material.opacity = 0.09;
+      m.glow.scale.set(1, 1, 1);
     }
   });
 }
@@ -1536,7 +1997,7 @@ function updateTargets(now) {
 /* ============================================================================
    INPUT
    ========================================================================== */
-var ptr = { id: null, downX: 0, downY: 0, moved: false, holdT: 0,
+var ptr = { id: null, downX: 0, downY: 0, moved: false, holdT: 0, onPiece: false,
             grabDX: 0, grabDZ: 0, grabAng: 0, lastW: null, lastMoveT: 0, speed: 0 };
 
 function elementUnder(wx, wz) {
@@ -1574,6 +2035,37 @@ function canInteract() {
          performance.now() > G.cdUntil;
 }
 
+/* Control model
+   ─────────────
+   tap a piece        → it locks for rotation and wears a soft ring; from then
+                        on, dragging ANYWHERE rotates it (no need to keep your
+                        thumb on a small object, which is the usual mobile sin)
+   drag from a piece  → rotates it directly
+   press and hold     → the ring fades and the piece becomes draggable
+   tap empty space    → release the lock                                      */
+
+function beginGesture(i, w, viaLock) {
+  var s = G.state[i], el = G.level.elements[i];
+  G.sel = i;
+  ptr.grabDX = s.x - w.x; ptr.grabDZ = s.z - w.z;
+  ptr.grabAng = Math.atan2(w.z - s.z, w.x - s.x) * 180 / Math.PI - s.tRot;
+  ptr.onPiece = !viaLock;
+  // rotation is the default for anything that can turn
+  G.mode = el.spin ? 'rot' : (el.move ? 'move' : null);
+  showRing(G.mode === 'rot');
+  if (!viaLock && el.move) {
+    ptr.holdT = setTimeout(function () {
+      if (ptr.id === null || ptr.moved) return;
+      G.mode = 'move';
+      G.locked = -1;
+      var ww = ptr.lastW;
+      ptr.grabDX = s.x - ww.x; ptr.grabDZ = s.z - ww.z;
+      showRing(false);
+      AU.settle(); buzz([10, 30, 10]);
+    }, T.HOLD_MS);
+  }
+}
+
 dom.cv.addEventListener('pointerdown', function (e) {
   AU.resume();
   if (!canInteract()) return;
@@ -1581,34 +2073,36 @@ dom.cv.addEventListener('pointerdown', function (e) {
   var w = screenToWorld(e.clientX, e.clientY);
   if (!w) return;
   var i = elementUnder(w.x, w.z);
-  if (i < 0) return;
+
+  if (i < 0 && G.locked >= 0) {
+    // dragging open space steers the locked piece
+    i = G.locked;
+    try { dom.cv.setPointerCapture(e.pointerId); } catch (err) {}
+    ptr.id = e.pointerId; ptr.downX = e.clientX; ptr.downY = e.clientY;
+    ptr.moved = false; ptr.lastW = { x: w.x, z: w.z }; ptr.speed = 0;
+    beginGesture(i, w, true);
+    AU.fricStart();
+    return;
+  }
+  if (i < 0) {                       // tap on nothing: drop the lock
+    if (G.locked >= 0) { G.locked = -1; showRing(false); AU.click(); }
+    return;
+  }
   try { dom.cv.setPointerCapture(e.pointerId); } catch (err) {}
   ptr.id = e.pointerId; ptr.downX = e.clientX; ptr.downY = e.clientY;
   ptr.moved = false; ptr.lastW = { x: w.x, z: w.z }; ptr.speed = 0;
-  G.sel = i;
-  var s = G.state[i], el = G.level.elements[i];
-  ptr.grabDX = s.x - w.x; ptr.grabDZ = s.z - w.z;
-  ptr.grabAng = Math.atan2(w.z - s.z, w.x - s.x) * 180 / Math.PI - s.tRot;
-  G.mode = el.move ? 'move' : 'rot';
-  if (G.mode === 'rot') showRing(true);
-  ptr.holdT = setTimeout(function () {
-    if (!ptr.moved && el.spin) {
-      G.mode = 'rot';
-      var ww = ptr.lastW;
-      ptr.grabAng = Math.atan2(ww.z - s.z, ww.x - s.x) * 180 / Math.PI - s.tRot;
-      showRing(true); AU.tick(); buzz(14);
-    }
-  }, T.HOLD_MS);
+  beginGesture(i, w, false);
   AU.fricStart();
 });
 
 function showRing(on) {
   if (!ringMesh) return;
-  ringMesh.visible = !!on;
-  ringMesh.material.opacity = on ? 0.22 : 0;
-  if (on && G.sel >= 0) {
-    var s = G.state[G.sel];
-    ringMesh.position.set(s.x, T.ELEV, s.z);
+  var i = (G.sel >= 0) ? G.sel : G.locked;
+  ringMesh.visible = !!on && i >= 0;
+  ringMesh.material.opacity = ringMesh.visible ? 0.26 : 0;
+  if (ringMesh.visible) {
+    var s = G.state[i];
+    if (s) ringMesh.position.set(s.x, T.ELEV, s.z);
   }
 }
 
@@ -1622,7 +2116,6 @@ dom.cv.addEventListener('pointermove', function (e) {
   var w = screenToWorld(e.clientX, e.clientY);
   if (!w) return;
   var s = G.state[G.sel], el = G.level.elements[G.sel];
-  var now = performance.now();
   if (ptr.lastW) {
     var d = Math.hypot(w.x - ptr.lastW.x, w.z - ptr.lastW.z);
     ptr.speed = ptr.speed * 0.7 + d * 0.3;
@@ -1645,10 +2138,28 @@ function endPointer(e) {
   if (ptr.id !== e.pointerId) return;
   clearTimeout(ptr.holdT);
   ptr.id = null;
-  showRing(false);
   AU.fricStop();
-  if (G.sel >= 0) { AU.settle(); buzz(18); }
+  if (!ptr.moved && !ptr.onPiece) {
+    // tapped open space without steering: that is a request to let go
+    G.sel = -1; G.mode = null; G.locked = -1;
+    showRing(false); AU.click();
+    return;
+  }
+  if (G.sel >= 0) {
+    var el = G.level.elements[G.sel];
+    if (!ptr.moved && ptr.onPiece && el && el.spin && G.mode === 'rot') {
+      // a clean tap on a turnable piece locks it for rotation
+      G.locked = G.sel;
+      AU.tick(); buzz(14);
+    } else if (G.mode === 'move') {
+      AU.settle(); buzz(18);
+    } else if (ptr.moved) {
+      AU.settle(); buzz(18);
+      if (el && el.spin) G.locked = G.sel;   // keep steering what you just turned
+    }
+  }
   G.mode = null;
+  showRing(G.locked >= 0);
 }
 dom.cv.addEventListener('pointerup', endPointer);
 dom.cv.addEventListener('pointercancel', endPointer);
@@ -1659,9 +2170,10 @@ dom.cv.addEventListener('wheel', function (e) {
   var w = screenToWorld(e.clientX, e.clientY);
   if (!w) return;
   var i = elementUnder(w.x, w.z);
+  if (i < 0) i = G.locked;
   if (i < 0 || !G.level.elements[i].spin) return;
   e.preventDefault();
-  G.sel = i;
+  G.sel = i; G.locked = i;
   G.state[i].tRot = C.applyDetent(G.state[i].tRot + (e.deltaY > 0 ? 5 : -5));
 }, { passive: false });
 
@@ -1669,9 +2181,11 @@ window.addEventListener('keydown', function (e) {
   var k = e.key.toLowerCase();
   if (k === 'escape' || k === 'p') { if (G.playing) togglePause(); }
   else if (k === 'r') { if (G.playing && !G.paused) startLevel(G.idx); }
-  else if ((k === 'q' || k === 'e') && G.sel >= 0 && canInteract()) {
-    var el = G.level.elements[G.sel];
-    if (el && el.spin) G.state[G.sel].tRot = C.applyDetent(G.state[G.sel].tRot + (k === 'e' ? 15 : -15));
+  else if ((k === 'q' || k === 'e') && canInteract()) {
+    var i = (G.locked >= 0) ? G.locked : G.sel;
+    if (i < 0) return;
+    var el = G.level.elements[i];
+    if (el && el.spin) G.state[i].tRot = C.applyDetent(G.state[i].tRot + (k === 'e' ? 15 : -15));
   }
 });
 
@@ -1732,6 +2246,12 @@ bind(dom.oBack, function () {
 bind(dom.oMusic, function () { opt.music = !opt.music; store.set('pm.music', opt.music ? 1 : 0); AU.setBus(); refreshOptionValues(); });
 bind(dom.oSfx, function () { opt.sfx = !opt.sfx; store.set('pm.sfx', opt.sfx ? 1 : 0); AU.setBus(); refreshOptionValues(); });
 bind(dom.oHap, function () { opt.hap = !opt.hap; store.set('pm.hap', opt.hap ? 1 : 0); buzz(18); refreshOptionValues(); });
+bind(dom.oGlow, function () {
+  opt.glow = (opt.glow + 1) % 3;
+  store.set('pm.glow', opt.glow);
+  if (bloomPass) bloomPass.strength = T.BLOOM.strength * T.GLOW[opt.glow];
+  refreshOptionValues();
+});
 bind(dom.oCb, function () { opt.cb = !opt.cb; store.set('pm.cb', opt.cb ? 1 : 0); refreshOptionValues(); });
 bind(dom.oQual, function () {
   quality = (quality === 'high') ? 'low' : 'high';
@@ -1756,6 +2276,7 @@ function refreshOptionValues() {
   dom.vSfx.textContent = opt.sfx ? t('on') : t('off');
   dom.vHap.textContent = opt.hap ? t('on') : t('off');
   dom.vCb.textContent = opt.cb ? t('on') : t('off');
+  dom.vGlow.textContent = t('gl' + opt.glow);
   dom.vQual.textContent = quality === 'high' ? t('high') : t('low');
   dom.vLang.textContent = t('langName');
 }
@@ -1788,9 +2309,12 @@ function frame(now) {
     if (!G.paused) {
       updateRotation(dt);
       syncMeshes();
+      if (G.locked >= 0 && ptr.id === null) showRing(true);
       simulate();
       updateTargets(now);
+      updateNodeCores(now);
       drawBeams(now);
+      drawWedges(now);
       updateDust(now, dt);
     }
 
@@ -1850,7 +2374,16 @@ catch (err) {
 
 window.PM = { G: G, C: C, T: T, startLevel: startLevel, simulate: simulate,
   get camera() { return camera; }, fitCamera: fitCamera,
-  beams: function () { return [].concat(beamCore, beamSheath, beamHalo, beamSpill, beamFlare); } };
+  beams: function () { return [].concat(beamCore, beamSheath, beamHalo, beamSpill, beamFlare); },
+  targetTexture: function (m) { return targetTexture(m); },
+  targetMeshes: function () { return targetMeshes; },
+  wedges: function () { return wedges; },
+  nodeCores: function () { return nodeCores; },
+  meshFor: function () { return meshFor; },
+  wedgeFloors: function () { return wedgeFloors; },
+  dust: function () { return dust; },
+  opt: function () { return opt; },
+  sharedGeo: function () { return SHARED; } };
 })();
 </script>
 </body>
