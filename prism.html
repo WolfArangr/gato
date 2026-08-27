@@ -73,6 +73,63 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
   text-transform:lowercase;opacity:0;transition:opacity .4s;pointer-events:none}
 #boot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-size:.7rem;letter-spacing:.3em;opacity:.4;text-transform:lowercase;z-index:30}
+/* ── neumorphic control deck ─────────────────────────────────────────────
+   Same-hue surfaces lifted by a light from the upper left. Pressed controls
+   invert to inset. Nothing here uses a border. */
+#pnl{position:absolute;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--pad-b) + .55rem);z-index:12;pointer-events:auto;display:none;
+  width:min(94vw,30rem);padding:.7rem .8rem .75rem;border-radius:1.15rem;
+  background:linear-gradient(145deg,#151A24,#0E1219);
+  box-shadow:7px 7px 16px rgba(0,0,0,.62),-6px -6px 14px rgba(58,72,98,.16);}
+#pnl.on{display:block}
+#pnl.min .pnl-body{display:none}
+.pnl-head{display:flex;align-items:center;gap:.55rem}
+.pnl-body{display:flex;align-items:center;gap:.75rem;margin-top:.7rem;
+  justify-content:space-between;flex-wrap:wrap}
+.nu{background:linear-gradient(145deg,#161C27,#0F131A);color:#C6D0E4;
+  border:0;border-radius:.72rem;font-family:inherit;cursor:pointer;
+  box-shadow:3px 3px 7px rgba(0,0,0,.58),-3px -3px 7px rgba(58,72,98,.15);
+  transition:box-shadow .12s,color .12s,opacity .12s;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation}
+.nu:active,.nu.dn{box-shadow:inset 3px 3px 7px rgba(0,0,0,.62),inset -3px -3px 7px rgba(58,72,98,.14);
+  color:#EDEFF5}
+.nu[disabled]{opacity:.22;cursor:default;box-shadow:inset 2px 2px 5px rgba(0,0,0,.5)}
+.nu.sq{width:2.15rem;height:2.15rem;font-size:1rem;line-height:1}
+.nu.wide{height:2.15rem;padding:0 .8rem;font-size:.62rem;letter-spacing:.2em;
+  text-transform:lowercase}
+.pnl-name{flex:1;min-width:0;font-size:.64rem;letter-spacing:.22em;
+  text-transform:lowercase;opacity:.6;text-align:center;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.pnl-grp{display:flex;align-items:center;gap:.3rem}
+.pnl-lab{font-size:.5rem;letter-spacing:.24em;text-transform:lowercase;opacity:.32;
+  text-align:center;width:100%;margin-bottom:.28rem}
+.pnl-col{display:flex;flex-direction:column;align-items:center}
+/* the precision cross */
+#pn-cross{display:grid;grid-template-columns:repeat(3,2.15rem);
+  grid-template-rows:repeat(3,2.15rem);gap:.16rem}
+#pn-cross .sp{visibility:hidden}
+#pn-up{grid-area:1/2}#pn-lf{grid-area:2/1}#pn-mid{grid-area:2/2}
+#pn-rt{grid-area:2/3}#pn-dn{grid-area:3/2}
+#pn-mid{border-radius:50%;box-shadow:inset 2px 2px 5px rgba(0,0,0,.6),
+  inset -2px -2px 5px rgba(58,72,98,.12);width:2.15rem;height:2.15rem}
+/* angle readout */
+#pn-ang{font-size:.72rem;letter-spacing:.1em;min-width:3.1rem;text-align:center;
+  opacity:.75;font-variant-numeric:tabular-nums}
+/* intensity slider */
+#pn-track{position:relative;width:100%;height:1.5rem;border-radius:.75rem;
+  box-shadow:inset 3px 3px 7px rgba(0,0,0,.62),inset -3px -3px 7px rgba(58,72,98,.13);
+  cursor:pointer;touch-action:none}
+#pn-fill{position:absolute;left:.18rem;top:.36rem;height:.78rem;border-radius:.4rem;
+  background:linear-gradient(90deg,rgba(198,208,228,.20),rgba(237,239,245,.75));
+  pointer-events:none}
+#pn-knob{position:absolute;top:.11rem;width:1.28rem;height:1.28rem;border-radius:50%;
+  background:linear-gradient(145deg,#1B2230,#0E121A);
+  box-shadow:2px 2px 5px rgba(0,0,0,.6),-2px -2px 5px rgba(58,72,98,.2);
+  pointer-events:none}
+#pn-intv{font-size:.6rem;letter-spacing:.14em;opacity:.45;min-width:2.6rem;
+  text-align:right;font-variant-numeric:tabular-nums}
+@media (max-height:560px){#pnl{width:min(96vw,34rem)}.pnl-body{gap:.5rem}}
 @media (prefers-reduced-motion: reduce){*{transition-duration:.01ms !important}}
 </style>
 </head>
@@ -129,6 +186,40 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     </div>
   </div>
 
+  <div id="pnl">
+    <div class="pnl-head">
+      <button class="nu sq" id="pn-prev" aria-label="previous piece">‹</button>
+      <div class="pnl-name" id="pn-name">—</div>
+      <button class="nu sq" id="pn-next" aria-label="next piece">›</button>
+      <button class="nu sq" id="pn-min" aria-label="collapse">▾</button>
+    </div>
+    <div class="pnl-body">
+      <div class="pnl-col">
+        <div class="pnl-lab" data-i18n="pnMove">mover</div>
+        <div id="pn-cross">
+          <button class="nu sq" id="pn-up" aria-label="up">▲</button>
+          <button class="nu sq" id="pn-lf" aria-label="left">◀</button>
+          <div id="pn-mid"></div>
+          <button class="nu sq" id="pn-rt" aria-label="right">▶</button>
+          <button class="nu sq" id="pn-dn" aria-label="down">▼</button>
+        </div>
+      </div>
+      <div class="pnl-col" style="flex:1;min-width:9rem">
+        <div class="pnl-lab" data-i18n="pnTurn">ángulo</div>
+        <div class="pnl-grp">
+          <button class="nu sq" id="pn-rl" aria-label="turn left">↺</button>
+          <div id="pn-ang">0°</div>
+          <button class="nu sq" id="pn-rr" aria-label="turn right">↻</button>
+        </div>
+        <div class="pnl-lab" style="margin-top:.7rem" data-i18n="pnInt">intensidad</div>
+        <div class="pnl-grp" style="width:100%">
+          <div id="pn-track"><div id="pn-fill"></div><div id="pn-knob"></div></div>
+          <div id="pn-intv">100%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast"></div>
 </div>
 <div id="flash"></div>
@@ -167,6 +258,11 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     MAX_ITER: 14,         // fixed-point passes for node feedback
     DETENT_DEG: 15,       // rotation snaps to multiples of this
     DETENT_MAGNET: 2.5,   // ...when within this many degrees
+    MIRROR_R0: 0.90,      // normal-incidence reflectance of the silvered face
+    PRISM_LOSS: 0.88,     // what a pass through the glass costs
+    COMB_LOSS: 0.92,
+    FILTER_LOSS: 0.90,
+    GRAZE: 0.34,          // below this incidence cosine the bounce turns iridescent
     EPS: 1e-4
   };
 
@@ -274,19 +370,24 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
   }
 
   // Cast one ray. Pushes segments into `segs`; accumulates into nodeIn / tgtIn.
-  function cast(els, ox, oz, dx, dz, mask, skip, segs, nodeIn, tgtIn) {
+  function cast(els, ox, oz, dx, dz, mask, skip, segs, nodeIn, tgtIn, gain, glints, nodeGain) {
     var bounces = 0;
+    if (gain === undefined) gain = 1;
     while (bounces++ < CFG.MAX_BOUNCES) {
       var h = nearest(els, ox, oz, dx, dz, skip);
       if (h.idx < 0) {
         segs.push({ ax: ox, az: oz, bx: ox + dx * CFG.MAX_DIST, bz: oz + dz * CFG.MAX_DIST,
-                    mask: mask, open: true });
+                    mask: mask, open: true, gain: gain });
         return;
       }
       var hx = ox + dx * h.t, hz = oz + dz * h.t, e = els[h.idx];
-      segs.push({ ax: ox, az: oz, bx: hx, bz: hz, mask: mask, open: false });
+      segs.push({ ax: ox, az: oz, bx: hx, bz: hz, mask: mask, open: false, gain: gain });
 
-      if (e.t === 'prism' || e.t === 'comb') { nodeIn[h.idx] |= mask; return; }
+      if (e.t === 'prism' || e.t === 'comb') {
+        nodeIn[h.idx] |= mask;
+        if (nodeGain && gain > (nodeGain[h.idx] || 0)) nodeGain[h.idx] = gain;
+        return;
+      }
       if (e.t === 'target') { tgtIn[h.idx] |= mask; return; }
       // The emitter housing is opaque. Light folded back onto its own source is
       // swallowed by the machine that made it, which is both what would happen
@@ -302,6 +403,17 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
         var nx = -ez, nz = ex;                       // outward normal of the silvered face
         var dot = dx * nx + dz * nz;
         if (dot >= 0) return;                        // struck the backing: absorbed
+        var cosI = -dot;                             // 1 = head on, 0 = grazing
+        // Schlick: a mirror returns almost everything at a glancing angle and
+        // slightly less than everything head on. It is never a perfect 1.0,
+        // so a beam that has bounced twice arrives visibly weaker.
+        var refl = CFG.MIRROR_R0 + (1 - CFG.MIRROR_R0) * Math.pow(1 - cosI, 5);
+        if (glints) {
+          glints.push({ x: hx, z: hz, nx: nx, nz: nz, cos: cosI,
+                        mask: mask, gain: gain,
+                        graze: cosI < CFG.GRAZE ? (1 - cosI / CFG.GRAZE) : 0 });
+        }
+        gain *= refl;
         dx = dx - 2 * dot * nx; dz = dz - 2 * dot * nz;
         ox = hx; oz = hz; skip = h.idx;
         continue;
@@ -309,6 +421,7 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
       if (e.t === 'filter') {
         mask = mask & (e.mask === undefined ? 7 : e.mask);
         if (!mask) return;
+        gain *= CFG.FILTER_LOSS;
         ox = hx; oz = hz; skip = h.idx;
         continue;
       }
@@ -329,21 +442,26 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     }
     var n = els.length;
     var nodeIn = new Array(n), prev = new Array(n);
-    for (i = 0; i < n; i++) { nodeIn[i] = 0; prev[i] = 0; }
+    var nodeGain = new Array(n), prevGain = new Array(n);
+    for (i = 0; i < n; i++) { nodeIn[i] = 0; prev[i] = 0; nodeGain[i] = 0; prevGain[i] = 0; }
 
-    var segs = [], tgtIn = new Array(n), iter;
+    var segs = [], glints = [], tgtIn = new Array(n), iter;
     var spread = CFG.SPREAD_DEG;
 
     for (iter = 0; iter < CFG.MAX_ITER; iter++) {
-      segs = [];
-      for (i = 0; i < n; i++) { prev[i] = nodeIn[i]; nodeIn[i] = 0; tgtIn[i] = 0; }
+      segs = []; glints = [];
+      for (i = 0; i < n; i++) {
+        prev[i] = nodeIn[i]; nodeIn[i] = 0;
+        prevGain[i] = nodeGain[i]; nodeGain[i] = 0;
+        tgtIn[i] = 0;
+      }
 
       // emitters
       for (i = 0; i < level.emitters.length; i++) {
         var em = level.emitters[i], d = dirOf(em.rot), er = CFG.EMITTER_R + 0.01;
         cast(els, em.x + d[0] * er, em.z + d[1] * er, d[0], d[1],
              em.mask === undefined ? 7 : em.mask,
-             nEl + i, segs, nodeIn, tgtIn);
+             nEl + i, segs, nodeIn, tgtIn, 1, glints, nodeGain);
       }
       // nodes re-emitting last pass's input
       for (i = 0; i < nEl; i++) {
@@ -356,12 +474,14 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
             var dd = dirOf(e.rot + slots[j][1]);
             var r = CFG.PRISM_R + 0.01;
             cast(els, e.x + dd[0] * r, e.z + dd[1] * r, dd[0], dd[1],
-                 slots[j][0], i, segs, nodeIn, tgtIn);
+                 slots[j][0], i, segs, nodeIn, tgtIn,
+                 prevGain[i] * CFG.PRISM_LOSS, glints, nodeGain);
           }
         } else if (e.t === 'comb') {
           var dc = dirOf(e.rot), rc = CFG.COMB_R + 0.01;
           cast(els, e.x + dc[0] * rc, e.z + dc[1] * rc, dc[0], dc[1],
-               prev[i], i, segs, nodeIn, tgtIn);
+               prev[i], i, segs, nodeIn, tgtIn,
+               prevGain[i] * CFG.COMB_LOSS, glints, nodeGain);
         }
       }
 
@@ -383,8 +503,8 @@ canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
     // `nodes` is what each prism/combiner actually emitted on the settled pass.
     // The renderer needs it to draw dispersion; the puzzle does not depend on it.
     // hand back only the real elements: emitters are a collision detail
-    return { els: els.slice(0, nEl), segs: segs, targets: targets,
-             nodes: prev.slice(0, nEl),
+    return { els: els.slice(0, nEl), segs: segs, targets: targets, glints: glints,
+             nodes: prev.slice(0, nEl), nodeGain: prevGain.slice(0, nEl),
              done: done, total: total, complete: total > 0 && done === total };
   }
 
@@ -555,7 +675,10 @@ var T = {
   PITCH_PORTRAIT: 66,      // steeper so a tall field still fits
   FIT_MARGIN: 1.18,        // 18% breathing room around the playfield
   ELEV: 0.6,               // height of the play plane above the floor
-  GLOW: [0.55, 1.0, 1.55], // the intensity setting: soft / medium / bright
+  GLOW_MIN: 0.30, GLOW_MAX: 1.80,   // range of the emitter intensity control
+  GLOW_PRESETS: [0.55, 1.0, 1.55],  // what the settings-menu shortcut cycles
+  NUDGE: 0.25,             // world units per press of the precision cross
+  NUDGE_DEG: 5,            // degrees per press of the fine rotate buttons
   BEAM_CORE_R: 0.10,       // the filament. Wide and gentle, not a hairline.
   BEAM_SHEATH_R: 0.85,     // the lit air around it
   BEAM_HALO_R: 2.60,       // the wide, very faint outer bloom
@@ -568,7 +691,9 @@ var T = {
   WEDGE_MERGE: 0.42,       // fraction of the fan over which colours stay merged
   SPILL_W: 2.6,            // width of the light the beam throws onto the floor
   SPILL_OP: 0.20,
-  FLARE_S: 1.7,            // size of the impact flare where a beam terminates
+  FLARE_S: 1.7,
+  GLINT_S: 2.4,            // size of the flash where a beam strikes a mirror
+  INTERNAL_POOL: 10,       // refracted paths drawn inside glass            // size of the impact flare where a beam terminates
   SCINT: 0.13,             // scintillation depth (light is never perfectly even)
   DUST_HIGH: 320, DUST_LOW: 120,
   DUST_REACH: 3.1,         // how close a mote must be to a beam to glow
@@ -605,6 +730,8 @@ var STR = {
         music:'música', sfx:'sonido', hap:'vibración', cb:'daltonismo',
         qual:'detalle', lang:'idioma', on:'sí', off:'no', high:'alto', low:'bajo',
         glow:'intensidad', gl0:'tenue', gl1:'media', gl2:'alta',
+        pnMove:'mover', pnTurn:'ángulo', pnInt:'intensidad', pnNone:'sin selección',
+        piece:'pieza', prism:'prisma', mirror:'espejo', filter:'filtro', comb:'lente',
         langName:'español', room:'sala',
         l1:'alba', l2:'giro', l3:'espectro', l4:'puntería', l5:'alcance',
         l6:'muro', l7:'ranura', l8:'espejo', l9:'pliegue', l10:'dos',
@@ -615,6 +742,8 @@ var STR = {
         music:'music', sfx:'sound', hap:'haptics', cb:'colour-blind',
         qual:'detail', lang:'language', on:'on', off:'off', high:'high', low:'low',
         glow:'intensity', gl0:'soft', gl1:'medium', gl2:'bright',
+        pnMove:'move', pnTurn:'angle', pnInt:'intensity', pnNone:'nothing selected',
+        piece:'piece', prism:'prism', mirror:'mirror', filter:'filter', comb:'lens',
         langName:'english', room:'room',
         l1:'dawn', l2:'turn', l3:'split', l4:'aim', l5:'reach',
         l6:'wall', l7:'slot', l8:'mirror', l9:'fold', l10:'two',
@@ -638,7 +767,10 @@ var opt = {
   sfx:   store.get('pm.sfx', '1') === '1',
   hap:   store.get('pm.hap', '0') === '1',
   cb:    store.get('pm.cb', '0') === '1',
-  glow:  Math.max(0, Math.min(2, parseInt(store.get('pm.glow', '1'), 10) || 0)),
+  glowF: (function () {
+    var v = parseFloat(store.get('pm.glowf', '1'));
+    return (isFinite(v) && v > 0) ? Math.max(T.GLOW_MIN, Math.min(T.GLOW_MAX, v)) : 1;
+  })(),
   qual:  store.get('pm.qual', '') || 'auto'
 };
 var reduced = false;
@@ -666,6 +798,10 @@ var dom = {
   btnReset:$('btn-reset'), btnPause:$('btn-pause'),
   intro:$('intro'), introNum:$('intro-num'), introName:$('intro-name'),
   cd:$('cd'), flash:$('flash'), toast:$('toast'),
+  pnl:$('pnl'), pnPrev:$('pn-prev'), pnNext:$('pn-next'), pnName:$('pn-name'),
+  pnMin:$('pn-min'), pnUp:$('pn-up'), pnDn:$('pn-dn'), pnLf:$('pn-lf'), pnRt:$('pn-rt'),
+  pnRl:$('pn-rl'), pnRr:$('pn-rr'), pnAng:$('pn-ang'),
+  pnTrack:$('pn-track'), pnFill:$('pn-fill'), pnKnob:$('pn-knob'), pnIntv:$('pn-intv'),
   scrTitle:$('scr-title'), scrLevels:$('scr-levels'), scrPause:$('scr-pause'), scrOpts:$('scr-opts'),
   btnPlay:$('btn-play'), btnLevels:$('btn-levels'), btnOpts:$('btn-opts'),
   grid:$('lvl-grid'), lvlBack:$('lvl-back'),
@@ -904,12 +1040,14 @@ var THREE = window.THREE;
 var renderer, scene, camera, composer, bloomPass = null;
 var levelGroup = null, owned = { geo:[], mat:[], tex:[] };
 var beamCore = [], beamSheath = [], beamHalo = [], beamSpill = [], beamFlare = [];
-var wedges = [], wedgeFloors = [];
+var wedges = [], wedgeFloors = [], glints = [], internals = [];
 var dust = null, dustGeo = null;
 var meshFor = {}, targetMeshes = {}, nodeCores = {}, ringMesh = null;
 var quality = 'high';
 
 var SHARED = {};
+
+function glowMul() { return opt.glowF; }
 
 function colOf(mask) {
   var r = (mask & 1) ? 1 : 0, g = (mask & 2) ? 1 : 0, b = (mask & 4) ? 1 : 0;
@@ -1284,6 +1422,18 @@ function initRender() {
     [a, b, c, d, e].forEach(function (o) { o.visible = false; o.frustumCulled = false; scene.add(o); });
     beamHalo.push(c); beamSpill.push(d); beamSheath.push(b); beamCore.push(a); beamFlare.push(e);
   }
+
+  // the flash where a beam strikes a mirror, and the path it takes through glass
+  for (var gi = 0; gi < 12; gi++) {
+    var gs = new THREE.Sprite(new THREE.SpriteMaterial({ map: SHARED.glowTex,
+      color: 0xffffff, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false }));
+    gs.visible = false; gs.frustumCulled = false; scene.add(gs); glints.push(gs);
+  }
+  for (var ii = 0; ii < T.INTERNAL_POOL; ii++) {
+    var im = new THREE.Mesh(SHARED.cyl, beamMaterial(1.15, 0.04, 0.90, 0.0));
+    im.visible = false; im.frustumCulled = false; scene.add(im); internals.push(im);
+  }
   ringMesh = new THREE.Mesh(SHARED.ringGeo,
     new THREE.MeshBasicMaterial({ color: 0xEDEFF5, transparent: true, opacity: 0 }));
   ringMesh.rotation.x = -Math.PI / 2;
@@ -1367,7 +1517,7 @@ function setupComposer() {
     composer.addPass(new THREE.RenderPass(scene, camera));
     bloomPass = new THREE.UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      T.BLOOM.strength * T.GLOW[opt.glow], T.BLOOM.radius, T.BLOOM.threshold);
+      T.BLOOM.strength * glowMul(), T.BLOOM.radius, T.BLOOM.threshold);
     composer.addPass(bloomPass);
   } catch (e) { composer = null; bloomPass = null; }
 }
@@ -1674,6 +1824,7 @@ function quitToTitle() {
   AU.allDronesOff(); AU.fricStop();
   teardown();
   show(dom.hud, false);
+  dom.pnl.classList.remove('on');
   screenOff(); show(dom.scrTitle, true);
   dom.btnPlay.textContent = nextUnsolved() === 0 ? (lang === 'es' ? 'empezar' : 'begin') : t('play');
 }
@@ -1793,7 +1944,8 @@ function drawBeams(now) {
       var hz = (s.mask === 1) ? T.CB_PULSE[1] : (s.mask === 4) ? T.CB_PULSE[4] : 0;
       if (hz) amp = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(tsec * hz * Math.PI * 2));
     }
-    var I = amp * boost * T.GLOW[opt.glow];
+    // light that has been through optics arrives weaker, and that is visible
+    var I = amp * boost * glowMul() * (s.gain === undefined ? 1 : s.gain);
 
     core.visible = sh.visible = halo.visible = true;
     [core, sh, halo].forEach(function (m) {
@@ -1824,7 +1976,7 @@ function drawBeams(now) {
       spill.material.color.setHex(col);
       var falloff = Math.exp(-len * 0.010);
       spill.material.opacity = T.SPILL_OP * amp * Math.min(2, boost) * falloff *
-                               T.GLOW[opt.glow] * (s.open ? 0.5 : 1);
+                               glowMul() * (s.open ? 0.5 : 1);
     } else { spill.visible = false; }
 
     // impact flare wherever the beam actually lands on something
@@ -1834,7 +1986,7 @@ function drawBeams(now) {
       var fs = T.FLARE_S * (0.85 + 0.15 * Math.sin(tsec * 5 + i));
       flare.scale.set(fs, fs, 1);
       flare.material.color.setHex(whiten(col, 0.42));
-      flare.material.opacity = Math.min(1, 0.34 * amp * boost * T.GLOW[opt.glow]);
+      flare.material.opacity = Math.min(1, 0.34 * amp * boost * glowMul());
     } else { flare.visible = false; }
   }
 }
@@ -1873,7 +2025,7 @@ function drawWedges(now) {
     u.uW.value.set((mask & 1) ? 1 : 0, (mask & 2) ? 1 : 0, (mask & 4) ? 1 : 0);
     u.uLen.value = len;
     u.uTime.value = now * 0.001;
-    u.uInt.value = T.WEDGE_INT * (1 + 0.5 * G.confirm) * (opt.cb ? 0.7 : 1) * T.GLOW[opt.glow];
+    u.uInt.value = T.WEDGE_INT * (1 + 0.5 * G.confirm) * (opt.cb ? 0.7 : 1) * glowMul();
 
     var f = wedgeFloors[used - 1];
     if (f) {
@@ -1885,13 +2037,85 @@ function drawWedges(now) {
       uf.uW.value.copy(u.uW.value);
       uf.uLen.value = len; uf.uTime.value = u.uTime.value;
       uf.uMerge.value = T.WEDGE_MERGE * 1.25;
-      uf.uInt.value = T.WEDGE_FLOOR * (1 + 0.5 * G.confirm) * (opt.cb ? 0.7 : 1) * T.GLOW[opt.glow];
+      uf.uInt.value = T.WEDGE_FLOOR * (1 + 0.5 * G.confirm) * (opt.cb ? 0.7 : 1) * glowMul();
     }
   }
   for (; used < wedges.length; used++) {
     wedges[used].visible = false;
     if (wedgeFloors[used]) wedgeFloors[used].visible = false;
   }
+}
+
+/* Where a beam meets a mirror there is a flash, and at a glancing angle that
+   flash goes iridescent: the silvering and its substrate act as a thin film, so
+   the returned light picks up a hue that depends on the angle of incidence.
+   Head-on bounces stay the colour of the beam. */
+function hueShift(hex, hue, amt) {
+  var r = ((hex >> 16) & 255) / 255, g = ((hex >> 8) & 255) / 255, b = (hex & 255) / 255;
+  var h6 = (hue % 1 + 1) % 1 * 6, x = 1 - Math.abs((h6 % 2) - 1), rr, gg, bb;
+  if (h6 < 1) { rr = 1; gg = x; bb = 0; }
+  else if (h6 < 2) { rr = x; gg = 1; bb = 0; }
+  else if (h6 < 3) { rr = 0; gg = 1; bb = x; }
+  else if (h6 < 4) { rr = 0; gg = x; bb = 1; }
+  else if (h6 < 5) { rr = x; gg = 0; bb = 1; }
+  else { rr = 1; gg = 0; bb = x; }
+  r += (rr - r) * amt; g += (gg - g) * amt; b += (bb - b) * amt;
+  return (Math.round(Math.min(1, r) * 255) << 16) |
+         (Math.round(Math.min(1, g) * 255) << 8) | Math.round(Math.min(1, b) * 255);
+}
+
+function drawGlints(now) {
+  var gl = (G.trace && G.trace.glints) || [];
+  var tsec = now * 0.001;
+  for (var i = 0; i < glints.length; i++) {
+    var m = glints[i];
+    if (i >= gl.length) { m.visible = false; continue; }
+    var g = gl[i];
+    m.visible = true;
+    m.position.set(g.x, T.ELEV, g.z);
+    // grazing bounces flash wider and turn iridescent; the hue runs with angle
+    var sz = T.GLINT_S * (0.55 + 0.85 * g.graze) * (0.92 + 0.08 * Math.sin(tsec * 6 + i));
+    m.scale.set(sz, sz, 1);
+    var base = whiten(hexOf(g.mask), 0.30);
+    var col = g.graze > 0 ? hueShift(base, 0.62 - g.cos * 1.1 + tsec * 0.03, g.graze * 0.75) : base;
+    m.material.color.setHex(col);
+    m.material.opacity = Math.min(1, (0.22 + 0.42 * g.graze) * g.gain * glowMul());
+  }
+}
+
+/* The refracted path. Light does not teleport across a prism: it enters a face,
+   bends, and crosses the glass before the spectrum leaves the far side. This
+   draws that crossing from the real entry point to the fan's apex. */
+function drawInternals(now) {
+  var used = 0;
+  if (!internals.length || !G.trace) return;
+  var nodes = G.trace.nodes || [], els = G.trace.els, segs = G.trace.segs;
+  var tsec = now * 0.001;
+
+  for (var i = 0; i < nodes.length && used < internals.length; i++) {
+    if (!nodes[i]) continue;
+    var e = els[i], r = C.radiusOf(e);
+    for (var j = 0; j < segs.length && used < internals.length; j++) {
+      var sg = segs[j];
+      if (sg.open) continue;
+      // a segment that ENDS on this piece of glass is one that entered it
+      if (Math.hypot(sg.bx - e.x, sg.bz - e.z) > r + 0.06) continue;
+      var m = internals[used++];
+      _v1.set(sg.bx, T.ELEV, sg.bz);
+      _v2.set(e.x, T.ELEV, e.z);
+      var len = _v1.distanceTo(_v2);
+      if (!(len > 0.02)) { used--; continue; }
+      _v2.sub(_v1).divideScalar(len);
+      _q.setFromUnitVectors(UP, _v2);
+      m.visible = true;
+      m.position.set(sg.bx + (e.x - sg.bx) * 0.5, T.ELEV, sg.bz + (e.z - sg.bz) * 0.5);
+      m.quaternion.copy(_q);
+      m.scale.set(0.16, len, 0.16);
+      setBeamMat(m, hexOf(sg.mask), 1.05 * glowMul() * (sg.gain === undefined ? 1 : sg.gain),
+                 0, tsec, len, 0.8);
+    }
+  }
+  for (; used < internals.length; used++) internals[used].visible = false;
 }
 
 // pull a colour toward white by k, so the hot core over-exposes correctly
@@ -2247,9 +2471,11 @@ bind(dom.oMusic, function () { opt.music = !opt.music; store.set('pm.music', opt
 bind(dom.oSfx, function () { opt.sfx = !opt.sfx; store.set('pm.sfx', opt.sfx ? 1 : 0); AU.setBus(); refreshOptionValues(); });
 bind(dom.oHap, function () { opt.hap = !opt.hap; store.set('pm.hap', opt.hap ? 1 : 0); buzz(18); refreshOptionValues(); });
 bind(dom.oGlow, function () {
-  opt.glow = (opt.glow + 1) % 3;
-  store.set('pm.glow', opt.glow);
-  if (bloomPass) bloomPass.strength = T.BLOOM.strength * T.GLOW[opt.glow];
+  // the menu shortcut steps to the next preset above the current value
+  var p = T.GLOW_PRESETS, next = p[0];
+  for (var gi = 0; gi < p.length; gi++) { if (p[gi] > opt.glowF + 0.01) { next = p[gi]; break; } }
+  setGlow(next);
+  if (bloomPass) bloomPass.strength = T.BLOOM.strength * glowMul();
   refreshOptionValues();
 });
 bind(dom.oCb, function () { opt.cb = !opt.cb; store.set('pm.cb', opt.cb ? 1 : 0); refreshOptionValues(); });
@@ -2271,12 +2497,126 @@ bind(dom.oLang, function () {
   }
 });
 
+/* ── the control deck ──────────────────────────────────────────────────── */
+function setGlow(v) {
+  opt.glowF = Math.max(T.GLOW_MIN, Math.min(T.GLOW_MAX, v));
+  store.set('pm.glowf', opt.glowF.toFixed(3));
+  if (bloomPass) bloomPass.strength = T.BLOOM.strength * glowMul();
+  syncGlowUI();
+  refreshOptionValues();
+}
+function syncGlowUI() {
+  var f = (opt.glowF - T.GLOW_MIN) / (T.GLOW_MAX - T.GLOW_MIN);
+  f = Math.max(0, Math.min(1, f));
+  dom.pnFill.style.width = 'calc(' + (f * 100) + '% - ' + (f * 1.64) + 'rem + 0.1rem)';
+  dom.pnKnob.style.left = 'calc(' + (f * 100) + '% - ' + (f * 1.46) + 'rem + 0.09rem)';
+  dom.pnIntv.textContent = Math.round(opt.glowF * 100) + '%';
+}
+
+function interactiveList() {
+  var out = [];
+  if (!G.level) return out;
+  G.level.elements.forEach(function (e, i) { if (e.move || e.spin) out.push(i); });
+  return out;
+}
+function cyclePiece(dir) {
+  var list = interactiveList();
+  if (!list.length) return;
+  var at = list.indexOf(G.locked);
+  at = (at < 0) ? (dir > 0 ? 0 : list.length - 1) : (at + dir + list.length) % list.length;
+  G.locked = list[at];
+  G.sel = G.locked;
+  showRing(true);
+  AU.tick(); buzz(12);
+}
+function nudge(dx, dz) {
+  var i = G.locked;
+  if (i < 0 || !G.level.elements[i] || !G.level.elements[i].move) return;
+  var st = G.state[i];
+  st.x += dx * T.NUDGE; st.z += dz * T.NUDGE;
+  clampToField(st);
+  AU.tick(); buzz(8);
+}
+function turn(deg) {
+  var i = G.locked;
+  if (i < 0 || !G.level.elements[i] || !G.level.elements[i].spin) return;
+  G.state[i].tRot = C.applyDetent(G.state[i].tRot + deg);
+  AU.tick(); buzz(8);
+}
+function updatePanel() {
+  var playing = G.playing && !G.paused;
+  dom.pnl.classList.toggle('on', playing);
+  if (!playing) return;
+  var i = G.locked, e = (i >= 0 && G.level) ? G.level.elements[i] : null;
+  var list = interactiveList();
+  dom.pnName.textContent = e
+    ? (t(e.t) + ' · ' + (list.indexOf(i) + 1) + '/' + list.length)
+    : t('pnNone');
+  var canMove = !!(e && e.move), canSpin = !!(e && e.spin);
+  [dom.pnUp, dom.pnDn, dom.pnLf, dom.pnRt].forEach(function (b) { b.disabled = !canMove; });
+  [dom.pnRl, dom.pnRr].forEach(function (b) { b.disabled = !canSpin; });
+  [dom.pnPrev, dom.pnNext].forEach(function (b) { b.disabled = list.length < 1; });
+  if (e && canSpin) {
+    var a = ((G.state[i].tRot % 360) + 360) % 360;
+    dom.pnAng.textContent = Math.round(a) + '\u00b0';
+  } else { dom.pnAng.textContent = '—'; }
+}
+
+function bindHold(el, fn) {
+  // press once, then repeat while held — a cross that only fires on tap is
+  // useless for the twentieth quarter-unit of travel
+  var t0 = null, iv = null;
+  function stop() { clearTimeout(t0); clearInterval(iv); t0 = iv = null; el.classList.remove('dn'); }
+  el.addEventListener('pointerdown', function (ev) {
+    if (el.disabled) return;
+    ev.preventDefault(); AU.resume();
+    el.classList.add('dn'); fn();
+    t0 = setTimeout(function () { iv = setInterval(fn, 90); }, 340);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (k) {
+    el.addEventListener(k, stop);
+  });
+}
+bindHold(dom.pnUp, function () { nudge(0, -1); });
+bindHold(dom.pnDn, function () { nudge(0, 1); });
+bindHold(dom.pnLf, function () { nudge(-1, 0); });
+bindHold(dom.pnRt, function () { nudge(1, 0); });
+bindHold(dom.pnRl, function () { turn(-T.NUDGE_DEG); });
+bindHold(dom.pnRr, function () { turn(T.NUDGE_DEG); });
+dom.pnPrev.addEventListener('click', function (e) { e.preventDefault(); AU.resume(); cyclePiece(-1); });
+dom.pnNext.addEventListener('click', function (e) { e.preventDefault(); AU.resume(); cyclePiece(1); });
+dom.pnMin.addEventListener('click', function (e) {
+  e.preventDefault(); AU.resume(); AU.click();
+  var min = dom.pnl.classList.contains('min');
+  dom.pnl.classList.toggle('min', !min);
+  dom.pnMin.textContent = min ? '\u25be' : '\u25b4';
+});
+
+(function () {
+  var dragging = false;
+  function apply(clientX) {
+    var w = dom.pnTrack.offsetWidth || 200;
+    var left = dom.pnTrack.getBoundingClientRect ? dom.pnTrack.getBoundingClientRect().left : 0;
+    var f = Math.max(0, Math.min(1, (clientX - left) / w));
+    setGlow(T.GLOW_MIN + f * (T.GLOW_MAX - T.GLOW_MIN));
+  }
+  dom.pnTrack.addEventListener('pointerdown', function (e) {
+    e.preventDefault(); AU.resume(); dragging = true;
+    try { dom.pnTrack.setPointerCapture(e.pointerId); } catch (err) {}
+    apply(e.clientX);
+  });
+  dom.pnTrack.addEventListener('pointermove', function (e) { if (dragging) apply(e.clientX); });
+  ['pointerup', 'pointercancel'].forEach(function (k) {
+    dom.pnTrack.addEventListener(k, function () { dragging = false; AU.click(); });
+  });
+})();
+
 function refreshOptionValues() {
   dom.vMusic.textContent = opt.music ? t('on') : t('off');
   dom.vSfx.textContent = opt.sfx ? t('on') : t('off');
   dom.vHap.textContent = opt.hap ? t('on') : t('off');
   dom.vCb.textContent = opt.cb ? t('on') : t('off');
-  dom.vGlow.textContent = t('gl' + opt.glow);
+  dom.vGlow.textContent = Math.round(opt.glowF * 100) + '%';
   dom.vQual.textContent = quality === 'high' ? t('high') : t('low');
   dom.vLang.textContent = t('langName');
 }
@@ -2310,11 +2650,14 @@ function frame(now) {
       updateRotation(dt);
       syncMeshes();
       if (G.locked >= 0 && ptr.id === null) showRing(true);
+      updatePanel();
       simulate();
       updateTargets(now);
       updateNodeCores(now);
       drawBeams(now);
       drawWedges(now);
+      drawInternals(now);
+      drawGlints(now);
       updateDust(now, dt);
     }
 
@@ -2360,6 +2703,7 @@ function boot() {
   if (quality === 'low') makeDust(T.DUST_LOW);
   applyI18n();
   refreshOptionValues();
+  syncGlowUI();
   dom.btnPlay.textContent = nextUnsolved() === 0 ? (lang === 'es' ? 'empezar' : 'begin') : t('play');
   dom.boot.style.display = 'none';
   setTimeout(function () { toast(t('tHold')); }, 1400);
@@ -2383,7 +2727,9 @@ window.PM = { G: G, C: C, T: T, startLevel: startLevel, simulate: simulate,
   wedgeFloors: function () { return wedgeFloors; },
   dust: function () { return dust; },
   opt: function () { return opt; },
-  sharedGeo: function () { return SHARED; } };
+  sharedGeo: function () { return SHARED; },
+  glints: function () { return glints; },
+  internals: function () { return internals; } };
 })();
 </script>
 </body>
