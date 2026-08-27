@@ -373,13 +373,36 @@ body{
 .speaker{position:absolute;right:14px;bottom:4px;display:grid;grid-template-columns:repeat(3,4px);gap:4px;transform:rotate(-16deg);opacity:.7}
 .speaker i{width:4px;height:4px;border-radius:50%;background:#0c0e11;box-shadow:inset 0 1px 1px rgba(0,0,0,.9),0 1px 0 rgba(255,255,255,.09)}
 
-/* ============================================================ SIN MARCO */
-body.frameless .console{opacity:0;pointer-events:none;transform:scale(.97)}
-.fullstage{position:fixed;inset:0;z-index:50;background:#000;display:none}
+/* ============================================================ SIN MARCO
+   El iframe NO se mueve del DOM: reparentarlo lo recargaría y
+   perderías la partida. Lo que se expande es la propia carcasa,
+   que se queda en negro y sin cromo alrededor del juego. */
+body.frameless .console{
+  position:fixed;inset:0;
+  width:100%;max-width:none;height:100dvh;max-height:none;
+  padding:0;gap:0;border-radius:0;
+  background:#000;box-shadow:none;
+}
+body.frameless .console::after{display:none}          /* fuera el grano */
+body.frameless .topplate,
+body.frameless .controls,
+body.frameless .console > .screw{display:none}
+body.frameless .screen-mount{
+  padding:0;border-radius:0;box-shadow:none;background:#000;
+}
+body.frameless .screen-mount .screw{display:none}
+body.frameless .screen{
+  border-radius:0;box-shadow:none;
+}
+body.frameless .glass,
+body.frameless .scanlines{display:none}               /* sin cristal ni scanlines */
+body.frameless .stage{border-radius:0}
+
+.fullstage{display:none}
 body.frameless .fullstage{display:block}
 .fullstage .dock{
-  position:absolute;right:calc(12px + env(safe-area-inset-right));
-  bottom:calc(14px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:2;
+  position:fixed;right:calc(12px + env(safe-area-inset-right));
+  bottom:calc(14px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:60;
 }
 .dock button{
   width:46px;height:46px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;color:#cfd5de;
@@ -579,6 +602,8 @@ GAMES.forEach((g,i) => {
     '</div>' +
     '<span class="tile-name">' + g.name + '</span>';
   const shot = b.querySelector('.shot');
+  const cached = cachedShot(g.slug);
+  if (cached) shot.src = cached;                 // captura viva de una visita anterior
   shot.addEventListener('load',  () => { shot.classList.add('ready'); b.classList.add('shot-ok'); });
   shot.addEventListener('error', () => { shot.remove(); });   // sin captura: se queda el icono
   b.addEventListener('click', () => { index = i; paint(); launch(g); });
@@ -601,6 +626,95 @@ function move(dir){
   if (dir === 'down')  index = (index + COLS) % n;
   buzz(8);
   paint();
+}
+
+/* ============================================================
+   AUTO-CAPTURA
+   Si el launcher se sirve desde el mismo origen que los juegos,
+   podemos leer el <canvas> de la preview y congelarlo como
+   imagen. Deja de gastar GPU y la celda se queda con un
+   fotograma real. Entre orígenes distintos el navegador lo
+   prohíbe: entonces esto no hace nada y mandan las capturas
+   horneadas con capture-thumbs.mjs.
+   ============================================================ */
+const CAP_DELAY   = 4500;               // lo mismo que espera Playwright
+const CAP_RETRIES = 3;                  // por si el primer frame sale en blanco
+const CAP_KEY     = 'gatopocket:shot:';
+const CAP_TTL     = 7 * 24 * 3600 * 1000;
+
+function cachedShot(slug){
+  try{
+    const raw = localStorage.getItem(CAP_KEY + slug);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    return (Date.now() - o.t > CAP_TTL) ? null : o.d;
+  } catch(e){ return null; }
+}
+function storeShot(slug, data){
+  try{ localStorage.setItem(CAP_KEY + slug, JSON.stringify({ t:Date.now(), d:data })); }
+  catch(e){ /* cuota llena: da igual, seguimos en vivo */ }
+}
+function clearShots(){
+  try{
+    Object.keys(localStorage)
+      .filter(k => k.startsWith(CAP_KEY))
+      .forEach(k => localStorage.removeItem(k));
+  } catch(e){}
+}
+
+/* ¿Salió el fotograma en blanco? Muestreamos: si todos los
+   pixeles son idénticos, el canvas WebGL ya se había limpiado. */
+function isBlank(ctx, w, h){
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const first = [d[0], d[1], d[2]];
+  const step = Math.max(4, ((w * h) >> 8) * 4);
+  for (let p = 0; p < d.length; p += step){
+    if (Math.abs(d[p]-first[0]) + Math.abs(d[p+1]-first[1]) + Math.abs(d[p+2]-first[2]) > 24) return false;
+  }
+  return true;
+}
+
+function tryCapture(i, frame, attempt = 0){
+  if (!frame.isConnected || playing) return;
+
+  let doc = null;
+  try { doc = frame.contentDocument; } catch(e){ return; }   // otro origen: fin
+  if (!doc) return;
+
+  const src = doc.querySelector('canvas');
+  if (!src || !src.width) return;
+
+  try{
+    const c = document.createElement('canvas');
+    c.width = 390 * 2; c.height = 520 * 2;
+    const g = c.getContext('2d', { willReadFrequently:true });
+    g.drawImage(src, 0, 0, c.width, c.height);
+
+    /* WebGL sin preserveDrawingBuffer devuelve el buffer limpio.
+       Reintentamos por si pillamos un frame recién pintado. */
+    if (isBlank(g, c.width, c.height)){
+      if (attempt < CAP_RETRIES) setTimeout(() => tryCapture(i, frame, attempt + 1), 1100);
+      return;
+    }
+
+    const data = c.toDataURL('image/webp', .72);
+    storeShot(GAMES[i].slug, data);
+    applyShot(i, data);
+    unmountPreview(i);                 // congelada: soltamos la GPU
+  } catch(e){ /* canvas contaminado o lo que sea: lo dejamos correr */ }
+}
+
+function applyShot(i, data){
+  const tile = tiles[i];
+  let img = tile.querySelector('.shot');
+  if (!img){
+    img = document.createElement('img');
+    img.className = 'shot';
+    img.alt = ''; img.setAttribute('aria-hidden','true');
+    tile.querySelector('.thumb').appendChild(img);
+  }
+  img.addEventListener('load', () => { img.classList.add('ready'); tile.classList.add('shot-ok'); }, { once:true });
+  img.src = data;
 }
 
 /* ============================================================ MINIATURAS EN VIVO */
@@ -632,6 +746,9 @@ function mountPreview(i){
     f.classList.add('ready');
     tile.classList.add('live');
     countLoads(-1);
+    /* Le damos margen a compilar shaders y pintar de verdad,
+       luego intentamos congelarla. */
+    setTimeout(() => tryCapture(i, f), CAP_DELAY);
   });
   countLoads(1);
   box.appendChild(f);
@@ -702,6 +819,18 @@ $('swLive').addEventListener('click', () => {
   schedule();
 });
 
+/* Doble toque en el interruptor: tira las capturas cacheadas y
+   vuelve a mirar los juegos con ojos nuevos. */
+$('swLive').addEventListener('dblclick', () => {
+  clearShots();
+  buzz([12,60,12]);
+  tiles.forEach(t => {
+    const img = t.querySelector('.shot');
+    if (img) img.remove();
+    t.classList.remove('shot-ok','live');
+  });
+  schedule();
+});
 /* Pestaña en segundo plano: soltamos las previews y devolvemos la GPU. */
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) tiles.forEach((_,i) => unmountPreview(i));
@@ -749,7 +878,6 @@ function launch(game){
   stage.innerHTML = '';
   stage.appendChild(frame);
   stage.classList.add('on');
-  if (frameless) mountFullstage();
 }
 
 function goHome(){
@@ -773,24 +901,33 @@ function setLed(el,on,blink){
 }
 
 /* ============================================================ SIN MARCO */
-function mountFullstage(){
-  const f = stage.querySelector('iframe');
-  if (f) $('fullstage').insertBefore(f, $('fullstage').firstChild);
-}
-function unmountFullstage(){
-  const f = $('fullstage').querySelector('iframe');
-  if (f) stage.insertBefore(f, stage.firstChild);
-}
 function toggleFrame(force){
   const next = typeof force === 'boolean' ? force : !frameless;
   if (next === frameless) return;
   if (next && !playing) return;
   frameless = next;
   buzz(14);
-  if (frameless) mountFullstage(); else unmountFullstage();
+
+  /* Nada de mover el iframe: solo cambia el vestido de la carcasa. */
   document.body.classList.toggle('frameless', frameless);
   $('btnFrame').dataset.state = frameless ? 'on' : 'off';
+
+  /* Fullscreen nativo si el navegador lo permite (en iPhone no
+     existe para elementos, pero el layout fijo ya cubre todo). */
+  try {
+    if (frameless && !document.fullscreenElement){
+      const r = document.documentElement.requestFullscreen;
+      if (r) r.call(document.documentElement).catch(() => {});
+    } else if (!frameless && document.fullscreenElement){
+      document.exitFullscreen().catch(() => {});
+    }
+  } catch(e){}
 }
+
+/* Si el usuario sale del fullscreen con gesto o Esc, devolvemos la carcasa. */
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && frameless) toggleFrame(false);
+});
 
 /* ============================================================ CONTROLES */
 document.querySelectorAll('.dbtn').forEach(b => {
