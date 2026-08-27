@@ -42,6 +42,7 @@
 html,body{
   height:100%;
   margin:0;
+  overflow-x:hidden;
   overscroll-behavior:none;
   touch-action:pan-y;
   background:var(--cover-2);
@@ -83,13 +84,17 @@ button{touch-action:manipulation; font-family:inherit;}
 /* ============ screens ============ */
 .screen{
   position:absolute; inset:0;
-  display:flex; flex-direction:column;
-  transform:translateX(100%);
-  transition:transform .32s cubic-bezier(.4,0,.2,1);
-  visibility:hidden;
+  display:none;
+  flex-direction:column;
 }
-.screen.active{transform:translateX(0); visibility:visible; pointer-events:auto;}
-.screen:not(.active){pointer-events:none;}
+.screen.active{
+  display:flex;
+  animation: screenIn .22s ease;
+}
+@keyframes screenIn{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
 
 /* ============================================================
    COVER SCREEN — libreta de campo
@@ -667,14 +672,14 @@ const SECTIONS = [
     {key:'nombre', type:'text', label:'¿Quién es? (opcional)', placeholder:'Nombre...'}
   ]},
   {id:'transporte', label:'Transporte', icon:'🚗', fields:[
-    {key:'modo', type:'chip', label:'¿Cómo será el transporte?', options:['Andando','Coche propio','Me llevan','Transporte público','Bici','Otro']},
+    {key:'modo', type:'chip', label:'¿Cómo será el transporte?', options:['Andando','Transporte público','Me lleva Gato (moto)','Me lleva Gato (coche)','Me lleva otra persona','Otro']},
     {key:'duracion', type:'text', label:'¿Cuánto dura el trayecto?', placeholder:'ej. 15 minutos'}
   ]},
   {id:'plan', label:'El plan', icon:'📋', fields:[
     {key:'quese', type:'textarea', label:'¿Qué se hará?', rows:3},
     {key:'ubicacion', type:'chip', label:'¿Dónde es?', options:['Interior','Exterior','Interior y exterior']},
     {key:'duracion', type:'text', label:'¿Cuánto durará?', placeholder:'ej. 2 horas'},
-    {key:'personas', type:'chip', label:'¿Cuánta gente habrá?', options:['Solo ella y yo','Grupo pequeño (–5)','Grupo mediano (5–15)','Grupo grande (+15)']},
+    {key:'personas', type:'chip', label:'¿Cuánta gente habrá?', options:['Solo Gato y yo','Grupo pequeño (–5)','Grupo mediano (5–15)','Grupo grande (+15)']},
     {key:'personasDetalle', type:'text', label:'¿Quiénes vienen? (opcional)'}
   ]},
   {id:'clima', label:'Clima', icon:'❄️', fields:[
@@ -1125,14 +1130,19 @@ function computeApetencia(p){
     reasons.push({text:`Clima: ${clima.condicion}${loc}`, good:v>=0});
   }
 
-  const groupMap = {'Solo ella y yo':7,'Grupo pequeño (–5)':2,'Grupo mediano (5–15)':-4,'Grupo grande (+15)':-9};
+  const groupMap = {'Solo Gato y yo':7,'Grupo pequeño (–5)':2,'Grupo mediano (5–15)':-4,'Grupo grande (+15)':-9};
   if(plan.personas && groupMap[plan.personas] !== undefined){
     const v = groupMap[plan.personas]; score += v;
     reasons.push({text:`Gente allí: ${plan.personas}`, good:v>=0});
   }
 
-  if(transporte.modo === 'Me llevan'){ score += 2; reasons.push({text:'Transporte: te llevan, poco esfuerzo', good:true}); }
-  else if(transporte.modo === 'Transporte público'){ score -= 3; reasons.push({text:'Transporte: público, algo más imprevisible', good:false}); }
+  if(transporte.modo === 'Me lleva Gato (moto)' || transporte.modo === 'Me lleva Gato (coche)'){
+    score += 6; reasons.push({text:'Transporte: te lleva Gato — puedes ir y venir con libertad', good:true});
+  } else if(transporte.modo === 'Me lleva otra persona'){
+    score -= 5; reasons.push({text:'Transporte: te lleva otra persona — dependes de su horario', good:false});
+  } else if(transporte.modo === 'Transporte público'){
+    score -= 3; reasons.push({text:'Transporte: público, algo más imprevisible', good:false});
+  }
 
   return {pct: clampPct(score), reasons};
 }
