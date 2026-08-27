@@ -595,7 +595,7 @@ input[type=text]:focus, input[type=number]:focus, textarea:focus{
     <div class="editor-general">
       <div class="field">
         <label class="field-label">Nombre del plan</label>
-        <input type="text" id="f-titulo" placeholder="ej. Cena en casa de Marta" oninput="onGeneralChange()">
+        <input type="text" id="f-titulo" placeholder="ej. Cena en casa de Lluvia" oninput="onGeneralChange()">
       </div>
       <div class="row-2">
         <div class="field">
@@ -668,11 +668,11 @@ input[type=text]:focus, input[type=number]:focus, textarea:focus{
    ============================================================ */
 const SECTIONS = [
   {id:'persona', label:'Persona', icon:'👤', fields:[
-    {key:'relacion', type:'chip', label:'¿Qué relación tengo con esa persona?', options:['Pareja / familia cercana','Familia','Amigo íntimo','Amigo','Conocido','Trabajo / formal','Desconocido']},
+    {key:'relacion', type:'chip', label:'¿Qué relación tengo con esa persona?', options:['Gato / familia cercana','Familia','Amigo íntimo','Amigo','Conocido','Trabajo / formal','Desconocido']},
     {key:'nombre', type:'text', label:'¿Quién es? (opcional)', placeholder:'Nombre...'}
   ]},
   {id:'transporte', label:'Transporte', icon:'🚗', fields:[
-    {key:'modo', type:'chip', label:'¿Cómo será el transporte?', options:['Andando','Transporte público','Me lleva Gato (moto)','Me lleva Gato (coche)','Me lleva otra persona','Otro']},
+    {key:'modo', type:'chip', label:'¿Cómo será el transporte?', options:['Andando','Transporte público','Me lleva Gato (gatimoto)','Me lleva Gato (coche de alguien)','Me lleva otra persona','Otro']},
     {key:'duracion', type:'text', label:'¿Cuánto dura el trayecto?', placeholder:'ej. 15 minutos'}
   ]},
   {id:'plan', label:'El plan', icon:'📋', fields:[
@@ -1112,13 +1112,13 @@ function computeApetencia(p){
   let score = 50;
   const reasons = [];
 
-  const relMap = {'Pareja / familia cercana':16,'Familia':9,'Amigo íntimo':14,'Amigo':6,'Conocido':-4,'Trabajo / formal':-10,'Desconocido':-16};
+  const relMap = {'Pareja / familia cercana':16,'Familia':9,'Amigo íntimo':14,'Amigo':6,'Conocido':-4,'Trabajo / formal':-10,'Desconocido':0};
   if(persona.relacion && relMap[persona.relacion] !== undefined){
     const v = relMap[persona.relacion]; score += v;
     reasons.push({text:`Relación: ${persona.relacion}`, good:v>=0});
   }
 
-  const climaMap = {'Frío agradable':12,'Nieve':9,'Templado':4,'Nublado':2,'Soleado':0,'Viento':-4,'Calor':-14,'Lluvia':-16};
+  const climaMap = {'Frío agradable':12,'Nieve':9,'Templado':4,'Nublado':4,'Soleado':-2,'Viento':-4,'Calor':-18,'Lluvia':16};
   if(clima.condicion && climaMap[clima.condicion] !== undefined){
     let v = climaMap[clima.condicion];
     let mult = 1;
@@ -1136,7 +1136,7 @@ function computeApetencia(p){
     reasons.push({text:`Gente allí: ${plan.personas}`, good:v>=0});
   }
 
-  if(transporte.modo === 'Me lleva Gato (moto)' || transporte.modo === 'Me lleva Gato (coche)'){
+  if(transporte.modo === 'Me lleva Gato (gatimoto)' || transporte.modo === 'Me lleva Gato (coche de alguien)'){
     score += 6; reasons.push({text:'Transporte: te lleva Gato — puedes ir y venir con libertad', good:true});
   } else if(transporte.modo === 'Me lleva otra persona'){
     score -= 5; reasons.push({text:'Transporte: te lleva otra persona — dependes de su horario', good:false});
@@ -1210,7 +1210,7 @@ function computeBienestar(p){
 function scoreLabel(pct){
   if(pct >= 80) return {emoji:'🌟', text:'Probablemente sí'};
   if(pct >= 60) return {emoji:'✅', text:'Buena pinta'};
-  if(pct >= 40) return {emoji:'⚖️', text:'Podría ir cualquier lado'};
+  if(pct >= 40) return {emoji:'⚖️', text:'Podría ir a cualquier lado'};
   if(pct >= 20) return {emoji:'⚠️', text:'Cuesta bastante hoy'};
   return {emoji:'🛑', text:'Mucho esfuerzo hoy'};
 }
