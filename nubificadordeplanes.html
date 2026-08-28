@@ -368,10 +368,17 @@ input[type=text]:focus, input[type=number]:focus, textarea:focus{
   box-shadow:inset 0 2px 6px #00000030;
   position:relative;
 }
+.dial-face.kind-energy{background:radial-gradient(circle at 30% 26%, #F2FBEA, #D7EFC4 42%, #F6D3CE 100%);}
+.dial-face.kind-freedom{background:radial-gradient(circle at 30% 26%, #EEF4FC, #D6E6F8 42%, #C6D6F2 100%);}
+.dial-face.kind-rating{background:radial-gradient(circle at 30% 26%, #FFF9EA, #FFEBB4 42%, #FFD264 100%);}
+.dial.kind-energy{box-shadow:0 3px 0 #00000030, inset 0 -4px 8px #00000030, inset 0 3px 4px #ffffff55, 0 0 0 2px #BFE0AC66;}
+.dial.kind-freedom{box-shadow:0 3px 0 #00000030, inset 0 -4px 8px #00000030, inset 0 3px 4px #ffffff55, 0 0 0 2px #B9D2F266;}
+.dial.kind-rating{box-shadow:0 3px 0 #00000030, inset 0 -4px 8px #00000030, inset 0 3px 4px #ffffff55, 0 0 0 2px #FFCF6E88;}
 .dial-tick{
-  position:absolute; left:50%; top:6px; width:2px; height:9px;
-  background:var(--ink-faint); transform-origin:1px 53px;
+  position:absolute; left:50%; top:6px; width:2px; height:6px;
+  background:var(--ink-faint); opacity:.55; transform-origin:1px 53px;
 }
+.dial-tick.major{width:2.5px; height:10px; opacity:.9; background:var(--ink-soft);}
 .dial-needle{
   position:absolute; left:50%; top:50%; width:3px; height:46px;
   background:linear-gradient(var(--warn), var(--warn));
@@ -389,6 +396,7 @@ input[type=text]:focus, input[type=number]:focus, textarea:focus{
   margin-top:10px; font-family:var(--font-mono); font-size:13px; color:var(--ink); font-weight:bold;
   min-height:16px;
 }
+.dial-scale-labels{display:flex; justify-content:space-between; width:84%; font-family:var(--font-mono); font-size:9.5px; color:var(--ink-faint); margin-top:3px; letter-spacing:.2px;}
 .dial-slider{width:80%; margin-top:6px; accent-color:var(--frost-2);}
 
 /* thermometer */
@@ -477,7 +485,8 @@ input[type=text]:focus, input[type=number]:focus, textarea:focus{
 .gauge-item.featured{transform:scale(1.12); z-index:1;}
 .dial.small{width:88px; height:88px; box-shadow:0 2px 0 #00000030, inset 0 -3px 6px #00000030, inset 0 2px 3px #ffffff55;}
 .dial.small .dial-face{width:70px; height:70px;}
-.dial.small .dial-tick{transform-origin:1px 33px; height:6px;}
+.dial.small .dial-tick{transform-origin:1px 33px; height:4px;}
+.dial.small .dial-tick.major{height:7px;}
 .dial.small .dial-needle{height:26px;}
 .gauge-pct{font-family:var(--font-display); font-size:20px; color:var(--ink); margin-top:6px;}
 .gauge-label{font-family:var(--font-body); font-size:11.5px; color:var(--ink-soft); text-align:center; max-width:100px; line-height:1.25; margin-top:1px;}
@@ -627,12 +636,13 @@ input[type=text]:focus, input[type=number]:focus, textarea:focus{
         </div>
       </div>
       <div id="sum-gauges-slot"></div>
+      <div id="sum-rating-slot"></div>
       <div id="sum-banner-slot"></div>
       <div id="sum-blocks"></div>
     </div>
     <div class="summary-actions">
       <button class="btn-flat" onclick="editPlan(currentId)">✏️ Editar</button>
-      <button class="btn-flat primary" onclick="openRating(currentId)">⭐ ¿Cómo fue?</button>
+      <button class="btn-flat primary" id="btn-rate" onclick="openRating(currentId)">⭐ ¿Cómo fue?</button>
     </div>
   </section>
 
@@ -668,11 +678,11 @@ input[type=text]:focus, input[type=number]:focus, textarea:focus{
    ============================================================ */
 const SECTIONS = [
   {id:'persona', label:'Persona', icon:'👤', fields:[
-    {key:'relacion', type:'chip', label:'¿Qué relación tengo con esa persona?', options:['Gato / familia cercana','Familia','Amigo íntimo','Amigo','Conocido','Trabajo / formal','Desconocido']},
+    {key:'relacion', type:'chip', label:'¿Qué relación tengo con esa persona?', options:['Gato','Familia','Amigo íntimo','Amigo','Conocido','Trabajo / formal','Desconocido']},
     {key:'nombre', type:'text', label:'¿Quién es? (opcional)', placeholder:'Nombre...'}
   ]},
   {id:'transporte', label:'Transporte', icon:'🚗', fields:[
-    {key:'modo', type:'chip', label:'¿Cómo será el transporte?', options:['Andando','Transporte público','Me lleva Gato (gatimoto)','Me lleva Gato (coche de alguien)','Me lleva otra persona','Otro']},
+    {key:'modo', type:'chip', label:'¿Cómo será el transporte?', options:['Andando','Transporte público','Me lleva Gato (moto)','Me lleva Gato (coche)','Me lleva otra persona','Otro']},
     {key:'duracion', type:'text', label:'¿Cuánto dura el trayecto?', placeholder:'ej. 15 minutos'}
   ]},
   {id:'plan', label:'El plan', icon:'📋', fields:[
@@ -682,18 +692,27 @@ const SECTIONS = [
     {key:'personas', type:'chip', label:'¿Cuánta gente habrá?', options:['Solo Gato y yo','Grupo pequeño (–5)','Grupo mediano (5–15)','Grupo grande (+15)']},
     {key:'personasDetalle', type:'text', label:'¿Quiénes vienen? (opcional)'}
   ]},
+  {id:'comida', label:'Comida y coste', icon:'🍽️', fields:[
+    {key:'hay', type:'chip', label:'¿Habrá comida?', options:['No habrá comida','Comida ligera / picoteo','Comida completa','No lo sé aún']},
+    {key:'como', type:'text', label:'¿Cómo será? (opcional)', placeholder:'ej. tapas, picante, buffet...'},
+    {key:'gustara', type:'chip', label:'¿Crees que te gustará lo que hay?', options:['Seguro que sí','Probablemente','No lo sé','Probablemente no']},
+    {key:'llevarPropia', type:'chip', label:'¿Prefieres llevar algo tuyo por si acaso?', options:['No hace falta','Sí, por si acaso','Sí, seguro']},
+    {key:'coste', type:'chip', label:'¿Quién paga?', options:['Es gratis','Pagamos nosotros','Nos invitan']},
+    {key:'importe', type:'text', label:'¿Cuánto aproximadamente? (opcional)', placeholder:'ej. 20€'}
+  ]},
   {id:'clima', label:'Clima', icon:'❄️', fields:[
     {key:'temperatura', type:'thermo', label:'Temperatura esperada'},
-    {key:'condicion', type:'chip', label:'¿Cómo estará el tiempo?', options:['Frío agradable','Templado','Soleado','Nublado','Calor','Lluvia','Viento','Nieve']}
+    {key:'condicion', type:'chip', label:'¿Cómo estará el tiempo?', options:['Frío agradable','Templado','Soleado','Nublado','Calor','Lluvia','Viento','Nieve']},
+    {key:'humedad', type:'chip', label:'¿Cómo estará la humedad?', options:['Baja','Media','Alta']}
   ]},
   {id:'cuerpo', label:'Mi cuerpo', icon:'🫀', fields:[
-    {key:'cansancio', type:'dial', label:'Mi nivel de cansancio ahora', min:1, max:5, dialLabels:['Con energía','Normal','Agotada']},
+    {key:'cansancio', type:'dial', label:'Mi nivel de cansancio ahora', min:1, max:5, kind:'energy', dialLabels:['Con energía','Normal','Agotada']},
     {key:'planesRecientes', type:'chip', label:'¿Ha habido muchos planes últimamente?', options:['Pocos','Algunos','Muchos']},
     {key:'actividadesHoy', type:'text', label:'¿Cuántas actividades tengo ese día?', placeholder:'ej. 2'},
     {key:'estadoFisico', type:'chip', multi:true, label:'¿Cómo está mi cuerpo?', options:['Bien','Dolor de cabeza','Dolor de tripa','Agotada','Alergia','Otro malestar']}
   ]},
   {id:'libertad', label:'Libertad', icon:'🕊️', fields:[
-    {key:'pajaruna', type:'dial', label:'¿Cuánto de espontánea puedo ser hoy?', min:1, max:5, dialLabels:['Nada','Algo','Mucho']},
+    {key:'pajaruna', type:'dial', label:'¿Cuánto de espontánea puedo ser hoy?', min:1, max:5, kind:'freedom', dialLabels:['Nada','Algo','Mucho']},
     {key:'rutaSalida', type:'chip', label:'¿Puedo irme cuando quiera?', options:['Sí, cuando quiera','Debo quedarme un rato','Debo quedarme todo el plan']},
     {key:'mascara', type:'chip', label:'¿Puedo ser yo misma allí?', options:['Sí, completamente','Un poco de esfuerzo','Mucho esfuerzo']},
     {key:'sensorial', type:'chip', label:'¿Cuánto ruido / luces / gente habrá?', options:['Baja','Media','Alta']},
@@ -706,8 +725,8 @@ const SECTIONS = [
 ];
 
 const RATING_FIELDS = [
-  {key:'merecio', type:'dial', label:'¿Mereció la pena ir?', min:1, max:5, dialLabels:['Nada','Regular','Mucho']},
-  {key:'cansancioReal', type:'dial', label:'¿Cómo quedé después?', min:1, max:5, dialLabels:['Con energía','Normal','Agotada']}
+  {key:'merecio', type:'dial', label:'¿Mereció la pena ir?', min:1, max:5, kind:'rating', dialLabels:['Nada','Regular','Mucho']},
+  {key:'cansancioReal', type:'dial', label:'¿Cómo quedé después?', min:1, max:5, kind:'energy', dialLabels:['Con energía','Normal','Agotada']}
 ];
 
 /* ============================================================
@@ -783,12 +802,12 @@ function showToast(msg){
 }
 function iconForRelacion(r){
   if(!r) return '📓';
-  if(r.includes('Pareja')) return '💙';
-  if(r.includes('Familia')) return '👪';
+  if(r === 'Gato') return '🐱';
+  if(r === 'Familia') return '👪';
   if(r.includes('íntimo')) return '🤍';
-  if(r.includes('Amigo')) return '🙂';
+  if(r === 'Amigo') return '🙂';
   if(r.includes('Trabajo')) return '💼';
-  if(r.includes('Desconocido')) return '❓';
+  if(r === 'Desconocido') return '❓';
   return '👤';
 }
 function iconForClima(c){
@@ -943,15 +962,23 @@ function renderField(secId, f){
   }
   return '';
 }
+function tickMarks(){
+  let out = '';
+  for(let i=0; i<=20; i++){
+    const major = i % 4 === 0;
+    out += `<div class="dial-tick ${major?'major':''}" style="transform:rotate(${-120 + i*12}deg)"></div>`;
+  }
+  return out;
+}
 function dialHTML(id, f){
-  const ticks = [];
-  for(let i=0;i<11;i++){ ticks.push(`<div class="dial-tick" style="transform:rotate(${-120 + i*24}deg)"></div>`); }
+  const kindClass = f.kind ? ' kind-'+f.kind : '';
   return `<div class="dial-wrap">
-    <div class="dial"><div class="dial-face">
-      ${ticks.join('')}
+    <div class="dial${kindClass}"><div class="dial-face${kindClass}">
+      ${tickMarks()}
       <div class="dial-needle" id="${id}-needle"></div>
       <div class="dial-hub"></div>
     </div></div>
+    <div class="dial-scale-labels"><span>${esc(f.dialLabels[0])}</span><span>${esc(f.dialLabels[f.dialLabels.length-1])}</span></div>
     <div class="dial-value" id="${id}-val">—</div>
     <input type="range" class="dial-slider" id="${id}" min="${f.min}" max="${f.max}" step="1"
       oninput="onDialInput('${id}', this.value)">
@@ -1042,11 +1069,15 @@ function onThermoInput(domId, value){
 function updateThermoVisual(domId, value){
   const pct = (value - (-10)) / (42 - (-10));
   document.getElementById(domId+'-fill').style.height = (pct*100)+'%';
-  document.getElementById(domId+'-val').textContent = `${value} °C`;
   const fillEl = document.getElementById(domId+'-fill');
-  if(value <= 10){ fillEl.style.background = 'linear-gradient(#8FC4E8,#3E7C97)'; }
-  else if(value >= 28){ fillEl.style.background = 'linear-gradient(#E8A15C,#B5502E)'; }
-  else{ fillEl.style.background = 'linear-gradient(#6FA0C4,#3E7C97)'; }
+  let grad, note = '';
+  if(value <= 0){ grad = 'linear-gradient(#CFE9F8,#5FA8D3)'; }
+  else if(value <= 15){ grad = 'linear-gradient(#8FC4E8,#3E7C97)'; }
+  else if(value < 25){ grad = 'linear-gradient(#6FA0C4,#3E7C97)'; }
+  else if(value < 32){ grad = 'linear-gradient(#F3B25C,#D4762E)'; note = ' 🥵 empieza a ser calor'; }
+  else{ grad = 'linear-gradient(#EF7A4E,#B5302E)'; note = ' 🥵 mucho calor'; }
+  fillEl.style.background = grad;
+  document.getElementById(domId+'-val').textContent = `${value} °C${note}`;
 }
 function findField(secId, key){
   const sec = SECTIONS.find(s=>s.id===secId);
@@ -1108,26 +1139,49 @@ function clampPct(n){ return Math.max(0, Math.min(100, Math.round(n))); }
 
 function computeApetencia(p){
   const d = p.data || {};
-  const persona = d.persona || {}, clima = d.clima || {}, plan = d.plan || {}, transporte = d.transporte || {};
+  const persona = d.persona || {}, clima = d.clima || {}, plan = d.plan || {}, transporte = d.transporte || {}, comida = d.comida || {};
   let score = 50;
   const reasons = [];
 
-  const relMap = {'Pareja / familia cercana':16,'Familia':9,'Amigo íntimo':14,'Amigo':6,'Conocido':-4,'Trabajo / formal':-10,'Desconocido':0};
+  const relMap = {'Gato':16,'Familia':0,'Amigo íntimo':14,'Amigo':6,'Conocido':-4,'Trabajo / formal':-10,'Desconocido':-16};
   if(persona.relacion && relMap[persona.relacion] !== undefined){
     const v = relMap[persona.relacion]; score += v;
     reasons.push({text:`Relación: ${persona.relacion}`, good:v>=0});
   }
 
-  const climaMap = {'Frío agradable':12,'Nieve':9,'Templado':4,'Nublado':4,'Soleado':-2,'Viento':-4,'Calor':-18,'Lluvia':16};
+  const climaMap = {'Frío agradable':12,'Nieve':9,'Lluvia':8,'Templado':4,'Nublado':2,'Soleado':0,'Viento':-4,'Calor':-14};
+  let locMult = 1;
+  if(plan.ubicacion === 'Exterior') locMult = 1.4;
+  else if(plan.ubicacion === 'Interior') locMult = 0.5;
+  const locTxt = plan.ubicacion ? ` (${plan.ubicacion.toLowerCase()})` : '';
+
   if(clima.condicion && climaMap[clima.condicion] !== undefined){
-    let v = climaMap[clima.condicion];
-    let mult = 1;
-    if(plan.ubicacion === 'Exterior') mult = 1.4;
-    else if(plan.ubicacion === 'Interior') mult = 0.5;
-    v = Math.round(v * mult);
+    const v = Math.round(climaMap[clima.condicion] * locMult);
     score += v;
-    const loc = plan.ubicacion ? ` (${plan.ubicacion.toLowerCase()})` : '';
-    reasons.push({text:`Clima: ${clima.condicion}${loc}`, good:v>=0});
+    reasons.push({text:`Clima: ${clima.condicion}${locTxt}`, good:v>=0});
+  }
+
+  if(clima.temperatura !== undefined && clima.temperatura !== null){
+    const t = clima.temperatura;
+    let tv = 0;
+    if(t >= 25) tv = -Math.min(20, Math.round((t-25)*1.6));
+    else if(t <= 5) tv = Math.min(8, Math.round((5-t)*0.8));
+    if(tv !== 0){
+      tv = Math.round(tv * locMult);
+      score += tv;
+      reasons.push({text:`Temperatura: ${t}°C${locTxt}${tv<0?' — empieza a ser calor':''}`, good:tv>=0});
+    }
+  }
+
+  const humMap = {'Baja':4,'Media':0,'Alta':-8};
+  if(clima.humedad && humMap[clima.humedad] !== undefined){
+    let hv = humMap[clima.humedad];
+    if(clima.humedad === 'Alta' && clima.temperatura !== undefined && clima.temperatura >= 25) hv -= 4;
+    hv = Math.round(hv * locMult);
+    if(hv !== 0){
+      score += hv;
+      reasons.push({text:`Humedad: ${clima.humedad.toLowerCase()}${locTxt}`, good:hv>=0});
+    }
   }
 
   const groupMap = {'Solo Gato y yo':7,'Grupo pequeño (–5)':2,'Grupo mediano (5–15)':-4,'Grupo grande (+15)':-9};
@@ -1136,12 +1190,31 @@ function computeApetencia(p){
     reasons.push({text:`Gente allí: ${plan.personas}`, good:v>=0});
   }
 
-  if(transporte.modo === 'Me lleva Gato (gatimoto)' || transporte.modo === 'Me lleva Gato (coche de alguien)'){
+  if(transporte.modo === 'Me lleva Gato (moto)' || transporte.modo === 'Me lleva Gato (coche)'){
     score += 6; reasons.push({text:'Transporte: te lleva Gato — puedes ir y venir con libertad', good:true});
   } else if(transporte.modo === 'Me lleva otra persona'){
     score -= 5; reasons.push({text:'Transporte: te lleva otra persona — dependes de su horario', good:false});
   } else if(transporte.modo === 'Transporte público'){
     score -= 3; reasons.push({text:'Transporte: público, algo más imprevisible', good:false});
+  }
+
+  if(comida.hay && comida.hay !== 'No habrá comida'){
+    if(comida.hay === 'No lo sé aún'){
+      score -= 3;
+      reasons.push({text:'Comida: aún no se sabe qué habrá', good:false});
+    }
+    const gustaraMap = {'Seguro que sí':8,'Probablemente':3,'No lo sé':-2,'Probablemente no':-9};
+    if(comida.gustara && gustaraMap[comida.gustara] !== undefined){
+      const v = gustaraMap[comida.gustara]; score += v;
+      let txt = `Comida: ${comida.gustara.toLowerCase()}`;
+      if(v < 0 && comida.llevarPropia !== 'Sí, seguro') txt += ' — quizá ayude llevar algo tuyo';
+      reasons.push({text:txt, good:v>=0});
+    }
+  }
+  const costeMap = {'Es gratis':5,'Nos invitan':6,'Pagamos nosotros':-3};
+  if(comida.coste && costeMap[comida.coste] !== undefined){
+    const v = costeMap[comida.coste]; score += v;
+    reasons.push({text:`Coste: ${comida.coste.toLowerCase()}`, good:v>=0});
   }
 
   return {pct: clampPct(score), reasons};
@@ -1210,20 +1283,19 @@ function computeBienestar(p){
 function scoreLabel(pct){
   if(pct >= 80) return {emoji:'🌟', text:'Probablemente sí'};
   if(pct >= 60) return {emoji:'✅', text:'Buena pinta'};
-  if(pct >= 40) return {emoji:'⚖️', text:'Podría ir a cualquier lado'};
+  if(pct >= 40) return {emoji:'⚖️', text:'Podría ir cualquier lado'};
   if(pct >= 20) return {emoji:'⚠️', text:'Cuesta bastante hoy'};
   return {emoji:'🛑', text:'Mucho esfuerzo hoy'};
 }
 
-function gaugeHTML(pct, label, featured){
+function gaugeHTML(pct, label, featured, kind){
   const angle = -120 + (pct/100)*240;
-  const ticks = [];
-  for(let i=0;i<11;i++){ ticks.push(`<div class="dial-tick" style="transform:rotate(${-120 + i*24}deg)"></div>`); }
   let needleColor = 'var(--warn)';
   if(pct >= 60) needleColor = 'var(--good)'; else if(pct >= 40) needleColor = 'var(--frost-2)';
+  const kindClass = kind ? ' kind-'+kind : '';
   return `<div class="gauge-item ${featured?'featured':''}">
-    <div class="dial small"><div class="dial-face">
-      ${ticks.join('')}
+    <div class="dial small${kindClass}"><div class="dial-face${kindClass}">
+      ${tickMarks()}
       <div class="dial-needle" style="background:${needleColor}; transform:translate(-50%,-100%) rotate(${angle}deg)"></div>
       <div class="dial-hub"></div>
     </div></div>
@@ -1235,7 +1307,7 @@ function gaugeHTML(pct, label, featured){
 function renderGauges(p){
   const ap = computeApetencia(p);
   const bi = computeBienestar(p);
-  const overallPct = clampPct((ap.pct + bi.pct) / 2);
+  const overallPct = clampPct(ap.pct*0.6 + bi.pct*0.4);
   const lbl = scoreLabel(overallPct);
   const allReasons = [
     {header:'¿Me apetece el plan?'}, ...ap.reasons,
@@ -1248,9 +1320,9 @@ function renderGauges(p){
   return `<div class="gauges-wrap">
     <div class="gauges-title">Estimación de hoy</div>
     <div class="gauges-row">
-      ${gaugeHTML(ap.pct, '¿Me apetece?')}
-      ${gaugeHTML(overallPct, '¿Vale la pena?', true)}
-      ${gaugeHTML(bi.pct, '¿Me sentará bien?')}
+      ${gaugeHTML(ap.pct, '¿Me apetece?', false, 'freedom')}
+      ${gaugeHTML(overallPct, '¿Vale la pena?', true, 'rating')}
+      ${gaugeHTML(bi.pct, '¿Me sentará bien?', false, 'energy')}
     </div>
     <div class="gauge-overall-line">${lbl.emoji} <b>${lbl.text}</b></div>
     <div class="gauge-disclaimer">Es una estimación con lo que has apuntado, no una decisión — la decisión es siempre tuya.</div>
@@ -1272,14 +1344,33 @@ function renderSummary(id){
   // stamp banner based on clima preference (frío = bien, calor/lluvia = agobiante)
   const condicion = (p.data.clima && p.data.clima.condicion) || '';
   let bannerHtml = '';
-  if(condicion.includes('Frío')){
-    bannerHtml = `<div class="stamp-banner stamp-good">❄️ FRÍO — OS GUSTA ESTE TIEMPO</div>`;
-  } else if(condicion.includes('Calor') || condicion.includes('Lluvia')){
-    bannerHtml = `<div class="stamp-banner stamp-warn">⚠️ ${condicion.toUpperCase()} — SUELE AGOBIAR</div>`;
+  const goodClimas = ['Frío agradable','Nieve','Lluvia'];
+  if(goodClimas.includes(condicion)){
+    const emoji = condicion==='Frío agradable' ? '❄️' : condicion==='Nieve' ? '🌨️' : '🌧️';
+    bannerHtml = `<div class="stamp-banner stamp-good">${emoji} ${condicion.toUpperCase()} — OS GUSTA ESTE TIEMPO</div>`;
+  } else if(condicion === 'Calor'){
+    bannerHtml = `<div class="stamp-banner stamp-warn">⚠️ CALOR — SUELE AGOBIAR</div>`;
   }
   document.getElementById('sum-banner-slot').innerHTML = bannerHtml;
 
   document.getElementById('sum-gauges-slot').innerHTML = renderGauges(p);
+
+  if(p.rating){
+    const rr = p.rating;
+    let ratingRows = RATING_FIELDS.map(f=>{
+      const v = rr[f.key];
+      if(v===undefined || v===null) return '';
+      const idx = Math.min(f.dialLabels.length-1, Math.floor(((v-f.min)/(f.max-f.min))*(f.dialLabels.length)));
+      return `<div class="summary-row"><span class="k">${esc(f.label.replace(/^¿|\?$/g,''))}</span><span class="v">${v}/${f.max} — ${f.dialLabels[Math.min(idx,f.dialLabels.length-1)]}</span></div>`;
+    }).join('');
+    if(rr.notas) ratingRows += `<div class="summary-free">${esc(rr.notas)}</div>`;
+    document.getElementById('sum-rating-slot').innerHTML =
+      `<div class="summary-block" style="border-left-color:var(--good)"><h3>⭐ Cómo fue en realidad</h3>${ratingRows}</div>`;
+  } else {
+    document.getElementById('sum-rating-slot').innerHTML = '';
+  }
+  const rateBtn = document.getElementById('btn-rate');
+  if(rateBtn) rateBtn.textContent = p.rating ? '✏️ Editar valoración' : '⭐ ¿Cómo fue?';
 
   let html = '';
   SECTIONS.forEach(sec=>{
@@ -1303,22 +1394,12 @@ function renderSummary(id){
     }
   });
 
-  if(p.rating){
-    const rr = p.rating;
-    let ratingRows = RATING_FIELDS.map(f=>{
-      const v = rr[f.key];
-      if(v===undefined || v===null) return '';
-      const idx = Math.min(f.dialLabels.length-1, Math.floor(((v-f.min)/(f.max-f.min))*(f.dialLabels.length)));
-      return `<div class="summary-row"><span class="k">${esc(f.label.replace(/^¿|\?$/g,''))}</span><span class="v">${v}/${f.max} — ${f.dialLabels[Math.min(idx,f.dialLabels.length-1)]}</span></div>`;
-    }).join('');
-    if(rr.notas) ratingRows += `<div class="summary-free">${esc(rr.notas)}</div>`;
-    html += `<div class="summary-block" style="border-left-color:var(--good)"><h3>⭐ Cómo fue en realidad</h3>${ratingRows}</div>`;
-  }
-
   if(!html){
     html = '<div class="empty-note" style="color:var(--ink-faint)">Todavía no has rellenado nada. Toca "Editar" para empezar.</div>';
   }
   document.getElementById('sum-blocks').innerHTML = html;
+  const scrollEl = document.querySelector('#summary-screen .summary-scroll');
+  if(scrollEl) scrollEl.scrollTop = 0;
 }
 
 /* ============================================================
