@@ -520,6 +520,157 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
 }
 
 .hidden{ display:none !important; }
+
+/* ============================================================
+   RETRO MODE — brushed-metal, beveled-button skeuomorphic skin.
+   Scoped entirely under body.retro so the modern theme is untouched
+   when it's off. Bevels are hand-built from paired box-shadows rather
+   than a single mixin since plain CSS has no mixins to share them.
+   ============================================================ */
+body.retro{
+  --r-1:#d7dade; --r-2:#9aa0a6; --r-3:#5b6167; --r-4:#25282c; --r-5:#101214;
+  --r-lcd-bg:#04140a;
+  --r-lcd-fg: var(--accent);
+}
+body.retro #app{ background: linear-gradient(160deg, var(--r-4), var(--r-5)); }
+
+body.retro #topbar{
+  background: linear-gradient(180deg, var(--r-2), var(--r-3) 55%, var(--r-4));
+  border-bottom: 1px solid #000;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 2px 8px rgba(0,0,0,.5);
+  backdrop-filter: none;
+}
+body.retro .brand{ color: var(--accent); text-shadow: 0 0 8px var(--accent-soft), 0 1px 0 #000; }
+body.retro .brand .mark{ box-shadow: 0 0 8px var(--accent), inset 0 0 2px rgba(0,0,0,.7); }
+body.retro .brand small{ color: rgba(255,255,255,.4); }
+
+body.retro .tab-btn{
+  background: linear-gradient(180deg, var(--r-1), var(--r-2));
+  border: 1px solid var(--r-5);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.6), inset -1px -1px 0 rgba(0,0,0,.3);
+  color: #1b1d1f;
+  border-radius: 3px;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
+}
+body.retro .tab-btn:hover{ filter: brightness(1.05); background: linear-gradient(180deg, var(--r-1), var(--r-2)); }
+body.retro .tab-btn.active{
+  background: linear-gradient(180deg, var(--r-4), var(--r-3));
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,.7);
+  color: var(--accent); text-shadow: 0 0 6px var(--accent-soft);
+}
+
+body.retro .icon-btn{
+  background: linear-gradient(180deg, var(--r-1), var(--r-2) 45%, var(--r-3));
+  border: 1px solid var(--r-5);
+  border-radius: 3px;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.6), inset -1px -1px 0 rgba(0,0,0,.35), 0 1px 1px rgba(0,0,0,.4);
+  color: #1b1d1f;
+}
+body.retro .icon-btn:hover{ filter: brightness(1.07); }
+body.retro .icon-btn:active{
+  background: linear-gradient(180deg, var(--r-3), var(--r-2));
+  box-shadow: inset 1px 1px 4px rgba(0,0,0,.75);
+  transform: translateY(1px);
+}
+body.retro .icon-btn.on{ color: var(--accent); text-shadow: 0 0 6px var(--accent-soft); }
+body.retro .icon-btn.row-btn.fav.on{ color: var(--accent-4); }
+
+body.retro .pill-btn{
+  background: linear-gradient(180deg, var(--r-1), var(--r-2) 45%, var(--r-3));
+  border: 1px solid var(--r-5); color: #1b1d1f; border-radius: 3px;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.6), inset -1px -1px 0 rgba(0,0,0,.35);
+  text-shadow: 0 1px 0 rgba(255,255,255,.3);
+}
+body.retro .pill-btn:hover{ filter: brightness(1.06); }
+body.retro .pill-btn:active{ box-shadow: inset 1px 1px 4px rgba(0,0,0,.7); transform: translateY(1px); }
+body.retro .pill-btn.solid{
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 65%, white), var(--accent));
+  color: #06120c; text-shadow: none;
+}
+
+/* Album grid + track rows — subtle beveled panel treatment */
+body.retro .album-card{
+  background: linear-gradient(180deg, var(--r-3), var(--r-4));
+  border: 1px solid #000; border-radius: 4px;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.18), inset -1px -1px 0 rgba(0,0,0,.4);
+}
+body.retro .album-card:hover{ filter: brightness(1.12); transform: none; }
+body.retro .track-row.playing{ background: color-mix(in srgb, var(--accent) 14%, transparent); }
+body.retro .track-row.playing .title{ color: var(--accent); text-shadow: 0 0 5px var(--accent-soft); }
+body.retro .panel, body.retro .modal, body.retro #queue-drawer{
+  background: linear-gradient(165deg, var(--r-3), var(--r-4));
+  border: 1px solid #000;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.15), 0 12px 32px rgba(0,0,0,.6);
+  backdrop-filter: none;
+}
+body.retro .mode-btn{
+  background: linear-gradient(180deg, var(--r-1), var(--r-2) 45%, var(--r-3));
+  border: 1px solid var(--r-5); color: #1b1d1f; border-radius: 3px;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.6), inset -1px -1px 0 rgba(0,0,0,.35);
+}
+body.retro .mode-btn.active{
+  background: linear-gradient(180deg, var(--r-4), var(--r-3));
+  color: var(--accent); text-shadow: 0 0 5px var(--accent-soft);
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,.7);
+}
+
+/* Player bar — the main event: LCD display + chunky transport deck */
+body.retro #player{
+  background: linear-gradient(180deg, var(--r-2), var(--r-3) 35%, var(--r-4));
+  border-top: 1px solid #000;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 -2px 12px rgba(0,0,0,.5);
+  backdrop-filter: none;
+}
+body.retro #player .np{
+  background: var(--r-lcd-bg);
+  border: 1px solid #000; border-radius: 3px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,.85), inset 0 2px 4px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.15);
+  padding: 6px 10px;
+}
+body.retro #player .np .thumb{ border-radius: 2px; box-shadow: 0 0 0 1px #000, 0 0 8px var(--accent-soft); }
+body.retro #player .np .t{ color: var(--r-lcd-fg); text-shadow: 0 0 6px var(--accent-soft); letter-spacing: .03em; }
+body.retro #player .np .a{ color: color-mix(in srgb, var(--accent) 55%, #6b6b6b); }
+body.retro #player .np.empty .t{ color: color-mix(in srgb, var(--accent) 35%, transparent); }
+
+body.retro .transport .icon-btn.play-main{
+  background: linear-gradient(180deg, var(--r-1), var(--r-2) 45%, var(--r-3));
+  border: 1px solid var(--r-5); color: #1b1d1f;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.65), inset -1px -1px 0 rgba(0,0,0,.4), 0 0 12px var(--accent-soft);
+}
+body.retro .transport .icon-btn.play-main:hover{ filter: brightness(1.08); transform: none; }
+body.retro .transport .icon-btn.play-main:active{ box-shadow: inset 1px 1px 4px rgba(0,0,0,.75); transform: translateY(1px); }
+
+body.retro .seek-track{
+  background: var(--r-lcd-bg); border: 1px solid #000; border-radius: 2px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.85); height: 12px; padding: 0 2px;
+}
+body.retro .seek-track .track-bg{ background: transparent; }
+body.retro .seek-track .track-fill{ background: var(--accent); box-shadow: 0 0 6px var(--accent); height: 6px; border-radius: 1px; }
+body.retro .seek-track .track-buffer{ background: color-mix(in srgb, var(--accent) 22%, transparent); height: 6px; }
+body.retro .seek-track .thumb-dot{
+  width: 7px; height: 12px; border-radius: 1px;
+  background: linear-gradient(180deg, var(--r-1), var(--r-3));
+  border: 1px solid #000; box-shadow: inset 1px 1px 0 rgba(255,255,255,.5);
+  transform: translateX(-50%) scale(1);
+}
+body.retro .seek-row .time{ color: var(--accent); text-shadow: 0 0 4px var(--accent-soft); }
+
+body.retro .vol-track{
+  background: var(--r-lcd-bg); border: 1px solid #000; border-radius: 2px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.85); height: 10px; padding: 0 2px;
+}
+body.retro .vol-track .bg{ background: transparent; }
+body.retro .vol-track .fill{ background: var(--accent); box-shadow: 0 0 5px var(--accent); height: 5px; }
+
+body.retro input[type="range"]{ accent-color: var(--accent); }
+body.retro input[type="color"]{ border-radius: 3px; border: 1px solid var(--r-5); }
+
+body.retro kbd{
+  background: linear-gradient(180deg, var(--r-1), var(--r-2));
+  border: 1px solid var(--r-5); color: #1b1d1f;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.5), 0 1px 0 #000;
+}
+
 </style>
 </head>
 <body>
@@ -713,6 +864,15 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
     </div>
 
     <div class="settings-section">
+      <div class="settings-label">Interface</div>
+      <div class="theme-modes" id="interface-modes">
+        <button class="mode-btn" data-interface="modern">Modern</button>
+        <button class="mode-btn" data-interface="retro">Retro</button>
+      </div>
+      <p class="settings-hint">Retro swaps the whole interface for a brushed-metal, beveled-button skin — and switches the visualizer to a classic segmented LED equalizer.</p>
+    </div>
+
+    <div class="settings-section">
       <div class="settings-label">Visualizer mode</div>
       <div id="viz-switch">
         <button data-mode="spectrum" class="active">Spectrum</button>
@@ -721,6 +881,7 @@ kbd{ background:var(--surface-2); border:1px solid var(--line); border-radius:5p
         <button data-mode="cosmos">Cosmos</button>
         <button data-mode="kaleido">Kaleidoscope</button>
         <button data-mode="fractal">Fractal</button>
+        <button data-mode="ledbars">LED Bars</button>
         <button data-mode="minimal">Minimal</button>
       </div>
       <p class="settings-hint">Also cycles with the <kbd>V</kbd> key.</p>
@@ -910,6 +1071,7 @@ const Prefs = {
   themeMode: Store.get("themeMode", "auto"),     // auto | fixed | rgb
   themeColor: Store.get("themeColor", "#4cc9c0"),
   rgbSpeed: Store.get("rgbSpeed", 20),           // seconds per full hue cycle
+  retroMode: Store.get("retroMode", false),      // skeuomorphic brushed-metal skin
   save(){
     Store.set("volume", this.volume);
     Store.set("muted", this.muted);
@@ -921,6 +1083,7 @@ const Prefs = {
     Store.set("themeMode", this.themeMode);
     Store.set("themeColor", this.themeColor);
     Store.set("rgbSpeed", this.rgbSpeed);
+    Store.set("retroMode", this.retroMode);
   }
 };
 
@@ -2170,6 +2333,49 @@ const Visualizer = (function(){
     drawVignette(accent);
   }
 
+  // Classic hardware-equalizer look: discrete segmented LED bars,
+  // green→yellow→red by height, with falling peak-hold caps. This is
+  // the "line equalizer like Winamp" — deliberately flat and blocky,
+  // no glow, no gradients, just individually lit LEDs on a dark panel.
+  let ledPeaks = null;
+  function drawLedBars(freq, bands, accent, beat){
+    const bars = 20, segs = 16, segGap = 2, barGap = 4;
+    if (!ledPeaks) ledPeaks = new Array(bars).fill(0);
+
+    ctx2d.fillStyle = "#050705";
+    ctx2d.fillRect(0,0,w,h);
+
+    const bw = (w - barGap*(bars-1)) / bars;
+    const segH = (h - segGap*(segs-1)) / segs;
+
+    for (let i = 0; i < bars; i++){
+      // mild log weighting so the low bars aren't just all-bass — reads
+      // closer to the classic analyzer's frequency spread
+      const idx0 = Math.floor(Math.pow(i/bars, 1.6) * freq.length * 0.55);
+      const idx1 = Math.max(idx0+1, Math.floor(Math.pow((i+1)/bars, 1.6) * freq.length * 0.55));
+      const v = avg(freq, idx0, idx1);
+      const lit = Math.min(segs, Math.round(v * segs * (1 + beat*0.35)));
+      ledPeaks[i] = lit >= ledPeaks[i] ? lit : Math.max(0, ledPeaks[i] - 0.2);
+      const peakSeg = Math.round(ledPeaks[i]);
+
+      const x = i * (bw + barGap);
+      for (let s = 0; s < segs; s++){
+        const segFromBottom = segs - s;
+        const y = s * (segH + segGap);
+        const ratio = segFromBottom / segs;
+        const color = ratio < 0.6 ? "#3ddc4a" : ratio < 0.85 ? "#e8d23d" : "#e8503d";
+        const isLit = segFromBottom <= lit;
+        const isPeak = segFromBottom === peakSeg && peakSeg > 0;
+        if (isLit || isPeak){
+          ctx2d.fillStyle = color;
+        } else {
+          ctx2d.fillStyle = "rgba(255,255,255,.045)";
+        }
+        ctx2d.fillRect(x, y, bw, segH);
+      }
+    }
+  }
+
   function loop(t){
     raf = requestAnimationFrame(loop);
     let analyser;
@@ -2195,10 +2401,11 @@ const Visualizer = (function(){
       case "cosmos": drawCosmos(freq, bands, accent, t, beat); break;
       case "kaleido": drawKaleido(freq, bands, accent, t, beat); break;
       case "fractal": drawFractal(freq, bands, accent, t, beat); break;
+      case "ledbars": drawLedBars(freq, bands, accent, beat); break;
       case "minimal": drawMinimal(freq, bands, accent, timeData, beat); break;
       default: drawSpectrum(freq, bands, accent, beat);
     }
-    if (mode !== "fractal") drawVignette(accent); // fractal frames the whole canvas itself
+    if (mode !== "fractal" && mode !== "ledbars") drawVignette(accent); // both frame themselves
     drawTransitionOverlay(t);
   }
 
@@ -2234,6 +2441,8 @@ const UI = {
     this.syncRepeatButton();
     this.syncVizSwitch();
     this.syncThemeUI();
+    document.body.classList.toggle("retro", Prefs.retroMode);
+    this.syncInterfaceUI();
   },
 
   setAccent(hex){
@@ -2596,6 +2805,22 @@ const UI = {
       $("#rgb-speed-value").textContent = v + "s / cycle";
       Theme.setRgbSpeed(v);
     });
+
+    $$("#interface-modes .mode-btn").forEach(b => b.addEventListener("click", () => {
+      this.setRetroMode(b.dataset.interface === "retro");
+    }));
+  },
+
+  setRetroMode(on){
+    Prefs.retroMode = on;
+    Prefs.save();
+    document.body.classList.toggle("retro", on);
+    this.syncInterfaceUI();
+    if (on) { Visualizer.setMode("ledbars"); this.syncVizSwitch(); }
+  },
+
+  syncInterfaceUI(){
+    $$("#interface-modes .mode-btn").forEach(b => b.classList.toggle("active", (b.dataset.interface === "retro") === Prefs.retroMode));
   },
 
   syncThemeUI(){
@@ -2654,7 +2879,7 @@ const UI = {
         case "s": case "S": Player.toggleShuffle(); break;
         case "r": case "R": Player.cycleRepeat(); break;
         case "f": case "F": { const t = AudioEngine.getCurrentTrack(); if (t){ Favorites.toggle(t); this.syncNowPlayingFav(); this.refreshFavButtons(t); } break; }
-        case "v": case "V": { const modes=["spectrum","orbit","waves","cosmos","kaleido","fractal","minimal"]; const i=(modes.indexOf(Visualizer.getMode())+1)%modes.length; Visualizer.setMode(modes[i]); this.syncVizSwitch(); break; }
+        case "v": case "V": { const modes=["spectrum","orbit","waves","cosmos","kaleido","fractal","ledbars","minimal"]; const i=(modes.indexOf(Visualizer.getMode())+1)%modes.length; Visualizer.setMode(modes[i]); this.syncVizSwitch(); break; }
         case "q": case "Q": $("#queue-drawer").classList.toggle("open"); break;
         case "Escape":
           if ($("#help-modal").classList.contains("open")) $("#help-modal").classList.remove("open");
