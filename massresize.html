@@ -308,7 +308,7 @@
   /* ── PDF Modal ── */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
   .modal-overlay.hidden { display: none; }
-  .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; max-width: 480px; width: 100%; position: relative; }
+  .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; max-width: 480px; width: 100%; position: relative; max-height: 90vh; overflow-y: auto; }
   .modal-title { font-size: 18px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
   .modal-sub { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
   .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -711,16 +711,86 @@
   <div class="modal-box">
     <div class="modal-title" id="pdf-modal-title">📄 PDF</div>
     <div class="modal-sub" id="pdf-modal-sub"></div>
-    <div class="modal-btns">
-      <div class="modal-btn" onclick="processPdf('low')" id="pdf-btn-low">
-        <span class="modal-btn-title" id="pdf-low-title"></span>
-        <span class="modal-btn-desc" id="pdf-low-desc"></span>
+
+    <div id="pdfPresetSection">
+      <div class="modal-btns">
+        <div class="modal-btn" onclick="processPdf('low')" id="pdf-btn-low">
+          <span class="modal-btn-title" id="pdf-low-title"></span>
+          <span class="modal-btn-desc" id="pdf-low-desc"></span>
+        </div>
+        <div class="modal-btn" onclick="processPdf('high')" id="pdf-btn-high">
+          <span class="modal-btn-title" id="pdf-high-title"></span>
+          <span class="modal-btn-desc" id="pdf-high-desc"></span>
+        </div>
       </div>
-      <div class="modal-btn" onclick="processPdf('high')" id="pdf-btn-high">
-        <span class="modal-btn-title" id="pdf-high-title"></span>
-        <span class="modal-btn-desc" id="pdf-high-desc"></span>
+      <div style="text-align:center; margin-top:4px; margin-bottom:12px;">
+        <div class="modal-btn" style="display:inline-block; width:auto; padding:10px 20px;" onclick="switchPdfMode('custom')" id="pdf-custom-btn">
+          <span id="pdf-custom-title"></span>
+        </div>
       </div>
     </div>
+
+    <div id="pdfCustomSection" style="display:none;">
+      <div class="field" style="margin-bottom:16px;">
+        <label id="lbl-pdf-size"></label>
+        <div class="range-row">
+          <input type="range" id="pdfMaxSide" min="512" max="4096" step="128" value="1536">
+          <span class="range-val" id="pdfSizeVal">1536px</span>
+        </div>
+        <div class="info-note" id="note-pdf-size"></div>
+      </div>
+
+      <div class="field" style="margin-bottom:16px;">
+        <label id="lbl-pdf-quality"></label>
+        <div class="range-row">
+          <input type="range" id="pdfQuality" min="30" max="95" value="75">
+          <span class="range-val" id="pdfQualityVal">75%</span>
+        </div>
+        <div class="info-note" id="note-pdf-quality"></div>
+      </div>
+
+      <div id="pdfEstimateBox" style="background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
+        <div style="font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;" id="estimate-label"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div>
+            <div style="font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:2px;" id="estimate-orig-label"></div>
+            <div style="font-size:17px; font-weight:800; color:var(--text);" id="pdfOriginalSize">—</div>
+          </div>
+          <div>
+            <div style="font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:2px;" id="estimate-final-label"></div>
+            <div style="font-size:17px; font-weight:800; color:var(--accent);" id="pdfEstimatedSize">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider" style="margin:16px 0;"></div>
+
+      <div class="field" style="margin-bottom:16px;">
+        <label id="lbl-pdf-mode"></label>
+        <div class="format-tabs">
+          <button class="format-tab active" data-pdf-mode="single" onclick="setPdfMode('single',this)" id="pdf-mode-single"></button>
+          <button class="format-tab" data-pdf-mode="split" onclick="setPdfMode('split',this)" id="pdf-mode-split"></button>
+          <button class="format-tab" data-pdf-mode="extract" onclick="setPdfMode('extract',this)" id="pdf-mode-extract"></button>
+        </div>
+        <div class="info-note" id="note-pdf-mode"></div>
+      </div>
+
+      <div class="field" id="pdfPartsField" style="display:none; margin-bottom:16px;">
+        <label id="lbl-pdf-parts"></label>
+        <input type="number" id="pdfParts" min="2" max="50" value="2">
+        <div class="info-note" id="note-pdf-parts"></div>
+      </div>
+
+      <div class="modal-btns">
+        <div class="modal-btn" onclick="switchPdfMode('preset')">
+          <span class="modal-btn-title" id="pdf-back-text"></span>
+        </div>
+        <div class="modal-btn" style="border-color:var(--accent);" onclick="processPdfCustomRun()">
+          <span class="modal-btn-title" id="pdf-apply-text" style="color:var(--accent)"></span>
+        </div>
+      </div>
+    </div>
+
     <div class="pdf-progress" id="pdfProgress">
       <div class="progress-bar-bg"><div class="progress-bar-fill" id="pdfProgressFill"></div></div>
       <div class="pdf-progress-text" id="pdfProgressText"></div>
@@ -850,10 +920,29 @@ const LANGS = {
     pdfLowTitle: '🟡 Baja compresión',
     pdfLowDesc: 'Lado máx 2048px · JPG 90%\nBuena calidad, reducción moderada',
     pdfHighTitle: '🔴 Alta compresión',
-    pdfHighDesc: 'Lado máx 1024px · JPG 90%\nMáxima reducción de tamaño',
+    pdfHighDesc: 'Lado máx 1024px · JPG 72%\nMáxima reducción de tamaño',
     pdfCancel: 'Cancelar — tratar como imágenes normales',
     pdfProcessing: p => `Procesando página ${p}...`,
     pdfDone: 'PDF generado correctamente',
+    pdfCustomTitle: '⚙ Personalizado — elegir tamaño, calidad y modo',
+    lblPdfSize: 'Tamaño máximo (lado más largo)',
+    notePdfSize: 'Mayor tamaño = mejor calidad pero archivo más pesado.',
+    lblPdfQuality: 'Calidad JPG',
+    notePdfQuality: 'Mayor calidad = mejor nitidez pero más peso.',
+    estimateLabel: '📊 Estimación de tamaño (basada en la página 1)',
+    estimateOrigLabel: 'Original',
+    estimateFinalLabel: 'Estimado',
+    lblPdfMode: 'Modo de salida',
+    pdfModeSingle: 'PDF único',
+    pdfModeSplit: 'Varias partes',
+    pdfModeExtract: 'Extraer páginas',
+    notePdfModeSingle: 'Genera un solo PDF comprimido con todas las páginas.',
+    notePdfModeSplit: 'Divide el resultado en varios PDFs más pequeños, empaquetados en un ZIP.',
+    notePdfModeExtract: 'Extrae cada página como una imagen JPG individual, en un ZIP.',
+    lblPdfParts: 'Número de partes',
+    notePdfParts: 'El PDF se dividirá en este número de archivos, con páginas repartidas equitativamente.',
+    pdfBackText: '← Volver',
+    pdfApplyText: 'Aplicar y procesar',
     tourBtn: 'Tutorial',
     tourClose: 'Cerrar',
     tourPrev: '← Atrás',
@@ -929,10 +1018,29 @@ const LANGS = {
     pdfLowTitle: '🟡 Low compression',
     pdfLowDesc: 'Max side 2048px · JPG 90%\nGood quality, moderate reduction',
     pdfHighTitle: '🔴 High compression',
-    pdfHighDesc: 'Max side 1024px · JPG 90%\nMaximum size reduction',
+    pdfHighDesc: 'Max side 1024px · JPG 72%\nMaximum size reduction',
     pdfCancel: 'Cancel — treat as regular images',
     pdfProcessing: p => `Processing page ${p}...`,
     pdfDone: 'PDF generated successfully',
+    pdfCustomTitle: '⚙ Custom — choose size, quality & mode',
+    lblPdfSize: 'Maximum size (longest side)',
+    notePdfSize: 'Larger size = better quality but heavier file.',
+    lblPdfQuality: 'JPG quality',
+    notePdfQuality: 'Higher quality = better sharpness but more weight.',
+    estimateLabel: '📊 Size estimate (based on page 1)',
+    estimateOrigLabel: 'Original',
+    estimateFinalLabel: 'Estimated',
+    lblPdfMode: 'Output mode',
+    pdfModeSingle: 'Single PDF',
+    pdfModeSplit: 'Split in parts',
+    pdfModeExtract: 'Extract pages',
+    notePdfModeSingle: 'Generates a single compressed PDF with all pages.',
+    notePdfModeSplit: 'Splits the result into several smaller PDFs, packaged in a ZIP.',
+    notePdfModeExtract: 'Extracts each page as an individual JPG image, in a ZIP.',
+    lblPdfParts: 'Number of parts',
+    notePdfParts: 'The PDF will be split into this many files, with pages distributed evenly.',
+    pdfBackText: '← Back',
+    pdfApplyText: 'Apply & process',
     tourBtn: 'Tutorial',
     tourClose: 'Close',
     tourPrev: '← Back',
@@ -1072,6 +1180,23 @@ function applyLang(lang) {
   document.getElementById('pdf-high-title').textContent = t.pdfHighTitle;
   document.getElementById('pdf-high-desc').textContent = t.pdfHighDesc;
   document.getElementById('pdf-modal-cancel').textContent = t.pdfCancel;
+  document.getElementById('pdf-custom-title').textContent = t.pdfCustomTitle;
+  document.getElementById('lbl-pdf-size').textContent = t.lblPdfSize;
+  document.getElementById('note-pdf-size').textContent = t.notePdfSize;
+  document.getElementById('lbl-pdf-quality').textContent = t.lblPdfQuality;
+  document.getElementById('note-pdf-quality').textContent = t.notePdfQuality;
+  document.getElementById('estimate-label').textContent = t.estimateLabel;
+  document.getElementById('estimate-orig-label').textContent = t.estimateOrigLabel;
+  document.getElementById('estimate-final-label').textContent = t.estimateFinalLabel;
+  document.getElementById('lbl-pdf-mode').textContent = t.lblPdfMode;
+  document.getElementById('pdf-mode-single').textContent = t.pdfModeSingle;
+  document.getElementById('pdf-mode-split').textContent = t.pdfModeSplit;
+  document.getElementById('pdf-mode-extract').textContent = t.pdfModeExtract;
+  document.getElementById('lbl-pdf-parts').textContent = t.lblPdfParts;
+  document.getElementById('note-pdf-parts').textContent = t.notePdfParts;
+  document.getElementById('pdf-back-text').textContent = t.pdfBackText;
+  document.getElementById('pdf-apply-text').textContent = t.pdfApplyText;
+  updatePdfModeNote();
 
   // Tour
   document.getElementById('tour-btn-label').textContent = t.tourBtn;
@@ -1605,12 +1730,15 @@ document.getElementById('downloadZipBtn').addEventListener('click', async () => 
 // PDF COMPRESSION
 // ═══════════════════════════════════════
 let currentPdfFile = null;
+let pdfExportMode = 'single';
+let pdfEstimateTimer = null;
 
 function openPdfModal(pdfFile) {
   currentPdfFile = pdfFile;
   document.getElementById('pdfModal').classList.remove('hidden');
   document.getElementById('pdfProgress').style.display = 'none';
   document.getElementById('pdfProgressFill').style.width = '0%';
+  switchPdfMode('preset');
 }
 
 function closePdfModal() {
@@ -1618,10 +1746,92 @@ function closePdfModal() {
   currentPdfFile = null;
 }
 
+function switchPdfMode(mode) {
+  document.getElementById('pdfPresetSection').style.display = mode === 'preset' ? 'block' : 'none';
+  document.getElementById('pdfCustomSection').style.display = mode === 'custom' ? 'block' : 'none';
+  if (mode === 'custom') schedulePdfEstimate();
+}
+
+function setPdfMode(mode, el) {
+  pdfExportMode = mode;
+  document.querySelectorAll('[data-pdf-mode]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pdfPartsField').style.display = mode === 'split' ? 'block' : 'none';
+  updatePdfModeNote();
+}
+
+function updatePdfModeNote() {
+  const t = LANGS[currentLang];
+  const map = { single: t.notePdfModeSingle, split: t.notePdfModeSplit, extract: t.notePdfModeExtract };
+  const noteEl = document.getElementById('note-pdf-mode');
+  if (noteEl) noteEl.textContent = map[pdfExportMode] || '';
+}
+
+function schedulePdfEstimate() {
+  clearTimeout(pdfEstimateTimer);
+  pdfEstimateTimer = setTimeout(computePdfEstimate, 350);
+}
+
+async function computePdfEstimate() {
+  if (!currentPdfFile) return;
+  const origEl = document.getElementById('pdfOriginalSize');
+  const estEl = document.getElementById('pdfEstimatedSize');
+  origEl.textContent = (currentPdfFile.size / 1048576).toFixed(2) + ' MB';
+  estEl.textContent = '...';
+
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const maxSide = parseInt(document.getElementById('pdfMaxSide').value);
+    const quality = parseInt(document.getElementById('pdfQuality').value) / 100;
+
+    const arrayBuffer = await currentPdfFile.arrayBuffer();
+    const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const numPages = pdfDoc.numPages;
+
+    const blob = await renderPdfPageToBlob(pdfDoc, 1, maxSide, quality);
+    const estimatedTotal = blob.size * numPages;
+    estEl.textContent = '~' + (estimatedTotal / 1048576).toFixed(2) + ' MB';
+  } catch(e) {
+    estEl.textContent = '—';
+  }
+}
+
+document.getElementById('pdfMaxSide').addEventListener('input', () => {
+  document.getElementById('pdfSizeVal').textContent = document.getElementById('pdfMaxSide').value + 'px';
+  schedulePdfEstimate();
+});
+document.getElementById('pdfQuality').addEventListener('input', () => {
+  document.getElementById('pdfQualityVal').textContent = document.getElementById('pdfQuality').value + '%';
+  schedulePdfEstimate();
+});
+
+async function renderPdfPageToBlob(pdfDoc, pageNum, maxSide, quality) {
+  const page = await pdfDoc.getPage(pageNum);
+  const viewport = page.getViewport({ scale: 2 });
+  const canvas = document.createElement('canvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+
+  const ow = canvas.width, oh = canvas.height;
+  const lng = Math.max(ow, oh);
+  if (lng > maxSide) {
+    const scale = maxSide / lng;
+    const c2 = document.createElement('canvas');
+    c2.width = Math.round(ow * scale);
+    c2.height = Math.round(oh * scale);
+    const ctx2 = c2.getContext('2d');
+    ctx2.drawImage(canvas, 0, 0, c2.width, c2.height);
+    return await new Promise(res => c2.toBlob(res, 'image/jpeg', quality));
+  }
+  return await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+}
+
 async function processPdf(level) {
   if (!currentPdfFile) return;
   const t = LANGS[currentLang];
-  const quality = level === 'low' ? 0.90 : 0.90;
+  const quality = level === 'low' ? 0.90 : 0.72;
   const maxSide = level === 'low' ? 2048 : 1024;
 
   const progressEl = document.getElementById('pdfProgress');
@@ -1640,29 +1850,8 @@ async function processPdf(level) {
     for (let i = 1; i <= numPages; i++) {
       fillEl.style.width = ((i - 1) / numPages * 100) + '%';
       textEl.textContent = t.pdfProcessing(i + '/' + numPages);
-      const page = await pdfDoc.getPage(i);
-      const viewport = page.getViewport({ scale: 2 });
-      const canvas = document.createElement('canvas');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      const ctx = canvas.getContext('2d');
-      await page.render({ canvasContext: ctx, viewport }).promise;
-
-      const ow = canvas.width, oh = canvas.height;
-      const lng = Math.max(ow, oh);
-      if (lng > maxSide) {
-        const scale = maxSide / lng;
-        const c2 = document.createElement('canvas');
-        c2.width = Math.round(ow * scale);
-        c2.height = Math.round(oh * scale);
-        const ctx2 = c2.getContext('2d');
-        ctx2.drawImage(canvas, 0, 0, c2.width, c2.height);
-        const blob = await new Promise(res => c2.toBlob(res, 'image/jpeg', quality));
-        pageBlobs.push(blob);
-      } else {
-        const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
-        pageBlobs.push(blob);
-      }
+      const blob = await renderPdfPageToBlob(pdfDoc, i, maxSide, quality);
+      pageBlobs.push(blob);
       await new Promise(r => setTimeout(r, 0));
     }
 
@@ -1678,7 +1867,77 @@ async function processPdf(level) {
   document.querySelectorAll('#pdfModal .modal-btn, #pdf-modal-cancel').forEach(b => b.style.pointerEvents = '');
 }
 
-async function buildPdfFromBlobs(blobs, filename) {
+async function processPdfCustomRun() {
+  if (!currentPdfFile) return;
+  const t = LANGS[currentLang];
+  const maxSide = parseInt(document.getElementById('pdfMaxSide').value);
+  const quality = parseInt(document.getElementById('pdfQuality').value) / 100;
+  const mode = pdfExportMode;
+  const parts = mode === 'split' ? Math.max(2, parseInt(document.getElementById('pdfParts').value) || 2) : 1;
+
+  const progressEl = document.getElementById('pdfProgress');
+  const fillEl = document.getElementById('pdfProgressFill');
+  const textEl = document.getElementById('pdfProgressText');
+  progressEl.style.display = 'block';
+  document.querySelectorAll('#pdfModal .modal-btn, #pdf-modal-cancel').forEach(b => b.style.pointerEvents = 'none');
+
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const arrayBuffer = await currentPdfFile.arrayBuffer();
+    const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const numPages = pdfDoc.numPages;
+    const pageBlobs = [];
+
+    for (let i = 1; i <= numPages; i++) {
+      fillEl.style.width = ((i - 1) / numPages * 100) + '%';
+      textEl.textContent = t.pdfProcessing(i + '/' + numPages);
+      const blob = await renderPdfPageToBlob(pdfDoc, i, maxSide, quality);
+      pageBlobs.push(blob);
+      await new Promise(r => setTimeout(r, 0));
+    }
+
+    fillEl.style.width = '100%';
+    textEl.textContent = t.pdfDone;
+
+    const baseName = currentPdfFile.name.replace(/\.pdf$/i, '');
+
+    if (mode === 'single') {
+      await buildPdfFromBlobs(pageBlobs, baseName + '_compressed.pdf');
+    } else if (mode === 'split') {
+      const perPart = Math.ceil(numPages / parts);
+      const zip = new JSZip();
+      let partIndex = 0;
+      for (let p = 0; p < parts; p++) {
+        const chunk = pageBlobs.slice(p * perPart, (p + 1) * perPart);
+        if (!chunk.length) continue;
+        partIndex++;
+        const pdfBlob = await buildPdfFromBlobs(chunk, `${baseName}_parte${partIndex}.pdf`, { download: false });
+        zip.file(`${baseName}_parte${String(partIndex).padStart(2, '0')}.pdf`, pdfBlob);
+      }
+      const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a'); a.href = url; a.download = baseName + '_partes.zip'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } else if (mode === 'extract') {
+      const zip = new JSZip();
+      pageBlobs.forEach((blob, idx) => {
+        zip.file(`${baseName}_pagina${String(idx + 1).padStart(3, '0')}.jpg`, blob);
+      });
+      const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a'); a.href = url; a.download = baseName + '_paginas.zip'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    setTimeout(closePdfModal, 800);
+  } catch(err) {
+    textEl.textContent = 'Error: ' + err.message;
+    console.error(err);
+  }
+  document.querySelectorAll('#pdfModal .modal-btn, #pdf-modal-cancel').forEach(b => b.style.pointerEvents = '');
+}
+
+async function buildPdfFromBlobs(blobs, filename, opts = { download: true }) {
   const pages = await Promise.all(blobs.map(blob => new Promise(res => {
     const reader = new FileReader();
     reader.onload = e => {
@@ -1752,9 +2011,12 @@ async function buildPdfFromBlobs(blobs, filename) {
   for (const part of pdfParts) { out.set(part, offset); offset += part.byteLength; }
 
   const blob = new Blob([out], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  if (opts.download !== false) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+  return blob;
 }
 
 // ═══════════════════════════════════════
