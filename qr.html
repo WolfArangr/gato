@@ -33,7 +33,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
 /* Cabecera */
-.top{display:flex;align-items:center;gap:14px;padding:18px clamp(14px,3vw,28px) 6px;max-width:1500px;margin:0 auto}
+.top{display:flex;align-items:center;gap:14px;padding:4px 0 2px;grid-column:1/3;grid-row:1}
 .mark{width:38px;height:38px;flex:none}
 .top h1{font:650 22px/1.1 var(--font-display);letter-spacing:-.01em;margin:0}
 .top p{margin:2px 0 0;color:var(--muted);font-size:13.5px}
@@ -41,6 +41,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* Disposición */
 .app{display:grid;grid-template-columns:170px minmax(0,1fr) minmax(340px,440px);gap:18px;
   padding:12px clamp(14px,3vw,28px) 40px;max-width:1500px;margin:0 auto;align-items:start}
+.app{grid-template-rows:auto 1fr}
+.rail{grid-column:1;grid-row:2}
+.panels{grid-column:2;grid-row:2}
+.stage{grid-column:3;grid-row:1/3}
 .rail{position:sticky;top:calc(12px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:2px}
 .rail button{display:flex;align-items:center;gap:10px;text-align:left;border:0;background:none;padding:9px 12px;border-radius:var(--r-md);cursor:pointer;color:var(--muted);font-weight:500}
 .rail button svg{width:18px;height:18px;flex:none}
@@ -52,18 +56,27 @@ button,input,select,textarea{font:inherit;color:inherit}
 .panel h2{font:620 18px/1.25 var(--font-display);margin:0 0 4px}
 .panel .lead{color:var(--muted);margin:0 0 18px;font-size:14px;max-width:62ch}
 .panel h3{font-size:14px;font-weight:620;margin:22px 0 10px}
-.stage{position:sticky;top:calc(12px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 24px - env(safe-area-inset-top,0px));overflow-y:auto;scrollbar-width:thin;border-radius:var(--r-lg)}
+.stage{position:sticky;top:calc(12px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:10px;height:calc(100vh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;scrollbar-width:thin}
+.stage .card{padding:14px}
+.stage>.view{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.stage>.export{flex:none}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px}
 
 @media (max-width:1100px){
   .app{grid-template-columns:minmax(0,1fr) minmax(320px,400px)}
-  .rail{grid-column:1/-1;position:static;flex-direction:row;overflow-x:auto;scrollbar-width:none}
+  .app{grid-template-rows:auto auto 1fr}
+  .top{grid-column:1}.panels{grid-column:1;grid-row:3}.stage{grid-column:2;grid-row:1/4}
+  .rail{grid-column:1;grid-row:2;position:static;flex-direction:row;overflow-x:auto;scrollbar-width:none}
   .rail button{flex:none}
   .rail button[aria-selected="true"]{box-shadow:inset 0 -3px 0 var(--accent)}
 }
 @media (max-width:760px){
   .app{grid-template-columns:minmax(0,1fr)}
+  .app{grid-template-rows:none}
+  .top,.rail,.panels,.stage{grid-column:1;grid-row:auto}
+  .top{order:-3}
   .stage{display:contents}
+  .preview{flex:none;aspect-ratio:1}
   .stage>.card:first-child{order:-1}
   .stage>.export{order:1}
   .rail{order:-2;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:6px 0}
@@ -136,10 +149,11 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
 /* Escenario */
 .preview{position:relative;border-radius:var(--r-md);overflow:hidden;
   background:conic-gradient(var(--check) 25%,var(--surface-2) 0 50%,var(--check) 0 75%,var(--surface-2) 0) 0 0/20px 20px;
-  aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:5%;max-height:56vh;margin:0 auto}
-.preview svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 0 rgba(0,0,0,.04))}
+  flex:1 1 auto;min-height:190px;display:flex;align-items:center;justify-content:center;padding:4%}
+.preview svg{width:100%;height:100%;max-height:100%;display:block;filter:drop-shadow(0 1px 0 rgba(0,0,0,.04))}
 .preview .err{color:var(--bad);text-align:center;padding:20px;font-weight:540;background:var(--surface);border-radius:var(--r-md)}
-.verdict{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.verdict{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.verdict:empty{display:none}
 .verdict div{display:flex;gap:8px;align-items:flex-start;font-size:13px;padding:7px 10px;border-radius:var(--r-sm)}
 .verdict div b{font-weight:620}
 .verdict .ok{background:var(--ok-soft);color:var(--ok)}
@@ -152,12 +166,32 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
 .stats dd{margin:0;font-weight:600;font-size:14px;font-variant-numeric:tabular-nums}
 .cap{margin-top:10px}
 .cap .row{justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px}
-.export h2{font:620 15px/1.2 var(--font-display);margin:0 0 12px}
-.export .field{margin-bottom:12px}
+.export h2{font:620 15px/1.2 var(--font-display);margin:0 0 10px}
+.export .field{margin-bottom:10px;gap:4px}
+.export .seg button{padding:5px 6px;font-size:13px}
+.ex2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:0 10px}
+.custom{display:none;margin-top:6px;flex-wrap:nowrap}
+.custom input{width:96px;flex:none;min-height:34px;padding:5px 8px}
+.custom select{flex:1;min-width:0;min-height:34px;padding:5px 8px;font-size:13px}
+.exinfo{margin:0 0 10px;line-height:1.4}
+.exinfo:empty{display:none}
+.diag{margin-top:10px;flex:none}
+.diag summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;font-size:13px;padding:7px 10px;border-radius:var(--r-sm);background:var(--surface-2)}
+.diag summary::-webkit-details-marker,.hist summary::-webkit-details-marker{display:none}
+.diag summary #diagSum{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.diag summary .more{color:var(--muted);font-size:12px;flex:none}
+.diag summary .more::after{content:"";display:inline-block;width:6px;height:6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);margin:0 2px 2px 7px;transition:transform .15s}
+.diag[open] summary .more::after{transform:rotate(-135deg);margin-bottom:-2px}
+.diag summary.ok{background:var(--ok-soft);color:var(--ok)}.diag summary.warn{background:var(--warn-soft);color:var(--warn)}.diag summary.bad{background:var(--bad-soft);color:var(--bad)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.diag[open]{overflow:auto}
+.hist{margin-top:10px;font-size:13px}
+.hist summary{cursor:pointer;color:var(--muted);list-style:none}
+.hist .history{margin-top:6px}
 .sizes{display:flex;flex-wrap:wrap;gap:6px}
 .sizes button{border:1px solid var(--line);background:var(--surface-2);padding:6px 10px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:560;font-variant-numeric:tabular-nums}
 .sizes button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
-.dl{display:grid;grid-template-columns:1fr auto auto;gap:6px;margin-top:4px}
+.dl{display:grid;grid-template-columns:1fr auto auto;gap:6px}
 .history{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
 .history button{flex:none;width:52px;height:52px;border:1px solid var(--line);border-radius:var(--r-sm);padding:3px;cursor:pointer;background:var(--surface-2)}
 .history button svg{width:100%;height:100%;display:block}
@@ -198,7 +232,10 @@ video{width:100%;border-radius:var(--r-md);background:#000;display:none;margin-t
   </defs>
 </svg>
 
-<header class="top">
+
+
+<main class="app">
+  <header class="top">
   <svg class="mark" viewBox="0 0 38 38" aria-hidden="true">
     <rect width="38" height="38" rx="9" fill="var(--accent)"/>
     <path fill="var(--accent-ink)" fill-rule="evenodd" d="M7 7h11v11H7zm2.2 2.2v6.6h6.6V9.2zM10.6 10.6h3.8v3.8h-3.8zM20 7h4v4h-4zM27 7h4v4h-4zM7 20h4v4H7zM14 20h4v4h-4zM20 14h4v4h-4zM24 20h7v4h-7zM20 24h4v7h-4zM27 27h4v4h-4zM7 27h4v4H7z"/>
@@ -208,8 +245,6 @@ video{width:100%;border-radius:var(--r-md);background:#000;display:none;margin-t
     <p>Genera, diseña y exporta códigos QR. Todo se procesa en tu navegador; nada sale de tu equipo.</p>
   </div>
 </header>
-
-<main class="app">
   <nav class="rail" role="tablist" aria-label="Secciones">
     <button role="tab" data-tab="content" aria-selected="true"><svg><use href="#i-link"/></svg>Contenido</button>
     <button role="tab" data-tab="style"><svg><use href="#i-shape"/></svg>Estilo</button>
@@ -509,33 +544,40 @@ video{width:100%;border-radius:var(--r-md);background:#000;display:none;margin-t
 
   <!-- ESCENARIO -->
   <aside class="stage">
-    <div class="card">
+    <div class="card view">
       <div class="preview" id="preview" aria-live="polite"></div>
-      <div class="verdict" id="verdict"></div>
-      <dl class="stats" id="stats"></dl>
-      <div class="cap"><div class="row"><span>Capacidad usada</span><span id="capTxt"></span></div><div class="meter"><i id="capBar"></i></div></div>
+      <details class="diag" id="diag">
+        <summary><span class="dot" id="diagDot"></span><span id="diagSum">—</span><span class="more">Detalles</span></summary>
+        <div class="verdict" id="verdict"></div>
+        <dl class="stats" id="stats"></dl>
+        <div class="cap"><div class="row"><span>Capacidad usada</span><span id="capTxt"></span></div><div class="meter"><i id="capBar"></i></div></div>
+      </details>
     </div>
     <div class="card export">
       <h2>Exportar</h2>
       <div class="field"><span>Tamaño (px)</span>
-        <div class="sizes" id="sizes"></div>
-        <div class="row" id="customRow" style="margin-top:6px;display:none">
-          <input type="number" min="64" max="8192" step="1" data-k="customSize" style="width:120px"><span class="hint">px de lado (64 – 8192)</span></div>
-        <small id="sizeInfo"></small></div>
-      <div class="field"><span>Formato</span>
-        <div class="seg full" data-seg="format"><button data-v="png">PNG</button><button data-v="jpg">JPG</button><button data-v="webp">WebP</button><button data-v="svg">SVG</button></div></div>
-      <div class="field"><span>Fondo</span>
-        <div class="seg full" data-seg="bgMode"><button data-v="color">A color</button><button data-v="transparent">Transparente</button></div>
-        <small id="bgInfo"></small></div>
-      <div class="field" data-showk="format=jpg|webp"><span>Calidad</span>
-        <div class="range-row"><input type="range" min="50" max="100" step="1" data-k="quality"><output data-o="quality"></output></div></div>
-      <label class="field"><span>Nombre del archivo</span><input type="text" data-k="filename"></label>
+        <div class="seg full" id="sizes"></div>
+        <div class="row custom" id="customRow">
+          <input type="number" min="64" max="8192" step="1" data-k="customSize" aria-label="Tamaño personalizado en píxeles">
+          <select id="printPreset" aria-label="Medidas habituales"><option value="">Medidas habituales…</option>
+            <option value="256">Web pequeño · 256 px</option><option value="236">Pegatina 2 cm · 236 px</option><option value="354">Tarjeta 3 cm · 354 px</option>
+            <option value="591">Folleto 5 cm · 591 px</option><option value="1181">Cartel 10 cm · 1181 px</option><option value="2362">Póster 20 cm · 2362 px</option>
+            <option value="3543">Lona 30 cm · 3543 px</option></select>
+        </div></div>
+      <div class="ex2">
+        <div class="field"><span>Formato</span>
+          <div class="seg full" data-seg="format"><button data-v="png">PNG</button><button data-v="jpg">JPG</button><button data-v="webp">WebP</button><button data-v="svg">SVG</button></div></div>
+        <div class="field"><span>Fondo</span>
+          <div class="seg full" data-seg="bgMode"><button data-v="color">Color</button><button data-v="transparent">Transparente</button></div></div>
+      </div>
+      <div class="field" data-showk="format=jpg|webp"><div class="range-row"><span class="lbl" style="flex:none">Calidad</span><input type="range" min="50" max="100" step="1" data-k="quality"><output data-o="quality"></output></div></div>
+      <p class="hint exinfo"><span id="sizeInfo"></span> <span id="bgInfo"></span></p>
       <div class="dl">
         <button class="btn primary" type="button" id="dlBtn"><svg><use href="#i-down"/></svg><span id="dlTxt">Descargar</span></button>
         <button class="btn" type="button" id="copyImg" title="Copiar imagen al portapapeles"><svg><use href="#i-copy"/></svg>Imagen</button>
         <button class="btn" type="button" id="copySvg" title="Copiar código SVG">SVG</button>
       </div>
-      <div class="field" style="margin:14px 0 0" id="histWrap" hidden><span>Descargados en esta sesión</span><div class="history" id="history"></div></div>
+      <details class="hist" id="histWrap" hidden><summary>Descargados en esta sesión (<span id="histN">0</span>)</summary><div class="history" id="history"></div></details>
     </div>
   </aside>
 </main>
@@ -695,7 +737,7 @@ const DEFAULTS = {
   bgMode: 'color', bg: '#ffffff',
   logo: null, logoSize: 22, logoPad: 1, logoExcavate: true, logoShape: 'rounded', logoBg: 'bg', logoBgColor: '#ffffff',
   frame: 'none', frameColor: '#111111', label: 'Escanéame', labelColor: '#ffffff', labelFont: 'sans', labelWeight: '800', labelSize: 100, frameRadius: 30, frameWidth: 3,
-  size: 1024, customSize: 1200, format: 'png', quality: 92, filename: 'codigo-qr'
+  size: 1024, customSize: 1200, format: 'png', quality: 92
 };
 let S = structuredClone(DEFAULTS);
 const C = {}; // campos de contenido
@@ -986,19 +1028,23 @@ function doRender() {
   const bytes = new TextEncoder().encode(text).length;
   $('#encodedCount').textContent = `${[...text].length} caracteres · ${bytes} bytes`;
   syncUI();
-  if (!text) { lastBuild = null; $('#preview').innerHTML = '<div class="err">Rellena los datos para generar el código.</div>'; $('#verdict').innerHTML = ''; return; }
+  if (!text) { lastBuild = null; $('#preview').innerHTML = '<div class="err">Rellena los datos para generar el código.</div>'; $('#verdict').innerHTML = ''; $('#diagSum').textContent = '—'; $('#diag summary').className = ''; return; }
   try { lastBuild = buildSVG(text, S); lastBuild.text = text; }
-  catch (e) { lastBuild = null; $('#preview').innerHTML = `<div class="err">${esc(e.message)}</div>`; $('#verdict').innerHTML = ''; return; }
+  catch (e) { lastBuild = null; $('#preview').innerHTML = `<div class="err">${esc(e.message)}</div>`; $('#verdict').innerHTML = ''; $('#diagSum').textContent = '—'; $('#diag summary').className = ''; return; }
   $('#preview').innerHTML = lastBuild.svg;
   const q = lastBuild.q;
-  $('#verdict').innerHTML = diagnose(lastBuild).map(([k, a, b]) => `<div class="${k}"><span><b>${a}</b> ${b}</span></div>`).join('');
+  const dg = diagnose(lastBuild), rank = { bad: 3, warn: 2, ok: 1, info: 0 }, worst = dg.reduce((w, d) => rank[d[0]] > rank[w[0]] ? d : w, dg[0]);
+  const nIss = dg.filter(d => d[0] === 'bad' || d[0] === 'warn').length;
+  $('#verdict').innerHTML = dg.filter(d => d[0] !== 'ok').map(([k, a, b]) => `<div class="${k}"><span><b>${a}</b> ${b}</span></div>`).join('');
+  $('#diag summary').className = worst[0] === 'info' ? '' : worst[0];
+  $('#diagSum').textContent = worst[0] === 'ok' ? `Listo para escanear · v${q.version} · ${q.size}×${q.size}` : worst[1].replace(/[.:]$/, '') + (nIss > 1 ? ` (+${nIss - 1} aviso${nIss > 2 ? 's' : ''})` : '');
   $('#stats').innerHTML = [['Versión', q.version], ['Módulos', q.size + '×' + q.size], ['Corrección', q.ecl], ['Máscara', q.mask], ['Modo', q.mode.replace(' (UTF-8)', '')], ['Margen', S.margin]]
     .map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
   const pct = Math.min(100, q.dataBits / q.capacityBits * 100);
   $('#capBar').style.width = pct + '%'; $('#capTxt').textContent = `${Math.ceil(q.dataBits / 8)} de ${q.capacityBits / 8} bytes (v${q.version})`;
   const px = exportPx();
-  $('#sizeInfo').textContent = S.format === 'svg' ? 'SVG es vectorial: se ve nítido a cualquier tamaño.' :
-    `${px}×${px} px · a 300 ppp mide ${(px / 300 * 2.54).toFixed(1)} cm · ${(px * U / lastBuild.side).toFixed(1)} px por módulo`;
+  $('#sizeInfo').textContent = S.format === 'svg' ? 'SVG vectorial: nítido a cualquier tamaño.' :
+    `${px}×${px} px · ${(px / 300 * 2.54).toFixed(1)} cm a 300 ppp`;
 }
 
 /* ---------- Sincronización UI ---------- */
@@ -1027,7 +1073,7 @@ function syncUI() {
   $('#customRow').style.display = S.size === 'custom' ? 'flex' : 'none';
   const jpg = S.format === 'jpg';
   $$('[data-seg="bgMode"] button[data-v="transparent"]').forEach(b => b.disabled = jpg);
-  $('#bgInfo').textContent = jpg ? 'JPG no admite transparencia: se exporta con el color de fondo.' : S.bgMode === 'transparent' ? 'PNG, WebP y SVG conservan la transparencia.' : '';
+  $('#bgInfo').textContent = jpg ? 'JPG no admite transparencia: se exporta con el color de fondo.' : '';
   $('#dlTxt').textContent = `Descargar ${S.format.toUpperCase()}`;
   $('[data-c1label]').textContent = S.fillMode === 'solid' ? 'Color de los módulos' : 'Color inicial';
   const lp = $('#logoPrev'); lp.innerHTML = S.logo ? `<img src="${S.logo}" alt="Logo actual">` : '';
@@ -1058,11 +1104,8 @@ function buildPickers() {
   const bind = (sel, key) => $(sel).onclick = e => { const b = e.target.closest('button'); if (b) { S[key] = b.dataset.v; render(); } };
   bind('#pickShape', 'shape'); bind('#pickEyeOuter', 'eyeOuter'); bind('#pickEyeInner', 'eyeInner'); bind('#pickFrame', 'frame');
   // tamaños
-  const SZ = [['256', '256'], ['512', '512'], ['1024', '1024'], ['2048', '2048'], ['4096', '4096'], ['custom', 'Personalizado']];
-  $('#sizes').innerHTML = SZ.map(([v, n]) => `<button type="button" data-v="${v}">${n}</button>`).join('') +
-    `<select id="printPreset" style="width:auto;min-height:32px;padding:4px 8px;font-size:13px" aria-label="Tamaños de impresión"><option value="">Impresión a 300 ppp…</option>
-     <option value="236">Pegatina 2 cm · 236 px</option><option value="354">Tarjeta 3 cm · 354 px</option><option value="591">Folleto 5 cm · 591 px</option>
-     <option value="1181">Cartel 10 cm · 1181 px</option><option value="2362">Póster 20 cm · 2362 px</option><option value="3543">Lona 30 cm · 3543 px</option></select>`;
+  const SZ = [['512', '512'], ['1024', '1024'], ['2048', '2048'], ['4096', '4096'], ['custom', 'Otro']];
+  $('#sizes').innerHTML = SZ.map(([v, n]) => `<button type="button" data-v="${v}">${n}</button>`).join('');
   $('#sizes').onclick = e => { const b = e.target.closest('button'); if (b) { S.size = b.dataset.v === 'custom' ? 'custom' : +b.dataset.v; render(); } };
   $('#printPreset').onchange = e => { if (e.target.value) { S.size = 'custom'; S.customSize = +e.target.value; e.target.value = ''; render(); } };
   // segmentos
@@ -1207,7 +1250,8 @@ async function makeBlob(text, st = S) {
   if (st.format === 'svg') return new Blob([b.svg], { type: MIME.svg });
   return rasterize(b.svg, px, st.format, st.format === 'jpg' ? (local.bg || '#ffffff') : null);
 }
-const fname = (base, fmt) => (base || 'codigo-qr').replace(/[\\/:*?"<>|]+/g, '-').trim() + '.' + fmt;
+const fname = (base, fmt) => base + '.' + fmt;
+const qrName = () => `qr-${S.type}` + (S.format === 'svg' ? '' : '-' + exportPx());
 function saveBlob(blob, name) {
   const a = document.createElement('a'), url = URL.createObjectURL(blob);
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
@@ -1218,13 +1262,13 @@ async function download() {
   if (!lastBuild) return toast('No hay ningún código que exportar');
   try {
     const blob = await makeBlob(lastBuild.text);
-    saveBlob(blob, fname(S.filename, S.format));
-    toast(`Descargado ${fname(S.filename, S.format)} · ${S.format === 'svg' ? 'vectorial' : exportPx() + ' px'}`);
+    const nm = fname(qrName(), S.format); saveBlob(blob, nm);
+    toast(`Descargado ${nm} · ${S.format === 'svg' ? 'vectorial' : exportPx() + ' px'}`);
     HIST.unshift({ S: structuredClone(S), C: structuredClone(C), svg: lastBuild.svg }); HIST.length = Math.min(HIST.length, 12); drawHist();
   } catch (e) { toast(e.message); }
 }
 function drawHist() {
-  $('#histWrap').hidden = !HIST.length;
+  $('#histWrap').hidden = !HIST.length; $('#histN').textContent = HIST.length;
   $('#history').innerHTML = HIST.map((h, i) => `<button type="button" data-i="${i}" title="Recuperar este diseño">${h.svg}</button>`).join('');
 }
 async function copyImg() {
@@ -1274,7 +1318,7 @@ async function batch() {
     bar.style.width = ((i + 1) / lines.length * 100) + '%';
     if (i % 10 === 9) await new Promise(r => setTimeout(r));
   }
-  if (files.length) saveBlob(makeZip(files), fname(S.filename + '-lote', 'zip'));
+  if (files.length) saveBlob(makeZip(files), fname('qr-lote', 'zip'));
   $('#batchInfo').textContent = `${files.length} códigos generados en ${S.format.toUpperCase()}${S.format !== 'svg' ? ' a ' + exportPx() + ' px' : ''}.` + (errs.length ? ' Errores: ' + errs.join(' · ') : '');
   setTimeout(() => { prog.style.display = 'none'; bar.style.width = 0; }, 1500);
 }
@@ -1328,7 +1372,7 @@ function bindReader() {
 
 /* ---------- Configuración ---------- */
 function bindConfig() {
-  $('#cfgSave').onclick = () => saveBlob(new Blob([JSON.stringify({ app: 'taller-qr', v: 1, S, C }, null, 2)], { type: 'application/json' }), fname(S.filename + '-diseño', 'json'));
+  $('#cfgSave').onclick = () => saveBlob(new Blob([JSON.stringify({ app: 'taller-qr', v: 1, S, C }, null, 2)], { type: 'application/json' }), fname('qr-diseño', 'json'));
   $('#cfgLoad').onclick = () => $('#cfgFile').click();
   $('#cfgFile').onchange = async e => {
     try { const j = JSON.parse(await e.target.files[0].text()); if (j.app !== 'taller-qr') throw 0;
