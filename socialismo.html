@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>el socialismo, las etiquetas y la libertad — gato.red</title>
+<meta name="description" content="Qué es el socialismo en teoría y hoy, por qué las etiquetas sustituyen a los argumentos y una defensa del liberalismo minarquista con la libertad individual en el centro.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0d0d0d; --surface:#161616; --surface2:#1e1e1e;
+  --border:rgba(255,255,255,.07); --border-hover:rgba(255,255,255,.18);
+  --text:#f0ece2; --muted:#888; --dim:#444;
+  --accent-red:#e84d4d; --accent-amber:#f0a020; --accent-teal:#2dbf8a;
+  --accent-blue:#4d9de8; --accent-purple:#9b7dea; --accent-pink:#e05ca3; --accent-gray:#aaa;
+  --cat: var(--accent-blue);
+  --mono:'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --display:'Unbounded', 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 24px)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--mono);font-size:13px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+/* overlay crt */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(to bottom,rgba(0,0,0,.04) 0,rgba(0,0,0,.04) 1px,transparent 1px,transparent 3px);
+}
+a{color:var(--text);text-decoration-color:var(--cat);text-underline-offset:3px}
+a:hover{color:var(--cat)}
+:focus-visible{outline:1px solid var(--cat);outline-offset:3px}
+::selection{background:var(--cat);color:var(--bg)}
+
+/* barra de progreso de lectura */
+.progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--cat);z-index:50}
+
+.wrap{max-width:1400px;margin:0 auto;padding:0 48px}
+
+/* header */
+.site-head{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;padding:40px 0 28px;border-bottom:1px solid var(--border)}
+.logo{font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:-.03em;text-decoration:none;color:var(--text)}
+.logo span{color:var(--accent-red)}
+.logo-sub{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.15em;margin-top:4px}
+.stats{display:flex;gap:36px}
+.stat{text-align:right}
+.stat b{display:block;font-family:var(--display);font-weight:900;font-size:28px;letter-spacing:-.03em;line-height:1}
+.stat small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+
+/* cabecera de categoría */
+.cat-head{display:flex;align-items:center;gap:16px;margin:56px 0 0}
+.cat-head .name{color:var(--cat);text-transform:uppercase;letter-spacing:.15em;font-size:11px;font-weight:700}
+.cat-head .line{flex:1;height:1px;background:linear-gradient(90deg,var(--cat),transparent)}
+.cat-head .count{color:var(--muted);font-size:11px}
+
+/* hero */
+.hero{padding:36px 0 56px;max-width:1100px}
+.hero h1{
+  font-family:var(--display);font-weight:900;letter-spacing:-.04em;line-height:.98;
+  font-size:clamp(38px,7.2vw,104px);margin:0 0 32px;
+}
+.lede{font-size:clamp(14px,1.4vw,17px);color:var(--text);max-width:68ch;margin:0 0 28px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.tag{border:1px solid var(--border-hover);color:var(--muted);padding:3px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.12em}
+.tag.on{background:var(--cat);border-color:var(--cat);color:var(--bg);font-weight:700}
+
+/* layout artículo */
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:64px;padding-bottom:80px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start}
+.toc ol{list-style:none;margin:0;padding:0;counter-reset:t}
+.toc li{counter-increment:t;border-left:1px solid var(--border)}
+.toc a{display:block;padding:7px 0 7px 14px;color:var(--muted);text-decoration:none;font-size:11px;line-height:1.4;border-left:2px solid transparent;margin-left:-1px}
+.toc a::before{content:counter(t,decimal-leading-zero) "  ";color:var(--dim)}
+.toc a:hover,.toc a.active{color:var(--text);border-left-color:var(--cat)}
+
+.sec-label{display:flex;align-items:center;gap:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-size:10px;margin:0 0 18px}
+.sec-label::after{content:"";flex:1;height:1px;background:var(--border)}
+
+article section{padding:8px 0 48px}
+article h2{font-family:var(--display);font-weight:900;font-size:clamp(24px,3vw,38px);letter-spacing:-.03em;line-height:1.05;margin:0 0 24px;max-width:22ch}
+article h3{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:-.01em;margin:32px 0 10px}
+.prose{max-width:70ch}
+.prose p{font-size:14.5px;line-height:1.75;margin:0 0 18px}
+.prose em{color:var(--text)}
+.prose strong{font-weight:700}
+.muted{color:var(--muted)}
+
+blockquote.pull{
+  margin:32px 0;padding:6px 0 6px 22px;border-left:3px solid var(--cat);
+  font-family:var(--display);font-weight:700;font-size:clamp(17px,1.8vw,22px);line-height:1.3;letter-spacing:-.02em;max-width:34ch
+}
+blockquote.pull cite{display:block;font-family:var(--mono);font-weight:400;font-style:normal;font-size:11px;color:var(--muted);letter-spacing:0;margin-top:10px}
+
+/* tarjetas */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:28px 0 32px;max-width:900px}
+.card{background:var(--bg);padding:20px 20px 22px;position:relative;transition:background .15s}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,var(--cat));opacity:0;transition:opacity .15s}
+.card:hover{background:var(--surface)}
+.card:hover::before{opacity:1}
+.card .k{font-size:10px;color:var(--c,var(--cat));text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
+.card h4{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:-.01em;margin:0 0 8px;line-height:1.2}
+.card p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+.card .url{display:block;margin-top:12px;color:var(--dim);font-size:10px}
+
+.cards.c4{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cards.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.figures{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1100px){.figures{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.cards.c3{grid-template-columns:1fr}}
+@media (max-width:560px){.cards.c4,.figures{grid-template-columns:1fr}}
+/* diagrama */
+.figure{margin:32px 0 36px;border:1px solid var(--border);background:var(--bg);max-width:900px}
+.figure .scroll{overflow-x:auto}
+.figure svg{display:block;width:100%;min-width:620px;height:auto}
+.figure figcaption{border-top:1px solid var(--border);padding:12px 16px;color:var(--muted);font-size:11px}
+.figure text{font-family:var(--mono)}
+
+/* cifras */
+.figures{display:grid;gap:1px;background:var(--border);border:1px solid var(--border);margin:8px 0 32px;max-width:900px}
+.fig{background:var(--bg);padding:22px 20px 18px;display:flex;flex-direction:column;gap:8px}
+.fig b{font-family:var(--display);font-weight:900;font-size:clamp(30px,3.4vw,42px);letter-spacing:-.04em;line-height:1;color:var(--cat)}
+.fig span{font-size:12px;line-height:1.5}
+.fig small{font-size:10px;color:var(--dim);margin-top:auto}
+.fig.red b{color:var(--accent-red)}
+.fig.ft b{font-size:clamp(22px,2.3vw,28px);letter-spacing:-.03em}
+.fig.ft b i{font-style:normal;color:var(--dim)}
+
+/* diagrama interactivo */
+.pt{cursor:pointer;outline:none}
+.pt circle{transition:r .15s}
+.pt:hover circle,.pt:focus-visible circle,.pt.sel circle{r:9}
+.pt:focus-visible text,.pt.sel text{fill:var(--cat)}
+.pt .hit{fill:transparent}
+.ficha{border-top:1px solid var(--border);padding:16px 18px 18px;min-height:118px;border-left:3px solid var(--fc,var(--cat))}
+.ficha .fk{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--fc,var(--cat));margin-bottom:6px}
+.ficha h4{font-family:var(--display);font-weight:700;font-size:16px;margin:0 0 8px;letter-spacing:-.01em}
+.ficha p{margin:0;color:var(--muted);font-size:12px;line-height:1.65;max-width:80ch}
+.hint{font-size:10px;color:var(--dim);padding:10px 16px 0}
+
+/* tabla */
+.table-wrap{overflow-x:auto;margin:24px 0 32px;max-width:900px;border:1px solid var(--border)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:12px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-weight:400}
+tr:last-child td{border-bottom:0}
+td:first-child{font-family:var(--display);font-weight:700;font-size:13px;white-space:nowrap}
+
+/* objeciones */
+details{border-top:1px solid var(--border);max-width:900px}
+details:last-of-type{border-bottom:1px solid var(--border)}
+summary{cursor:pointer;list-style:none;padding:16px 0;display:flex;gap:14px;align-items:baseline;font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:-.01em}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+";font-family:var(--mono);color:var(--cat);font-weight:700;width:12px;flex:none}
+details[open] summary::before{content:"−"}
+details .prose{padding:0 0 12px 26px}
+details .prose p{font-size:13.5px}
+details .obj{color:var(--muted)}
+
+.closing{border-top:1px solid var(--border);padding-top:40px;margin-top:8px}
+.closing p.big{font-family:var(--display);font-weight:900;font-size:clamp(22px,3.2vw,40px);letter-spacing:-.03em;line-height:1.1;max-width:24ch;margin:0 0 24px}
+
+.refs{list-style:none;padding:0;margin:0;max-width:900px;columns:2;column-gap:40px}
+.refs li{break-inside:avoid;padding:8px 0;border-bottom:1px solid var(--border);font-size:11.5px;color:var(--muted)}
+.refs li b{color:var(--text);font-weight:700}
+
+footer{border-top:1px solid var(--border);padding:22px 0 32px;display:flex;justify-content:space-between;gap:16px;color:var(--dim);font-size:11px}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--accent-red)}
+
+@media (max-width:1000px){
+  .layout{grid-template-columns:1fr;gap:16px}
+  .toc{position:static;margin-bottom:24px}
+  .toc ol{columns:2;column-gap:24px}
+}
+@media (max-width:700px){
+  .wrap{padding:0 18px}
+  .site-head{flex-direction:column;align-items:flex-start}
+  .stats{gap:22px}
+  .stat{text-align:left}
+  .toc ol{columns:1}
+  .refs{columns:1}
+  .prose p{font-size:14px}
+  footer{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header class="site-head">
+    <div>
+      <a class="logo" href="https://gato.red">gato<span>.</span>red</a>
+      <span class="logo-sub">artículos / teoría política</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>~28</b><small>min de lectura</small></div>
+      <div class="stat"><b>10</b><small>secciones</small></div>
+      <div class="stat"><b>1</b><small>estado mínimo</small></div>
+    </div>
+  </header>
+
+  <div class="cat-head">
+    <span class="name">artículos</span><span class="line"></span><span class="count">opinión</span>
+  </div>
+
+  <section class="hero">
+    <h1>el socialismo, las etiquetas y la libertad</h1>
+    <p class="lede">Qué es el socialismo cuando se le quita la propaganda, en qué se ha convertido hoy, por qué la palabra «fascista» ha dejado de describir para pasar a silenciar, y por qué la libertad individual merece un estado más pequeño que el que tenemos.</p>
+    <div class="meta">
+      <span class="tag on">opinión</span>
+      <span class="tag">socialismo</span>
+      <span class="tag">liberalismo</span>
+      <span class="tag">minarquismo</span>
+      <span class="tag">españa</span>
+    </div>
+  </section>
+
+  <div class="layout">
+    <nav class="toc" aria-label="índice">
+      <div class="sec-label">// índice</div>
+      <ol>
+        <li><a href="#teoria">el socialismo en teoría</a></li>
+        <li><a href="#hoy">el socialismo hoy</a></li>
+        <li><a href="#fallos">por qué no funciona</a></li>
+        <li><a href="#eje">el eje que falta</a></li>
+        <li><a href="#totalitarismos">totalitarismos</a></li>
+        <li><a href="#espana">españa: ¿dónde está la derecha?</a></li>
+        <li><a href="#etiquetas">las etiquetas como arma</a></li>
+        <li><a href="#minarquismo">en defensa del estado mínimo</a></li>
+        <li><a href="#argentina">el laboratorio argentino</a></li>
+        <li><a href="#objeciones">lo que dirá el otro lado</a></li>
+      </ol>
+    </nav>
+
+    <article>
+
+      <!-- 01 -->
+      <section id="teoria">
+        <div class="sec-label">// así empieza</div>
+        <h2>qué es el socialismo en teoría política pura</h2>
+        <div class="prose">
+          <p>Antes de criticar algo conviene definirlo bien, porque buena parte del debate político actual consiste en pelearse por palabras que nadie se ha molestado en precisar. En su sentido clásico, el socialismo es la doctrina que sostiene que <strong>los medios de producción</strong> (la tierra, las fábricas, el capital, las herramientas con las que se crea riqueza) <strong>deben ser de propiedad colectiva</strong>, ya sea a través del estado, de cooperativas o de la comunidad organizada, y no de individuos privados.</p>
+          <p>La idea nace a principios del siglo XIX con los llamados socialistas utópicos (Saint-Simon, Fourier, Robert Owen), que imaginaban comunidades armónicas donde la competencia sería sustituida por la cooperación. Marx y Engels la convirtieron en otra cosa: un sistema que se presentaba como ciencia de la historia. Según el marxismo, toda sociedad está definida por la lucha entre clases; el capitalismo engendra su propia destrucción; y tras una fase de «dictadura del proletariado», el estado acabará extinguiéndose para dar paso al comunismo.</p>
+          <p>A partir de ahí el tronco se ramifica. Por un lado, la vía revolucionaria (Lenin, Mao, los partidos comunistas del siglo XX), que toma el poder por la fuerza y estatiza la economía. Por otro, la vía reformista (los fabianos británicos, Bernstein en Alemania, la socialdemocracia), que renuncia a la revolución y se propone alcanzar fines parecidos por medio de las urnas, los impuestos y la legislación.</p>
+          <p>Lo que une a todas las ramas, y esto es lo esencial, es una misma premisa: <strong>que el resultado de los intercambios libres entre personas es injusto por naturaleza y que corresponde al poder político corregirlo</strong>. El individuo y sus decisiones dejan de ser el punto de partida; lo es el colectivo, y el estado es su instrumento.</p>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section id="hoy">
+        <div class="sec-label">// así se ve ahora</div>
+        <h2>el socialismo hoy: ya no expropia, gestiona</h2>
+        <div class="prose">
+          <p>Casi ningún partido europeo propone hoy nacionalizar todas las empresas. El socialismo contemporáneo ha aprendido la lección del siglo XX y ha cambiado de método: ya no necesita ser dueño de la fábrica si puede decidir qué produce, a quién contrata, cuánto paga, a qué precio vende y qué parte del beneficio se queda. La propiedad sigue siendo privada sobre el papel; el control, cada vez menos.</p>
+          <p>Sus herramientas son conocidas: una presión fiscal creciente, una regulación que lo alcanza todo, subvenciones que crean dependencia, controles de precios (el alquiler es el ejemplo de manual), un gasto público que en España ronda el 45% de todo lo que se produce, y un relato moral que presenta cada nueva intervención como un «derecho» y cada crítica como una amenaza a ese derecho.</p>
+          <p>Hay además un desplazamiento cultural. Cuando la clase obrera dejó de ser un sujeto revolucionario fiable, buena parte de la izquierda sustituyó la lucha de clases por la política de identidades: el mundo ya no se divide solo en explotadores y explotados, sino en grupos opresores y grupos oprimidos definidos por sexo, origen o identidad. La estructura del razonamiento es la misma: el individuo desaparece detrás del colectivo al que se le asigna, y el estado se ofrece como árbitro y redentor.</p>
+        </div>
+        <div class="figures" aria-label="España en cifras">
+          <div class="fig"><b>37,1%</b><span>del PIB en impuestos y cotizaciones en 2024, récord histórico</span><small>instituto juan de mariana, con datos de eurostat</small></div>
+          <div class="fig"><b>~45%</b><span>del PIB es gasto público, casi la mitad de la economía pasa por el estado</span><small>ine / eurostat</small></div>
+          <div class="fig"><b>+2,9</b><span>puntos de presión fiscal en una década: el mayor aumento de toda la UE</span><small>comisión europea, 2026</small></div>
+          <div class="fig"><b>100,7%</b><span>del PIB en deuda pública al cierre de 2025</span><small>banco de españa</small></div>
+        </div>
+        <div class="prose">
+          <p>La Comisión Europea atribuye ese aumento casi por completo a los impuestos sobre el trabajo, que es tanto como decir sobre el esfuerzo de quien trabaja. Para ser justos, España sigue algo por debajo de la media de la eurozona en presión fiscal; pero la dirección es inequívoca, y va en sentido contrario al de buena parte de Europa. Un país con rentas más bajas que sus vecinos se acerca a sus impuestos sin acercarse a sus sueldos.</p>
+          <p>Así que, hoy, «socialismo» significa sobre todo esto: <strong>la convicción de que el estado debe ser el gran organizador de la vida económica y social</strong>, y de que cualquier ámbito que quede fuera de su alcance es un fallo pendiente de corregir.</p>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section id="fallos">
+        <div class="sec-label">// así falla</div>
+        <h2>por qué no funciona (y por qué no es solo una cuestión de eficacia)</h2>
+        <div class="prose">
+          <p>Las críticas serias al socialismo no son eslóganes. Son argumentos que llevan un siglo esperando respuesta.</p>
+        </div>
+        <div class="cards c4">
+          <div class="card" style="--c:var(--accent-amber)">
+            <div class="k">el cálculo</div>
+            <h4>sin precios no hay brújula</h4>
+            <p>Ludwig von Mises (1920) mostró que sin propiedad privada de los medios de producción no hay precios de mercado para ellos, y sin precios no hay forma racional de saber si un uso del capital es mejor que otro. El planificador navega a ciegas.</p>
+            <span class="url">mises / 1920</span>
+          </div>
+          <div class="card" style="--c:var(--accent-teal)">
+            <div class="k">el conocimiento</div>
+            <h4>nadie sabe lo que saben todos</h4>
+            <p>Friedrich Hayek (1945) explicó que la información relevante de una economía está dispersa en millones de cabezas y circunstancias locales. El sistema de precios la resume y la transmite; ningún comité puede reunirla.</p>
+            <span class="url">hayek / 1945</span>
+          </div>
+          <div class="card" style="--c:var(--accent-purple)">
+            <div class="k">los incentivos</div>
+            <h4>lo de todos no es de nadie</h4>
+            <p>Cuando el esfuerzo no se traduce en recompensa y el error no tiene coste para quien lo comete, la gente responde exactamente como cabría esperar. No es un fallo moral de las personas: es un fallo de diseño del sistema.</p>
+            <span class="url">tragedia de los comunes</span>
+          </div>
+          <div class="card" style="--c:var(--accent-red)">
+            <div class="k">la moral</div>
+            <h4>tu vida no es un recurso común</h4>
+            <p>Robert Nozick (1974) señaló que redistribuir el fruto del trabajo ajeno implica tratar a las personas como medios para fines de otros. Si te quitan por la fuerza parte de tus horas de trabajo, alguien está disponiendo de tu vida.</p>
+            <span class="url">nozick / 1974</span>
+          </div>
+        </div>
+        <div class="prose">
+          <p>El cuarto punto es el decisivo. Incluso si el socialismo funcionara, incluso si un planificador omnisciente pudiera asignar recursos mejor que el mercado, seguiría quedando una pregunta sin responder: <strong>¿con qué derecho?</strong> La economía no es una máquina abstracta; son personas tomando decisiones sobre su propio tiempo, su propio trabajo y su propia propiedad. Planificarla significa, necesariamente, planificarlas a ellas.</p>
+          <p>Por eso Hayek tituló su libro más famoso <em>Camino de servidumbre</em> (1944). Su tesis no era que el socialismo democrático fuese a degenerar en dictadura por mala fe de sus defensores, sino por lógica interna: un plan económico exige unanimidad sobre fines, la unanimidad no existe, y alguien tendrá que imponerla. Cuanto más se planifica, más poder se concentra, y el poder concentrado acaba en manos de quienes menos escrúpulos tienen para usarlo.</p>
+        </div>
+        <blockquote class="pull">
+          El estado es la gran ficción a través de la cual todo el mundo se esfuerza por vivir a costa de todo el mundo.
+          <cite>Frédéric Bastiat, 1848</cite>
+        </blockquote>
+      </section>
+
+      <!-- 04 -->
+      <section id="eje">
+        <div class="sec-label">// así se mide</div>
+        <h2>el eje que nos han escondido</h2>
+        <div class="prose">
+          <p>La división entre izquierda y derecha nació por accidente, en la Asamblea francesa de 1789, según dónde se sentaba cada cual respecto al presidente. Dos siglos después seguimos usando esa geografía de salón para clasificar ideas, y el resultado es un mapa de una sola dimensión que deja fuera la pregunta más importante de la política: <strong>¿cuánto poder tiene el estado sobre el individuo?</strong></p>
+          <p>Desde los años setenta, autores libertarios como David Nolan propusieron añadir un segundo eje. En el horizontal, la clásica pregunta económica. En el vertical, el grado de libertad personal y el tamaño del poder estatal. Visto así, el mapa cambia por completo: los regímenes que la historiografía convencional coloca en extremos opuestos aparecen, de pronto, en el mismo piso.</p>
+        </div>
+
+        <figure class="figure">
+          <div class="scroll">
+          <svg viewBox="0 0 900 520" role="img" aria-labelledby="eje-t eje-d">
+            <title id="eje-t">Mapa político de dos ejes</title>
+            <desc id="eje-d">Eje horizontal: economía colectivizada a la izquierda, economía de mercado a la derecha. Eje vertical: poder del estado total arriba, estado mínimo abajo. Los regímenes totalitarios del siglo XX aparecen agrupados en la franja superior; la socialdemocracia y los partidos españoles actuales en la franja media; el minarquismo y el anarquismo en la inferior.</desc>
+            <defs>
+              <linearGradient id="topzone" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#e84d4d" stop-opacity=".16"/>
+                <stop offset="1" stop-color="#e84d4d" stop-opacity="0"/>
+              </linearGradient>
+              <linearGradient id="botzone" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0" stop-color="#4d9de8" stop-opacity=".14"/>
+                <stop offset="1" stop-color="#4d9de8" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <!-- zonas -->
+            <rect x="90" y="40" width="760" height="150" fill="url(#topzone)"/>
+            <rect x="90" y="330" width="760" height="150" fill="url(#botzone)"/>
+            <!-- rejilla -->
+            <g stroke="rgba(255,255,255,.07)">
+              <line x1="90" y1="40" x2="850" y2="40"/><line x1="90" y1="480" x2="850" y2="480"/>
+              <line x1="90" y1="40" x2="90" y2="480"/><line x1="850" y1="40" x2="850" y2="480"/>
+              <line x1="90" y1="190" x2="850" y2="190" stroke-dasharray="2 4"/>
+              <line x1="90" y1="330" x2="850" y2="330" stroke-dasharray="2 4"/>
+            </g>
+            <g stroke="rgba(255,255,255,.18)">
+              <line x1="470" y1="40" x2="470" y2="480"/>
+              <line x1="90" y1="260" x2="850" y2="260"/>
+            </g>
+            <!-- etiquetas de ejes -->
+            <g fill="#888" font-size="11" letter-spacing="1.4">
+              <text x="96" y="504">← ECONOMÍA COLECTIVIZADA</text>
+              <text x="844" y="504" text-anchor="end">ECONOMÍA DE MERCADO →</text>
+              <text x="70" y="44" text-anchor="end" transform="rotate(-90 70 44)" dx="-0">ESTADO TOTAL</text>
+              <text x="70" y="480" transform="rotate(-90 70 480)">ESTADO MÍNIMO</text>
+            </g>
+            <g fill="#444" font-size="10" letter-spacing="1.4">
+              <text x="842" y="58" text-anchor="end">ZONA TOTALITARIA</text>
+              <text x="842" y="472" text-anchor="end">ZONA DE LIBERTAD INDIVIDUAL</text>
+            </g>
+            <!-- puntos interactivos -->
+            <g font-size="12" fill="#f0ece2">
+              <g class="pt" data-id="urss" tabindex="0" role="button" aria-label="urss / china maoísta"><rect class="hit" x="138" y="56" width="186" height="28"/><circle cx="150" cy="70" r="6" fill="#e84d4d"/><text x="164" y="74">urss / china maoísta</text></g>
+              <g class="pt" data-id="camboya" tabindex="0" role="button" aria-label="camboya / corea del norte"><rect class="hit" x="178" y="94" width="224" height="28"/><circle cx="190" cy="108" r="6" fill="#e84d4d"/><text x="204" y="112">camboya / corea del norte</text></g>
+              <g class="pt" data-id="nazi" tabindex="0" role="button" aria-label="alemania nazi"><rect class="hit" x="318" y="68" width="133" height="28"/><circle cx="330" cy="82" r="6" fill="#e84d4d"/><text x="344" y="86">alemania nazi</text></g>
+              <g class="pt" data-id="italia" tabindex="0" role="button" aria-label="italia fascista"><rect class="hit" x="388" y="112" width="148" height="28"/><circle cx="400" cy="126" r="6" fill="#e84d4d"/><text x="414" y="130">italia fascista</text></g>
+              <g class="pt" data-id="franco" tabindex="0" role="button" aria-label="españa franquista (autarquía)"><rect class="hit" x="418" y="152" width="254" height="28"/><circle cx="430" cy="166" r="6" fill="#e84d4d"/><text x="444" y="170">españa franquista (autarquía)</text></g>
+              <g class="pt" data-id="socdem" tabindex="0" role="button" aria-label="socialdemocracia"><rect class="hit" x="288" y="220" width="156" height="28"/><circle cx="300" cy="234" r="6" fill="#0d0d0d" stroke="#4d9de8" stroke-width="2"/><text x="314" y="238">socialdemocracia</text></g>
+              <g class="pt" data-id="espana" tabindex="0" role="button" aria-label="psoe / pp / vox (estado de bienestar)"><rect class="hit" x="448" y="268" width="315" height="28"/><circle cx="460" cy="282" r="6" fill="#0d0d0d" stroke="#4d9de8" stroke-width="2"/><text x="474" y="286">psoe / pp / vox (estado de bienestar)</text></g>
+              <g class="pt" data-id="minarq" tabindex="0" role="button" aria-label="minarquismo"><rect class="hit" x="688" y="378" width="118" height="28"/><circle cx="700" cy="392" r="6" fill="#4d9de8"/><text x="714" y="396">minarquismo</text></g>
+              <g class="pt" data-id="ancap" tabindex="0" role="button" aria-label="anarcocapitalismo"><rect class="hit" x="600" y="424" width="215" height="40"/><circle cx="800" cy="452" r="6" fill="#4d9de8" fill-opacity=".5"/><text x="792" y="440" text-anchor="end">anarcocapitalismo</text></g>
+              <g class="pt" data-id="anarq" tabindex="0" role="button" aria-label="anarquismo colectivista"><rect class="hit" x="188" y="438" width="209" height="28"/><circle cx="200" cy="452" r="6" fill="#9b7dea" fill-opacity=".6"/><text x="214" y="456">anarquismo colectivista</text></g>
+            </g>
+          </svg>
+          </div>
+          <p class="hint">toca o pasa el ratón por cada punto para ver su ficha</p>
+          <div class="ficha" id="ficha" aria-live="polite">
+            <div class="fk">cómo leer el mapa</div>
+            <h4>el eje decisivo es el vertical</h4>
+            <p>Arriba, regímenes en los que nada queda fuera del estado. Abajo, sistemas que limitan el poder político para dejar espacio al individuo. Selecciona cualquier punto para ver por qué está donde está.</p>
+          </div>
+          <figcaption>Lectura libertaria: posiciones ilustrativas, no medidas. Lo que se representa es la tesis de este artículo. Los partidos españoles aparecen deliberadamente juntos: la distancia entre ellos es real en lo cultural, mucho menor en el tamaño del estado que aceptan.</figcaption>
+        </figure>
+
+        <div class="prose">
+          <p>La clave es entender que el adjetivo que de verdad importa no es «izquierda» ni «derecha», sino <strong>«total»</strong>. Un régimen totalitario es aquel en el que ningún ámbito de la vida (la economía, la educación, la familia, la religión, el arte, la conversación privada) queda fuera del alcance del estado. Y esa ambición, la de un poder que lo abarca todo en nombre del colectivo, es por definición incompatible con la tradición liberal, que nace precisamente para ponerle límites al poder.</p>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section id="totalitarismos">
+        <div class="sec-label">// así acaba</div>
+        <h2>todos los totalitarismos miran hacia el mismo lado</h2>
+        <div class="prose">
+          <p>Si aceptamos que el criterio decisivo es el tamaño del estado y la supresión de la libertad individual, el siglo XX ofrece una lección incómoda para el relato dominante: <strong>todos los grandes totalitarismos fueron colectivistas</strong>. Unos con vocación internacionalista, otros con vocación nacional. Pero ninguno fue liberal, ninguno defendió el mercado libre como principio y ninguno reconoció al individuo derechos anteriores al estado.</p>
+
+          <h3>la variante internacionalista: el comunismo</h3>
+          <p>Aquí no hay mucho que discutir. La Unión Soviética, la China de Mao, la Camboya de los Jemeres Rojos, Corea del Norte o Cuba se proclamaron abiertamente socialistas. Abolieron la propiedad privada, planificaron la economía, suprimieron los partidos, la prensa libre y la religión organizada, y dejaron tras de sí decenas de millones de muertos. Su meta declarada era la clase obrera mundial; su instrumento, un estado sin límites.</p>
+
+          <h3>la variante nacionalista: los fascismos</h3>
+          <p>Aquí está la parte que el relato oficial prefiere no mirar de cerca. El fascismo se suele presentar como «extrema derecha», pero sus rasgos definitorios casan mal con cualquier derecha liberal:</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>régimen</th><th>origen</th><th>economía</th><th>individuo</th></tr></thead>
+            <tbody>
+              <tr><td>italia fascista</td><td>Mussolini fue dirigente del Partido Socialista Italiano y director de su diario, <em>Avanti!</em>, hasta su expulsión en 1914.</td><td>Corporativismo de estado; con el IRI (1933) el estado italiano llegó a controlar una parte enorme de la industria y la banca.</td><td>«Todo dentro del estado, nada fuera del estado, nada contra el estado».</td></tr>
+              <tr><td>alemania nazi</td><td>Partido Nacional<em>socialista</em> Obrero Alemán. Su programa de 1920 pedía nacionalizar los trusts y repartir beneficios de las grandes empresas.</td><td>Propiedad privada nominal bajo dirección estatal: planes cuatrienales, precios y salarios fijados, empresas al servicio del rearme.</td><td>El pueblo (<em>Volk</em>) por encima de la persona; partido único; aniquilación de quien no encajara.</td></tr>
+              <tr><td>españa franquista</td><td>Falange, con un discurso nacionalsindicalista explícitamente anticapitalista.</td><td>Fuero del Trabajo (1938), sindicato vertical obligatorio, autarquía e Instituto Nacional de Industria (1941).</td><td>Partido único, censura, ausencia de libertades políticas y de asociación.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="prose">
+          <p>¿Por qué entonces se los llama «de derechas»? Por tres razones fundamentalmente. Primera, y la más repetida, porque fueron antimarxistas y se enfrentaron a muerte con los comunistas. Es un criterio pobre. Ser enemigo de Marx no te convierte en liberal, del mismo modo que Trotski no se volvió de derechas porque Stalin lo mandara asesinar. Marxistas y nacionalsocialistas no discrepaban sobre si el individuo debía estar subordinado a un colectivo; discrepaban sobre <em>cuál</em>. Para Marx, ese sujeto era el proletariado; para Mussolini, Hitler o la Falange, era la nación. Cambia el nombre del dueño, pero la propiedad privada, el trabajo y la vida de cada persona siguen puestos al servicio de un todo que decide por ellos. Dos facciones que se disputan el control del mismo estado total no son opuestas: son rivales en el mismo campo. Segunda, porque mantuvieron la empresa privada; pero una empresa que produce lo que el estado ordena, al precio que el estado fija y con los trabajadores que el sindicato estatal asigna, solo es privada en el registro mercantil. Tercera, porque en algunos casos se apoyaron en el catolicismo y el tradicionalismo, sobre todo en España. Pero la religión y la tradición no definen un sistema político; lo define cuánto poder concede al estado sobre la vida de las personas.</p>
+          <p>Hayek, que vivió el ascenso del nazismo de cerca, dedicó un capítulo entero de <em>Camino de servidumbre</em> a lo que tituló «las raíces socialistas del nazismo». Su argumento era que nacionalismo y socialismo compartían el mismo enemigo, el liberalismo, y la misma fe en un estado capaz de organizar la sociedad según un plan.</p>
+          <p>Mises, ese mismo año, fue todavía más preciso. Distinguió entre un socialismo «de patrón ruso», que expropia y gestiona directamente las empresas, y un socialismo «de patrón alemán», que deja la propiedad nominalmente en manos privadas pero convierte al empresario en un gerente que obedece: el estado le dice qué producir, cuánto, a qué precio, con qué trabajadores y a quién vender. Formalmente hay propietarios; materialmente, solo hay un dueño. No hace falta afirmar que el nazismo fuera marxista en sentido estricto (rechazaba la lucha de clases e incluso reprivatizó algunas empresas en los años treinta) para ver que era socialista en lo que de verdad importa: el colectivo manda y la propiedad obedece.</p>
+          <p>Y hay un último rasgo compartido, quizá el más revelador: <strong>el encuadramiento de las masas</strong>. Juventudes del partido, sindicatos únicos, organizaciones de ocio dirigidas desde arriba, desfiles, consignas. No basta con quitarle libertades al individuo; hay que disolverlo en la multitud y que la multitud aplauda. Ese servilismo organizado, la masa que obedece y celebra su propia obediencia, es la firma común de todos los totalitarismos del siglo XX, y es exactamente lo contrario de una sociedad de individuos libres.</p>
+        </div>
+        <blockquote class="pull">
+          Cambia la bandera, cambia el sujeto colectivo (la clase o la nación), pero el individuo siempre acaba en el mismo lugar: debajo.
+        </blockquote>
+      </section>
+
+      <!-- 06 -->
+      <section id="espana">
+        <div class="sec-label">// así estamos</div>
+        <h2>españa: ¿dónde está la derecha?</h2>
+        <div class="prose">
+          <p>Si la derecha, en sentido liberal, consiste en defender que el estado sea pequeño, que los impuestos sean bajos y que el individuo decida sobre su vida y su dinero, la pregunta es incómoda: <strong>¿qué partido con representación en el Congreso defiende eso?</strong></p>
+          <p>El Partido Popular hizo campaña en 2023 con un bloque programático titulado literalmente «garantía de bienestar: educación, sanidad y pensiones». No propone desmontar el estado de bienestar, sino gestionarlo mejor. Es, con toda precisión, un partido de centroderecha socialdemócrata en lo económico: acepta el marco y discute el reparto.</p>
+          <p>Vox, al que casi todos los medios llaman «ultraderecha» o «extrema derecha», empezó con un programa económico de corte liberal que planteaba avanzar hacia un sistema mixto de capitalización de pensiones. Pero ese mismo programa ya prometía garantizar el sistema público de pensiones, y en los años siguientes el partido rebajó cualquier aspiración de reforma de fondo, hasta el punto de que alguno de sus dirigentes llegó a presentarse como el único partido que de verdad quería una sanidad pública. Pide bajar impuestos, sí, como cualquier centroderecha europea; pero no cuestiona que el estado sea el gran proveedor de sanidad, educación y pensiones.</p>
+          <p>La consecuencia es clara: en el eje que de verdad mide la libertad, el tamaño del estado, todo el arco parlamentario español se mueve en una franja estrecha. Lo que separa a unos de otros es sobre todo la agenda cultural, territorial e identitaria. Y entonces el prefijo <em>ultra</em> tiene un problema lógico: si ultra significa «más allá del extremo», ¿más allá de qué extremo está un partido que acepta sin discutir el núcleo del estado de bienestar? Llamar ultraderecha a un partido estatista en lo económico es como llamar ultramaratón a una carrera de diez kilómetros: se puede opinar lo que se quiera del corredor, pero la medida está mal.</p>
+          <h3>el doble rasero</h3>
+          <p>Se dirá que la ciencia política no clasifica a la «derecha radical» por la economía, sino por otros rasgos: nacionalismo, autoritarismo, populismo. De acuerdo. Pero entonces el criterio tiene que aplicarse en las dos direcciones, y ahí es donde el relato se desmonta. En la propia literatura académica, formaciones como Podemos o buena parte de lo que hoy es Sumar figuran sin discusión como «izquierda radical». ¿Cuántas veces ha leído usted «la ultraizquierda de Sumar» en un titular? El prefijo solo funciona hacia un lado.</p>
+          <p>Y si el populismo, el culto al líder y el desgaste de los contrapesos institucionales son lo que define a un «ultra», el partido que hoy gobierna España tendría difícil escapar a la etiqueta. Sus críticos señalan una lista larga: un partido rehecho en torno a la figura de su secretario general; un presidente que en su discurso de investidura de 2023 habló de levantar un muro frente a la otra mitad del arco político; una ley de amnistía aprobada a cambio de los votos necesarios para gobernar; un CIS presidido por un antiguo miembro de la ejecutiva socialista; y un fiscal general nombrado por el Gobierno que acabó condenado por el Tribunal Supremo en 2025 por revelación de datos reservados, sentencia de la que el presidente discrepó públicamente. Se puede discutir cada punto; lo que no se puede es aplicar a unos un microscopio y a otros una venda.</p>
+          <p>La conclusión no es que todo el mundo sea ultra. Es que, en un clima de polarización en el que casi toda la comunicación política se ha vuelto populista, el prefijo ha dejado de medir nada. Ya no indica dónde está alguien, sino de qué lado está quien lo usa.</p>
+        </div>
+      </section>
+
+      <!-- 07 -->
+      <section id="etiquetas">
+        <div class="sec-label">// así se controla</div>
+        <h2>las etiquetas como arma: «fascista», «facha», «ultra»</h2>
+        <div class="prose">
+          <p>Ya en 1944 George Orwell, que era socialista y había combatido contra Franco en la guerra civil española, se quejaba de que la palabra «fascismo» se había vaciado hasta significar poco más que «algo que no me gusta». Ochenta años después, la palabra ha completado su recorrido: ya no describe un régimen histórico, sino que funciona como un interruptor que apaga la conversación.</p>
+          <p>El mecanismo es sencillo y eficaz. Una etiqueta así cumple tres funciones a la vez:</p>
+        </div>
+        <div class="cards c3">
+          <div class="card">
+            <div class="k">sustituye</div>
+            <h4>el argumento desaparece</h4>
+            <p>No hace falta refutar una propuesta fiscal o migratoria si se puede declarar que quien la defiende es fascista. La etiqueta ocupa el lugar de la réplica.</p>
+          </div>
+          <div class="card">
+            <div class="k">contamina</div>
+            <h4>la idea queda marcada</h4>
+            <p>Bajar impuestos, defender la propiedad o cuestionar una ley pasan a ser «cosas de fachas». Cualquiera que las comparta hereda el estigma por asociación.</p>
+          </div>
+          <div class="card">
+            <div class="k">disciplina</div>
+            <h4>el resto se calla</h4>
+            <p>El objetivo real no es el etiquetado, sino el espectador. Quien duda aprende que expresar ciertas opiniones tiene un coste social y opta por no hacerlo.</p>
+          </div>
+        </div>
+        <div class="prose">
+          <p>En España el mecanismo tiene incluso nombre oficial. En enero de 2024, el presidente del Gobierno popularizó en una entrevista el término «fachosfera» para referirse a los medios y voces críticos con su Gobierno, a los que acusaba de polarizar y de querer derribarlo. El efecto es exactamente el descrito: no se discute lo que publica un periódico, se le coloca en una esfera, y la esfera ya lleva el adjetivo puesto.</p>
+          <p>Así se controla un relato: no prohibiendo ideas, sino definiendo quién tiene permiso para defenderlas sin pagar un precio. Es lo que en teoría política se llama desplazar la ventana de Overton: el rango de lo decible se estrecha, y lo que queda fuera de él ya no se discute, se denuncia.</p>
+          <p>Y hay una ironía de fondo. Si de verdad todo lo que no es socialdemócrata es fascismo, la palabra deja de servir precisamente para lo que debería: identificar y combatir un fascismo real si algún día aparece. Quien grita «que viene el lobo» cada semana no está protegiendo al rebaño; lo está desarmando.</p>
+        </div>
+      </section>
+
+      <!-- 08 -->
+      <section id="minarquismo">
+        <div class="sec-label">// así lo veo</div>
+        <h2>en defensa del estado mínimo</h2>
+        <div class="prose">
+          <p>Frente a todo esto, el liberalismo minarquista propone algo tan sencillo de enunciar como difícil de aceptar para quien se ha acostumbrado a tutelas: <strong>que cada persona es dueña de su vida, de su cuerpo, de su trabajo y de lo que obtiene con él</strong>, y que el estado existe para proteger esa soberanía, no para administrarla.</p>
+          <p>El minarquismo no es anarquismo. Reconoce que hacen falta instituciones comunes: tribunales que resuelvan conflictos y hagan cumplir los contratos, una policía que proteja a las personas y su propiedad frente a la violencia y el fraude, y una defensa frente a amenazas externas. Ese es el estado mínimo que describía Nozick: un vigilante nocturno que garantiza las reglas del juego, no un entrenador que decide cómo debe jugar cada uno.</p>
+
+          <h3>libertad en sentido fuerte</h3>
+          <p>Benjamin Constant distinguía ya en 1819 entre la libertad de los antiguos, que consistía en participar en el poder colectivo, y la libertad de los modernos, que consiste en disfrutar de una esfera privada donde el poder no entra. El socialismo, en todas sus versiones, ofrece la primera a cambio de la segunda: te deja votar quién administrará tu vida, pero no que la administres tú.</p>
+          <p>John Stuart Mill formuló el principio que debería guiar cualquier ley: el único fin legítimo para el que se puede ejercer poder sobre alguien contra su voluntad es evitar que dañe a otros. Su propio bien, físico o moral, no es justificación suficiente. Es una regla exigente, porque prohíbe al estado hacer muchas cosas «por nuestro bien». Precisamente por eso es una regla de adultos.</p>
+
+          <h3>¿y los que se quedan atrás?</h3>
+          <p>Es la objeción más honesta y merece una respuesta igual de honesta. Primero: la herramienta que más pobreza ha eliminado en la historia humana no ha sido la redistribución, sino el crecimiento económico que producen la propiedad privada, el comercio y la división del trabajo. Segundo: antes de que el estado monopolizara la solidaridad, existían sociedades de socorros mutuos, montepíos, cooperativas, cofradías y redes familiares y religiosas que cubrían enfermedad, viudedad y vejez. No eran perfectas, pero eran voluntarias, cercanas y responsables ante quienes las financiaban. El estado de bienestar no inventó la ayuda mutua: la nacionalizó, y al hacerlo la volvió anónima, burocrática y obligatoria. Tercero: la caridad forzosa no es virtud. La generosidad tiene valor moral precisamente porque es libre.</p>
+          <p>Defender el estado mínimo no es desentenderse de nadie. Es sostener que una sociedad de personas libres, propietarias y responsables es más rica, más justa y más humana que una sociedad de administrados, y que cada competencia que se entrega al estado es una decisión que deja de tomar quien vive con sus consecuencias.</p>
+        </div>
+      </section>
+
+      <!-- argentina -->
+      <section id="argentina">
+        <div class="sec-label">// así se prueba</div>
+        <h2>el laboratorio argentino</h2>
+        <div class="prose">
+          <p>Durante décadas, a cualquier defensor del estado mínimo se le respondía con la misma frase: «eso no lo vota nadie». Argentina la desmintió en 2023. Javier Milei, un economista que se define como anarcocapitalista en lo filosófico y minarquista en lo práctico, ganó la presidencia de un país arruinado por décadas de peronismo con una motosierra como símbolo de campaña.</p>
+          <p>Partía de un país con una inflación del 25,5% mensual en diciembre de 2023, un 211% interanual, déficit crónico y más del 40% de su población en la pobreza. El experimento es imperfecto, porque el estado argentino sigue siendo enorme, y está lejos de terminado. Pero es lo más parecido a una prueba de campo que el liberalismo ha tenido en décadas, y merece mirarse con datos y sin hinchada.</p>
+        </div>
+        <div class="figures" aria-label="Argentina en cifras">
+          <div class="fig ft"><b>25,5% <i>&rarr;</i> 2,6%</b><span>inflación mensual: diciembre de 2023 frente a abril de 2026</span><small>indec</small></div>
+          <div class="fig ft"><b>1.923 <i>&rarr;</i> ~491</b><span>riesgo país, de la toma de posesión a septiembre de 2026</span><small>jp morgan</small></div>
+          <div class="fig ft"><b>41,7% <i>&rarr;</i> 32,3%</b><span>pobreza: segundo semestre de 2023 frente al primero de 2026</span><small>indec</small></div>
+          <div class="fig"><b>40,8%</b><span>de los votos para su partido en las legislativas de 2025, que triplicó sus escaños</span><small>resultados oficiales</small></div>
+        </div>
+        <div class="prose">
+          <h3>las luces</h3>
+          <p>La inflación, el impuesto más cruel porque se cobra sobre todo a quien no tiene cómo protegerse, pasó de los tres dígitos a cifras que en Argentina no se veían desde hacía años. El estado registró superávit fiscal, algo que no ocurría desde hacía más de una década, y lo mantuvo incluso durante la campaña electoral, renunciando al reparto de dinero preelectoral que había sido la norma. La pobreza, tras un pico inicial cercano al 53% durante el ajuste, cayó a su nivel más bajo desde 2018. Y los votantes, lejos de castigarlo, le dieron una victoria amplia en las legislativas de octubre de 2025.</p>
+          <h3>las sombras</h3>
+          <p>Un texto honesto no puede quedarse en la mitad buena. La pobreza volvió a subir en el primer semestre de 2026, hasta el 32,3%, aunque sigue muy por debajo de la heredada. El desempleo ha pasado del 5,7% al 7,8%, el empleo privado registrado lleva meses retrocediendo y la inflación anual sigue siendo alta para cualquier estándar europeo. La obra pública se ha paralizado en buena parte del país. La lección liberal no es que el ajuste sea gratis, sino que lo que tiene coste es décadas de despilfarro; el ajuste solo lo hace visible.</p>
+          <p>Lo que Argentina demuestra, sobre todo, es una cosa: <strong>que reducir el estado es políticamente posible</strong>. Que un pueblo informado puede preferir la verdad incómoda a la mentira cómoda. Y que el discurso que presentaba el estado de bienestar como un destino inevitable era, sencillamente, eso: un discurso.</p>
+        </div>
+      </section>
+
+      <!-- 09 -->
+      <section id="objeciones">
+        <div class="sec-label">// así contestarán</div>
+        <h2>lo que dirá el otro lado</h2>
+        <div class="prose">
+          <p>Un argumento que no aguanta a sus mejores críticos no vale nada. Estas son las objeciones más serias a lo expuesto, formuladas en su versión más fuerte, con la respuesta que les daría un liberal.</p>
+        </div>
+
+        <details>
+          <summary>la historiografía mayoritaria clasifica el fascismo como extrema derecha</summary>
+          <div class="prose">
+            <p class="obj">Es cierto. Historiadores como Robert Paxton o Stanley Payne sitúan el fascismo en la derecha radical: fue antimarxista, persiguió y asesinó a socialistas y comunistas, pactó con élites conservadoras, industriales y terratenientes, y en lo cultural fue nacionalista, jerárquico y tradicionalista. Muchos historiadores consideran la lectura «el fascismo es de izquierdas» un revisionismo interesado.</p>
+            <p>La respuesta liberal no niega esos hechos, sino el criterio. Definir la derecha como «lo que se opone al marxismo» convierte a la izquierda en la única vara de medir y a todo lo demás en su negativo. Que el fascismo persiguiera a los comunistas prueba que eran competidores, no que fueran opuestos: también los bolcheviques exterminaron a mencheviques y anarquistas, y nadie los llama de derechas por ello. Si la medida es el lugar que ocupa el individuo frente al colectivo, el nacionalsocialismo y el comunismo están en el mismo piso y el liberalismo en el contrario. Son dos mapas distintos; lo importante es saber cuál se está usando y por qué uno de ellos resulta tan conveniente para quien lo dibuja.</p>
+          </div>
+        </details>
+        <details>
+          <summary>«extrema derecha» se define por nativismo, autoritarismo y populismo, no por la economía</summary>
+          <div class="prose">
+            <p class="obj">Autores como Cas Mudde definen la derecha radical populista por esa combinación de rasgos, con independencia de su programa económico. Con ese criterio, Vox encaja en la categoría, igual que otros partidos europeos de su familia.</p>
+            <p>Aceptado el criterio, hay que aplicarlo con la misma vara. La misma ciencia política clasifica como «izquierda radical» a partidos que los medios jamás llaman ultraizquierda, y los rasgos de populismo y personalismo aparecen también en partidos que se presentan como moderados. Si la etiqueta solo se usa en una dirección, ya no es una categoría académica: es un arma de comunicación.</p>
+          </div>
+        </details>
+        <details>
+          <summary>también ha habido dictaduras de libre mercado</summary>
+          <div class="prose">
+            <p class="obj">El Chile de Pinochet aplicó reformas económicas liberales bajo una dictadura militar que torturó y asesinó a miles de personas. Es el contraejemplo clásico a la idea de que autoritarismo equivale a estatismo económico.</p>
+            <p>Es una objeción seria y hay que reconocerla: la libertad económica sin libertad política no es liberalismo, es una contradicción. Lo que sí puede decirse es que el régimen chileno fue autoritario, pero no totalitario en sentido estricto (no aspiró a controlar toda la vida económica y social), y que su transición acabó en una democracia liberal. Ningún régimen de planificación central ha hecho ese recorrido de forma pacífica sin abandonar antes la planificación.</p>
+          </div>
+        </details>
+        <details>
+          <summary>los países nórdicos combinan estado grande y libertad</summary>
+          <div class="prose">
+            <p class="obj">Dinamarca, Suecia o Noruega tienen estados de bienestar enormes, impuestos muy altos y, a la vez, figuran entre los países con más libertades civiles, más confianza social y más calidad democrática del mundo.</p>
+            <p>Cierto, y prueba que el socialdemócrata no es un camino automático a la servidumbre. Pero esos mismos países son también economías de mercado muy abiertas, con alta libertad empresarial, sin salario mínimo legal en varios casos y con sistemas de pensiones parcialmente capitalizados (Suecia) o fondos soberanos gestionados con criterios de mercado (Noruega). Suecia, de hecho, prosperó primero con un estado pequeño y tuvo que reformar a fondo su modelo en los noventa tras una crisis. El ejemplo nórdico demuestra más bien que lo que genera la riqueza a repartir es el mercado.</p>
+          </div>
+        </details>
+        <details>
+          <summary>sin estado de bienestar, los más vulnerables quedarían desprotegidos</summary>
+          <div class="prose">
+            <p class="obj">La sanidad universal, las pensiones o la educación pública han reducido de forma medible la pobreza en la vejez, la mortalidad infantil y la desigualdad de oportunidades. Las redes de ayuda voluntaria del siglo XIX dejaban enormes huecos.</p>
+            <p>El minarquismo tiene aquí su debate más difícil, y muchos liberales clásicos aceptan una red mínima de seguridad financiada públicamente. La discusión de fondo no es si debe existir ayuda, sino quién la presta, con qué incentivos y a qué coste de libertad. Lo que se defiende aquí es mover el punto de equilibrio hacia la persona, no negar el problema.</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="closing">
+        <p class="big">la libertad no es lo que queda cuando el estado termina de repartir. es el punto de partida.</p>
+        <div class="prose">
+          <p>No hace falta estar de acuerdo con todo lo anterior para aceptar una exigencia mínima de honestidad intelectual: discutir ideas con argumentos y no con etiquetas, medir el poder del estado con el mismo rasero sea cual sea la bandera que lo enarbola, y recordar que cada vez que se le da al poder una competencia nueva «por nuestro bien», es muy raro que nos la devuelva.</p>
+        </div>
+
+        <div class="sec-label" style="margin-top:48px">// para seguir leyendo</div>
+        <ul class="refs">
+          <li><b>Frédéric Bastiat</b>, <em>La ley</em> (1850)</li>
+          <li><b>Benjamin Constant</b>, <em>De la libertad de los antiguos comparada con la de los modernos</em> (1819)</li>
+          <li><b>John Stuart Mill</b>, <em>Sobre la libertad</em> (1859)</li>
+          <li><b>Ludwig von Mises</b>, <em>El cálculo económico en la comunidad socialista</em> (1920)</li>
+          <li><b>Friedrich A. Hayek</b>, <em>Camino de servidumbre</em> (1944)</li>
+          <li><b>Friedrich A. Hayek</b>, <em>El uso del conocimiento en la sociedad</em> (1945)</li>
+          <li><b>Ludwig von Mises</b>, <em>Gobierno omnipotente</em> (1944)</li>
+          <li><b>George Orwell</b>, <em>¿Qué es el fascismo?</em> (1944)</li>
+          <li><b>Robert Nozick</b>, <em>Anarquía, Estado y utopía</em> (1974)</li>
+          <li><b>Robert O. Paxton</b>, <em>Anatomía del fascismo</em> (2004), para la tesis contraria</li>
+          <li><b>Stanley G. Payne</b>, <em>El fascismo</em> (1980), para la tesis contraria</li>
+        </ul>
+      </section>
+
+    </article>
+  </div>
+
+  <footer>
+    <span>gato.red / texto de opinión / octubre 2026</span>
+    <a href="https://gato.red">volver a gato.red</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var bar=document.getElementById('progress');
+  var links=[].slice.call(document.querySelectorAll('.toc a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  function onScroll(){
+    var h=document.documentElement;
+    var max=h.scrollHeight-h.clientHeight;
+    bar.style.width=(max>0?(h.scrollTop/max)*100:0)+'%';
+    var current=0;
+    secs.forEach(function(s,i){ if(s && s.getBoundingClientRect().top<140) current=i; });
+    links.forEach(function(a,i){ a.classList.toggle('active',i===current); });
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+
+  // fichas del diagrama
+  var R='var(--accent-red)',B='var(--accent-blue)',P='var(--accent-purple)';
+  var F={
+    urss:[R,'socialismo internacionalista','urss y china maoísta','Abolición de la propiedad privada, planificación central y partido único. El sujeto colectivo es la clase obrera mundial. Hambrunas como el Holodomor o el Gran Salto Adelante fueron consecuencia directa de planificar la vida de millones de personas desde un despacho.'],
+    camboya:[R,'socialismo internacionalista','camboya y corea del norte','Los Jemeres Rojos vaciaron las ciudades y abolieron el dinero en busca de una sociedad agraria sin clases; murió alrededor de una cuarta parte de la población. Corea del Norte mantiene hoy el control más completo de la vida privada que existe en el mundo.'],
+    nazi:[R,'socialismo nacionalista','alemania nazi','Propiedad privada nominal, dirección estatal real: planes cuatrienales, precios y salarios fijados y empresas al servicio del rearme. El sujeto colectivo es el Volk. Mises lo llamó socialismo «de patrón alemán».'],
+    italia:[R,'socialismo nacionalista','italia fascista','Mussolini procedía de la cúpula del Partido Socialista. Su corporativismo encuadró a patronos y obreros bajo el estado, y el IRI puso en manos públicas buena parte de la banca y la industria. Su lema lo resume: todo dentro del estado.'],
+    franco:[R,'socialismo nacionalista','españa franquista','Fuero del Trabajo, sindicato vertical obligatorio, autarquía e INI. La Falange se proclamaba nacionalsindicalista y anticapitalista. El catolicismo y el tradicionalismo le dan apariencia de derecha, pero el estado lo decidía todo. Se sitúa algo más abajo porque el desarrollismo de los sesenta abrió parcialmente la economía.'],
+    socdem:[B,'socialismo reformista','socialdemocracia','Renuncia a la revolución y conserva el mercado, pero persigue fines socialistas mediante impuestos, regulación y gasto. Respeta las libertades políticas; su tamaño, en cambio, crece casi siempre en una sola dirección.'],
+    espana:[B,'el consenso español','psoe, pp y vox','Distintos en lo cultural, lo territorial y lo migratorio; muy próximos en lo esencial: ninguno propone desmontar el estado de bienestar. Por eso aparecen juntos en el eje que mide la libertad, y por eso el prefijo «ultra» mide mal.'],
+    minarq:[B,'liberalismo','minarquismo','Estado mínimo: justicia, seguridad, defensa y cumplimiento de contratos. Todo lo demás, a la sociedad civil, al mercado y a la cooperación voluntaria. Es la posición que defiende este artículo.'],
+    ancap:[B,'liberalismo radical','anarcocapitalismo','Lleva la lógica liberal al extremo: incluso justicia y seguridad podrían prestarse en competencia. El minarquismo comparte su diagnóstico, pero considera necesario un estado mínimo que garantice las reglas comunes.'],
+    anarq:[P,'socialismo libertario','anarquismo colectivista','Rechaza el estado y el capital a la vez. Es la prueba de que se puede ser de izquierdas sin ser estatista; el problema es que, sin propiedad privada, alguien acaba teniendo que decidir por todos, y ese alguien termina pareciéndose mucho a un estado.']
+  };
+  var ficha=document.getElementById('ficha');
+  var pts=[].slice.call(document.querySelectorAll('.pt'));
+  function show(el){
+    var d=F[el.getAttribute('data-id')]; if(!d) return;
+    pts.forEach(function(p){p.classList.toggle('sel',p===el)});
+    ficha.style.setProperty('--fc',d[0]);
+    ficha.innerHTML='<div class="fk"></div><h4></h4><p></p>';
+    ficha.querySelector('.fk').textContent=d[1];
+    ficha.querySelector('h4').textContent=d[2];
+    ficha.querySelector('p').textContent=d[3];
+  }
+  pts.forEach(function(p){
+    p.addEventListener('mouseenter',function(){show(p)});
+    p.addEventListener('focus',function(){show(p)});
+    p.addEventListener('click',function(){show(p)});
+    p.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();show(p)}});
+  });
+})();
+</script>
+</body>
+</html>
