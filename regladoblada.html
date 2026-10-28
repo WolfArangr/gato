@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>la regla doblada — gato.red</title>
+<meta name="description" content="Por qué no puede haber igualdad mientras la vara de medir solo mire hacia un lado: ginocentrismo, discriminación positiva y el precio de legislar por grupos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: rgba(255,255,255,.07);
+    --border-hover: rgba(255,255,255,.18);
+    --text: #f0ece2;
+    --muted: #888;
+    --faint: #444;
+    --accent-red: #e84d4d;
+    --accent-amber: #f0a020;
+    --accent-teal: #2dbf8a;
+    --accent-blue: #4d9de8;
+    --accent-purple: #9b7dea;
+    --accent-pink: #e05ca3;
+    --accent-gray: #aaa;
+    --cat: var(--accent-blue); /* categoría: artículos */
+    --mono: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    --display: "Unbounded", "Arial Black", "Helvetica Neue", sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* overlay crt */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,.04) 0px,
+      rgba(0,0,0,.04) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+
+  a { color: inherit; }
+  :focus-visible { outline: 1px solid var(--cat); outline-offset: 3px; }
+  ::selection { background: var(--cat); color: var(--bg); }
+
+  /* barra de progreso */
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    width: 0;
+    background: var(--cat);
+    z-index: 100;
+  }
+
+  .wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+
+  /* header */
+  .site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    padding: 40px 0 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 30px;
+    letter-spacing: -0.03em;
+    text-decoration: none;
+    line-height: 1;
+  }
+  .logo span { color: var(--accent-red); }
+  .tagline {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+  }
+  .stats { display: flex; gap: 36px; text-align: right; }
+  .stat-n {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .stat-l {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+  }
+
+  /* cabecera de categoría */
+  .cat-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 56px 0 28px;
+  }
+  .cat-head .cat {
+    color: var(--cat);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+  }
+  .cat-head .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--cat), transparent);
+    opacity: .7;
+  }
+  .cat-head .count { color: var(--muted); font-size: 10px; letter-spacing: .1em; }
+
+  /* hero del artículo */
+  .hero { padding-bottom: 56px; border-bottom: 1px solid var(--border); }
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(44px, 9vw, 128px);
+    line-height: .92;
+    letter-spacing: -0.04em;
+    margin: 0;
+    max-width: 12ch;
+  }
+  .hero .dek {
+    margin: 32px 0 0;
+    max-width: 52ch;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 36px;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+  .byline b { color: var(--text); font-weight: 700; }
+
+  /* layout cuerpo */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 72px;
+    padding: 56px 0 96px;
+  }
+
+  .toc { position: sticky; top: 32px; align-self: start; }
+  .toc-label {
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+    margin-bottom: 16px;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  .toc li { counter-increment: toc; }
+  .toc a {
+    display: block;
+    padding: 9px 12px;
+    border-left: 2px solid var(--border);
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.4;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .toc a::before {
+    content: counter(toc, decimal-leading-zero) "  ";
+    color: var(--faint);
+  }
+  .toc a:hover { color: var(--text); background: var(--surface); }
+  .toc a.active { color: var(--text); border-left-color: var(--cat); }
+
+  /* prosa */
+  .article { max-width: 70ch; }
+  .lede {
+    font-size: 17px;
+    line-height: 1.75;
+    margin: 0 0 8px;
+  }
+  .lede::first-letter {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 3.3em;
+    float: left;
+    line-height: .9;
+    margin: 6px 12px 0 0;
+    color: var(--cat);
+  }
+
+  .sec { margin-top: 72px; }
+  .sec-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+    margin-bottom: 18px;
+  }
+  .sec-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+  .sec h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(24px, 3.2vw, 34px);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    margin: 0 0 28px;
+  }
+  .sec h3 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    margin: 40px 0 12px;
+    color: var(--text);
+  }
+
+  .prose p {
+    font-size: 15px;
+    line-height: 1.8;
+    margin: 0 0 22px;
+    hyphens: auto;
+  }
+  .prose em { font-style: italic; color: var(--text); }
+  .prose strong { font-weight: 700; }
+  .prose a {
+    color: var(--cat);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(77,157,232,.35);
+  }
+  .prose a:hover { border-bottom-color: var(--cat); }
+  sup a { font-size: 10px; border: 0 !important; padding: 0 1px; }
+
+  /* cita destacada */
+  .pull {
+    margin: 44px 0;
+    padding: 6px 0 6px 28px;
+    border-left: 3px solid var(--cat);
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(19px, 2.3vw, 24px);
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+  }
+
+  /* datos */
+  .data {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin: 36px 0 40px;
+  }
+  .datum {
+    position: relative;
+    background: var(--bg);
+    padding: 26px 22px 22px;
+    transition: background .15s;
+  }
+  .datum::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--cat);
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .datum:hover { background: var(--surface); }
+  .datum:hover::before { opacity: 1; }
+  .datum .n {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 44px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .datum .n small { font-size: .45em; letter-spacing: 0; margin-left: 2px; color: var(--muted); }
+  .datum .what { margin-top: 12px; font-size: 12px; line-height: 1.55; }
+  .datum .src { margin-top: 10px; font-size: 10px; color: var(--faint); }
+
+  /* objeciones */
+  .obj {
+    position: relative;
+    margin: 0 0 20px;
+    border: 1px solid var(--border);
+    transition: border-color .15s, background .15s;
+  }
+  .obj::before {
+    content: "";
+    position: absolute;
+    left: -1px; top: -1px; bottom: -1px;
+    width: 3px;
+    background: var(--cat);
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .obj:hover { border-color: var(--border-hover); }
+  .obj:hover::before { opacity: 1; }
+  .obj-q {
+    padding: 18px 22px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .obj-a { padding: 18px 22px 4px; }
+  .obj .tag {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 2px 8px;
+    border: 1px solid var(--border-hover);
+    color: var(--muted);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+  }
+  .obj-a .tag { border-color: var(--cat); background: var(--cat); color: var(--bg); }
+  .obj-q p { font-family: var(--display); font-weight: 700; font-size: 16px !important; line-height: 1.4 !important; letter-spacing: -0.01em; margin: 0 !important; }
+  .obj-a p { font-size: 14px !important; line-height: 1.75 !important; margin: 0 0 14px !important; }
+
+  /* silogismo */
+  .logic {
+    margin: 36px 0 40px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .logic-head {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+  }
+  .logic-row {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+  .logic-row:last-child { border-bottom: 0; }
+  .logic-row .k { color: var(--cat); font-weight: 700; }
+  .logic-row.fork .k { color: var(--accent-red); }
+  .logic-row.end { background: var(--surface2); }
+
+  /* nota tipo terminal */
+  .aside-note {
+    margin: 32px 0;
+    padding: 16px 20px;
+    border: 1px dashed var(--border-hover);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .aside-note b { color: var(--text); }
+
+  /* cierre */
+  .coda {
+    margin-top: 72px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+  .coda p.last {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(26px, 4vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 32px 0 0;
+  }
+
+  /* fuentes */
+  .sources { margin-top: 72px; }
+  .sources ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: src;
+  }
+  .sources li {
+    counter-increment: src;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .sources li::before { content: "[" counter(src) "]"; color: var(--cat); }
+  .sources a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border-hover); }
+  .sources a:hover { border-bottom-color: var(--cat); }
+  .sources .url { display: block; color: var(--faint); font-size: 10px; word-break: break-all; margin-top: 2px; }
+
+  /* footer */
+  .site-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px 0 40px;
+    border-top: 1px solid var(--border);
+    color: var(--faint);
+    font-size: 11px;
+  }
+  .site-footer a { color: var(--muted); text-decoration: none; }
+  .site-footer a:hover { color: var(--text); }
+
+  /* móvil */
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; gap: 0; }
+    .toc { display: none; }
+  }
+  @media (max-width: 700px) {
+    .wrap { padding: 0 20px; }
+    .site-header { flex-direction: column; align-items: flex-start; }
+    .stats { text-align: left; gap: 28px; }
+    .data { grid-template-columns: 1fr; }
+    .prose p { font-size: 14.5px; }
+    .lede { font-size: 16px; }
+    .logic-row { grid-template-columns: 40px 1fr; padding: 14px 16px; }
+    .site-footer { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <header class="site-header">
+    <div>
+      <a class="logo" href="/">gato<span>.</span>red</a>
+      <div class="tagline">artículos, herramientas y otras manías</div>
+    </div>
+    <div class="stats" aria-label="datos del artículo">
+      <div><div class="stat-n">~30</div><div class="stat-l">min de lectura</div></div>
+      <div><div class="stat-n">7</div><div class="stat-l">secciones</div></div>
+      <div><div class="stat-n">8</div><div class="stat-l">fuentes</div></div>
+    </div>
+  </header>
+
+  <div class="cat-head">
+    <span class="cat">artículos</span>
+    <span class="line"></span>
+    <span class="count">ensayo / opinión</span>
+  </div>
+
+  <section class="hero">
+    <h1>la regla doblada</h1>
+    <p class="dek">Por qué no puede haber igualdad mientras la vara de medir solo mire hacia un lado. Sobre ginocentrismo como estructura social, sobre la «discriminación positiva» y sobre lo que cuesta organizar una sociedad por grupos en lugar de por personas.</p>
+    <div class="byline">
+      <span>por <b>gato</b></span>
+      <span>28 oct 2026</span>
+      <span>categoría <b style="color:var(--cat)">artículos</b></span>
+    </div>
+  </section>
+
+  <div class="layout">
+
+    <nav class="toc" aria-label="índice">
+      <div class="toc-label">// índice</div>
+      <ol>
+        <li><a href="#dos-igualdades">dos igualdades que no caben juntas</a></li>
+        <li><a href="#ginocentrismo">ginocentrismo: el sesgo que no se ve</a></li>
+        <li><a href="#estructura">una estructura, no un artículo del código</a></li>
+        <li><a href="#oximoron">el oxímoron</a></li>
+        <li><a href="#impacto">lo que esto le hace a una sociedad</a></li>
+        <li><a href="#objeciones">objeciones serias</a></li>
+        <li><a href="#alternativa">lo que sí sería igualdad</a></li>
+      </ol>
+    </nav>
+
+    <article class="article prose">
+
+      <p class="lede">Se habla de igualdad a todas horas, y casi nunca se dice de cuál. Este texto sostiene tres cosas. Que la igualdad que hoy se reclama en nombre de las mujeres es incompatible con la única igualdad que puede exigirse a todos por igual. Que la llamada discriminación positiva se refuta a sí misma en el momento en que se enuncia. Y que el problema no empieza ni termina en las leyes: está en una estructura social que reparte la empatía, el riesgo y la sospecha de forma asimétrica, y cuyo coste ha dejado de ser teórico.</p>
+
+      <!-- 1 -->
+      <section class="sec" id="dos-igualdades">
+        <div class="sec-label">// planteamiento</div>
+        <h2>dos igualdades que no caben juntas</h2>
+
+        <p>Bajo la misma palabra conviven dos ideas distintas, y buena parte de la confusión pública nace de no separarlas.</p>
+
+        <p>La primera es la <strong>igualdad ante la ley</strong>: la misma norma, la misma pena y el mismo procedimiento, sea quien sea quien comparezca. Es una igualdad de reglas. No promete nada sobre el resultado; promete que el árbitro no mirará la camiseta. Los griegos la llamaron <em>isonomía</em>, y costó más de dos milenios convertirla en algo parecido a la norma.</p>
+
+        <p>La segunda es la <strong>igualdad de resultados</strong>: que los grupos, definidos por sexo o por cualquier otro rasgo, acaben ocupando posiciones proporcionales a su peso en la población. Es una igualdad de marcadores.</p>
+
+        <p>Las dos no pueden convivir. Personas libres, con preferencias, talentos, prioridades y circunstancias distintas, producen resultados distintos. No hace falta suponer que esas diferencias sean buenas o malas; basta con constatar que existen. Para igualar el marcador hay que tocar las reglas: decidir quién puede jugar, cuánto vale cada punto y para quién. Cada corrección del resultado exige una desigualdad de trato. No es una opinión, es aritmética.</p>
+
+        <div class="pull">Quien dice defender la igualdad tiene que elegir cuál. El debate público ya ha elegido, solo que sin decirlo.</div>
+
+        <p>Conviene añadir algo que el debate suele olvidar: las reglas no están solo en el BOE. Una sociedad también se gobierna por normas que nadie ha votado, como qué se espera de cada cual, a quién se protege primero, quién debe callarse el dolor y quién tiene derecho a expresarlo, de quién se sospecha por defecto. Esas normas reparten cargas y privilegios con tanta eficacia como cualquier ley, y a menudo con más, porque no se ven.</p>
+
+        <p>La elección entre las dos igualdades se ha hecho en ambos planos, y no ha sido neutral. Para entender por qué, hace falta mirar el instrumento con el que se mide.</p>
+      </section>
+
+      <!-- 2 -->
+      <section class="sec" id="ginocentrismo">
+        <div class="sec-label">// el sesgo</div>
+        <h2>ginocentrismo: el sesgo que no se ve</h2>
+
+        <p>Conviene precisar el término antes de usarlo. Por ginocentrismo no se entiende aquí una conspiración, ni un rencor, ni una tesis sobre cómo son las mujeres. Se entiende algo más modesto y bastante más difícil de discutir: la tendencia cultural, muy anterior a cualquier ministerio, a percibir el bienestar femenino como prioridad moral y el sufrimiento masculino como ruido de fondo.</p>
+
+        <p>«Mujeres y niños primero» no lo inventó ningún activista. Es un reflejo viejo, y la psicología social lleva décadas describiéndolo: las mujeres, como categoría, despiertan evaluaciones más favorables que los hombres, y el mismo daño suele percibirse como más grave cuando lo sufre una mujer. No hay malicia en ello. Hay una asimetría de empatía que, como todas las intuiciones morales, se vuelve peligrosa cuando se traslada sin examen a la ley.</p>
+
+        <p>Los datos que la delatan no son secretos. Los publica el propio Estado.</p>
+
+        <div class="data" role="list">
+          <div class="datum" role="listitem">
+            <div class="n">74<small>%</small></div>
+            <div class="what">de los suicidios en España en 2023 fueron de hombres: 3.044 de 4.116.</div>
+            <div class="src">ine, defunciones por causa de muerte <sup><a href="#f2">[2]</a></sup></div>
+          </div>
+          <div class="datum" role="listitem">
+            <div class="n">93<small>%</small></div>
+            <div class="what">de las muertes por accidente laboral las sufren hombres.</div>
+            <div class="src">ministerio de trabajo, vía prensa <sup><a href="#f3">[3]</a></sup></div>
+          </div>
+          <div class="datum" role="listitem">
+            <div class="n">5,5<small>años</small></div>
+            <div class="what">menos de esperanza de vida al nacer para los hombres (80,3 frente a 85,8).</div>
+            <div class="src">ine <sup><a href="#f2">[2]</a></sup></div>
+          </div>
+          <div class="datum" role="listitem">
+            <div class="n">76,7<small>%</small></div>
+            <div class="what">de las personas sin hogar atendidas en España son hombres.</div>
+            <div class="src">ine, encuesta a las personas sin hogar 2022 <sup><a href="#f8">[8]</a></sup></div>
+          </div>
+        </div>
+
+        <p>Lo significativo no es que estos números existan, sino lo poco que pesan en la conversación sobre la igualdad. No hay un organismo que los trate como una desigualdad entre sexos, ni una «brecha» oficial que los cuente, ni un plan estratégico que se proponga cerrarlos. Cuando aparecen en el discurso institucional, suele ser para atribuirlos a la propia masculinidad: el problema del hombre que muere, se explica, es el hombre.</p>
+
+        <h3>una brecha es una diferencia que alguien ha decidido medir</h3>
+
+        <p>El catálogo de brechas que maneja la política pública mide casi exclusivamente las diferencias en las que las mujeres quedan por debajo: salarios, consejos de administración, carreras técnicas. Las que van en sentido contrario, como la mortalidad, la siniestralidad, el suicidio, el abandono escolar temprano o el sinhogarismo, no se llaman brechas. Se llaman problemas de salud pública, o directamente no se llaman. Las mujeres son hoy mayoría entre quienes terminan una carrera universitaria en España, y esa diferencia no ha generado ni un solo plan para corregirla.</p>
+
+        <p>Con una regla así, la igualdad no es un objetivo difícil: es un objetivo imposible. Un sistema que solo registra desventajas en una dirección nunca puede declarar el equilibrio, porque cualquier equilibrio real aparecerá en su pantalla como una desventaja pendiente. La hipótesis se vuelve infalsable. Ningún dato puede refutarla, porque los datos que la refutarían no se recogen.</p>
+
+        <div class="pull">No es que la igualdad esté lejos. Es que el instrumento está construido para no encontrarla nunca.</div>
+
+      </section>
+
+      <!-- 3 -->
+      <section class="sec" id="estructura">
+        <div class="sec-label">// la estructura</div>
+        <h2>una estructura, no un artículo del código</h2>
+
+        <p>Sería un error pensar que todo esto se reduce a un puñado de leyes mal escritas. Las leyes son la parte visible, casi el fósil. Lo que sostiene el ginocentrismo es una estructura social: un conjunto de expectativas, hábitos, instituciones y reflejos que se refuerzan entre sí y que funcionarían igual aunque mañana se derogara media legislación.</p>
+
+        <p>Y aquí aparece la paradoja que casi nadie señala. El ginocentrismo no es un invento del feminismo contemporáneo. Es mucho más viejo: es el código caballeresco, el «primero ellas», el deber masculino de proteger, proveer y sacrificarse. Lo que ha ocurrido en las últimas décadas no es que ese código haya desaparecido, sino que se ha reformado solo a medias.</p>
+
+        <h3>el contrato a medias</h3>
+
+        <p>El viejo pacto entre los sexos imponía cargas a ambos. A las mujeres, la dependencia jurídica, la reclusión doméstica y la exclusión de buena parte de la vida pública. A los hombres, la obligación de mantener, de proteger, de asumir el riesgo y de morir si hacía falta. En España, el servicio militar fue obligatorio solo para ellos hasta 2001.</p>
+
+        <p>La primera mitad del contrato se desmontó, y con razón. La segunda sigue en pie. Del hombre se sigue esperando que provea, que asuma los trabajos peligrosos, que no se queje y que se ponga delante cuando hay amenaza. La diferencia es que ahora esas cargas ya no se reconocen como cargas: se reinterpretan como privilegios. El minero, el pescador de altura o el obrero de andamio no aparecen en ningún análisis de desigualdad, salvo como ejemplo de un sector «masculinizado» que conviene corregir.</p>
+
+        <div class="pull">Se liberó a una mitad de sus obligaciones y a la otra se le cambió el nombre de las suyas.</div>
+
+        <h3>la economía de la empatía</h3>
+
+        <p>La atención social es un recurso escaso, y se reparte. Basta con leer titulares de catástrofes o conflictos armados para ver el patrón: las víctimas se cuentan con especial énfasis cuando incluyen mujeres y niños, como si el resto fuera el precio esperable. La muerte masculina es el caso por defecto; no es noticia, es contexto.</p>
+
+        <p>Ese reparto tiene efectos materiales. Se aprende desde niño que el sufrimiento propio no interesa, y se aprende bien: los hombres piden ayuda menos y más tarde, y cuando lo hacen encuentran a menudo recursos pensados para otro perfil. No es casual que sean amplia mayoría entre quienes acaban en la calle o se quitan la vida. Es lo que ocurre cuando una sociedad entera ha decidido, sin decirlo, que hay un sexo que debe aguantar.</p>
+
+        <h3>instituciones con un solo cliente en mente</h3>
+
+        <p>La escuela es el ejemplo más claro. Los chicos sacan peores notas, repiten más y abandonan antes los estudios, y sin embargo su retraso se trata casi siempre como un problema de conducta, no de diseño. Si los datos fueran los mismos con el sexo invertido, hablaríamos de un sistema educativo que no sabe enseñar a la mitad de su alumnado. Algo parecido ocurre en la salud pública, donde existen estrategias específicas para la salud de las mujeres sin que nadie haya sentido la necesidad de un equivalente masculino, pese a que ellos mueren antes y de casi todo.</p>
+
+        <h3>la sospecha por defecto</h3>
+
+        <p>Y está, por último, la presunción que no figura en ninguna norma pero que todo hombre conoce: la de ser una amenaza potencial. Se nota en el hombre que duda antes de ayudar a un niño que llora solo en la calle, en lo escasa que es la presencia masculina en la educación infantil, en la cautela con la que muchos varones evitan quedarse a solas con compañeras en el trabajo. Nadie se lo ha ordenado. Simplemente han entendido cómo funciona la estructura en la que viven.</p>
+
+        <h3>y, al final, el boe</h3>
+
+        <p>Solo cuando una estructura está asentada llega la ley a darle forma escrita. El ejemplo más nítido en España está en el Código Penal. Desde la Ley Orgánica 1/2004 <sup><a href="#f5">[5]</a></sup>, el artículo 153 castiga el mismo maltrato ocasional con un marco penal distinto según el sexo de quien lo comete: si el autor es un hombre y la víctima su pareja o expareja mujer, la pena de prisión va de seis meses a un año; en el resto de supuestos de violencia doméstica, de tres meses a un año. El Tribunal Constitucional avaló esa diferencia en la STC 59/2008, con varios votos particulares en contra <sup><a href="#f6">[6]</a></sup>, argumentando que esa conducta concreta reproduce un patrón social de dominación y tiene por ello un mayor desvalor.</p>
+
+        <p>Se puede discutir la intención, y la intención era seguramente buena. Lo que no admite discusión es la estructura: el mismo hecho recibe una pena distinta en función de un rasgo de nacimiento del autor, no de algo que se pruebe en el juicio. Ese desvalor añadido no se acredita caso por caso; se presume por sexo. En cualquier otro contexto, a eso lo llamaríamos exactamente por su nombre.</p>
+
+        <div class="pull">La ley no inventa el sesgo. Se limita a darle fe notarial.</div>
+      </section>
+
+      <!-- 4 -->
+      <section class="sec" id="oximoron">
+        <div class="sec-label">// la contradicción</div>
+        <h2>el oxímoron</h2>
+
+        <p>La expresión «discriminación positiva» intenta resolver con un adjetivo un problema que no es retórico, sino lógico. Basta con ponerla en forma de argumento para verlo.</p>
+
+        <div class="logic" aria-label="argumento">
+          <div class="logic-head">// prueba por dilema</div>
+          <div class="logic-row"><span class="k">p1</span><span>Discriminar a alguien por su sexo es injusto, porque el sexo es irrelevante para el mérito, para los derechos y para la responsabilidad de una persona.</span></div>
+          <div class="logic-row"><span class="k">p2</span><span>La discriminación positiva consiste en tratar de forma distinta a las personas en función de su sexo.</span></div>
+          <div class="logic-row fork"><span class="k">si a</span><span>El sexo <em>es</em> relevante. Entonces p1 es falsa, y con ella cae la condena de la discriminación original que se pretendía corregir.</span></div>
+          <div class="logic-row fork"><span class="k">si b</span><span>El sexo <em>no es</em> relevante. Entonces la discriminación positiva es injusta exactamente por la misma razón que la otra.</span></div>
+          <div class="logic-row end"><span class="k">∴</span><span>No hay tercera vía. Lo único que hace el adjetivo es esconder la elección.</span></div>
+        </div>
+
+        <p>La salida habitual es decir que el sexo no es relevante en sí mismo, pero sí como indicador de una desventaja histórica. El problema es que eso convierte el sexo en un sustituto de algo que podría medirse directamente. Si lo que importa es la desventaja, atiéndase a la desventaja: a la persona concreta que la padece, sea quien sea. Usar el sexo como atajo significa beneficiar a quien no la sufrió y excluir a quien sí la sufre, solo porque el atajo era más cómodo de administrar.</p>
+
+        <h3>«positiva» es un punto de vista, no una propiedad</h3>
+
+        <p>Toda discriminación es positiva para alguien. La norma que impedía a las mujeres acceder a ciertas profesiones también era «positiva» para los hombres que ocupaban esas plazas. El signo depende de dónde se mire; la estructura del acto, no. Llamar positiva a una discriminación es describir el sentimiento de quien la aprueba, no la naturaleza de lo que se hace.</p>
+
+        <h3>la factura siempre la paga un individuo</h3>
+
+        <p>En cualquier recurso escaso, sea una plaza, un ascenso, un contrato público o un puesto en una lista, cada ventaja asignada por grupo es una desventaja asignada a una persona. Y esa persona es siempre concreta: tiene nombre, no discriminó a nadie y probablemente no había nacido cuando se cometieron los agravios que se pretenden compensar.</p>
+
+        <p>Los grupos no tienen carreras profesionales; las personas sí. Una cuota no repara a la mujer que fue apartada de un puesto en 1975. Beneficia a otra mujer, hoy, a costa de un hombre que no tuvo nada que ver. Ni la víctima coincide con la beneficiaria, ni el culpable con quien paga. La discriminación positiva traslada la culpa del individuo al colectivo y, a continuación, le pasa la factura al individuo.</p>
+
+        <div class="pull">Es responsabilidad heredada por sexo: una idea que cualquier tradición jurídica civilizada rechazaría al instante si se formulase con cualquier otro rasgo.</div>
+      </section>
+
+      <!-- 5 -->
+      <section class="sec" id="impacto">
+        <div class="sec-label">// consecuencias</div>
+        <h2>lo que esto le hace a una sociedad</h2>
+
+        <p>Los principios abstractos tienen efectos muy concretos. Estos son algunos de los que produce una igualdad medida con regla doblada.</p>
+
+        <h3>la norma deja de ser general</h3>
+
+        <p>En el momento en que se acepta que la ley, o la moral pública, puede distinguir por grupos, la pregunta deja de ser «¿es justo?» y pasa a ser «¿qué grupos, y cuánto?». El principio se sustituye por una negociación. La norma se convierte en una tarifa política que se renegocia en cada legislatura, y quien tiene más capacidad de presión obtiene mejor trato. Una ley que admite excepciones por identidad no protege a los débiles: protege a los organizados. Y fuera de los tribunales ocurre lo mismo: la moral social deja de preguntar qué ha hecho alguien y empieza a preguntar qué es.</p>
+
+        <h3>el estigma recae sobre quien no lo merece</h3>
+
+        <p>La primera víctima de una cuota es, paradójicamente, la mujer que no la necesitaba. Cuando un puesto puede haberse obtenido por cupo, la sospecha recae sobre todas las que lo ocupan, incluidas las que lo ganaron con creces. El mérito se devalúa justo donde más debería reconocerse. Ninguna profesional brillante ha pedido que se dude de ella por sistema, y eso es exactamente lo que el sistema produce.</p>
+
+        <h3>la victimidad se convierte en moneda</h3>
+
+        <p>Las instituciones reciben aquello que incentivan. Si el reconocimiento, la financiación y la protección legal se reparten según el estatus de víctima del grupo, los grupos competirán por ese estatus. Aparecen emprendedores políticos especializados en administrarlo, y cualquier mejora objetiva de la situación se vuelve una amenaza para quienes viven de su persistencia. Un sistema así no tiene incentivos para declarar que el problema se ha resuelto.</p>
+
+        <h3>un aparato que no puede terminar</h3>
+
+        <p>Si la vara de medir está construida para no encontrar nunca la igualdad, el aparato encargado de perseguirla no puede terminar nunca su trabajo. Observatorios, planes, unidades, cuotas y auditorías crecen y se justifican por la persistencia de unas brechas que, por diseño, no se cierran. El Estado deja de ser árbitro y se convierte en parte: decide qué diferencias son injustas, a quién se atribuyen y quién debe compensarlas. Ese poder, una vez concedido, no se devuelve solo.</p>
+
+        <h3>la fractura</h3>
+
+        <p>Y queda lo más difícil de cuantificar: la relación entre hombres y mujeres. Un marco que presenta a un sexo como deudor estructural del otro no fomenta la cooperación, sino la desconfianza. Muchos chicos jóvenes, que no han conocido más mundo que este, perciben que la conversación pública sobre la igualdad no los incluye salvo como problema. Algunos se retraen; otros se radicalizan en la dirección opuesta. Ninguna de las dos respuestas es buena, pero ambas son predecibles cuando una generación aprende que la justicia tiene destinatarios preferentes.</p>
+
+        <div class="aside-note"><b>nota.</b> Nada de lo anterior niega que existan mujeres que sufren discriminación, violencia o injusticias reales. Las hay, y merecen toda la protección de la ley. El argumento es otro: que esa protección debe dárseles por lo que les ocurre, no por lo que son, y que el mismo criterio debe valer para cualquier persona a quien le ocurra lo mismo.</div>
+      </section>
+
+      <!-- 6 -->
+      <section class="sec" id="objeciones">
+        <div class="sec-label">// réplica</div>
+        <h2>objeciones serias</h2>
+
+        <p>Un argumento solo vale lo que resiste. Estas son las objeciones más fuertes que se le pueden hacer a todo lo anterior, formuladas como las formularía quien las sostiene, y la respuesta a cada una.</p>
+
+        <div class="obj">
+          <div class="obj-q"><span class="tag">objeción</span><p>«La violencia letal en la pareja la ejercen abrumadoramente hombres contra mujeres. La ley no inventa nada: responde a la realidad.»</p></div>
+          <div class="obj-a"><span class="tag">respuesta</span>
+            <p>El dato es cierto y no hace falta discutirlo. Lo que se discute es la consecuencia. El derecho penal ya gradúa las penas por la gravedad del acto: el homicidio, el asesinato y las lesiones graves se castigan con dureza sea quien sea el autor, y la relación de dominio, el ensañamiento o la vulnerabilidad de la víctima pueden y deben agravarlas cuando se prueban.</p>
+            <p>Lo que no puede hacer una ley justa es trasladar la estadística de un grupo a la culpabilidad de un individuo. Que un delito sea más frecuente en un colectivo no convierte a cada miembro de ese colectivo en más culpable cuando lo comete. Si el mismo razonamiento se aplicara a la nacionalidad o al origen, nadie dudaría en llamarlo por su nombre.</p>
+          </div>
+        </div>
+
+        <div class="obj">
+          <div class="obj-q"><span class="tag">objeción</span><p>«La brecha salarial existe y demuestra que las mujeres siguen siendo discriminadas en el trabajo.»</p></div>
+          <div class="obj-a"><span class="tag">respuesta</span>
+            <p>Hay que distinguir dos cifras. La brecha bruta compara medias sin más, y buena parte de ella se explica por diferencias en horas trabajadas, sector, tipo de contrato y trayectoria. Cuando se comparan puestos y perfiles equivalentes, la diferencia se reduce mucho. No desaparece del todo, y sería deshonesto decir que el residuo es cero.</p>
+            <p>Pero pagar menos a alguien por su sexo por el mismo trabajo ya es ilegal, y donde ocurra debe perseguirse como lo que es: un acto concreto de un empleador concreto. Lo que no se sigue de ahí es que haya que corregir el resultado agregado. Gran parte de lo que queda se concentra en torno a la maternidad, es decir, en cómo deciden organizarse las familias. Ese es justamente el terreno donde menos debería entrar nadie con un decreto.</p>
+          </div>
+        </div>
+
+        <div class="obj">
+          <div class="obj-q"><span class="tag">objeción</span><p>«La meritocracia nunca fue neutral. Las redes informales favorecen a los hombres, y las cuotas solo compensan un sesgo que ya existía.»</p></div>
+          <div class="obj-a"><span class="tag">respuesta</span>
+            <p>Es la objeción más seria, porque parte de algo verdadero: los procesos de selección pueden estar sesgados. Pero si el problema es el proceso, la solución es arreglar el proceso: evaluaciones a ciegas, criterios públicos, tribunales verificables, transparencia en los ascensos. Eso corrige el sesgo para todos y en ambas direcciones.</p>
+            <p>La cuota hace lo contrario. No elimina el sesgo original: añade un segundo sesgo encima y, además, lo vuelve invisible, porque una vez que el resultado cuadra nadie revisa cómo se llegó a él. Dos errores de signo contrario no suman un acierto; suman dos injusticias con víctimas distintas.</p>
+          </div>
+        </div>
+
+        <div class="obj">
+          <div class="obj-q"><span class="tag">objeción</span><p>«La mortalidad masculina es consecuencia de la masculinidad tradicional, que el propio feminismo critica. No es un argumento contra él, sino a favor.»</p></div>
+          <div class="obj-a"><span class="tag">respuesta</span>
+            <p>En parte, sí, y es precisamente lo que sostiene este texto: el ginocentrismo y la masculinidad tradicional no son fuerzas opuestas, sino las dos caras del mismo contrato. Hasta ahí, coincidencia.</p>
+            <p>La discrepancia está en lo que se hace con el diagnóstico. Decir que el hombre muere porque es hombre traslada la responsabilidad a la víctima y deja intacta la mitad del contrato que exige de él protección, provisión y silencio. Si la causa es una estructura compartida, la respuesta tiene que tocar las dos mitades. Mientras haya planes, recursos y lenguaje institucional para una sola, el diagnóstico será correcto y la conclusión, interesada.</p>
+          </div>
+        </div>
+
+        <div class="obj">
+          <div class="obj-q"><span class="tag">objeción</span><p>«Hablar de ginocentrismo minimiza siglos de discriminación real contra las mujeres.»</p></div>
+          <div class="obj-a"><span class="tag">respuesta</span>
+            <p>No la minimiza; la sitúa. Las mujeres estuvieron durante siglos privadas de derechos civiles elementales, y reconocerlo no está en discusión. Lo que este texto discute es otra cosa: que esa historia se cuente con un solo protagonista, cuando el mismo orden que les negaba derechos a ellas enviaba a ellos a morir por obligación. Ambos sexos tenían su jaula.</p>
+            <p>Y discute, sobre todo, el método. Reparar una injusticia histórica cometida por razón de sexo con nuevas distinciones por razón de sexo no cierra la herida: la cambia de sitio.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section class="sec" id="alternativa">
+        <div class="sec-label">// propuesta</div>
+        <h2>lo que sí sería igualdad</h2>
+
+        <p>La alternativa no es la indiferencia. Es dejar de tratar a las personas como representantes de un bando y volver a tratarlas como lo que son: individuos responsables de sus actos y acreedores de sus derechos, sin recargo ni descuento por nacimiento.</p>
+
+        <h3>en la ley, poco y para todos</h3>
+
+        <p>En lo penal, normas ciegas al sexo del autor, con agravantes que se prueben en cada caso: la vulnerabilidad de la víctima, la relación de dominio, la reincidencia, el abuso de confianza. En la protección de víctimas, recursos asignados según el riesgo y la necesidad, no según la categoría. En el empleo y en los cargos, ninguna cuota: procesos limpios y verificables, y resultados que se acepten aunque no reproduzcan el censo. Y en la estadística, una regla sencilla: medirlo todo o no medir nada. Un instrumento de medida no puede tener ideología, o deja de ser un instrumento.</p>
+
+        <h3>en la sociedad, sin decreto</h3>
+
+        <p>Pero si el problema es estructural, la ley solo puede ser una parte pequeña de la respuesta, y debe serlo. Una estructura social no se rediseña desde un ministerio sin coaccionar a alguien; de hecho, la pretensión de rediseñarla desde arriba es lo que ha producido buena parte de lo descrito aquí. Las culturas cambian de otra manera: porque alguien nombra lo que no se nombraba, porque las familias negocian libremente su reparto de cargas, porque surgen asociaciones, redes de apoyo y espacios donde los hombres pueden decir que no pueden más sin que eso les cueste nada, porque los medios empiezan a contar todas las muertes y no solo algunas.</p>
+
+        <p>Eso exige completar el contrato que quedó a medias. No volviendo atrás, sino terminando el trabajo: liberar a los hombres de las obligaciones que se desmontaron para las mujeres, y dejar de presentar como privilegio lo que durante siglos fue un deber impuesto. Nadie tiene que ganar esa batalla por decreto. Basta con que cada cual deje de exigir al otro sexo lo que no se exige a sí mismo.</p>
+
+        <div class="pull">Un Estado que se limita a garantizar que nadie te agreda, te engañe ni te quite lo tuyo tiene muy poco margen para decidir qué grupo merece más. Lo demás le corresponde a una sociedad libre. Esa limitación no es un defecto. Es la garantía.</div>
+      </section>
+
+      <div class="coda">
+        <p>La igualdad ante la ley es una idea frágil y relativamente reciente. Costó siglos arrancarla a quienes creían que la justicia debía depender del linaje, de la fe o del estamento de cada cual. No se defiende pidiendo excepciones a favor de los nuestros, por nobles que parezcan las razones. Se defiende negándoselas a todos, también a quienes nos inspiran más simpatía. Y se sostiene, más allá de cualquier código, en una costumbre muy simple: mirar el dolor ajeno sin preguntar primero de qué sexo es.</p>
+        <p class="last">una regla doblada puede medir muchas cosas. lo que no puede es medir igual.</p>
+      </div>
+
+      <section class="sources" id="fuentes">
+        <div class="sec-label">// fuentes</div>
+        <ol>
+          <li id="f1"><span><a href="https://ine.es/prodyser/PDFCifrasINE/es/cfr_06_2025.pdf" rel="noopener">INE, «Cifras INE»: causas externas de mortalidad en 2024</a><span class="url">ine.es</span></span></li>
+          <li id="f2"><span><a href="https://theobjective.com/elsubjetivo/opinion/2025-02-14/vueltas-suicidio-articulo-joaquin-leguina/" rel="noopener">Estadística de suicidio 2023 (datos INE de defunciones por causa de muerte, dic. 2024) y esperanza de vida por sexo</a><span class="url">theobjective.com</span></span></li>
+          <li id="f3"><span><a href="https://forbes.es/economia/906417/los-hombres-copan-la-mayoria-de-accidentes-laborales-mortales-y-las-mujeres-las-enfermedades-profesionales/" rel="noopener">Los hombres concentran el 93 % de los accidentes laborales mortales (estadística del Ministerio de Trabajo)</a><span class="url">forbes.es</span></span></li>
+          <li id="f4"><span><a href="https://www.insst.es/documents/d/portal-insst/construccion-transporte-y-agricultura-ganaderia-y-caza-las-actividades-economicas-con-mayor-riesgo-de-accidentes-graves-y-mortales-nota-de-prensa" rel="noopener">INSST: accidentes graves y mortales en jornada de trabajo, 2024</a><span class="url">insst.es</span></span></li>
+          <li id="f5"><span><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2004-21760" rel="noopener">Ley Orgánica 1/2004, de Medidas de Protección Integral contra la Violencia de Género</a><span class="url">boe.es</span></span></li>
+          <li id="f6"><span>Tribunal Constitucional, STC 59/2008, de 14 de mayo, sobre el artículo 153.1 del Código Penal</span></li>
+          <li id="f7"><span><a href="https://www.sanidad.gob.es/eu/gabinete/notasPrensa.do?id=6822" rel="noopener">Ministerio de Sanidad: datos definitivos de suicidio 2024</a><span class="url">sanidad.gob.es</span></span></li>
+          <li id="f8"><span><a href="https://puntomega.es/media/fz0lfmgw/2024-estudio-psh-mostoles.pdf" rel="noopener">Asociación Punto Omega: comparativa con la Encuesta a las Personas sin Hogar del INE 2022 (76,7 % hombres)</a><span class="url">puntomega.es</span></span></li>
+        </ol>
+      </section>
+
+    </article>
+  </div>
+
+  <footer class="site-footer">
+    <span>gato.red / textos con opinión, sin anuncios y sin pedir perdón</span>
+    <a href="/">volver al índice</a>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var bar = document.getElementById('progress');
+    var article = document.querySelector('.article');
+    function onScroll() {
+      var rect = article.getBoundingClientRect();
+      var total = article.offsetHeight - window.innerHeight;
+      var done = Math.min(Math.max(-rect.top / (total > 0 ? total : 1), 0), 1);
+      bar.style.width = (done * 100) + '%';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+    if (!('IntersectionObserver' in window) || !links.length) return;
+    var map = {};
+    links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var a = map[e.target.id];
+          if (a) a.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    Object.keys(map).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>
