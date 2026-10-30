@@ -161,12 +161,22 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 0 3rem;colo
 }
 .cta{display:inline-block;margin-top:1.6rem;font-family:var(--data);font-weight:700;font-size:1.05rem;background:var(--brass);color:var(--bg);text-decoration:none;padding:.75rem 1.4rem;border-radius:4px}
 .cta:hover{filter:brightness(1.1)}
+.cta.alt{background:transparent;color:var(--brass);border:1px solid var(--brass);margin-left:.5rem}
 .plan-list{margin:0;padding:0;list-style:none;font-family:var(--data);font-size:.97rem;max-height:30rem;overflow:auto}
 .plan-list li{display:flex;justify-content:space-between;gap:1rem;padding:.35rem 0;border-bottom:1px solid var(--rule)}
 .plan-list li.pt{border:none;color:var(--brass);font-weight:700;padding-top:.9rem}
 .plan-list li span:last-child{color:var(--dim);white-space:nowrap;font-variant-numeric:tabular-nums}
 .plan-list li small{color:var(--dim)}
 /* pantalla de entrenamiento */
+.tr-tl{list-style:none;margin:0;padding:0;font-family:var(--data);font-size:1.05rem;width:100%;max-width:520px;margin:0 auto;max-height:calc(100vh - 13rem);overflow:auto}
+.tr-tl li{position:relative;display:flex;justify-content:space-between;gap:1rem;padding:.75rem .9rem;margin:.35rem 0;border:1px solid var(--rule);border-radius:6px;background:var(--panel);overflow:hidden}
+.tr-tl li span{position:relative;z-index:1}
+.tr-tl li .d{color:var(--dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tr-tl li.rest{background:transparent;border-style:dashed;color:var(--dim);font-size:.9rem;padding:.35rem .9rem;justify-content:center}
+.tr-tl li.done{opacity:.45}
+.tr-tl li.now{border-color:var(--brass);border-width:2px;font-weight:700;opacity:1}
+.tr-tl li.rest.now{border-color:var(--lapis);color:var(--bone)}
+.tr-tl li i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(196,162,90,.18);transition:width .2s linear}
 .tr{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .tr[hidden]{display:none}
 .tr-top{display:flex;align-items:center;gap:1rem;padding:.75rem 1.4rem;border-bottom:1px solid var(--rule);font-family:var(--data)}
@@ -217,9 +227,15 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 0 3rem;colo
 .tr-after b{color:var(--bone);font-weight:500}
 @media (max-width:900px){
   .tr-main{grid-template-columns:1fr;padding:.8rem 1rem 1rem;gap:.4rem;align-content:start}
-  .tr-fig{max-width:400px;margin:0 auto}
-  .tr-fig svg{max-height:32vh}
-  .tr-duo svg{max-height:24vh}
+  .tr-figwrap{height:34vh;flex:none;display:block}
+  .tr-fig{height:100%;max-width:none}
+  .tr-fig>svg{width:100%;height:100%;max-height:none}
+  .tr-duo{height:100%;grid-template-rows:100%}
+  .tr-duo>div{height:100%;display:flex;flex-direction:column;min-height:0}
+  .tr-duo svg{flex:1;min-height:0;width:100%;height:auto;max-height:none}
+  .tr-duo p{margin:0;font-size:.85rem}
+  .tr-tl{max-height:100%;font-size:.95rem}
+  .tr-tl li{padding:.5rem .7rem;margin:.25rem 0}
   .tr-map{columns:1;font-size:.9rem}
   .tr-dial{margin:.6rem 0}
   .tr-after{display:none}
@@ -240,7 +256,7 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 0 3rem;colo
   <div>
     <h1>Círculo de esgrima<span>Doce semanas para construir la forma de combate</span></h1>
     <p class="lead">Un programa de condicionamiento para espada a dos manos y espada con escudo, pensado para un círculo de 3 metros, un saco en el centro y tu propio arsenal.</p>
-    <a class="cta" href="#temporizador">Entrenar hoy</a>
+    <a class="cta" href="#temporizador">Entrenar hoy</a> <a class="cta alt" href="circulodeesgrima.pdf" download>Manual en PDF</a>
     <ol class="toc" aria-label="Contenido">
       <li><a href="#programa"><b>1</b>El programa</a></li>
       <li><a href="#circulo"><b>2</b>El círculo</a></li>
@@ -569,7 +585,8 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 0 3rem;colo
       <label class="chk"><input type="checkbox" id="p-voice" checked> Cantar en voz alta</label>
       <label class="chk"><input type="checkbox" id="p-auto" checked> Encadenar pasos sin tocar la pantalla</label>
       <div class="btns"><button class="go" id="p-open">Empezar la sesión</button></div>
-      <p class="note" style="font-size:.95rem;margin-top:1rem">Atajos de teclado: espacio para empezar o pausar, flechas para cambiar de paso, Esc para salir.</p>
+      <p class="note" style="font-size:.95rem;margin-top:1rem">¿Prefieres leerlo en papel? El <a href="circulodeesgrima.pdf" download>manual en PDF</a> tiene la teoría, el programa completo y una ficha por ejercicio.</p>
+      <p class="note" style="font-size:.95rem;margin-top:.4rem">Atajos de teclado: espacio para empezar o pausar, flechas para cambiar de paso, Esc para salir.</p>
     </div>
     <div class="panel">
       <p class="fig-title" id="p-title"></p>
@@ -590,7 +607,7 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 0 3rem;colo
 </section>
 
 <footer>
-  Círculo de esgrima. Programa de condicionamiento para esgrima medieval: espada a dos manos y espada con escudo redondo.
+  Círculo de esgrima. Programa de condicionamiento para esgrima medieval: espada a dos manos y espada con escudo redondo. <a href="circulodeesgrima.pdf" download>Descargar el manual en PDF</a>.
 </footer>
 </div>
 <script>
@@ -738,13 +755,14 @@ function drawGuardias(host,hl){
 drawGuardias('fig-guardias',0);
 
 /* patrones de pies */
-function drawPattern(host,id,hl){
+function drawPattern(host,id,hl,dir,anim){
   const s=mk(host,250,250,'Patrón de pies');
   const cx=125,cy=125,R=95;ring(s,cx,cy,R,{faint:true,lab:15,fs:11.5,dot:3.5});
   const mA=marker(s,'pie-'+id+(++UID),C.lapis);
   const pt=(r,a)=>P(cx,cy,r,a);const M=(p)=>p[0].toFixed(1)+' '+p[1].toFixed(1);
   const rB=R*0.62;
-  if(id==='orbita'){const a=pt(R*.88,200),b=pt(R*.88,160);S('path',{d:'M'+M(a)+'A'+R*.88+' '+R*.88+' 0 1 1 '+M(b),class:'path','marker-end':mA},s);}
+  if(id==='orbita'){const ccw=dir==='ccw',a=pt(R*.88,ccw?160:200),b=pt(R*.88,ccw?200:160),d='M'+M(a)+'A'+R*.88+' '+R*.88+' 0 1 '+(ccw?0:1)+' '+M(b);S('path',{d:d,class:'path','marker-end':mA},s);
+    if(anim){const c=S('circle',{r:7,fill:C.minium},s);S('animateMotion',{dur:'7s',repeatCount:'indefinite',path:d},c);}}
   if(id==='piston'){[1,3,5,7].forEach(n=>{const g=ANG[n-1],o=7,q=(r,sg)=>pt(r,g+sg*o*180/Math.PI/r);S('path',{d:'M'+M(q(R*.9,1))+'L'+M(q(R*.5+9,1)),class:'path','marker-end':mA},s);S('path',{d:'M'+M(q(R*.5+9,-1))+'L'+M(q(R*.86,-1)),class:'path','stroke-dasharray':'4 4','marker-end':mA},s);const b=pt(R*.5,g);diamond(s,b[0],b[1],5,C.minium);});}
   if(id==='triangulo'){let d='M'+M(pt(R*.92,-90));[[-67.5,-45],[-22.5,0],[22.5,45]].forEach(([m,e])=>{const b=pt(R*.5,m);d+='L'+M(b)+'L'+M(pt(R*.92,e));diamond(s,b[0],b[1],5,C.minium);});S('path',{d:d,class:'path','marker-end':mA,'stroke-linejoin':'round'},s);}
   if(id==='volta'){const a=pt(R*.92,0),b=pt(rB,0),c=pt(rB,180),e=pt(R*.92,180);S('path',{d:'M'+M(a)+'L'+M(b)+'A'+rB+' '+rB+' 0 0 1 '+M(c)+'L'+M(e),class:'path','marker-end':mA},s);diamond(s,b[0],b[1],5,C.minium);diamond(s,c[0],c[1],5,C.minium);}
@@ -872,7 +890,7 @@ const PROTOS=[
   t.querySelectorAll('input').forEach(inp=>{inp.value=data[inp.dataset.k]||'';inp.addEventListener('input',()=>{try{data=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){data={};}data[inp.dataset.k]=inp.value;try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}});});
   document.getElementById('reg-clear').onclick=()=>{if(!confirm('¿Borrar todos los resultados guardados?'))return;data={};try{localStorage.removeItem(KEY);}catch(e){}t.querySelectorAll('input').forEach(i=>i.value='');};
 })();
-window.CE={S:S,T:T,mk:mk,C:C,PH:PH,ring:ring,marker:marker,P:P,st:st,diamond:diamond,ANG:ANG,drawRosa:drawRosa,drawGuardias:drawGuardias,drawPattern:drawPattern,drawZone:drawZone};
+window.CE={UID:()=>++UID,S:S,T:T,mk:mk,C:C,PH:PH,ring:ring,marker:marker,P:P,st:st,diamond:diamond,ANG:ANG,drawRosa:drawRosa,drawGuardias:drawGuardias,drawPattern:drawPattern,drawZone:drawZone};
 })();
 </script>
 <div class="tr" id="tr" hidden role="dialog" aria-modal="true" aria-labelledby="tr-name">
@@ -932,10 +950,10 @@ function lib(ph,k){
     fig:{t:'rosa'},segs:[].concat(...[1,2,3,4,5,6,7,8].map(c=>ph===3?[W(18,'Corte '+c+', lento',{hl:c,reps:3}),W(9,'Corte '+c+', rápido',{hl:c,reps:3})]:[W(reps*6,'Corte '+c,{hl:c,reps:reps})]))}),
   molinetes:(n,t)=>({part:A,name:'Molinetes',dose:nS(n)+' series de '+(t+tk)+' s por sentido',
     how:'Molinetes amplios desde la muñeca, la hoja trazando el mismo círculo en cada vuelta. Cambia de sentido a la señal.',
-    cues:['El codo quieto','Círculo regular antes que rápido'],fig:{t:'map'},segs:rep(nS(n),20,()=>[W(t+tk,'Sentido horario'),W(t+tk,'Sentido antihorario')])}),
+    cues:['El codo quieto','Círculo regular antes que rápido'],fig:{t:'map'},center:'Muñeca',segs:rep(nS(n),20,()=>[W(t+tk,'Sentido horario',{spin:'cw'}),W(t+tk,'Sentido antihorario',{spin:'ccw'})])}),
   ochs:(n,t)=>({part:A,name:'Ochs en órbita',dose:nS(n)+' series de '+(t+tk)+' s por lado',
     how:'Sostén Ochs mientras rodeas el saco por el anillo A. El tronco resiste el giro: la punta sigue apuntando al saco.',
-    cues:['La punta no se aparta del saco','Pasos cortos, cabeza a altura constante'],fig:{t:'pattern',id:'orbita'},segs:rep(nS(n),30,()=>[W(t+tk,'Ochs derecho'),W(t+tk,'Ochs izquierdo')])}),
+    cues:['La punta no se aparta del saco','Con Ochs derecho, sentido horario; con el izquierdo, al revés','Pasos cortos, cabeza a altura constante'],fig:{t:'pattern',id:'orbita'},segs:rep(nS(n),30,()=>[W(t+tk,'Ochs derecho, sentido horario',{dir:'cw'}),W(t+tk,'Ochs izquierdo, sentido antihorario',{dir:'ccw'})])}),
   halb:(n,reps)=>({part:A,name:'Halbschwert al saco',dose:nS(n)+' series de '+reps+' estocadas por lado',
     how:'Mano izquierda a media hoja. Estocada al saco desde el anillo C empujando desde la pierna de atrás.',
     cues:['La fuerza sale del suelo','Muñecas firmes al contacto'],fig:{t:'zone',zone:'C'},segs:rep(nS(n),45,()=>[W(reps*4,'Lado derecho',{reps:reps}),W(reps*4,'Lado izquierdo',{reps:reps})])}),
@@ -953,13 +971,13 @@ function lib(ph,k){
     cues:['El borde del escudo a la altura de los ojos','Hombro abajo, codo sin bloquear'],fig:{t:'zone',zone:'A'},segs:rep(nS(n),30,()=>[W(t+tk,esc)])}),
   giros:(n,reps)=>({part:A,name:'Giros de escudo',dose:nS(n)+' series de '+reps+' por sentido',
     how:'El redondo rota sobre el puño cubriendo alto y bajo, primero hacia dentro y luego hacia fuera.',
-    cues:[ph===3?'Rápidos, con parada seca':'Lentos y completos','El antebrazo gira, el hombro no'],fig:{t:'map'},segs:rep(nS(n),20,()=>[W(reps*3,'Hacia dentro',{reps:reps}),W(reps*3,'Hacia fuera',{reps:reps})])}),
+    cues:[ph===3?'Rápidos, con parada seca':'Lentos y completos','El antebrazo gira, el hombro no'],fig:{t:'map'},center:'Escudo',segs:rep(nS(n),20,()=>[W(reps*3,'Hacia dentro',{reps:reps,spin:'cw'}),W(reps*3,'Hacia fuera',{reps:reps,spin:'ccw'})])}),
   palancas:(n,reps,arma)=>({part:A,name:'Tres palancas de corte',dose:nS(n)+' series de '+reps+' por palanca, '+arma,
     how:'Cortes al saco moviendo solo la muñeca, después desde el codo y después desde el hombro.',
     cues:['Cada palanca aislada','Parada limpia en el blanco'],fig:{t:'rosa'},segs:rep(nS(n),30,()=>[W(reps*3,'Muñeca',{reps:reps}),W(reps*3,'Codo',{reps:reps}),W(reps*3,'Hombro',{reps:reps})])}),
   palanqueo:(n,reps,arma)=>({part:A,name:'Palanqueo',dose:nS(n)+' series de '+reps+' por sentido, '+arma,
     how:'Espada vertical en la mano: baja la punta hacia delante despacio y vuelve; luego hacia atrás.',
-    cues:['Solo se mueve la muñeca','Cuanto más bajo agarras, más carga'],fig:{t:'map'},segs:rep(nS(n),20,()=>[W(reps*4,'Hacia delante',{reps:reps}),W(reps*4,'Hacia atrás',{reps:reps})])}),
+    cues:['Solo se mueve la muñeca','Cuanto más bajo agarras, más carga'],fig:{t:'map'},segs:rep(nS(n),20,()=>[W(reps*4,'Hacia delante',{reps:reps,lever:'fwd'}),W(reps*4,'Hacia atrás',{reps:reps,lever:'back'})])}),
   cubrir:(n,reps)=>({part:A,name:'Cubrir y cortar',dose:nS(n)+' series de '+reps+' por lado',
     how:'El escudo cubre alto mientras la espada corta bajo (corte 5). Después, cubre bajo y corta alto (corte 1).',
     cues:['Escudo y espada salen a la vez','Un paso por acción'],fig:{t:'rosa',hl:5},segs:rep(nS(n),30,()=>[W(reps*4,'Cubre alto, corte 5',{hl:5,reps:reps}),W(reps*4,'Cubre bajo, corte 1',{hl:1,reps:reps})])}),
@@ -1014,11 +1032,11 @@ function saco(ph,k,ses,callsOn){
 function activacion(){
   const p='Activación';
   return [
-    {part:p,name:'Hombros y escápulas',dose:'60 s',how:'Círculos amplios de hombro hacia atrás y hacia delante. Después, junta y separa las escápulas despacio.',cues:['Cuello largo','Sin prisa'],fig:{t:'map'},segs:[W(30,'Círculos'),W(30,'Escápulas')]},
+    {part:p,name:'Hombros y escápulas',dose:'60 s',how:'Círculos amplios de hombro hacia atrás y hacia delante. Después, junta y separa las escápulas despacio.',cues:['Cuello largo','Sin prisa'],fig:{t:'map'},center:'Hombro',segs:[W(15,'Círculos hacia atrás',{spin:'ccw'}),W(15,'Círculos hacia delante',{spin:'cw'}),W(30,'Junta y separa las escápulas')]},
     {part:p,name:'Muñecas con E1',dose:'3 movimientos de 20 s',how:'Con la espada más ligera y la punta arriba, recorre despacio cada movimiento de la muñeca en todo su rango.',cues:['Movimiento lento y completo'],fig:{t:'map'},segs:[W(20,'Flexión y extensión'),W(20,'Giro de la palma'),W(20,'Inclinación a los lados')]},
     {part:p,name:'Cadera en guardia',dose:'8 rotaciones por guardia',how:'En guardia, rota la cadera como si cargaras un corte y vuelve, sin mover los pies. Un pitido por rotación.',cues:['Rodillas suaves','La cadera lleva a los hombros'],fig:{t:'map'},segs:[W(30,'Guardia derecha',{reps:8}),W(30,'Guardia izquierda',{reps:8})]},
-    {part:p,name:'Molinetes lentos',dose:'30 s por sentido',how:'Con E1, molinetes amplios y lentos.',cues:['Círculo grande, sin fuerza'],fig:{t:'map'},segs:[W(30,'Sentido horario'),W(30,'Sentido antihorario')]},
-    {part:p,name:'Órbita y pistón suaves',dose:'1 min de órbita y 4 entradas',how:'Órbita suave por el anillo A, medio minuto en cada sentido. Después, una entrada tranquila desde cada estación impar: entra, toca el saco, sal.',cues:['Despierta los pies, sin intensidad'],fig:{t:'pattern',id:'orbita'},segs:[W(30,'Órbita, sentido horario',{pat:'orbita'}),W(30,'Órbita, sentido antihorario',{pat:'orbita'}),W(48,'Entradas suaves',{reps:4,stations:[1,3,5,7],entry:'piston'})]},
+    {part:p,name:'Molinetes lentos',dose:'30 s por sentido',how:'Con E1, molinetes amplios y lentos.',cues:['Círculo grande, sin fuerza'],fig:{t:'map'},center:'Muñeca',segs:[W(30,'Sentido horario',{spin:'cw'}),W(30,'Sentido antihorario',{spin:'ccw'})]},
+    {part:p,name:'Órbita y pistón suaves',dose:'1 min de órbita y 4 entradas',how:'Órbita suave por el anillo A, medio minuto en cada sentido. Después, una entrada tranquila desde cada estación impar: entra, toca el saco, sal.',cues:['Despierta los pies, sin intensidad'],fig:{t:'pattern',id:'orbita'},segs:[W(30,'Órbita, sentido horario',{pat:'orbita',dir:'cw'}),W(30,'Órbita, sentido antihorario',{pat:'orbita',dir:'ccw'}),W(48,'Entradas suaves',{reps:4,stations:[1,3,5,7],entry:'piston'})]},
     {part:p,name:'Cortes al aire',dose:'3 por cada corte, a medio ritmo',how:'Recorre la rosa de cortes al aire. Cada pitido es un corte: a medio ritmo, con parada y de vuelta a guardia.',cues:['Sigue la línea que se ilumina','Un pitido, un corte'],fig:{t:'rosa'},segs:[1,2,3,4,5,6,7,8].map(c=>W(9,'Corte '+c,{hl:c,reps:3}))},
     {part:p,name:'Entradas al saco',dose:'3 entradas a ritmo creciente',how:'Una entrada cada 15 s desde la estación iluminada: un paso adentro, golpe, dos pasos afuera. La primera suave, la segunda a medio ritmo y la tercera casi real.',cues:['Sigue los números del diagrama','Entre entradas, vuelve a guardia y respira'],fig:{t:'zone',zone:'B'},segs:[W(45,'Entradas',{reps:3,stations:[1,3,5],entry:'piston',repLabels:['Suave','Media','Casi real']})]}
   ];
@@ -1074,7 +1092,7 @@ const SEQ={1:['1 · 2','7 · E','Cubre alto, 5','Cubre bajo, 1'],2:['1 · 4 · E
 const NUM=['uno','dos','tres','cuatro','cinco','seis','siete','ocho'];
 function makeCall(mode,ph){
   const r8=()=>1+Math.floor(Math.random()*8),cut=()=>{const c=Math.floor(Math.random()*9);return c===8?'E':String(c+1);},cs=c=>c==='E'?'estocada':'corte '+NUM[+c-1];
-  if(mode==='cambio')return {txt:'Cambio de sentido',say:'cambio'};
+  if(mode==='cambio')return {txt:'Cambio de sentido',say:'cambio',soft:true};
   if(mode==='st'){const n=r8();return {st:n,txt:'Estación '+n,say:'estación '+NUM[n-1]};}
   if(mode==='cut'){const c=cut();return {cut:c,txt:c==='E'?'Estocada':'Corte '+c,say:cs(c)};}
   if(mode==='both'){const n=r8(),c=cut();return {st:n,cut:c,txt:'Estación '+n+', '+(c==='E'?'estocada':'corte '+c),say:'estación '+NUM[n-1]+', '+cs(c)};}
@@ -1087,7 +1105,7 @@ function beep(f,d){try{ac=ac||new (window.AudioContext||window.webkitAudioContex
 function say(t){if(!TR.voice||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='es-ES';u.rate=1.1;speechSynthesis.speak(u);}catch(e){}}
 
 /* diagramas propios del modo entrenamiento */
-function drawEntry(host,stn,kind){
+function drawEntry(host,stn,kind,cad,anim){
   const {S,T,mk,C,ring,marker,st,diamond}=CE;
   const s=mk(host,520,600,'Entrada al saco desde la estación '+stn);
   const cx=260,cy=260,R=215;ring(s,cx,cy,R,{bagLabel:true,lab:24,fs:15,dot:6,faint:true,skip:stn});
@@ -1106,10 +1124,50 @@ function drawEntry(host,stn,kind){
     badge(mid[0]+nn[0]*24*sg,mid[1]+nn[1]*24*sg,3,C.lapis);
     const [nx,ny]=st(cx,cy,R,n2);S('circle',{cx:nx,cy:ny,r:16,fill:'none',stroke:C.lapis,'stroke-width':2.5},s);exitTxt='Sale a la estación '+n2;}
   else{S('path',{d:'M'+M(at(R*.66,-side*11))+'L'+M(at(R*.88,-side*11)),stroke:C.lapis,'stroke-width':3,'stroke-dasharray':'8 6',fill:'none','marker-end':mL},s);const b3=at(R*.77,-side*36);badge(b3[0],b3[1],3,C.lapis);}
+  if(anim){const end=kind==='tri'?st(cx,cy,R*.93,stn%8+1):at(R*.9,0),pth='M'+M(at(R*.9,0))+'L'+M(hit)+'L'+M(end);const dot=S('circle',{r:10,fill:C.bone,stroke:C.bg,'stroke-width':2},s);S('animateMotion',{dur:Math.max(1.5,(cad||5)*.8).toFixed(2)+'s',fill:'freeze',path:pth,keyPoints:'0;0.45;1',keyTimes:'0;0.35;1',calcMode:'linear'},dot);}
   const [x,y]=st(cx,cy,R,stn);S('circle',{cx:x,cy:y,r:22,fill:C.brass},s);T(s,x,y+8,String(stn),{'text-anchor':'middle','font-size':22,'font-weight':700,fill:C.bg});
   S('line',{x1:20,x2:500,y1:530,y2:530,stroke:C.rule},s);
   [[30,1,'Entra en un paso',C.lapis],[222,2,'Golpe',C.minium],[322,3,exitTxt,C.lapis]].forEach(([bx,n,t,col])=>{badge(bx,565,n,col);T(s,bx+20,570,t,{'font-size':15,'font-weight':500});});
   return s;
+}
+function drawSpin(host,dir,center,sub,anim){
+  const {S,T,mk,C,marker}=CE;const s=mk(host,520,450,'Giro '+(dir==='ccw'?'antihorario':'horario'));
+  const cx=260,cy=205,r=150,P=a=>[cx+r*Math.cos(a*Math.PI/180),cy+r*Math.sin(a*Math.PI/180)],M=q=>q[0].toFixed(1)+' '+q[1].toFixed(1);
+  S('circle',{cx:cx,cy:cy,r:r,fill:'none',stroke:C.rule,'stroke-width':2,'stroke-dasharray':'4 6'},s);
+  const ccw=dir==='ccw',a=P(ccw?60:120),b=P(ccw?120:60),d='M'+M(a)+'A'+r+' '+r+' 0 1 '+(ccw?0:1)+' '+M(b);
+  S('path',{d:d,fill:'none',stroke:C.lapis,'stroke-width':7,'stroke-linecap':'round','marker-end':marker(s,'sp'+CE.UID(),C.lapis)},s);
+  S('circle',{cx:cx,cy:cy,r:52,fill:C.bag,stroke:C.brass,'stroke-width':2},s);
+  T(s,cx,cy+7,center||'',{'text-anchor':'middle','font-size':20,'font-weight':700});
+  if(anim){const c=S('circle',{r:11,fill:C.minium},s);S('animateMotion',{dur:'2.6s',repeatCount:'indefinite',path:d},c);}
+  T(s,cx,428,sub||'',{'text-anchor':'middle','font-size':24,'font-weight':700,fill:C.brass});
+  return s;
+}
+function drawLever(host,dir,cad,anim){
+  const {S,T,mk,C,marker}=CE;const s=mk(host,520,450,'Palanqueo '+(dir==='fwd'?'hacia delante':'hacia atrás'));
+  const px=260,py=320,ang=dir==='fwd'?42:-42;
+  const R2=250,A=(-90+ang)*Math.PI/180,ex=px+R2*Math.cos(A),ey=py+R2*Math.sin(A);
+  S('path',{d:'M'+px+' '+(py-R2)+'A'+R2+' '+R2+' 0 0 '+(ang>0?1:0)+' '+ex.toFixed(1)+' '+ey.toFixed(1),fill:'none',stroke:C.lapis,'stroke-width':4,'stroke-dasharray':'8 7','marker-end':marker(s,'lv'+CE.UID(),C.lapis)},s);
+  const g=S('g',{},s);
+  S('line',{x1:px,y1:py-20,x2:px,y2:py-232,stroke:C.bone,'stroke-width':8,'stroke-linecap':'round'},g);
+  S('line',{x1:px-48,y1:py-20,x2:px+48,y2:py-20,stroke:C.brass,'stroke-width':9,'stroke-linecap':'round'},g);
+  S('line',{x1:px,y1:py-14,x2:px,y2:py+44,stroke:C.brass,'stroke-width':12,'stroke-linecap':'round'},g);
+  S('circle',{cx:px,cy:py+52,r:12,fill:C.brass},g);
+  if(anim)S('animateTransform',{attributeName:'transform',type:'rotate',values:'0 '+px+' '+py+';'+ang+' '+px+' '+py+';0 '+px+' '+py,dur:(cad||4)+'s',repeatCount:'indefinite'},g);
+  S('circle',{cx:px,cy:py,r:16,fill:'none',stroke:C.minium,'stroke-width':3},s);
+  T(s,px+28,py+8,'Muñeca',{'font-size':16,fill:C.minium,'font-weight':700});
+  T(s,40,40,'Vista lateral',{'font-size':15});T(s,40,60,'mirando a la derecha →',{'font-size':15});
+  T(s,260,436,dir==='fwd'?'La punta baja hacia delante y vuelve':'La punta baja hacia atrás y vuelve',{'text-anchor':'middle','font-size':20,'font-weight':700,fill:C.brass});
+  return s;
+}
+function drawTimeline(host,st,gi){
+  const ol=document.createElement('ol');ol.className='tr-tl';
+  st.segs.forEach((g,i)=>{const li=document.createElement('li');
+    if(g.type==='rest'){li.className='rest'+(i<gi?' done':'')+(i===gi?' now':'');li.textContent='Pausa · '+g.dur+' s';}
+    else{li.className=(i<gi?'done':'')+(i===gi?' now':'');const a=document.createElement('span');a.textContent=g.label+(g.set?' · '+g.set.toLowerCase():'');const b=document.createElement('span');b.className='d';b.textContent=g.type==='sw'?'libre':g.dur+' s';li.append(a,b);
+      if(i===gi){const f=document.createElement('i');f.id='tl-fill';li.appendChild(f);}}
+    ol.appendChild(li);});
+  host.appendChild(ol);
+  const now=ol.querySelector('.now');if(now)setTimeout(()=>{ol.scrollTop=Math.max(0,now.offsetTop-ol.offsetTop-40);},0);
 }
 const OPEN=['Alta derecha','Alta izquierda','Baja derecha','Baja izquierda'];
 function drawOpenings(host,q,edge){
@@ -1129,20 +1187,37 @@ const TR={plan:null,steps:[],si:0,gi:0,mode:'idle',end:0,left:0,prev:null,swStar
 const cur=()=>TR.steps[TR.si],seg=()=>(cur().segs[TR.gi]||{});
 
 function renderFig(force){
-  const st=cur(),g=seg(),f=st.fig,host=$('tr-fig');
-  const hl=g.hl!=null?g.hl:f.hl,pat=g.pat||f.id,c=TR.call||{},rp=(TR.rep||1)-1;
-  const stn=g.stations&&!c.txt?g.stations[rp%g.stations.length]:null,chord=g.chord?rp%8:null;
-  const key=[TR.si,TR.gi,f.t,hl,pat,c.st,c.cut,stn,chord,g.open].join('|');
-  if(!force&&key===TR.figKey)return;TR.figKey=key;host.innerHTML='';
-  if(stn)drawEntry(host,stn,g.entry||'piston');
-  else if(g.open!=null)drawOpenings(host,g.open,g.edge);
-  else if(chord!=null)CE.drawPattern(host,'estrella',chord);
-  else if(f.t==='guardias')CE.drawGuardias(host,hl);
-  else if(f.t==='rosa')CE.drawRosa(host,c.cut!=null?c.cut:hl);
-  else if(f.t==='pattern')CE.drawPattern(host,pat);
-  else if(f.t==='zone')CE.drawZone(host,f.zone,null);
-  else if(f.t==='calls'){const d=document.createElement('div');d.className='tr-duo';host.appendChild(d);const a=document.createElement('div'),b=document.createElement('div');d.append(a,b);CE.drawZone(a,'B',c.st||null);CE.drawRosa(b,c.cut!=null?c.cut:null);const pa=document.createElement('p');pa.textContent='Estación';a.appendChild(pa);const pb=document.createElement('p');pb.textContent='Corte';b.appendChild(pb);}
-  else{const ol=document.createElement('ol');ol.className='tr-map';let last='';TR.steps.forEach((s2,i)=>{if(s2.part!==last){last=s2.part;const h=document.createElement('li');h.className='pt';h.textContent=s2.part;ol.appendChild(h);}const li=document.createElement('li');li.textContent=s2.name;if(i<TR.si)li.className='done';if(i===TR.si)li.className='now';ol.appendChild(li);});host.appendChild(ol);}
+  const st=cur(),g=seg(),f=st.fig,host=$('tr-fig'),c=TR.call||{},rp=(TR.rep||1)-1;
+  const anim=TR.mode==='run'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let d;
+  if(g.stations&&(!c.txt||c.soft))d={k:'entry',stn:g.stations[rp%g.stations.length],kind:g.entry||'piston',cad:g.reps?g.dur/g.reps:g.dur,rp:rp};
+  else if(g.open!=null)d={k:'open',q:g.open,e:g.edge};
+  else if(g.chord)d={k:'chord',i:rp%8};
+  else if(g.spin)d={k:'spin',dir:g.spin,center:st.center||'',sub:g.label};
+  else if(g.lever)d={k:'lever',dir:g.lever,cad:g.reps?g.dur/g.reps:4};
+  else if(f.t==='pattern'&&(g.pat||f.id)==='orbita')d={k:'orbit',dir:g.dir||(TR.flip?'ccw':'cw')};
+  else if(f.t==='pattern')d={k:'pat',id:g.pat||f.id};
+  else if(f.t==='guardias')d={k:'g',hl:g.hl!=null?g.hl:f.hl};
+  else if(f.t==='rosa')d={k:'rosa',hl:c.cut!=null?c.cut:(g.hl!=null?g.hl:f.hl)};
+  else if(f.t==='zone')d={k:'zone',z:f.zone};
+  else if(f.t==='calls')d={k:'calls',st:c.st,cut:c.cut};
+  else d={k:'tl',gi:TR.gi};
+  const key=JSON.stringify(d)+'|'+TR.si+'|'+anim;
+  if(!force&&key===TR.figKey)return;TR.figKey=key;host.innerHTML='';host.className='tr-fig'+(d.k==='tl'?' tl':'');
+  switch(d.k){
+    case 'entry':drawEntry(host,d.stn,d.kind,d.cad,anim);break;
+    case 'open':drawOpenings(host,d.q,d.e);break;
+    case 'chord':CE.drawPattern(host,'estrella',d.i);break;
+    case 'spin':drawSpin(host,d.dir,d.center,d.sub,anim);break;
+    case 'lever':drawLever(host,d.dir,d.cad,anim);break;
+    case 'orbit':CE.drawPattern(host,'orbita',null,d.dir,anim);break;
+    case 'pat':CE.drawPattern(host,d.id);break;
+    case 'g':CE.drawGuardias(host,d.hl);break;
+    case 'rosa':CE.drawRosa(host,d.hl);break;
+    case 'zone':CE.drawZone(host,d.z,null);break;
+    case 'calls':{const w=document.createElement('div');w.className='tr-duo';host.appendChild(w);const a=document.createElement('div'),b=document.createElement('div');w.append(a,b);CE.drawZone(a,'B',d.st||null);CE.drawRosa(b,d.cut!=null?d.cut:null);const pa=document.createElement('p');pa.textContent='Estación';a.appendChild(pa);const pb=document.createElement('p');pb.textContent='Corte';b.appendChild(pb);break;}
+    default:drawTimeline(host,st,TR.gi);
+  }
 }
 function paintStep(){
   const st=cur(),n=TR.steps.length;
@@ -1166,6 +1241,7 @@ function paintDial(){
     case 'record':state='Apunta el resultado';clock=0;sub='';break;
     case 'done':state='Sesión completada';clock=(now-TR.t0)/1000;sub='Tiempo total';break;
   }
+  const tf=document.getElementById('tl-fill');if(tf&&g.dur)tf.style.width=(TR.mode==='run'?Math.min(100,(g.dur-(TR.end-now)/1000)/g.dur*100):TR.mode==='pause'?(g.dur-TR.left/1000)/g.dur*100:0)+'%';
   $('tr-state').textContent=state;$('tr-clock').textContent=fmt(clock);$('tr-clock').style.display=TR.mode==='record'?'none':'';
   let set=(TR.mode!=='record'&&TR.mode!=='done'&&g.set)?g.set:'';
   if(g.reps>1&&TR.mode!=='record'&&TR.mode!=='done'){const rl=g.repLabels?': '+g.repLabels[((TR.rep||1)-1)%g.repLabels.length]:'';set='Repetición '+(TR.rep||1)+' de '+g.reps+rl+(set?' · '+set:'');}
@@ -1177,7 +1253,7 @@ function paintDial(){
 function load(i){TR.rep=1;TR.si=Math.max(0,Math.min(i,TR.steps.length-1));TR.gi=0;TR.vals=[];TR.call=null;TR.mode='idle';TR.figKey='';paintStep();paintDial();}
 function prep(sec){TR.mode='trans';TR.end=Date.now()+sec*1000;TR.lastBeep=-1;}
 function startSeg(){
-  const g=seg(),now=Date.now();TR.lastBeep=-1;TR.call=null;TR.rep=1;$('tr-call').textContent='';
+  const g=seg(),now=Date.now();TR.lastBeep=-1;TR.call=null;TR.rep=1;TR.flip=false;$('tr-call').textContent='';
   if(g.type==='sw'){TR.mode='sw';TR.swStart=now;beep(1046,.18);say(g.label);}
   else{TR.mode='run';TR.end=now+g.dur*1000;
     if(g.type==='work'){beep(1046,.15);setTimeout(()=>beep(1046,.15),200);if(TR.gi===0||g.label!==(cur().segs[TR.gi-2]||{}).label)say(g.label);
@@ -1207,7 +1283,7 @@ function finish(){
   const host=$('tr-fig');host.innerHTML='';TR.si=TR.steps.length;const ol=document.createElement('ol');ol.className='tr-map';TR.steps.forEach(s2=>{const li=document.createElement('li');li.className='done';li.textContent=s2.name;ol.appendChild(li);});host.appendChild(ol);TR.si=TR.steps.length-1;
   paintDial();
 }
-function doCall(){const c=cur().calls;TR.call=makeCall(c.mode,TR.plan.ph);$('tr-call').textContent=TR.call.txt;beep(1318,.07);say(TR.call.say);renderFig();TR.nextCall=Date.now()+c.every*1000;}
+function doCall(){const c=cur().calls;if(c.mode==='cambio')TR.flip=!TR.flip;TR.call=makeCall(c.mode,TR.plan.ph);$('tr-call').textContent=TR.call.txt;beep(1318,.07);say(TR.call.say);renderFig();TR.nextCall=Date.now()+c.every*1000;}
 function tick(){
   const now=Date.now();
   if(TR.mode==='trans'||TR.mode==='run'){
@@ -1281,7 +1357,7 @@ function renderLog(){
   const tb=t.querySelector('tbody');l.slice(0,20).forEach(r=>{const tr=document.createElement('tr');const ep=parseFloat(String(r.ep).replace(',','.'));[r.f,r.t,r.m,r.ep||'—',isNaN(ep)?'—':Math.round(r.m*ep)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});tb.appendChild(tr);});
 }
 renderLog();
-window.CE.buildPlan=buildPlan;
+Object.assign(window.CE,{buildPlan:buildPlan,lib:lib,activacion:activacion,calma:calma,tests:tests,saco:saco,drawEntry:drawEntry,drawOpenings:drawOpenings,drawSpin:drawSpin,drawLever:drawLever});
 })();
 </script>
 </body>
