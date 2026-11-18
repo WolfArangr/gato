@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#0a0c11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="PurrTime — acoustic timegrapher for mechanical watches: rate (s/day), beat error, amplitude, positions test and accuracy log.">
+<title>PurrTime · Timegrapher</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%230a0c11'/%3E%3Cpath d='M9 15 11 5l6 6zM31 15 29 5l-6 6z' fill='%23d9b36c'/%3E%3Ccircle cx='20' cy='22' r='12' fill='none' stroke='%23d9b36c' stroke-width='2.4'/%3E%3Cpath d='M20 22v-7M20 22l5 3' stroke='%23f3dfb1' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0c11;--bg2:#121620;--card:rgba(255,255,255,.035);--card2:rgba(255,255,255,.06);--line:rgba(255,255,255,.085);
+  --tx:#eeece6;--mut:#8d93a3;--mut2:#5d6373;--acc:#d9b36c;--acc2:#f3dfb1;--accbg:rgba(217,179,108,.12);
+  --tick:#5fd4c4;--tock:#ff8c7a;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171;--blue:#7aa2ff;
+  --r:22px;--sh:0 10px 40px -12px rgba(0,0,0,.6);--glass:rgba(13,16,23,.72);
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+[data-theme=light]{
+  --bg:#f4f1ea;--bg2:#ebe6db;--card:rgba(255,255,255,.75);--card2:rgba(255,255,255,.95);--line:rgba(40,32,20,.1);
+  --tx:#1d1b17;--mut:#6f6a60;--mut2:#a29c90;--acc:#9a7432;--acc2:#6d5020;--accbg:rgba(154,116,50,.1);
+  --tick:#0f9d8a;--tock:#e0553f;--ok:#16a34a;--warn:#d97706;--bad:#dc2626;--blue:#3b66d6;
+  --sh:0 10px 30px -14px rgba(60,45,20,.25);--glass:rgba(244,241,234,.8);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden;
+  background:radial-gradient(1200px 600px at 85% -10%,rgba(217,179,108,.10),transparent 60%),radial-gradient(900px 500px at -10% 30%,rgba(95,212,196,.06),transparent 60%),var(--bg);background-attachment:fixed}
+button,input,select,textarea{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+/* header */
+header{position:sticky;top:0;z-index:30;backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);background:var(--glass);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px}
+.hwrap{max-width:620px;margin:auto;display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;flex:none;transition:transform .12s}
+.logo.beat{transform:scale(1.08)}
+.brand{flex:1;min-width:0}
+.brand b{display:block;font-size:19px;letter-spacing:-.02em;font-weight:700}
+.brand b span{color:var(--acc)}
+.brand small{display:block;font-size:11px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:99px;background:var(--card2);border:1px solid var(--line);white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--mut2)}
+.pill.live i{background:var(--ok);box-shadow:0 0 0 0 var(--ok);animation:ping 1.6s infinite}
+.pill.wait i{background:var(--warn);animation:blink 1s infinite}
+.pill.demo i{background:var(--blue);animation:ping 1.6s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,currentColor 0%,transparent)}70%{box-shadow:0 0 0 7px rgba(0,0,0,0)}}
+@keyframes blink{50%{opacity:.3}}
+.ibtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;cursor:pointer;flex:none}
+.ibtn svg{width:19px;height:19px}
+main{max-width:620px;margin:auto;padding:14px 14px calc(170px + var(--safe-b))}
+.view{display:none}
+.view.on{display:block;animation:vin .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes vin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.view.on .card{animation:cin .55s cubic-bezier(.2,.8,.2,1) backwards}
+.view.on .card:nth-child(2){animation-delay:.04s}.view.on .card:nth-child(3){animation-delay:.08s}.view.on .card:nth-child(4){animation-delay:.12s}.view.on .card:nth-child(5){animation-delay:.16s}.view.on .card:nth-child(6){animation-delay:.2s}.view.on .card:nth-child(n+7){animation-delay:.24s}
+@keyframes cin{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.card h3{margin:0 0 12px;font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.card h3 .sp{flex:1}
+.hint{font-size:12.5px;color:var(--mut);line-height:1.5;margin:10px 0 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+/* watch bar */
+.wbar{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.wbar::-webkit-scrollbar{display:none}
+.chipsel{position:relative;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:7px 10px;flex:none}
+.chipsel label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);font-weight:700}
+.chipsel select,.chipsel input{background:none;border:0;outline:0;font-weight:600;font-size:14px;max-width:150px;padding:0;-webkit-appearance:none;appearance:none}
+.chipsel input{width:30px;text-align:right}
+.chipsel select option{background:var(--bg2);color:var(--tx)}
+/* hero */
+.hero{padding:14px 14px 18px;background:linear-gradient(160deg,rgba(217,179,108,.09),transparent 45%),var(--card)}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start}
+.wheelbox{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--mut);letter-spacing:.08em}
+#wheel{width:54px;height:54px}
+.lvl{width:92px}
+.lvl small{display:flex;justify-content:space-between;font-size:10px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.lvlbar{height:6px;border-radius:9px;background:var(--card2);overflow:hidden}
+.lvlbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--tick),var(--acc),var(--tock));transition:width .15s}
+.gauge{position:relative;margin:-14px auto 0;max-width:330px}
+.gauge svg{width:100%;display:block;overflow:visible}
+#needle{transform-origin:150px 158px;transition:transform .9s cubic-bezier(.3,1.4,.4,1)}
+.ratebox{text-align:center;margin-top:22px;position:relative}
+.rateval{font-size:64px;font-weight:200;letter-spacing:-.04em;line-height:1}
+.rateval sup{font-size:18px;font-weight:500;color:var(--mut);letter-spacing:0;margin-left:4px;vertical-align:top;position:relative;top:10px}
+.ratelbl{margin-top:6px;font-size:13px;color:var(--mut);font-weight:500;min-height:18px}
+.ratelbl b{color:var(--tx)}
+.rerr{font-size:11px;color:var(--mut2);margin-top:2px}
+/* metrics */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.m{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 10px 11px;position:relative;overflow:hidden;min-width:0}
+.m small{display:block;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m .v{font-size:24px;font-weight:300;margin-top:5px;letter-spacing:-.02em;white-space:nowrap}
+.m .v u{text-decoration:none;font-size:12px;color:var(--mut);font-weight:500;margin-left:2px}
+.m .s{font-size:10.5px;color:var(--mut2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--mc,transparent);opacity:.85;transition:background .4s}
+.m.ok{--mc:var(--ok)}.m.warn{--mc:var(--warn)}.m.bad{--mc:var(--bad)}
+canvas{display:block;width:100%}
+#tape{height:210px;border-radius:14px;background:rgba(0,0,0,.18)}
+[data-theme=light] #tape,[data-theme=light] #scope,[data-theme=light] #trend,[data-theme=light] #posChart,[data-theme=light] #logChart{background:rgba(0,0,0,.03)}
+#scope{height:150px;border-radius:14px;background:rgba(0,0,0,.18)}
+#trend{height:150px;border-radius:14px;background:rgba(0,0,0,.18)}
+.legend{display:flex;gap:14px;font-size:11.5px;color:var(--mut);margin-top:9px;flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.seg{display:inline-flex;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:2px}
+.seg button{border:0;background:none;padding:5px 10px;border-radius:9px;font-size:11.5px;font-weight:700;color:var(--mut);cursor:pointer;letter-spacing:.02em;text-transform:none}
+.seg button.on{background:var(--accbg);color:var(--acc)}
+/* deviation */
+.devgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.dv{text-align:center;padding:10px 2px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.dv small{display:block;font-size:9.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.dv b{display:block;font-size:15px;font-weight:500;margin-top:4px;white-space:nowrap}
+.onemin{margin-top:10px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut);padding:10px 12px;border-radius:14px;background:var(--accbg)}
+.onemin b{color:var(--acc);font-size:15px}
+/* health */
+.health{display:flex;gap:16px;align-items:center}
+.ring{position:relative;width:96px;height:96px;flex:none}
+.ring svg{width:96px;height:96px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:8}
+.ring .bgc{stroke:var(--card2)}
+.ring .fg{stroke:var(--acc);stroke-linecap:round;stroke-dasharray:226.2;stroke-dashoffset:226.2;transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1),stroke .4s}
+.ring div{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring b{font-size:28px;font-weight:300;display:block;line-height:1}
+.ring small{font-size:9.5px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
+.grade{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.diag{list-style:none;padding:0;margin:12px 0 0}
+.diag li{display:flex;gap:10px;font-size:13px;line-height:1.45;padding:8px 0;border-top:1px solid var(--line)}
+.diag li i{flex:none;width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--ok)}
+.diag li.warn i{background:var(--warn)}.diag li.bad i{background:var(--bad)}.diag li.info i{background:var(--blue)}
+/* buttons */
+.btn{border:1px solid var(--line);background:var(--card2);border-radius:14px;padding:11px 14px;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,background .2s}
+.btn:active{transform:scale(.97)}
+.btn svg{width:17px;height:17px}
+.btn.pri{background:linear-gradient(135deg,var(--acc2),var(--acc));color:#1b1408;border:0}
+.btn.ghost{background:none}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:7px 11px;font-size:12.5px;border-radius:11px}
+.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+/* FAB */
+.fab{position:fixed;left:50%;bottom:calc(80px + var(--safe-b));transform:translateX(-50%);z-index:40;display:flex;gap:10px;align-items:center;transition:opacity .3s,transform .3s}
+.fab.hide{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(20px)}
+.go{position:relative;border:0;border-radius:99px;padding:15px 26px 15px 20px;font-weight:700;font-size:16px;letter-spacing:.01em;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--acc2),var(--acc));color:#1b1408;box-shadow:0 12px 34px -8px rgba(217,179,108,.55),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .15s}
+.go:active{transform:scale(.96)}
+.go svg{width:22px;height:22px}
+.go.on{background:linear-gradient(135deg,#ffb3a6,var(--tock));box-shadow:0 12px 34px -8px rgba(255,140,122,.55)}
+.go.on::before{content:"";position:absolute;inset:-6px;border-radius:99px;border:2px solid var(--tock);opacity:.6;animation:ripple 1.8s infinite}
+@keyframes ripple{from{transform:scale(.95);opacity:.7}to{transform:scale(1.18);opacity:0}}
+.demo-btn{width:50px;height:50px;border-radius:50%;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:grid;place-items:center;cursor:pointer;font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--blue)}
+.demo-btn.on{background:var(--blue);color:#fff}
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line);padding:6px 6px calc(6px + var(--safe-b))}
+nav .nw{max-width:620px;margin:auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{border:0;background:none;padding:7px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:var(--mut);cursor:pointer;border-radius:12px;position:relative;transition:color .2s}
+nav button svg{width:23px;height:23px;transition:transform .3s cubic-bezier(.3,1.6,.5,1)}
+nav button.on{color:var(--acc)}
+nav button.on svg{transform:translateY(-2px) scale(1.08)}
+nav button.on::after{content:"";position:absolute;top:-7px;width:22px;height:3px;border-radius:3px;background:var(--acc)}
+/* forms */
+.field{margin-bottom:14px}
+.field>label{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;margin-bottom:7px;color:var(--tx)}
+.field>label span{color:var(--acc);font-family:var(--mono);font-size:12px}
+.inp,select.inp,textarea.inp{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:11px 13px;font-size:15px;outline:0;transition:border .2s}
+.inp:focus{border-color:var(--acc)}
+select.inp{-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
+select.inp option{background:var(--bg2)}
+.fhelp{font-size:11.5px;color:var(--mut);margin-top:6px;line-height:1.45}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:none;padding:0}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(90deg,var(--acc) var(--p,50%),var(--card2) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--acc2);border:3px solid var(--acc);margin-top:-8px;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+input[type=range]::-moz-range-track{height:6px;border-radius:6px;background:var(--card2)}
+input[type=range]::-moz-range-progress{height:6px;border-radius:6px;background:var(--acc)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--acc2);border:3px solid var(--acc)}
+.sw{position:relative;width:48px;height:28px;flex:none}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw i{position:absolute;inset:0;border-radius:99px;background:var(--card2);border:1px solid var(--line);transition:.25s;cursor:pointer}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--mut);transition:.25s cubic-bezier(.3,1.5,.5,1)}
+.sw input:checked+i{background:var(--accbg);border-color:var(--acc)}
+.sw input:checked+i::after{left:23px;background:var(--acc)}
+.setrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.setrow:first-of-type{border-top:0}
+.setrow div{flex:1}
+.setrow b{display:block;font-size:14px;font-weight:600}
+.setrow small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+/* positions */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pc{border:1px solid var(--line);background:var(--card2);border-radius:16px;padding:10px 6px 9px;text-align:center;position:relative;transition:.3s;cursor:pointer;user-select:none}
+.pc svg{width:46px;height:46px;display:block;margin:0 auto 4px;color:var(--mut)}
+.pc small{display:block;font-size:10.5px;font-weight:700;color:var(--mut);letter-spacing:.03em}
+.pc b{display:block;font-size:14px;font-weight:500;margin-top:3px;min-height:18px}
+.pc em{display:block;font-style:normal;font-size:10px;color:var(--mut2);margin-top:1px;min-height:13px}
+.pc.off{opacity:.38}
+.pc.cur{border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+.pc.cur svg{color:var(--acc)}
+.pc.done svg{color:var(--tick)}
+.pc .tag{position:absolute;top:6px;right:7px;font-size:9px;font-weight:800;color:var(--mut2);font-family:var(--mono)}
+.stage{display:flex;gap:16px;align-items:center}
+.cd{position:relative;width:124px;height:124px;flex:none}
+.cd svg.r{width:124px;height:124px;transform:rotate(-90deg)}
+.cd circle{fill:none;stroke-width:7}
+.cd .bgc{stroke:var(--card2)}
+.cd .fg{stroke:var(--acc);stroke-linecap:round;stroke-dasharray:339.3;transition:stroke-dashoffset .3s linear}
+.cd .in{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.cd .in svg{width:46px;height:46px;color:var(--acc)}
+.cd .in b{font-size:22px;font-weight:300;display:block}
+.stage h4{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em}
+.stage p{margin:4px 0 0;font-size:13px;color:var(--mut);line-height:1.45}
+.phase{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:8px;background:var(--accbg);color:var(--acc);margin-bottom:6px}
+.phase.m{background:rgba(95,212,196,.14);color:var(--tick)}
+#posChart,#logChart{height:170px;border-radius:14px;background:rgba(0,0,0,.18)}
+.sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sum{padding:11px 12px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.sum small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);font-weight:700}
+.sum b{display:block;font-size:19px;font-weight:400;margin-top:4px}
+.stds{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.std{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:13px;background:var(--card2);border:1px solid var(--line);font-size:13px}
+.std b{flex:1;font-weight:600}
+.std small{color:var(--mut);font-size:11.5px}
+.badge{font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:4px 8px;border-radius:7px;text-transform:uppercase}
+.badge.ok{background:rgba(74,222,128,.15);color:var(--ok)}
+.badge.bad{background:rgba(248,113,113,.14);color:var(--bad)}
+.badge.na{background:var(--card);color:var(--mut)}
+/* log */
+.clock{text-align:center;padding:6px 0 2px}
+.clock .big{font-family:var(--mono);font-size:44px;font-weight:300;letter-spacing:-.02em}
+.clock .big span{color:var(--mut);font-size:24px}
+.secbar{height:4px;border-radius:4px;background:var(--card2);margin:10px 0 4px;overflow:hidden}
+.secbar i{display:block;height:100%;background:linear-gradient(90deg,var(--tick),var(--acc));width:0}
+.marker{width:100%;padding:18px;font-size:16px;margin-top:12px}
+.list{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:10px;padding:11px 2px;border-top:1px solid var(--line);font-size:13.5px}
+.li:first-child{border-top:0}
+.li .grow small{display:block;color:var(--mut);font-size:11.5px;margin-top:2px}
+.li .val{font-family:var(--mono);font-size:14px;text-align:right}
+.x{border:0;background:none;color:var(--mut2);cursor:pointer;padding:6px;border-radius:8px;font-size:16px;line-height:1}
+.empty{text-align:center;padding:18px 8px;color:var(--mut);font-size:13px}
+/* watches */
+.wc{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;border:1px solid var(--line);background:var(--card2);margin-bottom:8px;cursor:pointer;transition:.2s}
+.wc.act{border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+.wc .ic{width:42px;height:42px;border-radius:13px;background:var(--accbg);display:grid;place-items:center;color:var(--acc);flex:none}
+.wc .ic svg{width:24px;height:24px}
+.wc b{display:block;font-size:15px}
+.wc small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.hi{padding:12px 2px;border-top:1px solid var(--line)}
+.hi:first-child{border-top:0}
+.hi .t{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}
+.hi .t small{color:var(--mut)}
+.hi .vals{display:flex;gap:14px;margin-top:6px;font-family:var(--mono);font-size:13px;flex-wrap:wrap}
+.hi .vals span{color:var(--mut)}
+.kind{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:6px;background:var(--accbg);color:var(--acc);margin-left:6px}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);z-index:60;opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;max-height:90vh;overflow:auto;background:var(--bg2);border-radius:26px 26px 0 0;border:1px solid var(--line);padding:10px 18px calc(24px + var(--safe-b));transform:translateY(105%);transition:transform .45s cubic-bezier(.2,.9,.2,1);max-width:640px;margin:auto}
+.sheet.on{transform:none}
+.sheet .grab{width:40px;height:5px;border-radius:5px;background:var(--mut2);margin:2px auto 14px;opacity:.6}
+.sheet h2{margin:0 0 16px;font-size:21px;letter-spacing:-.02em}
+.guide h4{margin:18px 0 6px;font-size:15px;color:var(--acc)}
+.guide p,.guide li{font-size:14px;line-height:1.6;color:var(--tx);opacity:.92;margin:0 0 6px}
+.guide ul{padding-left:18px;margin:4px 0}
+.guide table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+.guide td,.guide th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+.guide th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translate(-50%,-20px);background:var(--card2);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:10px 16px;border-radius:14px;font-size:13.5px;font-weight:600;z-index:80;opacity:0;pointer-events:none;transition:.35s cubic-bezier(.2,.9,.2,1);box-shadow:var(--sh);max-width:90vw}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.intro{display:flex;gap:12px;align-items:flex-start;padding:13px;border-radius:16px;background:var(--accbg);font-size:13px;line-height:1.5;margin-bottom:12px}
+.intro svg{width:22px;height:22px;flex:none;color:var(--acc);margin-top:1px}
+.flash{animation:fl .5s}
+@keyframes fl{from{background:var(--accbg)}}
+.muted{color:var(--mut)}
+.foot{text-align:center;color:var(--mut2);font-size:11.5px;padding:10px 0 0;line-height:1.6}
+@media (min-width:700px){.rateval{font-size:76px}.metrics{gap:10px}}
+@media (max-width:370px){.rateval{font-size:54px}.m .v{font-size:20px}.devgrid{grid-template-columns:repeat(3,1fr)}.btns{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <svg class="logo" id="logo" viewBox="0 0 40 40" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop style="stop-color:var(--acc2)" offset="0"/><stop style="stop-color:var(--acc)" offset="1"/></linearGradient></defs>
+      <path d="M8.5 15.5 10.6 4.2l7 6.6zM31.5 15.5 29.4 4.2l-7 6.6z" fill="url(#lg)"/>
+      <circle cx="20" cy="22.5" r="12.6" fill="none" stroke="url(#lg)" stroke-width="2.4"/>
+      <path style="stroke:var(--tx)" d="M20 22.5V14.6M20 22.5l5.4 3.1" stroke-width="2.1" stroke-linecap="round"/>
+      <path style="stroke:var(--mut)" d="M3 24.5h5M3.6 28.6l4.6-1.6M37 24.5h-5M36.4 28.6l-4.6-1.6" stroke-width="1.3" stroke-linecap="round"/>
+      <circle style="fill:var(--acc)" cx="20" cy="22.5" r="1.7"/>
+    </svg>
+    <div class="brand"><b>purr<span>time</span></b><small data-i18n="app_tag">Cronocomparador acústico</small></div>
+    <div class="pill" id="status"><i></i><span id="statusTx">—</span></div>
+    <button class="ibtn" id="helpBtn" aria-label="Guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.5-2.7 4"/><circle cx="12" cy="17.4" r=".6" fill="currentColor"/></svg></button>
+  </div>
+</header>
+
+<main>
+<!-- ============ MEASURE ============ -->
+<section class="view on" id="v-measure">
+  <div class="wbar">
+    <div class="chipsel"><label data-i18n="watch">Reloj</label><select id="mWatch"></select></div>
+    <div class="chipsel"><label data-i18n="bph">Ritmo</label><select id="mBph"></select></div>
+    <div class="chipsel"><label data-i18n="lift_s">Levée</label><input id="mLift" type="number" inputmode="decimal" min="30" max="70" step="0.5"><span class="muted">°</span></div>
+  </div>
+
+  <div class="card hero">
+    <div class="hero-top">
+      <div class="wheelbox">
+        <svg id="wheel" viewBox="-50 -50 100 100" aria-hidden="true">
+          <circle style="stroke:var(--line)" r="47" fill="none" stroke-width="1"/>
+          <g id="wheelG">
+            <circle style="stroke:var(--acc)" r="40" fill="none" stroke-width="5"/>
+            <circle style="stroke:var(--acc2)" r="40" fill="none" stroke-width="1" opacity=".6"/>
+            <path style="stroke:var(--acc)" d="M0-38V38M-32.9 19 32.9-19M-32.9-19 32.9 19" stroke-width="3" stroke-linecap="round"/>
+            <circle style="fill:var(--bg2);stroke:var(--acc)" r="8" stroke-width="2"/>
+            <circle style="fill:var(--acc2)" cx="0" cy="-40" r="2.6"/><circle style="fill:var(--acc2)" cx="34.6" cy="20" r="2.6"/><circle style="fill:var(--acc2)" cx="-34.6" cy="20" r="2.6"/>
+          </g>
+          <path style="stroke:var(--tick)" id="spring" d="" fill="none" stroke-width="1.1" opacity=".85"/>
+          <circle style="fill:var(--tx)" r="2.2"/>
+        </svg>
+        <div><b style="display:block;font-size:11px;color:var(--tx)" data-i18n="balance">Volante</b>×1/8</div>
+      </div>
+      <div class="lvl"><small><span data-i18n="signal">Señal</span><span id="snrTx" class="num">—</span></small><div class="lvlbar"><i id="lvlBar"></i></div></div>
+    </div>
+    <div class="gauge">
+      <svg viewBox="0 0 300 175" id="gaugeSvg" aria-hidden="true"></svg>
+    </div>
+    <div class="ratebox">
+      <div class="rateval num" id="rateVal">—<sup>s/d</sup></div>
+      <div class="ratelbl" id="rateLbl" data-i18n="st_idle_long">Pulsa Escuchar y apoya el reloj sobre el micrófono</div>
+      <div class="rerr num" id="rateErr">&nbsp;</div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="m" id="mBE"><small data-i18n="be">Error de batido</small><div class="v num">—<u>ms</u></div><div class="s" data-i18n="be_s">tic vs tac</div></div>
+    <div class="m" id="mAMP"><small data-i18n="amp">Amplitud</small><div class="v num">—<u>°</u></div><div class="s" id="ampS">—</div></div>
+    <div class="m" id="mBPH"><small data-i18n="bph">Ritmo</small><div class="v num">—</div><div class="s" id="bphS">bph</div></div>
+    <div class="m" id="mSTAB"><small data-i18n="stab">Estabilidad</small><div class="v num">—<u>s/d</u></div><div class="s" data-i18n="stab_s">σ de la marcha</div></div>
+    <div class="m" id="mQ"><small data-i18n="quality">Calidad</small><div class="v num">—<u>%</u></div><div class="s" id="qS">jitter —</div></div>
+    <div class="m" id="mT"><small data-i18n="elapsed">Tiempo</small><div class="v num">0:00</div><div class="s" id="tS">0 <span data-i18n="beats">batidos</span></div></div>
+  </div>
+
+  <div class="card">
+    <h3><span data-i18n="tape_t">Cinta del cronocomparador</span><span class="sp"></span>
+      <span class="seg" id="rangeSeg"><button data-v="5">±5</button><button data-v="10">±10</button><button data-v="20">±20</button></span></h3>
+    <canvas id="tape"></canvas>
+    <div class="legend"><span><i style="background:var(--tick)"></i><span data-i18n="tick">Tic</span></span><span><i style="background:var(--tock)"></i><span data-i18n="tock">Tac</span></span><span class="muted" style="margin-left:auto">ms</span></div>
+    <p class="hint" data-i18n="tape_h">Cada punto es un batido. Línea horizontal = en hora; pendiente hacia arriba = adelanta, hacia abajo = atrasa; dos líneas separadas = error de batido.</p>
+  </div>
+
+  <div class="card">
+    <h3 data-i18n="dev_t">Desviación acumulada (hora de más o de menos)</h3>
+    <div class="devgrid">
+      <div class="dv"><small data-i18n="per_hour">Hora</small><b class="num" id="dH">—</b></div>
+      <div class="dv"><small data-i18n="per_day">Día</small><b class="num" id="dD">—</b></div>
+      <div class="dv"><small data-i18n="per_week">Semana</small><b class="num" id="dW">—</b></div>
+      <div class="dv"><small data-i18n="per_month">Mes</small><b class="num" id="dM">—</b></div>
+      <div class="dv"><small data-i18n="per_year">Año</small><b class="num" id="dY">—</b></div>
+    </div>
+    <div class="onemin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--acc);flex:none"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg><span data-i18n="one_min">1 minuto de desviación en</span><b class="num" id="d1m" style="margin-left:auto">—</b></div>
+  </div>
+
+  <div class="card">
+    <h3 data-i18n="health_t">Salud del reloj</h3>
+    <div class="health">
+      <div class="ring"><svg viewBox="0 0 96 96"><circle class="bgc" cx="48" cy="48" r="36"/><circle class="fg" id="ringFg" cx="48" cy="48" r="36"/></svg><div><span><b class="num" id="scoreV">—</b><small>/100</small></span></div></div>
+      <div class="grow"><div class="grade" id="gradeV">—</div><div class="hint" style="margin-top:4px" data-i18n="health_h">Combina marcha, error de batido, amplitud y estabilidad.</div></div>
+    </div>
+    <ul class="diag" id="diag"></ul>
+  </div>
+
+  <div class="card">
+    <h3><span data-i18n="scope_t">Osciloscopio del tic</span><span class="sp"></span><span class="seg" id="scopeSeg"><button data-v="avg" class="on" data-i18n="avg">Promedio</button><button data-v="live" data-i18n="live">En vivo</button></span></h3>
+    <canvas id="scope"></canvas>
+    <p class="hint" data-i18n="scope_h">Envolvente acústica de cada batido: desenclavamiento (1), impulso y caída (2). El intervalo Δt entre 1 y 2, junto al ángulo de levée, determina la amplitud.</p>
+  </div>
+
+  <div class="card">
+    <h3 data-i18n="trend_t">Tendencia de la sesión</h3>
+    <canvas id="trend"></canvas>
+    <div class="legend"><span><i style="background:var(--acc)"></i><span data-i18n="rate">Marcha</span> (s/d)</span><span><i style="background:var(--tick)"></i><span data-i18n="amp">Amplitud</span> (°)</span><span><i style="background:var(--tock)"></i><span data-i18n="be">Error de batido</span> (ms ×10)</span></div>
+  </div>
+
+  <div class="btns">
+    <button class="btn" id="saveBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7M8 21v-7h8v7"/></svg><span data-i18n="save">Guardar</span></button>
+    <button class="btn" id="resetBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span data-i18n="reset">Reiniciar</span></button>
+    <button class="btn" id="shareBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg><span data-i18n="share">Informe</span></button>
+  </div>
+</section>
+
+<!-- ============ POSITIONS ============ -->
+<section class="view" id="v-pos">
+  <div class="intro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 8v5M12 16.5v.5"/></svg><span data-i18n="pos_intro">La prueba de posiciones mide la marcha en las 6 posiciones estándar. La diferencia entre ellas (delta) revela el equilibrio del volante, el estado de los pivotes y la salud general del calibre.</span></div>
+  <div class="card">
+    <h3 data-i18n="pos_cfg">Configuración</h3>
+    <div class="row" style="gap:12px">
+      <div class="field grow" style="margin:0"><label><span style="color:var(--tx);font-family:var(--sans);font-size:12.5px" data-i18n="settle">Estabilización</span><span id="settleV">10 s</span></label><input type="range" id="settleR" min="5" max="30" step="1"></div>
+      <div class="field grow" style="margin:0"><label><span style="color:var(--tx);font-family:var(--sans);font-size:12.5px" data-i18n="measure_s">Medición</span><span id="mdurV">30 s</span></label><input type="range" id="mdurR" min="10" max="120" step="5"></div>
+    </div>
+    <p class="hint" data-i18n="pos_tap">Toca una posición para incluirla o excluirla de la secuencia.</p>
+  </div>
+  <div class="card">
+    <div class="pgrid" id="pgrid"></div>
+  </div>
+  <div class="card" id="stageCard">
+    <div class="stage">
+      <div class="cd"><svg class="r" viewBox="0 0 124 124"><circle class="bgc" cx="62" cy="62" r="54"/><circle class="fg" id="cdFg" cx="62" cy="62" r="54" style="stroke-dashoffset:339.3"/></svg><div class="in"><div><span id="cdIcon"></span><b class="num" id="cdT">—</b></div></div></div>
+      <div class="grow"><span class="phase" id="phaseTag" data-i18n="ready">Listo</span><h4 id="stageName" data-i18n="pos_ready">Prepara el reloj</h4><p id="stageTx" data-i18n="pos_ready_tx">Da cuerda completa al reloj antes de empezar. Mantén el teléfono inmóvil y en silencio.</p></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn pri grow" id="posGo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg><span data-i18n="start_seq">Iniciar secuencia</span></button>
+    </div>
+  </div>
+  <div class="card">
+    <h3 data-i18n="results">Resultados</h3>
+    <canvas id="posChart"></canvas>
+    <div class="sumgrid" style="margin-top:10px">
+      <div class="sum"><small data-i18n="mean_rate">Marcha media</small><b class="num" id="sMean">—</b></div>
+      <div class="sum"><small data-i18n="delta">Delta (máx − mín)</small><b class="num" id="sDelta">—</b></div>
+      <div class="sum"><small data-i18n="hv_diff">Dif. horizontal − vertical</small><b class="num" id="sHV">—</b></div>
+      <div class="sum"><small data-i18n="max_be">Error de batido máx.</small><b class="num" id="sBE">—</b></div>
+      <div class="sum"><small data-i18n="avg_amp">Amplitud H / V</small><b class="num" id="sAmp">—</b></div>
+      <div class="sum"><small data-i18n="amp_drop">Caída de amplitud H→V</small><b class="num" id="sDrop">—</b></div>
+    </div>
+    <h3 style="margin-top:16px" data-i18n="standards">Comparativa con estándares</h3>
+    <div class="stds" id="stds"></div>
+    <ul class="diag" id="posDiag"></ul>
+    <div class="row" style="margin-top:12px"><button class="btn grow" id="posSave"><span data-i18n="save">Guardar</span></button><button class="btn" id="posClear"><span data-i18n="clear">Borrar</span></button></div>
+  </div>
+</section>
+
+<!-- ============ LOG ============ -->
+<section class="view" id="v-log">
+  <div class="intro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg><span data-i18n="log_intro">El diario mide la precisión real en uso durante días: compara tu reloj con la hora del dispositivo (sincronizada por red). Es la prueba definitiva, porque incluye tu muñeca, la noche y la reserva de marcha.</span></div>
+  <div class="card">
+    <h3><span data-i18n="ref_clock">Hora de referencia</span><span class="sp"></span><div class="chipsel" style="padding:4px 9px"><select id="logWatch"></select></div></h3>
+    <div class="clock"><div class="big num" id="refClock">--:--:--<span>.---</span></div><div class="secbar"><i id="secBar"></i></div></div>
+    <button class="btn pri marker" id="markBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9"/></svg><span data-i18n="mark">Marcar: segundero en las 12</span></button>
+    <p class="hint" data-i18n="mark_h">Pulsa justo cuando el segundero de tu reloj pase por las 12. Si tu reloj difiere más de 30 s, ajusta los minutos de diferencia.</p>
+    <div class="row" style="margin-top:12px;gap:10px">
+      <div class="field grow" style="margin:0"><label data-i18n="min_adj">Minutos de diferencia</label><input class="inp num" id="minAdj" type="number" value="0" step="1"></div>
+      <div class="field grow" style="margin:0"><label data-i18n="manual_off">Desfase manual (s)</label><input class="inp num" id="manOff" type="number" step="0.1" placeholder="+2.5"></div>
+      <button class="btn" id="addMan" style="align-self:flex-end;height:46px"><span data-i18n="add">Añadir</span></button>
+    </div>
+  </div>
+  <div class="card">
+    <h3 data-i18n="log_res">Precisión real</h3>
+    <div class="sumgrid">
+      <div class="sum"><small data-i18n="log_rate">Marcha real</small><b class="num" id="lRate">—</b></div>
+      <div class="sum"><small data-i18n="log_span">Periodo</small><b class="num" id="lSpan">—</b></div>
+      <div class="sum"><small data-i18n="cur_off">Desfase actual</small><b class="num" id="lOff">—</b></div>
+      <div class="sum"><small data-i18n="log_vs">vs. cronocomparador</small><b class="num" id="lVs">—</b></div>
+    </div>
+    <canvas id="logChart" style="margin-top:10px"></canvas>
+    <h3 style="margin-top:16px"><span data-i18n="entries">Registros</span><span class="sp"></span><button class="btn sm ghost danger" id="logClear" data-i18n="clear">Borrar</button></h3>
+    <div class="list" id="logList"></div>
+  </div>
+  <div class="card">
+    <h3 data-i18n="pr_t">Reserva de marcha</h3>
+    <p class="hint" style="margin:0 0 12px" data-i18n="pr_h">Da cuerda completa, pulsa Iniciar y deja el reloj quieto. Cuando se detenga, pulsa Parado. Así sabrás si el muelle real entrega la reserva especificada.</p>
+    <div class="row"><button class="btn grow" id="prStart"><span data-i18n="pr_start">Iniciar (cuerda completa)</span></button><button class="btn grow" id="prStop"><span data-i18n="pr_stop">Se ha parado</span></button></div>
+    <div class="onemin" style="margin-top:12px"><span id="prTx" data-i18n="pr_none">Sin prueba en curso</span><b class="num" id="prV" style="margin-left:auto">—</b></div>
+  </div>
+</section>
+
+<!-- ============ WATCHES ============ -->
+<section class="view" id="v-watches">
+  <div class="card">
+    <h3><span data-i18n="w_t">Mis relojes</span><span class="sp"></span><button class="btn sm" id="wAdd">+ <span data-i18n="w_add">Añadir</span></button></h3>
+    <div id="wList"></div>
+  </div>
+  <div class="card">
+    <h3><span data-i18n="hist_t">Historial de mediciones</span><span class="sp"></span><select class="chipsel" id="hFilter" style="font-size:12px;padding:5px 8px;color:var(--tx)"></select></h3>
+    <canvas id="histChart" style="height:140px;border-radius:14px;background:rgba(0,0,0,.18);margin-bottom:8px"></canvas>
+    <div id="hList"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn sm grow" id="expJson">JSON ↓</button><button class="btn sm grow" id="expCsv">CSV ↓</button><button class="btn sm grow" id="impJson"><span data-i18n="import">Importar</span> ↑</button>
+      <input type="file" id="impFile" accept="application/json,.json" hidden>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<section class="view" id="v-settings">
+  <div class="card">
+    <h3 data-i18n="set_gen">General</h3>
+    <div class="field"><label data-i18n="lang">Idioma</label><select class="inp" id="sLang">
+      <option value="es">Español</option><option value="en">English</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt">Português</option></select></div>
+    <div class="field"><label data-i18n="theme">Tema</label><div class="seg" id="themeSeg" style="display:flex"><button data-v="dark" class="grow" data-i18n="th_dark">Oscuro</button><button data-v="light" class="grow" data-i18n="th_light">Claro</button><button data-v="auto" class="grow" data-i18n="th_auto">Auto</button></div></div>
+    <div class="setrow"><div><b data-i18n="wake">Mantener pantalla encendida</b><small data-i18n="wake_h">Evita que el móvil se bloquee mientras mides.</small></div><label class="sw"><input type="checkbox" id="sWake"><i></i></label></div>
+    <div class="setrow"><div><b data-i18n="vib">Vibración</b><small data-i18n="vib_h">Aviso háptico en la prueba de posiciones.</small></div><label class="sw"><input type="checkbox" id="sVib"><i></i></label></div>
+  </div>
+  <div class="card">
+    <h3 data-i18n="set_audio">Audio y análisis</h3>
+    <div class="field"><label data-i18n="mic">Micrófono</label><select class="inp" id="sMic"></select><div class="fhelp" data-i18n="mic_h">Un micrófono de contacto o unos auriculares con micro mejoran mucho la señal. El procesado del navegador (cancelación de eco, supresión de ruido, ganancia automática) se desactiva.</div></div>
+    <div class="field"><label><span style="color:var(--tx);font-family:var(--sans)" data-i18n="hp">Filtro paso alto</span><span id="hpV">1500 Hz</span></label><input type="range" id="sHp" min="300" max="6000" step="100"><div class="fhelp" data-i18n="hp_h">Elimina ruido grave (voces, motor, tráfico). Súbelo en entornos ruidosos.</div></div>
+    <div class="field"><label><span style="color:var(--tx);font-family:var(--sans)" data-i18n="sens">Sensibilidad</span><span id="sensV">60%</span></label><input type="range" id="sSens" min="0" max="100" step="1"><div class="fhelp" data-i18n="sens_h">Más alta detecta ticks débiles, pero también ruido.</div></div>
+    <div class="field"><label><span style="color:var(--tx);font-family:var(--sans)" data-i18n="win">Ventana de promediado</span><span id="winV">20 s</span></label><input type="range" id="sWin" min="4" max="120" step="1"><div class="fhelp" data-i18n="win_h">Ventanas largas dan más precisión; cortas responden antes a los cambios.</div></div>
+    <div class="field" style="margin:0"><label data-i18n="ppm">Corrección del reloj del dispositivo (ppm)</label><input class="inp num" id="sPpm" type="number" step="0.1"><div class="fhelp" data-i18n="ppm_h">El cristal de audio del móvil tiene una pequeña desviación propia. 1 ppm = 0,0864 s/d. Calíbralo comparando con el diario de precisión real.</div></div>
+  </div>
+  <div class="card">
+    <h3 data-i18n="data">Datos</h3>
+    <p class="hint" style="margin-top:0" data-i18n="data_h">Todo se guarda únicamente en este dispositivo. Nada se envía a ningún servidor.</p>
+    <button class="btn danger" id="wipe" style="width:100%;margin-top:6px" data-i18n="wipe">Borrar todos los datos</button>
+  </div>
+  <div class="foot">PurrTime · v1.0<br><span data-i18n="foot">Herramienta orientativa. Para una regulación profesional usa un cronocomparador con micrófono de contacto.</span></div>
+</section>
+</main>
+
+<div class="fab" id="fab">
+  <button class="go" id="goBtn"><svg id="goIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg><span id="goTx" data-i18n="listen">Escuchar</span></button>
+</div>
+
+<nav><div class="nw">
+  <button data-v="measure" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 13h3l2-6 4 12 3-9 2 3h4"/></svg><span data-i18n="nav_measure">Medir</span></button>
+  <button data-v="pos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5l9 4.5 9-4.5z"/><path d="m3 12 9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span data-i18n="nav_pos">Posiciones</span></button>
+  <button data-v="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4M8 14h3M8 17h6"/></svg><span data-i18n="nav_log">Diario</span></button>
+  <button data-v="watches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="5.5"/><path d="M9 6.8 9.8 2.5h4.4l.8 4.3M9 17.2l.8 4.3h4.4l.8-4.3M12 10v2l1.3 1"/></svg><span data-i18n="nav_watches">Relojes</span></button>
+  <button data-v="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg><span data-i18n="nav_settings">Ajustes</span></button>
+</div></nav>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== PurrTime acoustic engine ===== */
+const PT = (() => {
+  const BPHS = [12000, 14400, 18000, 19800, 21600, 25200, 28800, 36000, 43200];
+
+  class Biquad {
+    constructor() { this.x1 = this.x2 = this.y1 = this.y2 = 0; }
+    hp(f, q, sr) {
+      const w = 2 * Math.PI * f / sr, c = Math.cos(w), s = Math.sin(w), a = s / (2 * q);
+      const a0 = 1 + a;
+      this.b0 = (1 + c) / 2 / a0; this.b1 = -(1 + c) / a0; this.b2 = (1 + c) / 2 / a0;
+      this.a1 = -2 * c / a0; this.a2 = (1 - a) / a0; return this;
+    }
+    lp(f, q, sr) {
+      const w = 2 * Math.PI * f / sr, c = Math.cos(w), s = Math.sin(w), a = s / (2 * q);
+      const a0 = 1 + a;
+      this.b0 = (1 - c) / 2 / a0; this.b1 = (1 - c) / a0; this.b2 = (1 - c) / 2 / a0;
+      this.a1 = -2 * c / a0; this.a2 = (1 - a) / a0; return this;
+    }
+    run(x) {
+      const y = this.b0 * x + this.b1 * this.x1 + this.b2 * this.x2 - this.a1 * this.y1 - this.a2 * this.y2;
+      this.x2 = this.x1; this.x1 = x; this.y2 = this.y1; this.y1 = y; return y;
+    }
+  }
+
+  /* ---------- Detector: samples -> tick events ---------- */
+  class Detector {
+    constructor(sr, cfg) {
+      this.sr = sr; this.cfg = Object.assign({ hp: 1500, sens: 0.6, period: 0 }, cfg || {});
+      this.N = 32768; this.M = this.N - 1;
+      this.y = new Float32Array(this.N); this.e = new Float32Array(this.N);
+      this.reset();
+    }
+    setFilter() {
+      const sr = this.sr, f = Math.min(this.cfg.hp, sr * 0.4);
+      this.f1 = new Biquad().hp(f, 0.707, sr); this.f2 = new Biquad().hp(f, 0.707, sr);
+      this.f3 = new Biquad().lp(Math.min(16000, sr * 0.45), 0.707, sr);
+    }
+    reset() {
+      this.setFilter();
+      this.idx = 0; this.en = 0; this.nf = 1e-5; this.pk = 0; this.refr = 0; this.pending = null;
+      this.alpha = 1 - Math.exp(-1 / (this.sr * 0.00018));
+      this.level = 0; this.y.fill(0); this.e.fill(0);
+      this.lastEnv = null;
+    }
+    params() {
+      const s = Math.max(0, Math.min(1, this.cfg.sens));
+      return { minSnr: 14 - 11 * s, frac: 0.5 - 0.36 * s };
+    }
+    process(buf, onTick) {
+      const sr = this.sr, M = this.M, a = this.alpha, { minSnr, frac } = this.params();
+      const pkDecay = 1 - 1 / (sr * 4);
+      let lvl = 0;
+      for (let i = 0; i < buf.length; i++) {
+        let v = this.f3.run(this.f2.run(this.f1.run(buf[i])));
+        this.en += a * (v * v - this.en);
+        const env = Math.sqrt(this.en);
+        const k = this.idx & M;
+        this.y[k] = v; this.e[k] = env;
+        const av = Math.abs(buf[i]); if (av > lvl) lvl = av;
+        // quantile noise floor (approx median of envelope)
+        this.nf *= env > this.nf ? 1.00025 : 0.99975;
+        if (this.nf < 1e-7) this.nf = 1e-7;
+        this.pk *= pkDecay;
+        const thr = Math.max(this.nf * minSnr, this.nf + frac * (this.pk - this.nf));
+        if (!this.pending && this.idx >= this.refr && env > thr) {
+          this.pending = { trig: this.idx, end: this.idx + Math.round(sr * 0.019), nf: this.nf };
+          const per = this.cfg.period;
+          this.refr = this.idx + Math.round(sr * (per ? per * 0.62 : 0.042));
+        }
+        if (this.pending && this.idx >= this.pending.end) {
+          const t = this.analyse(this.pending);
+          this.pending = null;
+          if (t && onTick) onTick(t);
+        }
+        this.idx++;
+      }
+      this.level = lvl;
+    }
+    analyse(p) {
+      const sr = this.sr, M = this.M, e = this.e;
+      const s0 = p.trig - Math.round(sr * 0.0145), s1 = p.end;
+      const n = s1 - s0;
+      let maxV = 0, maxI = 0;
+      for (let i = 0; i < n; i++) { const v = e[(s0 + i) & M]; if (v > maxV) { maxV = v; maxI = i; } }
+      if (maxV <= 0) return null;
+      this.pk = this.pk ? this.pk * 0.75 + maxV * 0.25 : maxV;
+      const sig = Math.max(maxV * 0.2, p.nf * 4.5);
+      const half = Math.max(2, Math.round(sr * 0.00035));
+      const peaks = [];
+      for (let i = half; i < n - half; i++) {
+        const v = e[(s0 + i) & M];
+        if (v < sig) continue;
+        let isMax = true;
+        for (let j = 1; j <= half; j++) {
+          if (e[(s0 + i - j) & M] > v || e[(s0 + i + j) & M] >= v) { isMax = false; break; }
+        }
+        if (isMax) {
+          const last = peaks[peaks.length - 1];
+          if (last && (i - last.i) < sr * 0.0006) { if (v > last.v) { last.i = i; last.v = v; } }
+          else peaks.push({ i, v });
+        }
+      }
+      if (!peaks.length) return null;
+      const P1 = peaks[0];
+      // constant-fraction crossing (50% of first peak) on the rising edge
+      const lv = P1.v * 0.5;
+      let j = P1.i;
+      while (j > 0 && e[(s0 + j) & M] > lv) j--;
+      const ea = e[(s0 + j) & M], eb = e[(s0 + j + 1) & M];
+      const fr = eb > ea ? (lv - ea) / (eb - ea) : 0;
+      const tRef = (s0 + j + fr) / sr;
+      // downsampled normalised envelope for scope (aligned to P1, -3ms..+17ms)
+      const pts = 200, st = P1.i - Math.round(sr * 0.003), span = Math.round(sr * 0.02);
+      const env = new Float32Array(pts);
+      for (let q = 0; q < pts; q++) {
+        const ii = st + Math.floor(q * span / pts);
+        env[q] = (ii >= 0 && ii < n + 4000) ? e[(s0 + ii) & M] / maxV : 0;
+      }
+      return {
+        t: tRef, peak: maxV, snr: maxV / p.nf,
+        peaks: peaks.map(pp => ({ dt: (pp.i - P1.i) / sr, v: pp.v / maxV })),
+        env
+      };
+    }
+  }
+
+  /* ---------- Analyzer: ticks -> metrics ---------- */
+  function median(a) { if (!a.length) return NaN; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
+
+  class Analyzer {
+    constructor(cfg) { this.cfg = Object.assign({ bph: 0, lift: 52, window: 20, ppm: 0 }, cfg || {}); this.reset(); }
+    reset() {
+      this.raw = []; this.beats = []; this.bph = this.cfg.bph || 0; this.cand = 0; this.candN = 0;
+      this.rej = 0; this.acc = 0; this.rejStreak = 0; this.lastRes = null; this.envAvg = null; this.envN = 0;
+      this.hist = []; this.lastHistT = 0; this.events = 0;
+    }
+    get T() { return this.bph ? 3600 / this.bph : 0; }
+    detectBph() {
+      if (this.cfg.bph) { this.bph = this.cfg.bph; return; }
+      const r = this.raw; if (r.length < 10) return;
+      const iv = []; for (let i = Math.max(1, r.length - 24); i < r.length; i++) iv.push(r[i] - r[i - 1]);
+      const m = median(iv);
+      let best = 0, be = 1;
+      for (const b of BPHS) {
+        const T = 3600 / b;
+        const e1 = Math.abs(m - T) / T;
+        if (e1 < be) { be = e1; best = b; }
+      }
+      if (be > 0.06) { this.candN = 0; return; }
+      if (best === this.cand) this.candN++; else { this.cand = best; this.candN = 1; }
+      if (!this.bph && this.candN >= 3) { this.bph = best; this.beats = []; }
+      else if (this.bph && this.bph !== best && this.candN >= 12) { this.bph = best; this.beats = []; this.hist = []; }
+    }
+    add(tk) {
+      this.events++;
+      this.raw.push(tk.t); if (this.raw.length > 200) this.raw.shift();
+      this.detectBph();
+      const T = this.T; if (!T) return;
+      const b = this.beats;
+      const last = b[b.length - 1];
+      if (!last) { b.push({ t: tk.t, n: 0, pk: tk.peaks }); this.acc++; this.absorb(tk); return; }
+      const d = (tk.t - last.t) / T, k = Math.round(d), fr = Math.abs(d - k);
+      if (k > 60) { this.beats = [{ t: tk.t, n: 0, pk: tk.peaks }]; this.rejStreak = 0; return; }
+      if (k < 1 || fr > 0.2) {
+        this.rej++; this.rejStreak++;
+        if (this.rejStreak > 6) { this.beats = [{ t: tk.t, n: 0, pk: tk.peaks }]; this.rejStreak = 0; }
+        return;
+      }
+      this.rejStreak = 0; this.acc++;
+      b.push({ t: tk.t, n: last.n + k, pk: tk.peaks });
+      if (b.length > 20000) b.splice(0, 2000);
+      this.absorb(tk);
+    }
+    absorb(tk) {
+      if (!this.envAvg) this.envAvg = new Float32Array(tk.env.length);
+      const w = this.envN < 30 ? 1 / (this.envN + 1) : 1 / 30;
+      for (let i = 0; i < tk.env.length; i++) this.envAvg[i] += w * (tk.env[i] - this.envAvg[i]);
+      this.envN++;
+      this.lastEnv = tk.env;
+    }
+    fit(sel) {
+      // t = a + b*n + c*p, p = +-0.5 by parity
+      let S = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], R = [0, 0, 0];
+      const n0 = sel[0].n, t0 = sel[0].t;
+      for (const x of sel) {
+        const v = [1, x.n - n0, (x.n & 1) ? 0.5 : -0.5], y = x.t - t0;
+        for (let i = 0; i < 3; i++) { R[i] += v[i] * y; for (let j = 0; j < 3; j++) S[i][j] += v[i] * v[j]; }
+      }
+      const sol = solve3(S, R); if (!sol) return null;
+      return { a: sol[0] + t0, b: sol[1], c: sol[2], n0 };
+    }
+    compute(now) {
+      const T = this.T, b = this.beats;
+      if (!T || b.length < 8) return this.lastRes = { ok: false, bph: this.bph, n: b.length, events: this.events };
+      const tEnd = b[b.length - 1].t, W = this.cfg.window;
+      let i0 = b.length - 1; while (i0 > 0 && b[i0 - 1].t >= tEnd - W) i0--;
+      let sel = b.slice(i0);
+      if (sel.length < 8) return this.lastRes = { ok: false, bph: this.bph, n: sel.length, events: this.events };
+      let f = this.fit(sel); if (!f) return this.lastRes = { ok: false, bph: this.bph };
+      const resid = x => x.t - (f.a + f.b * (x.n - f.n0) + f.c * ((x.n & 1) ? 0.5 : -0.5));
+      let rs = sel.map(x => Math.abs(resid(x)));
+      const mad = median(rs);
+      const lim = Math.max(0.00025, mad * 4);
+      const kept = sel.filter((x, i) => rs[i] <= lim);
+      if (kept.length >= 8 && kept.length < sel.length) { const f2 = this.fit(kept); if (f2) { f = f2; sel = kept; } }
+      const res = sel.map(resid);
+      const sd = Math.sqrt(res.reduce((s, v) => s + v * v, 0) / Math.max(1, res.length - 3));
+      const rate = (T / f.b - 1) * 86400 + this.cfg.ppm * 0.0864;
+      const be = Math.abs(f.c) * 1000;
+      // amplitude
+      const fq = this.bph / 7200, LA = this.cfg.lift * Math.PI / 180;
+      const dtMin = Math.asin(Math.min(1, LA / 2 / (400 * Math.PI / 180))) / (Math.PI * fq);
+      const dtMax = Math.asin(Math.min(1, LA / 2 / (125 * Math.PI / 180))) / (Math.PI * fq);
+      const dts = [[], []];
+      for (const x of sel) {
+        if (!x.pk) continue;
+        let best = null;
+        for (const p of x.pk) if (p.dt >= dtMin && p.dt <= dtMax && (!best || p.v > best.v)) best = p;
+        if (best) dts[x.n & 1].push(best.dt);
+      }
+      const amp = d => { if (!d.length) return NaN; const m = median(d); const A = LA / (2 * Math.sin(Math.PI * fq * m)) * 180 / Math.PI; return A; };
+      const ampA = amp(dts[0]), ampB = amp(dts[1]);
+      const nDt = dts[0].length + dts[1].length;
+      let ampV = NaN;
+      if (nDt >= sel.length * 0.35) ampV = isFinite(ampA) && isFinite(ampB) ? (ampA + ampB) / 2 : (isFinite(ampA) ? ampA : ampB);
+      const span = sel[sel.length - 1].t - sel[0].t;
+      const expected = span / T + 1;
+      const quality = Math.max(0, Math.min(1, (sel.length / expected) * Math.max(0, 1 - sd * 1000 / 1.5)));
+      // rate uncertainty (s/d) from slope stderr
+      let sxx = 0; const nm = sel.reduce((s, x) => s + x.n, 0) / sel.length;
+      for (const x of sel) sxx += (x.n - nm) ** 2;
+      const seB = sd / Math.sqrt(sxx || 1);
+      const rateErr = seB / f.b * 86400;
+      const out = {
+        ok: true, bph: this.bph, rate, be, amp: ampV, ampA, ampB, sd: sd * 1000, n: sel.length, span,
+        quality, rateErr, fit: f, tEnd, events: this.events, acc: this.acc, rej: this.rej,
+        dtMs: nDt ? median(dts[0].concat(dts[1])) * 1000 : NaN
+      };
+      if (tEnd - this.lastHistT >= 1 && span >= Math.min(W, 6) * 0.6) {
+        this.lastHistT = tEnd; this.hist.push({ t: tEnd, rate, be, amp: ampV });
+        if (this.hist.length > 3600) this.hist.shift();
+      }
+      const hh = this.hist.slice(-30).map(h => h.rate);
+      if (hh.length >= 5) { const m = hh.reduce((s, v) => s + v, 0) / hh.length; out.stab = Math.sqrt(hh.reduce((s, v) => s + (v - m) ** 2, 0) / (hh.length - 1)); }
+      return this.lastRes = out;
+    }
+  }
+  function solve3(A, B) {
+    const m = A.map((r, i) => [...r, B[i]]);
+    for (let c = 0; c < 3; c++) {
+      let p = c; for (let r = c + 1; r < 3; r++) if (Math.abs(m[r][c]) > Math.abs(m[p][c])) p = r;
+      if (Math.abs(m[p][c]) < 1e-15) return null;
+      [m[c], m[p]] = [m[p], m[c]];
+      for (let r = 0; r < 3; r++) if (r !== c) { const f = m[r][c] / m[c][c]; for (let k = c; k < 4; k++) m[r][k] -= f * m[c][k]; }
+    }
+    return [m[0][3] / m[0][0], m[1][3] / m[1][1], m[2][3] / m[2][2]];
+  }
+
+  return { Detector, Analyzer, BPHS, median };
+})();
+
+
+</script>
+<script>
+const I18N = {
+es: {
+app_tag:"Cronocomparador acústico",watch:"Reloj",bph:"Ritmo",lift_s:"Levée",balance:"Volante",signal:"Señal",
+st_idle_long:"Pulsa Escuchar y apoya el reloj sobre el micrófono",st_search_long:"Buscando batidos… acerca el reloj al micrófono",st_lock_long:"Detectando el ritmo del calibre…",
+be:"Error de batido",be_s:"tic vs tac",amp:"Amplitud",stab:"Estabilidad",stab_s:"σ de la marcha",quality:"Calidad",elapsed:"Tiempo",beats:"batidos",
+tape_t:"Cinta del cronocomparador",tick:"Tic",tock:"Tac",
+tape_h:"Cada punto es un batido. Línea horizontal = en hora; pendiente hacia arriba = adelanta, hacia abajo = atrasa; dos líneas separadas = error de batido; puntos dispersos = ruido o problema mecánico.",
+dev_t:"Desviación acumulada (de más o de menos)",per_hour:"Hora",per_day:"Día",per_week:"Semana",per_month:"Mes",per_year:"Año",one_min:"1 minuto de desviación en",
+health_t:"Salud del reloj",health_h:"Combina marcha, error de batido, amplitud y estabilidad en una puntuación.",
+scope_t:"Osciloscopio del batido",avg:"Promedio",live:"En vivo",
+scope_h:"Envolvente acústica de cada batido: desenclavamiento (1), impulso y caída (2). El intervalo Δt entre 1 y 2, junto al ángulo de levée, determina la amplitud.",
+trend_t:"Tendencia de la sesión",rate:"Marcha",save:"Guardar",reset:"Reiniciar",share:"Informe",
+pos_intro:"La prueba de posiciones mide la marcha en las 6 posiciones estándar. La diferencia entre ellas (delta) revela el equilibrio del volante, el estado de los pivotes y la salud general del calibre.",
+pos_cfg:"Configuración",settle:"Estabilización",measure_s:"Medición",pos_tap:"Toca una posición para incluirla o excluirla de la secuencia.",
+ready:"Listo",pos_ready:"Prepara el reloj",pos_ready_tx:"Da cuerda completa antes de empezar. Mantén el teléfono inmóvil y el entorno en silencio.",
+start_seq:"Iniciar secuencia",stop_seq:"Detener",results:"Resultados",mean_rate:"Marcha media",delta:"Delta (máx − mín)",hv_diff:"Dif. horizontal − vertical",
+max_be:"Error de batido máx.",avg_amp:"Amplitud H / V",amp_drop:"Caída de amplitud H→V",standards:"Comparativa con estándares",clear:"Borrar",
+log_intro:"El diario mide la precisión real en uso durante días comparando tu reloj con la hora del dispositivo (sincronizada por red). Es la prueba definitiva: incluye tu muñeca, la noche y la reserva de marcha.",
+ref_clock:"Hora de referencia",mark:"Marcar: segundero en las 12",mark_h:"Pulsa justo cuando el segundero pase por las 12. Si tu reloj difiere más de 30 s, indica los minutos de diferencia.",
+min_adj:"Minutos de diferencia",manual_off:"Desfase manual (s)",add:"Añadir",log_res:"Precisión real",log_rate:"Marcha real",log_span:"Periodo",cur_off:"Desfase actual",log_vs:"vs. cronocomparador",
+entries:"Registros",pr_t:"Reserva de marcha",pr_h:"Da cuerda completa, pulsa Iniciar y deja el reloj quieto. Cuando se detenga, pulsa «Se ha parado». Así sabrás si el muelle real entrega la reserva especificada.",
+pr_start:"Iniciar (cuerda completa)",pr_stop:"Se ha parado",pr_none:"Sin prueba en curso",pr_running:"En marcha desde",pr_result:"Reserva medida",
+w_t:"Mis relojes",w_add:"Añadir",hist_t:"Historial",import:"Importar",set_gen:"General",lang:"Idioma",theme:"Tema",th_dark:"Oscuro",th_light:"Claro",th_auto:"Auto",
+wake:"Mantener pantalla encendida",wake_h:"Evita que el móvil se bloquee mientras mides.",vib:"Vibración",vib_h:"Aviso háptico en la prueba de posiciones.",
+set_audio:"Audio y análisis",mic:"Micrófono",mic_h:"Un micrófono de contacto o unos auriculares con micro mejoran mucho la señal. El procesado del navegador (cancelación de eco, supresión de ruido, ganancia automática) se desactiva.",
+hp:"Filtro paso alto",hp_h:"Elimina ruido grave (voces, motores, tráfico). Súbelo en entornos ruidosos.",sens:"Sensibilidad",sens_h:"Más alta detecta batidos débiles, pero también más ruido.",
+win:"Ventana de promediado",win_h:"Ventanas largas dan más precisión; cortas responden antes a los cambios.",ppm:"Corrección del reloj del dispositivo (ppm)",
+ppm_h:"El oscilador de audio del móvil tiene su propia pequeña desviación. 1 ppm = 0,0864 s/d. Calíbralo comparando con el diario de precisión real.",
+data:"Datos",data_h:"Todo se guarda únicamente en este dispositivo. Nada se envía a ningún servidor.",wipe:"Borrar todos los datos",
+foot:"Herramienta orientativa. Para una regulación profesional usa un cronocomparador con micrófono de contacto.",
+listen:"Escuchar",stop:"Detener",nav_measure:"Medir",nav_pos:"Posiciones",nav_log:"Diario",nav_watches:"Relojes",nav_settings:"Ajustes",
+st_idle:"En pausa",st_search:"Buscando",st_lock:"Sincronizando",st_meas:"Midiendo",st_weak:"Señal débil",st_demo:"Demo",
+gaining:"Adelanta",losing:"Atrasa",on_time:"En hora",auto:"Auto",mic_default:"Predeterminado",
+phase_settle:"Estabilizando",phase_measure:"Midiendo",place:"Coloca el reloj:",pos_done:"Secuencia completada",
+p_DU:"Esfera arriba",p_DD:"Esfera abajo",p_CU:"Corona arriba",p_CD:"Corona abajo",p_CL:"Corona izquierda",p_CR:"Corona derecha",
+n_days:"{v} días",n_hours:"{v} h",n_min:"{v} min",saved:"Medición guardada",copied:"Informe copiado al portapapeles",need_ok:"Aún no hay una medición estable",
+mic_err:"No se pudo acceder al micrófono",need_https:"El micrófono requiere HTTPS (GitHub Pages lo cumple)",
+g1:"Excelente",g2:"Muy bueno",g3:"Bueno",g4:"Aceptable",g5:"Necesita ajuste",g6:"Revisión recomendada",
+d_rate_cosc:"Marcha {v} s/d: dentro de los criterios de cronómetro COSC (−4/+6).",d_rate_ok:"Marcha {v} s/d: correcta para uso diario; se puede afinar regulando.",
+d_rate_bad:"Marcha {v} s/d: fuera de tolerancia habitual; necesita regulación.",d_mag:"Adelanto extremo ({v} s/d): sospecha de magnetización. Prueba a desmagnetizar el reloj.",
+d_be_ok:"Error de batido {v} ms: excelente simetría del escape.",d_be_warn:"Error de batido {v} ms: aceptable; conviene corregirlo en el próximo servicio.",
+d_be_bad:"Error de batido {v} ms: alto; el reloj necesita ajuste de batido (puesta en punto).",
+d_amp_ok:"Amplitud {v}°: saludable.",d_amp_low:"Amplitud {v}°: algo baja. Da cuerda completa y vuelve a medir; si persiste, puede necesitar servicio.",
+d_amp_vlow:"Amplitud {v}°: muy baja; probable lubricación degradada, suciedad o desgaste. Revisión recomendada.",
+d_amp_high:"Amplitud {v}°: muy alta; riesgo de rebote (rebanking). Verifica el ángulo de levée.",
+d_amp_na:"Amplitud no disponible: no se distinguen bien los eventos de desenclavamiento y caída. Verifica el ángulo de levée o mejora la señal.",
+d_stab:"Marcha inestable (σ {v} s/d): reduce el ruido, inmoviliza el reloj o revisa el muelle real.",d_sig:"Señal débil o ruidosa: acerca el micrófono, busca silencio o sube el filtro.",
+dp_delta_ok:"Delta {v} s/d: excelente isocronismo posicional.",dp_delta_warn:"Delta {v} s/d: aceptable para un calibre estándar.",dp_delta_bad:"Delta {v} s/d: alta; posible desequilibrio del volante, pivotes gastados o espiral deformada.",
+dp_drop_ok:"Caída de amplitud H→V de {v}°: normal.",dp_drop_bad:"Caída de amplitud H→V de {v}°: excesiva; revisa pivotes y lubricación.",dp_hv:"Las posiciones verticales atrasan {v} s/d respecto a las horizontales; típico de amplitud baja.",
+std_mean:"marcha media",std_delta:"delta",pass:"Cumple",fail:"No cumple",na:"N/D",
+name:"Nombre",caliber:"Calibre",notes:"Notas",edit:"Editar",delete:"Eliminar",cancel:"Cancelar",custom:"Personalizado",
+verify:"Valores típicos de catálogo; verifica el ángulo de levée con el fabricante. Si no lo conoces, 52° es el estándar más común.",
+w_edit_t:"Editar reloj",w_new_t:"Nuevo reloj",active:"Activo",no_hist:"Aún no hay mediciones guardadas",quick:"Rápida",positions:"Posiciones",all:"Todos",
+confirm_del:"¿Eliminar?",confirm_wipe:"¿Borrar todos los relojes, mediciones y registros? Esta acción no se puede deshacer.",imported:"Datos importados",
+log_need:"Añade al menos dos registros separados por horas o días.",mark_done:"Registro añadido",default_watch:"Mi reloj",
+guide_t:"Guía de PurrTime",close:"Cerrar",report:"Informe PurrTime",score:"Puntuación",rate_err:"incertidumbre ±{v} s/d",amp_est:"estimada · Δt {v} ms",jitter:"jitter",
+demo_on:"Modo demo: reloj simulado",demo_off:"Modo demo desactivado",gt_param:"Parámetro",gt_exc:"Excelente",gt_ok:"Aceptable",gt_bad:"Revisar",
+guide:[
+["Cómo medir","<ul><li>Da cuerda completa (o lleva el reloj puesto unas horas).</li><li>Busca una habitación silenciosa y apoya el reloj sobre una superficie blanda, con el micrófono del móvil pegado a la caja (en la mayoría de móviles está en el borde inferior).</li><li>Elige el reloj o el ritmo (o deja «Auto»), indica el ángulo de levée y pulsa <b>Escuchar</b>.</li><li>Espera 20–30 s a que la cinta se estabilice. Guarda la medición.</li></ul>"],
+["Marcha (s/d)","<p>Cuántos segundos adelanta (+) o atrasa (−) el reloj al día en la posición actual. Se calcula por regresión sobre cientos de batidos, por lo que es muy precisa tras unos segundos. La tarjeta de desviación acumulada lo traduce a hora, semana, mes y año.</p>"],
+["Error de batido (ms)","<p>Diferencia temporal entre el tic y el tac. Un volante centrado produce batidos simétricos (0 ms). Más de 1 ms suele corregirse en la puesta en punto; más de 3 ms puede impedir que el reloj arranque solo.</p>"],
+["Amplitud y ángulo de levée","<p>La amplitud es el giro del volante en grados desde su punto muerto. Se estima midiendo el tiempo entre el desenclavamiento y la caída de cada batido. Requiere conocer el <b>ángulo de levée</b> del calibre (normalmente 50–53°; 52° si no se conoce). Una amplitud alta con cuerda completa indica buena lubricación y un muelle real sano.</p>"],
+["Valores de referencia","TABLE"],
+["Prueba de posiciones","<p>Mide la marcha con la esfera arriba, abajo y con la corona en cuatro orientaciones verticales. El <b>delta</b> (diferencia máx − mín) muestra la calidad del reglaje. Los relojes certificados COSC deben tener una marcha media entre −4 y +6 s/d y un delta ≤ 10 s/d.</p>"],
+["Consejos para una buena señal","<ul><li>Desactiva ventiladores, aire acondicionado y música.</li><li>Unos auriculares con micro o un micrófono piezoeléctrico de contacto mejoran mucho el resultado.</li><li>Si ves puntos dispersos en la cinta, sube el filtro paso alto o baja la sensibilidad.</li><li>Usa el diario para conocer la precisión real durante varios días.</li></ul>"],
+["Limitaciones","<p>Los micrófonos de móvil no son sensores profesionales. La marcha y el error de batido suelen ser muy fiables; la amplitud es una estimación que depende de la claridad acústica del calibre. El reloj interno de audio del móvil puede añadir una pequeña desviación (calíbrala en Ajustes).</p>"]
+]},
+en: {
+app_tag:"Acoustic timegrapher",watch:"Watch",bph:"Beat rate",lift_s:"Lift",balance:"Balance",signal:"Signal",
+st_idle_long:"Tap Listen and rest the watch on the microphone",st_search_long:"Looking for beats… bring the watch closer to the mic",st_lock_long:"Detecting the calibre's beat rate…",
+be:"Beat error",be_s:"tick vs tock",amp:"Amplitude",stab:"Stability",stab_s:"rate σ",quality:"Quality",elapsed:"Time",beats:"beats",
+tape_t:"Timegrapher tape",tick:"Tick",tock:"Tock",
+tape_h:"Each dot is a beat. Flat line = on time; sloping up = gaining, down = losing; two separate lines = beat error; scattered dots = noise or a mechanical issue.",
+dev_t:"Accumulated deviation (gain or loss)",per_hour:"Hour",per_day:"Day",per_week:"Week",per_month:"Month",per_year:"Year",one_min:"1 minute of deviation in",
+health_t:"Watch health",health_h:"Combines rate, beat error, amplitude and stability into one score.",
+scope_t:"Beat oscilloscope",avg:"Average",live:"Live",
+scope_h:"Acoustic envelope of each beat: unlocking (1), impulse and drop (2). The Δt between 1 and 2, together with the lift angle, gives the amplitude.",
+trend_t:"Session trend",rate:"Rate",save:"Save",reset:"Reset",share:"Report",
+pos_intro:"The positions test measures the rate in the 6 standard positions. The spread between them (delta) reveals balance poise, pivot condition and overall calibre health.",
+pos_cfg:"Setup",settle:"Settling",measure_s:"Measuring",pos_tap:"Tap a position to include or exclude it from the sequence.",
+ready:"Ready",pos_ready:"Prepare the watch",pos_ready_tx:"Fully wind it before starting. Keep the phone still and the room quiet.",
+start_seq:"Start sequence",stop_seq:"Stop",results:"Results",mean_rate:"Mean rate",delta:"Delta (max − min)",hv_diff:"Horizontal − vertical",
+max_be:"Max beat error",avg_amp:"Amplitude H / V",amp_drop:"Amplitude drop H→V",standards:"Standards comparison",clear:"Clear",
+log_intro:"The log measures real-world accuracy over days by comparing your watch with the device clock (network-synced). It is the ultimate test: it includes your wrist, the night and the power reserve.",
+ref_clock:"Reference time",mark:"Mark: seconds hand at 12",mark_h:"Tap exactly when the seconds hand passes 12. If your watch is off by more than 30 s, enter the minutes of difference.",
+min_adj:"Minutes of difference",manual_off:"Manual offset (s)",add:"Add",log_res:"Real accuracy",log_rate:"Real rate",log_span:"Period",cur_off:"Current offset",log_vs:"vs. timegrapher",
+entries:"Entries",pr_t:"Power reserve",pr_h:"Fully wind, tap Start and leave the watch still. When it stops, tap “It stopped”. You will know whether the mainspring delivers the rated reserve.",
+pr_start:"Start (fully wound)",pr_stop:"It stopped",pr_none:"No test running",pr_running:"Running since",pr_result:"Measured reserve",
+w_t:"My watches",w_add:"Add",hist_t:"History",import:"Import",set_gen:"General",lang:"Language",theme:"Theme",th_dark:"Dark",th_light:"Light",th_auto:"Auto",
+wake:"Keep screen on",wake_h:"Prevents the phone from locking while measuring.",vib:"Vibration",vib_h:"Haptic cue during the positions test.",
+set_audio:"Audio & analysis",mic:"Microphone",mic_h:"A contact microphone or a headset mic improves the signal a lot. Browser processing (echo cancellation, noise suppression, auto gain) is disabled.",
+hp:"High-pass filter",hp_h:"Removes low-frequency noise (voices, engines, traffic). Raise it in noisy places.",sens:"Sensitivity",sens_h:"Higher catches faint beats, but also more noise.",
+win:"Averaging window",win_h:"Longer windows are more precise; shorter ones react faster.",ppm:"Device clock correction (ppm)",
+ppm_h:"The phone's audio oscillator has its own small error. 1 ppm = 0.0864 s/d. Calibrate it against the real-accuracy log.",
+data:"Data",data_h:"Everything is stored only on this device. Nothing is sent to any server.",wipe:"Erase all data",
+foot:"Indicative tool. For professional regulation use a timegrapher with a contact microphone.",
+listen:"Listen",stop:"Stop",nav_measure:"Measure",nav_pos:"Positions",nav_log:"Log",nav_watches:"Watches",nav_settings:"Settings",
+st_idle:"Paused",st_search:"Searching",st_lock:"Locking",st_meas:"Measuring",st_weak:"Weak signal",st_demo:"Demo",
+gaining:"Gaining",losing:"Losing",on_time:"On time",auto:"Auto",mic_default:"Default",
+phase_settle:"Settling",phase_measure:"Measuring",place:"Place the watch:",pos_done:"Sequence complete",
+p_DU:"Dial up",p_DD:"Dial down",p_CU:"Crown up",p_CD:"Crown down",p_CL:"Crown left",p_CR:"Crown right",
+n_days:"{v} days",n_hours:"{v} h",n_min:"{v} min",saved:"Measurement saved",copied:"Report copied to clipboard",need_ok:"No stable measurement yet",
+mic_err:"Could not access the microphone",need_https:"The microphone requires HTTPS (GitHub Pages is fine)",
+g1:"Excellent",g2:"Very good",g3:"Good",g4:"Acceptable",g5:"Needs adjustment",g6:"Service recommended",
+d_rate_cosc:"Rate {v} s/d: within COSC chronometer criteria (−4/+6).",d_rate_ok:"Rate {v} s/d: fine for daily wear; can be fine-tuned by regulating.",
+d_rate_bad:"Rate {v} s/d: outside usual tolerance; needs regulation.",d_mag:"Extreme gain ({v} s/d): magnetism suspected. Try demagnetizing the watch.",
+d_be_ok:"Beat error {v} ms: excellent escapement symmetry.",d_be_warn:"Beat error {v} ms: acceptable; worth correcting at the next service.",
+d_be_bad:"Beat error {v} ms: high; the watch needs a beat adjustment.",
+d_amp_ok:"Amplitude {v}°: healthy.",d_amp_low:"Amplitude {v}°: somewhat low. Wind fully and measure again; if it persists, a service may be due.",
+d_amp_vlow:"Amplitude {v}°: very low; likely degraded oil, dirt or wear. Service recommended.",
+d_amp_high:"Amplitude {v}°: very high; risk of rebanking. Check the lift angle.",
+d_amp_na:"Amplitude unavailable: unlocking and drop events are not clearly separated. Check the lift angle or improve the signal.",
+d_stab:"Unstable rate (σ {v} s/d): reduce noise, keep the watch still or check the mainspring.",d_sig:"Weak or noisy signal: move the mic closer, find silence or raise the filter.",
+dp_delta_ok:"Delta {v} s/d: excellent positional isochronism.",dp_delta_warn:"Delta {v} s/d: acceptable for a standard calibre.",dp_delta_bad:"Delta {v} s/d: high; possible balance poise issue, worn pivots or deformed hairspring.",
+dp_drop_ok:"Amplitude drop H→V of {v}°: normal.",dp_drop_bad:"Amplitude drop H→V of {v}°: excessive; check pivots and lubrication.",dp_hv:"Vertical positions run {v} s/d slower than horizontal; typical of low amplitude.",
+std_mean:"mean rate",std_delta:"delta",pass:"Pass",fail:"Fail",na:"N/A",
+name:"Name",caliber:"Calibre",notes:"Notes",edit:"Edit",delete:"Delete",cancel:"Cancel",custom:"Custom",
+verify:"Typical catalogue values; confirm the lift angle with the manufacturer. If unknown, 52° is the most common standard.",
+w_edit_t:"Edit watch",w_new_t:"New watch",active:"Active",no_hist:"No saved measurements yet",quick:"Quick",positions:"Positions",all:"All",
+confirm_del:"Delete?",confirm_wipe:"Erase all watches, measurements and logs? This cannot be undone.",imported:"Data imported",
+log_need:"Add at least two entries separated by hours or days.",mark_done:"Entry added",default_watch:"My watch",
+guide_t:"PurrTime guide",close:"Close",report:"PurrTime report",score:"Score",rate_err:"uncertainty ±{v} s/d",amp_est:"estimated · Δt {v} ms",jitter:"jitter",
+demo_on:"Demo mode: simulated watch",demo_off:"Demo mode off",gt_param:"Parameter",gt_exc:"Excellent",gt_ok:"Acceptable",gt_bad:"Check",
+guide:[
+["How to measure","<ul><li>Fully wind the watch (or wear it for a few hours).</li><li>Find a quiet room and rest the watch on a soft surface with the phone's microphone against the case (on most phones it's on the bottom edge).</li><li>Pick the watch or beat rate (or leave “Auto”), set the lift angle and tap <b>Listen</b>.</li><li>Wait 20–30 s for the tape to settle. Save the measurement.</li></ul>"],
+["Rate (s/d)","<p>How many seconds per day the watch gains (+) or loses (−) in the current position. It is computed by regression over hundreds of beats, so it becomes very precise within seconds. The accumulated-deviation card translates it into hour, week, month and year.</p>"],
+["Beat error (ms)","<p>The time difference between tick and tock. A centred balance produces symmetrical beats (0 ms). Above 1 ms is usually corrected at service; above 3 ms the watch may not self-start.</p>"],
+["Amplitude & lift angle","<p>Amplitude is the balance swing in degrees from its rest point. It is estimated from the time between unlocking and drop in each beat and requires the calibre's <b>lift angle</b> (usually 50–53°; 52° if unknown). High amplitude when fully wound means good lubrication and a healthy mainspring.</p>"],
+["Reference values","TABLE"],
+["Positions test","<p>Measures the rate dial up, dial down and with the crown in four vertical orientations. The <b>delta</b> (max − min) shows the quality of the adjustment. COSC-certified watches must have a mean rate between −4 and +6 s/d and a delta ≤ 10 s/d.</p>"],
+["Tips for a clean signal","<ul><li>Switch off fans, air conditioning and music.</li><li>A headset mic or a piezo contact microphone improves results a lot.</li><li>If the tape shows scattered dots, raise the high-pass filter or lower the sensitivity.</li><li>Use the log to learn the real accuracy over several days.</li></ul>"],
+["Limitations","<p>Phone microphones are not professional sensors. Rate and beat error are usually very reliable; amplitude is an estimate that depends on how clearly the calibre sounds. The phone's audio clock may add a small offset (calibrate it in Settings).</p>"]
+]},
+fr: {
+app_tag:"Chronocomparateur acoustique",watch:"Montre",bph:"Fréquence",lift_s:"Levée",balance:"Balancier",signal:"Signal",
+st_idle_long:"Touchez Écouter et posez la montre sur le micro",st_search_long:"Recherche des battements… rapprochez la montre du micro",st_lock_long:"Détection de la fréquence du calibre…",
+be:"Défaut de repère",be_s:"tic vs tac",amp:"Amplitude",stab:"Stabilité",stab_s:"σ de la marche",quality:"Qualité",elapsed:"Durée",beats:"alternances",
+tape_t:"Bande du chronocomparateur",tick:"Tic",tock:"Tac",
+tape_h:"Chaque point est une alternance. Ligne horizontale = à l'heure ; pente montante = avance, descendante = retard ; deux lignes séparées = défaut de repère ; points dispersés = bruit ou problème mécanique.",
+dev_t:"Écart cumulé (avance ou retard)",per_hour:"Heure",per_day:"Jour",per_week:"Semaine",per_month:"Mois",per_year:"An",one_min:"1 minute d'écart en",
+health_t:"Santé de la montre",health_h:"Combine marche, défaut de repère, amplitude et stabilité en un score.",
+scope_t:"Oscilloscope de l'alternance",avg:"Moyenne",live:"Direct",
+scope_h:"Enveloppe acoustique de chaque alternance : dégagement (1), impulsion et chute (2). Le Δt entre 1 et 2, avec l'angle de levée, donne l'amplitude.",
+trend_t:"Tendance de la session",rate:"Marche",save:"Enregistrer",reset:"Réinitialiser",share:"Rapport",
+pos_intro:"Le test de positions mesure la marche dans les 6 positions standard. L'écart entre elles (delta) révèle l'équilibrage du balancier, l'état des pivots et la santé du calibre.",
+pos_cfg:"Réglages",settle:"Stabilisation",measure_s:"Mesure",pos_tap:"Touchez une position pour l'inclure ou l'exclure de la séquence.",
+ready:"Prêt",pos_ready:"Préparez la montre",pos_ready_tx:"Remontez-la complètement avant de commencer. Gardez le téléphone immobile et la pièce silencieuse.",
+start_seq:"Lancer la séquence",stop_seq:"Arrêter",results:"Résultats",mean_rate:"Marche moyenne",delta:"Delta (max − min)",hv_diff:"Horizontal − vertical",
+max_be:"Défaut de repère max.",avg_amp:"Amplitude H / V",amp_drop:"Chute d'amplitude H→V",standards:"Comparaison aux normes",clear:"Effacer",
+log_intro:"Le journal mesure la précision réelle au porté pendant plusieurs jours en comparant votre montre à l'heure de l'appareil (synchronisée par le réseau). C'est le test ultime.",
+ref_clock:"Heure de référence",mark:"Marquer : trotteuse sur 12",mark_h:"Touchez exactement quand la trotteuse passe sur 12. Si l'écart dépasse 30 s, indiquez les minutes de différence.",
+min_adj:"Minutes de différence",manual_off:"Écart manuel (s)",add:"Ajouter",log_res:"Précision réelle",log_rate:"Marche réelle",log_span:"Période",cur_off:"Écart actuel",log_vs:"vs. chronocomparateur",
+entries:"Relevés",pr_t:"Réserve de marche",pr_h:"Remontez complètement, touchez Démarrer et laissez la montre immobile. Quand elle s'arrête, touchez « Elle s'est arrêtée ».",
+pr_start:"Démarrer (remontée)",pr_stop:"Elle s'est arrêtée",pr_none:"Aucun test en cours",pr_running:"En cours depuis",pr_result:"Réserve mesurée",
+w_t:"Mes montres",w_add:"Ajouter",hist_t:"Historique",import:"Importer",set_gen:"Général",lang:"Langue",theme:"Thème",th_dark:"Sombre",th_light:"Clair",th_auto:"Auto",
+wake:"Garder l'écran allumé",wake_h:"Empêche le verrouillage pendant la mesure.",vib:"Vibration",vib_h:"Signal haptique pendant le test de positions.",
+set_audio:"Audio et analyse",mic:"Microphone",mic_h:"Un micro de contact ou un micro-casque améliore beaucoup le signal. Le traitement du navigateur (annulation d'écho, réduction de bruit, gain auto) est désactivé.",
+hp:"Filtre passe-haut",hp_h:"Supprime les bruits graves (voix, moteurs, trafic). Augmentez-le dans un lieu bruyant.",sens:"Sensibilité",sens_h:"Plus élevée, elle détecte les battements faibles mais aussi le bruit.",
+win:"Fenêtre de moyenne",win_h:"Les fenêtres longues sont plus précises ; les courtes réagissent plus vite.",ppm:"Correction de l'horloge de l'appareil (ppm)",
+ppm_h:"L'oscillateur audio du téléphone a sa propre petite dérive. 1 ppm = 0,0864 s/j. Calibrez-le avec le journal de précision réelle.",
+data:"Données",data_h:"Tout est stocké uniquement sur cet appareil. Rien n'est envoyé à un serveur.",wipe:"Effacer toutes les données",
+foot:"Outil indicatif. Pour un réglage professionnel, utilisez un chronocomparateur avec micro de contact.",
+listen:"Écouter",stop:"Arrêter",nav_measure:"Mesurer",nav_pos:"Positions",nav_log:"Journal",nav_watches:"Montres",nav_settings:"Réglages",
+st_idle:"En pause",st_search:"Recherche",st_lock:"Synchro",st_meas:"Mesure",st_weak:"Signal faible",st_demo:"Démo",
+gaining:"Avance",losing:"Retarde",on_time:"À l'heure",auto:"Auto",mic_default:"Par défaut",
+phase_settle:"Stabilisation",phase_measure:"Mesure",place:"Placez la montre :",pos_done:"Séquence terminée",
+p_DU:"Cadran en haut",p_DD:"Cadran en bas",p_CU:"Couronne en haut",p_CD:"Couronne en bas",p_CL:"Couronne à gauche",p_CR:"Couronne à droite",
+n_days:"{v} jours",n_hours:"{v} h",n_min:"{v} min",saved:"Mesure enregistrée",copied:"Rapport copié",need_ok:"Pas encore de mesure stable",
+mic_err:"Impossible d'accéder au microphone",need_https:"Le micro nécessite HTTPS (GitHub Pages convient)",
+g1:"Excellent",g2:"Très bon",g3:"Bon",g4:"Acceptable",g5:"Réglage nécessaire",g6:"Révision conseillée",
+d_rate_cosc:"Marche {v} s/j : dans les critères chronomètre COSC (−4/+6).",d_rate_ok:"Marche {v} s/j : correcte au quotidien ; peut être affinée.",
+d_rate_bad:"Marche {v} s/j : hors tolérance habituelle ; réglage nécessaire.",d_mag:"Avance extrême ({v} s/j) : magnétisme suspecté. Essayez de démagnétiser.",
+d_be_ok:"Défaut de repère {v} ms : excellente symétrie.",d_be_warn:"Défaut de repère {v} ms : acceptable ; à corriger lors de la prochaine révision.",
+d_be_bad:"Défaut de repère {v} ms : élevé ; mise de repère nécessaire.",
+d_amp_ok:"Amplitude {v}° : saine.",d_amp_low:"Amplitude {v}° : un peu faible. Remontez complètement et remesurez ; si cela persiste, une révision peut être due.",
+d_amp_vlow:"Amplitude {v}° : très faible ; huiles dégradées, saleté ou usure probables. Révision conseillée.",
+d_amp_high:"Amplitude {v}° : très élevée ; risque de rebattement. Vérifiez l'angle de levée.",
+d_amp_na:"Amplitude indisponible : dégagement et chute mal séparés. Vérifiez l'angle de levée ou améliorez le signal.",
+d_stab:"Marche instable (σ {v} s/j) : réduisez le bruit, immobilisez la montre ou vérifiez le ressort.",d_sig:"Signal faible ou bruité : rapprochez le micro, cherchez le silence ou montez le filtre.",
+dp_delta_ok:"Delta {v} s/j : excellent isochronisme.",dp_delta_warn:"Delta {v} s/j : acceptable pour un calibre standard.",dp_delta_bad:"Delta {v} s/j : élevé ; balourd du balancier, pivots usés ou spiral déformé possibles.",
+dp_drop_ok:"Chute d'amplitude H→V de {v}° : normale.",dp_drop_bad:"Chute d'amplitude H→V de {v}° : excessive ; vérifiez pivots et lubrification.",dp_hv:"Les positions verticales retardent de {v} s/j sur les horizontales ; typique d'une amplitude faible.",
+std_mean:"marche moyenne",std_delta:"delta",pass:"Conforme",fail:"Non conforme",na:"N/D",
+name:"Nom",caliber:"Calibre",notes:"Notes",edit:"Modifier",delete:"Supprimer",cancel:"Annuler",custom:"Personnalisé",
+verify:"Valeurs de catalogue typiques ; vérifiez l'angle de levée auprès du fabricant. À défaut, 52° est le plus courant.",
+w_edit_t:"Modifier la montre",w_new_t:"Nouvelle montre",active:"Active",no_hist:"Aucune mesure enregistrée",quick:"Rapide",positions:"Positions",all:"Toutes",
+confirm_del:"Supprimer ?",confirm_wipe:"Effacer toutes les montres, mesures et relevés ? Action irréversible.",imported:"Données importées",
+log_need:"Ajoutez au moins deux relevés espacés de plusieurs heures ou jours.",mark_done:"Relevé ajouté",default_watch:"Ma montre",
+guide_t:"Guide PurrTime",close:"Fermer",report:"Rapport PurrTime",score:"Score",rate_err:"incertitude ±{v} s/j",amp_est:"estimée · Δt {v} ms",jitter:"gigue",
+demo_on:"Mode démo : montre simulée",demo_off:"Mode démo désactivé",gt_param:"Paramètre",gt_exc:"Excellent",gt_ok:"Acceptable",gt_bad:"À vérifier",
+guide:[
+["Comment mesurer","<ul><li>Remontez complètement la montre (ou portez-la quelques heures).</li><li>Dans une pièce silencieuse, posez la montre sur une surface souple, le micro du téléphone contre le boîtier (souvent sur le bord inférieur).</li><li>Choisissez la montre ou la fréquence (ou « Auto »), indiquez l'angle de levée et touchez <b>Écouter</b>.</li><li>Attendez 20–30 s que la bande se stabilise, puis enregistrez.</li></ul>"],
+["Marche (s/j)","<p>Nombre de secondes d'avance (+) ou de retard (−) par jour dans la position actuelle, calculé par régression sur des centaines d'alternances.</p>"],
+["Défaut de repère (ms)","<p>Écart de temps entre le tic et le tac. Un balancier bien centré donne 0 ms. Au-delà de 1 ms, on corrige généralement en révision ; au-delà de 3 ms la montre peut ne pas redémarrer seule.</p>"],
+["Amplitude et angle de levée","<p>L'amplitude est la rotation du balancier en degrés depuis son point mort. Elle est estimée à partir du temps entre dégagement et chute, et nécessite l'<b>angle de levée</b> du calibre (en général 50–53° ; 52° par défaut).</p>"],
+["Valeurs de référence","TABLE"],
+["Test de positions","<p>Mesure la marche cadran en haut, en bas et couronne dans quatre orientations verticales. Le <b>delta</b> montre la qualité du réglage. Les chronomètres COSC exigent une marche moyenne de −4 à +6 s/j et un delta ≤ 10 s/j.</p>"],
+["Conseils","<ul><li>Coupez ventilateurs, climatisation et musique.</li><li>Un micro-casque ou un micro piézo de contact améliore nettement le résultat.</li><li>Points dispersés : montez le filtre ou baissez la sensibilité.</li><li>Utilisez le journal pour la précision réelle sur plusieurs jours.</li></ul>"],
+["Limites","<p>Les micros de téléphone ne sont pas des capteurs professionnels. Marche et défaut de repère sont fiables ; l'amplitude est une estimation. L'horloge audio du téléphone peut ajouter un léger biais (calibrable dans Réglages).</p>"]
+]},
+de: {
+app_tag:"Akustische Zeitwaage",watch:"Uhr",bph:"Frequenz",lift_s:"Hebung",balance:"Unruh",signal:"Signal",
+st_idle_long:"Tippe auf Hören und lege die Uhr auf das Mikrofon",st_search_long:"Suche Schläge… Uhr näher ans Mikrofon",st_lock_long:"Ermittle die Schlagzahl des Kalibers…",
+be:"Abfallfehler",be_s:"Tick vs. Tack",amp:"Amplitude",stab:"Stabilität",stab_s:"σ des Gangs",quality:"Qualität",elapsed:"Zeit",beats:"Schläge",
+tape_t:"Zeitwaagen-Streifen",tick:"Tick",tock:"Tack",
+tape_h:"Jeder Punkt ist ein Schlag. Waagerecht = genau; steigend = Vorgang, fallend = Nachgang; zwei getrennte Linien = Abfallfehler; verstreute Punkte = Störgeräusche oder mechanisches Problem.",
+dev_t:"Kumulierte Abweichung (vor oder nach)",per_hour:"Stunde",per_day:"Tag",per_week:"Woche",per_month:"Monat",per_year:"Jahr",one_min:"1 Minute Abweichung in",
+health_t:"Zustand der Uhr",health_h:"Kombiniert Gang, Abfallfehler, Amplitude und Stabilität zu einer Wertung.",
+scope_t:"Schlag-Oszilloskop",avg:"Mittel",live:"Live",
+scope_h:"Akustische Hüllkurve jedes Schlags: Auslösung (1), Impuls und Abfall (2). Δt zwischen 1 und 2 ergibt mit dem Hebungswinkel die Amplitude.",
+trend_t:"Verlauf der Sitzung",rate:"Gang",save:"Speichern",reset:"Zurücksetzen",share:"Bericht",
+pos_intro:"Der Lagentest misst den Gang in den 6 Standardlagen. Die Spreizung (Delta) zeigt Unruhauswuchtung, Zapfenzustand und den Gesamtzustand des Kalibers.",
+pos_cfg:"Einstellungen",settle:"Einschwingen",measure_s:"Messung",pos_tap:"Tippe auf eine Lage, um sie ein- oder auszuschließen.",
+ready:"Bereit",pos_ready:"Uhr vorbereiten",pos_ready_tx:"Vor dem Start voll aufziehen. Telefon ruhig halten, Raum leise.",
+start_seq:"Sequenz starten",stop_seq:"Stopp",results:"Ergebnisse",mean_rate:"Mittlerer Gang",delta:"Delta (max − min)",hv_diff:"Horizontal − vertikal",
+max_be:"Max. Abfallfehler",avg_amp:"Amplitude H / V",amp_drop:"Amplitudenabfall H→V",standards:"Vergleich mit Normen",clear:"Löschen",
+log_intro:"Das Logbuch misst die reale Genauigkeit über Tage durch Vergleich mit der Gerätezeit (netzsynchronisiert). Der ultimative Test: mit Handgelenk, Nacht und Gangreserve.",
+ref_clock:"Referenzzeit",mark:"Markieren: Sekunde auf 12",mark_h:"Tippe genau, wenn der Sekundenzeiger die 12 passiert. Bei mehr als 30 s Abweichung gib die Minutendifferenz an.",
+min_adj:"Minutendifferenz",manual_off:"Manuelle Abweichung (s)",add:"Hinzufügen",log_res:"Reale Genauigkeit",log_rate:"Realer Gang",log_span:"Zeitraum",cur_off:"Aktuelle Abweichung",log_vs:"vs. Zeitwaage",
+entries:"Einträge",pr_t:"Gangreserve",pr_h:"Voll aufziehen, Start tippen und die Uhr ruhen lassen. Wenn sie stehen bleibt, „Stehen geblieben“ tippen.",
+pr_start:"Start (voll aufgezogen)",pr_stop:"Stehen geblieben",pr_none:"Kein Test aktiv",pr_running:"Läuft seit",pr_result:"Gemessene Reserve",
+w_t:"Meine Uhren",w_add:"Hinzufügen",hist_t:"Verlauf",import:"Importieren",set_gen:"Allgemein",lang:"Sprache",theme:"Design",th_dark:"Dunkel",th_light:"Hell",th_auto:"Auto",
+wake:"Bildschirm anlassen",wake_h:"Verhindert Sperren während der Messung.",vib:"Vibration",vib_h:"Haptisches Signal im Lagentest.",
+set_audio:"Audio & Analyse",mic:"Mikrofon",mic_h:"Ein Kontaktmikrofon oder Headset-Mikro verbessert das Signal stark. Browser-Verarbeitung (Echo, Rauschunterdrückung, Auto-Gain) ist deaktiviert.",
+hp:"Hochpassfilter",hp_h:"Entfernt tiefe Störgeräusche (Stimmen, Motoren, Verkehr). In lauter Umgebung erhöhen.",sens:"Empfindlichkeit",sens_h:"Höher erkennt leise Schläge, aber auch mehr Rauschen.",
+win:"Mittelungsfenster",win_h:"Lange Fenster sind genauer; kurze reagieren schneller.",ppm:"Korrektur der Geräteuhr (ppm)",
+ppm_h:"Der Audio-Oszillator des Telefons hat eine eigene kleine Abweichung. 1 ppm = 0,0864 s/T. Mit dem Logbuch kalibrieren.",
+data:"Daten",data_h:"Alles wird nur auf diesem Gerät gespeichert. Nichts wird an Server gesendet.",wipe:"Alle Daten löschen",
+foot:"Orientierungswerkzeug. Für professionelle Regulierung eine Zeitwaage mit Kontaktmikrofon verwenden.",
+listen:"Hören",stop:"Stopp",nav_measure:"Messen",nav_pos:"Lagen",nav_log:"Logbuch",nav_watches:"Uhren",nav_settings:"Optionen",
+st_idle:"Pausiert",st_search:"Suche",st_lock:"Synchron.",st_meas:"Messung",st_weak:"Schwaches Signal",st_demo:"Demo",
+gaining:"Vorgang",losing:"Nachgang",on_time:"Genau",auto:"Auto",mic_default:"Standard",
+phase_settle:"Einschwingen",phase_measure:"Messung",place:"Uhr positionieren:",pos_done:"Sequenz abgeschlossen",
+p_DU:"Zifferblatt oben",p_DD:"Zifferblatt unten",p_CU:"Krone oben",p_CD:"Krone unten",p_CL:"Krone links",p_CR:"Krone rechts",
+n_days:"{v} Tagen",n_hours:"{v} h",n_min:"{v} min",saved:"Messung gespeichert",copied:"Bericht kopiert",need_ok:"Noch keine stabile Messung",
+mic_err:"Kein Zugriff auf das Mikrofon",need_https:"Das Mikrofon erfordert HTTPS (GitHub Pages passt)",
+g1:"Hervorragend",g2:"Sehr gut",g3:"Gut",g4:"Akzeptabel",g5:"Justierung nötig",g6:"Revision empfohlen",
+d_rate_cosc:"Gang {v} s/T: innerhalb der COSC-Chronometerkriterien (−4/+6).",d_rate_ok:"Gang {v} s/T: gut für den Alltag; per Regulierung optimierbar.",
+d_rate_bad:"Gang {v} s/T: außerhalb üblicher Toleranz; Regulierung nötig.",d_mag:"Extremer Vorgang ({v} s/T): Magnetisierung vermutet. Entmagnetisieren versuchen.",
+d_be_ok:"Abfallfehler {v} ms: hervorragende Symmetrie.",d_be_warn:"Abfallfehler {v} ms: akzeptabel; bei nächster Revision korrigieren.",
+d_be_bad:"Abfallfehler {v} ms: hoch; Abfall muss eingestellt werden.",
+d_amp_ok:"Amplitude {v}°: gesund.",d_amp_low:"Amplitude {v}°: etwas niedrig. Voll aufziehen und erneut messen; bleibt sie, ist eine Revision fällig.",
+d_amp_vlow:"Amplitude {v}°: sehr niedrig; wahrscheinlich gealterte Öle, Schmutz oder Verschleiß. Revision empfohlen.",
+d_amp_high:"Amplitude {v}°: sehr hoch; Prellgefahr. Hebungswinkel prüfen.",
+d_amp_na:"Amplitude nicht verfügbar: Auslösung und Abfall nicht klar getrennt. Hebungswinkel prüfen oder Signal verbessern.",
+d_stab:"Unstabiler Gang (σ {v} s/T): Störungen reduzieren, Uhr fixieren oder Zugfeder prüfen.",d_sig:"Schwaches oder verrauschtes Signal: Mikro näher, Ruhe suchen oder Filter erhöhen.",
+dp_delta_ok:"Delta {v} s/T: hervorragende Lagengenauigkeit.",dp_delta_warn:"Delta {v} s/T: akzeptabel für ein Standardkaliber.",dp_delta_bad:"Delta {v} s/T: hoch; mögliche Unwucht, abgenutzte Zapfen oder verformte Spirale.",
+dp_drop_ok:"Amplitudenabfall H→V von {v}°: normal.",dp_drop_bad:"Amplitudenabfall H→V von {v}°: zu hoch; Zapfen und Schmierung prüfen.",dp_hv:"Vertikale Lagen gehen {v} s/T langsamer als horizontale; typisch für niedrige Amplitude.",
+std_mean:"mittlerer Gang",std_delta:"Delta",pass:"Erfüllt",fail:"Nicht erfüllt",na:"k. A.",
+name:"Name",caliber:"Kaliber",notes:"Notizen",edit:"Bearbeiten",delete:"Löschen",cancel:"Abbrechen",custom:"Benutzerdefiniert",
+verify:"Typische Katalogwerte; Hebungswinkel beim Hersteller prüfen. Unbekannt? 52° ist am häufigsten.",
+w_edit_t:"Uhr bearbeiten",w_new_t:"Neue Uhr",active:"Aktiv",no_hist:"Noch keine gespeicherten Messungen",quick:"Schnell",positions:"Lagen",all:"Alle",
+confirm_del:"Löschen?",confirm_wipe:"Alle Uhren, Messungen und Einträge löschen? Nicht rückgängig zu machen.",imported:"Daten importiert",
+log_need:"Mindestens zwei Einträge im Abstand von Stunden oder Tagen hinzufügen.",mark_done:"Eintrag hinzugefügt",default_watch:"Meine Uhr",
+guide_t:"PurrTime-Anleitung",close:"Schließen",report:"PurrTime-Bericht",score:"Wertung",rate_err:"Unsicherheit ±{v} s/T",amp_est:"geschätzt · Δt {v} ms",jitter:"Jitter",
+demo_on:"Demo-Modus: simulierte Uhr",demo_off:"Demo-Modus aus",gt_param:"Parameter",gt_exc:"Hervorragend",gt_ok:"Akzeptabel",gt_bad:"Prüfen",
+guide:[
+["Messen","<ul><li>Uhr voll aufziehen (oder einige Stunden tragen).</li><li>In einem leisen Raum die Uhr auf eine weiche Unterlage legen, Mikrofon des Telefons ans Gehäuse (meist an der Unterkante).</li><li>Uhr oder Frequenz wählen (oder „Auto“), Hebungswinkel einstellen und <b>Hören</b> tippen.</li><li>20–30 s warten, bis sich der Streifen stabilisiert, dann speichern.</li></ul>"],
+["Gang (s/T)","<p>Sekunden pro Tag, die die Uhr in der aktuellen Lage vor- (+) oder nachgeht (−), per Regression über Hunderte Schläge berechnet.</p>"],
+["Abfallfehler (ms)","<p>Zeitunterschied zwischen Tick und Tack. Eine zentrierte Unruh ergibt 0 ms. Über 1 ms wird meist bei der Revision korrigiert; über 3 ms läuft die Uhr eventuell nicht selbst an.</p>"],
+["Amplitude & Hebungswinkel","<p>Die Amplitude ist der Schwingwinkel der Unruh. Sie wird aus der Zeit zwischen Auslösung und Abfall geschätzt und benötigt den <b>Hebungswinkel</b> des Kalibers (meist 50–53°; 52° wenn unbekannt).</p>"],
+["Referenzwerte","TABLE"],
+["Lagentest","<p>Misst den Gang Zifferblatt oben/unten und mit der Krone in vier vertikalen Richtungen. Das <b>Delta</b> zeigt die Güte der Feinregulierung. COSC: mittlerer Gang −4 bis +6 s/T, Delta ≤ 10 s/T.</p>"],
+["Tipps","<ul><li>Ventilatoren, Klimaanlage und Musik ausschalten.</li><li>Headset- oder Piezo-Kontaktmikrofon verbessert die Ergebnisse stark.</li><li>Verstreute Punkte: Filter erhöhen oder Empfindlichkeit senken.</li><li>Das Logbuch zeigt die reale Genauigkeit über mehrere Tage.</li></ul>"],
+["Grenzen","<p>Telefonmikrofone sind keine professionellen Sensoren. Gang und Abfallfehler sind sehr zuverlässig; die Amplitude ist eine Schätzung. Die Audio-Uhr des Telefons kann einen kleinen Versatz haben (in den Optionen kalibrierbar).</p>"]
+]},
+it: {
+app_tag:"Cronocomparatore acustico",watch:"Orologio",bph:"Frequenza",lift_s:"Alzata",balance:"Bilanciere",signal:"Segnale",
+st_idle_long:"Tocca Ascolta e appoggia l'orologio sul microfono",st_search_long:"Ricerca dei battiti… avvicina l'orologio al microfono",st_lock_long:"Rilevamento della frequenza del calibro…",
+be:"Errore di battuta",be_s:"tic vs tac",amp:"Ampiezza",stab:"Stabilità",stab_s:"σ della marcia",quality:"Qualità",elapsed:"Tempo",beats:"battiti",
+tape_t:"Nastro del cronocomparatore",tick:"Tic",tock:"Tac",
+tape_h:"Ogni punto è un battito. Linea orizzontale = preciso; in salita = anticipa, in discesa = ritarda; due linee separate = errore di battuta; punti sparsi = rumore o problema meccanico.",
+dev_t:"Deviazione accumulata (anticipo o ritardo)",per_hour:"Ora",per_day:"Giorno",per_week:"Settimana",per_month:"Mese",per_year:"Anno",one_min:"1 minuto di scarto in",
+health_t:"Salute dell'orologio",health_h:"Combina marcia, errore di battuta, ampiezza e stabilità in un punteggio.",
+scope_t:"Oscilloscopio del battito",avg:"Media",live:"Diretta",
+scope_h:"Inviluppo acustico di ogni battito: sbloccaggio (1), impulso e caduta (2). Il Δt tra 1 e 2, con l'angolo di alzata, determina l'ampiezza.",
+trend_t:"Andamento della sessione",rate:"Marcia",save:"Salva",reset:"Azzera",share:"Rapporto",
+pos_intro:"Il test delle posizioni misura la marcia nelle 6 posizioni standard. La differenza (delta) rivela l'equilibratura del bilanciere, lo stato dei perni e la salute del calibro.",
+pos_cfg:"Configurazione",settle:"Stabilizzazione",measure_s:"Misura",pos_tap:"Tocca una posizione per includerla o escluderla.",
+ready:"Pronto",pos_ready:"Prepara l'orologio",pos_ready_tx:"Caricalo completamente prima di iniziare. Telefono fermo e ambiente silenzioso.",
+start_seq:"Avvia sequenza",stop_seq:"Ferma",results:"Risultati",mean_rate:"Marcia media",delta:"Delta (max − min)",hv_diff:"Orizzontale − verticale",
+max_be:"Errore di battuta max",avg_amp:"Ampiezza O / V",amp_drop:"Calo d'ampiezza O→V",standards:"Confronto con gli standard",clear:"Cancella",
+log_intro:"Il diario misura la precisione reale al polso per giorni confrontando l'orologio con l'ora del dispositivo (sincronizzata in rete). È la prova definitiva.",
+ref_clock:"Ora di riferimento",mark:"Segna: lancetta dei secondi sulle 12",mark_h:"Tocca esattamente quando la lancetta passa sulle 12. Se lo scarto supera 30 s, indica i minuti di differenza.",
+min_adj:"Minuti di differenza",manual_off:"Scarto manuale (s)",add:"Aggiungi",log_res:"Precisione reale",log_rate:"Marcia reale",log_span:"Periodo",cur_off:"Scarto attuale",log_vs:"vs. cronocomparatore",
+entries:"Registrazioni",pr_t:"Riserva di carica",pr_h:"Carica completamente, tocca Avvia e lascia l'orologio fermo. Quando si arresta, tocca «Si è fermato».",
+pr_start:"Avvia (carica completa)",pr_stop:"Si è fermato",pr_none:"Nessun test in corso",pr_running:"In corso dal",pr_result:"Riserva misurata",
+w_t:"I miei orologi",w_add:"Aggiungi",hist_t:"Cronologia",import:"Importa",set_gen:"Generale",lang:"Lingua",theme:"Tema",th_dark:"Scuro",th_light:"Chiaro",th_auto:"Auto",
+wake:"Schermo sempre acceso",wake_h:"Evita il blocco durante la misura.",vib:"Vibrazione",vib_h:"Avviso aptico nel test delle posizioni.",
+set_audio:"Audio e analisi",mic:"Microfono",mic_h:"Un microfono a contatto o un auricolare con microfono migliorano molto il segnale. L'elaborazione del browser è disattivata.",
+hp:"Filtro passa-alto",hp_h:"Elimina il rumore grave (voci, motori, traffico). Alzalo negli ambienti rumorosi.",sens:"Sensibilità",sens_h:"Più alta rileva battiti deboli, ma anche più rumore.",
+win:"Finestra di media",win_h:"Finestre lunghe sono più precise; corte reagiscono prima.",ppm:"Correzione orologio del dispositivo (ppm)",
+ppm_h:"L'oscillatore audio del telefono ha una piccola deriva propria. 1 ppm = 0,0864 s/g. Calibralo con il diario di precisione reale.",
+data:"Dati",data_h:"Tutto è salvato solo su questo dispositivo. Nulla viene inviato a server.",wipe:"Cancella tutti i dati",
+foot:"Strumento indicativo. Per una regolazione professionale usa un cronocomparatore con microfono a contatto.",
+listen:"Ascolta",stop:"Ferma",nav_measure:"Misura",nav_pos:"Posizioni",nav_log:"Diario",nav_watches:"Orologi",nav_settings:"Opzioni",
+st_idle:"In pausa",st_search:"Ricerca",st_lock:"Aggancio",st_meas:"Misura",st_weak:"Segnale debole",st_demo:"Demo",
+gaining:"Anticipa",losing:"Ritarda",on_time:"Preciso",auto:"Auto",mic_default:"Predefinito",
+phase_settle:"Stabilizzazione",phase_measure:"Misura",place:"Posiziona l'orologio:",pos_done:"Sequenza completata",
+p_DU:"Quadrante su",p_DD:"Quadrante giù",p_CU:"Corona su",p_CD:"Corona giù",p_CL:"Corona a sinistra",p_CR:"Corona a destra",
+n_days:"{v} giorni",n_hours:"{v} h",n_min:"{v} min",saved:"Misura salvata",copied:"Rapporto copiato",need_ok:"Nessuna misura stabile",
+mic_err:"Impossibile accedere al microfono",need_https:"Il microfono richiede HTTPS (GitHub Pages va bene)",
+g1:"Eccellente",g2:"Molto buono",g3:"Buono",g4:"Accettabile",g5:"Serve regolazione",g6:"Revisione consigliata",
+d_rate_cosc:"Marcia {v} s/g: entro i criteri cronometro COSC (−4/+6).",d_rate_ok:"Marcia {v} s/g: buona per l'uso quotidiano; migliorabile con la regolazione.",
+d_rate_bad:"Marcia {v} s/g: fuori tolleranza; serve regolazione.",d_mag:"Anticipo estremo ({v} s/g): sospetta magnetizzazione. Prova a smagnetizzare.",
+d_be_ok:"Errore di battuta {v} ms: simmetria eccellente.",d_be_warn:"Errore di battuta {v} ms: accettabile; da correggere alla prossima revisione.",
+d_be_bad:"Errore di battuta {v} ms: alto; serve la messa in battuta.",
+d_amp_ok:"Ampiezza {v}°: sana.",d_amp_low:"Ampiezza {v}°: un po' bassa. Carica completamente e rimisura; se persiste, potrebbe servire una revisione.",
+d_amp_vlow:"Ampiezza {v}°: molto bassa; probabili oli degradati, sporco o usura. Revisione consigliata.",
+d_amp_high:"Ampiezza {v}°: molto alta; rischio di rimbalzo. Verifica l'angolo di alzata.",
+d_amp_na:"Ampiezza non disponibile: sbloccaggio e caduta non ben separati. Verifica l'angolo di alzata o migliora il segnale.",
+d_stab:"Marcia instabile (σ {v} s/g): riduci il rumore, blocca l'orologio o controlla la molla.",d_sig:"Segnale debole o rumoroso: avvicina il microfono, cerca silenzio o alza il filtro.",
+dp_delta_ok:"Delta {v} s/g: isocronismo eccellente.",dp_delta_warn:"Delta {v} s/g: accettabile per un calibro standard.",dp_delta_bad:"Delta {v} s/g: alto; possibile squilibrio del bilanciere, perni usurati o spirale deformata.",
+dp_drop_ok:"Calo d'ampiezza O→V di {v}°: normale.",dp_drop_bad:"Calo d'ampiezza O→V di {v}°: eccessivo; controlla perni e lubrificazione.",dp_hv:"Le posizioni verticali ritardano di {v} s/g rispetto alle orizzontali; tipico di ampiezza bassa.",
+std_mean:"marcia media",std_delta:"delta",pass:"Conforme",fail:"Non conforme",na:"N/D",
+name:"Nome",caliber:"Calibro",notes:"Note",edit:"Modifica",delete:"Elimina",cancel:"Annulla",custom:"Personalizzato",
+verify:"Valori tipici di catalogo; verifica l'angolo di alzata con il produttore. Se non lo conosci, 52° è il più comune.",
+w_edit_t:"Modifica orologio",w_new_t:"Nuovo orologio",active:"Attivo",no_hist:"Nessuna misura salvata",quick:"Rapida",positions:"Posizioni",all:"Tutti",
+confirm_del:"Eliminare?",confirm_wipe:"Cancellare orologi, misure e registrazioni? Operazione irreversibile.",imported:"Dati importati",
+log_need:"Aggiungi almeno due registrazioni distanziate di ore o giorni.",mark_done:"Registrazione aggiunta",default_watch:"Il mio orologio",
+guide_t:"Guida PurrTime",close:"Chiudi",report:"Rapporto PurrTime",score:"Punteggio",rate_err:"incertezza ±{v} s/g",amp_est:"stimata · Δt {v} ms",jitter:"jitter",
+demo_on:"Modalità demo: orologio simulato",demo_off:"Modalità demo disattivata",gt_param:"Parametro",gt_exc:"Eccellente",gt_ok:"Accettabile",gt_bad:"Verificare",
+guide:[
+["Come misurare","<ul><li>Carica completamente l'orologio (o indossalo qualche ora).</li><li>In una stanza silenziosa, appoggia l'orologio su una superficie morbida con il microfono del telefono contro la cassa (di solito sul bordo inferiore).</li><li>Scegli l'orologio o la frequenza (o «Auto»), imposta l'angolo di alzata e tocca <b>Ascolta</b>.</li><li>Attendi 20–30 s che il nastro si stabilizzi, poi salva.</li></ul>"],
+["Marcia (s/g)","<p>Secondi al giorno di anticipo (+) o ritardo (−) nella posizione attuale, calcolati per regressione su centinaia di battiti.</p>"],
+["Errore di battuta (ms)","<p>Differenza di tempo tra tic e tac. Un bilanciere centrato dà 0 ms. Oltre 1 ms si corregge in revisione; oltre 3 ms l'orologio potrebbe non ripartire da solo.</p>"],
+["Ampiezza e angolo di alzata","<p>L'ampiezza è la rotazione del bilanciere in gradi. Si stima dal tempo tra sbloccaggio e caduta e richiede l'<b>angolo di alzata</b> del calibro (di solito 50–53°; 52° se non noto).</p>"],
+["Valori di riferimento","TABLE"],
+["Test delle posizioni","<p>Misura la marcia con quadrante su/giù e con la corona in quattro orientamenti verticali. Il <b>delta</b> mostra la qualità della regolazione. COSC: marcia media da −4 a +6 s/g e delta ≤ 10 s/g.</p>"],
+["Consigli","<ul><li>Spegni ventilatori, aria condizionata e musica.</li><li>Un microfono auricolare o piezo a contatto migliora molto il risultato.</li><li>Punti sparsi: alza il filtro o abbassa la sensibilità.</li><li>Usa il diario per la precisione reale su più giorni.</li></ul>"],
+["Limiti","<p>I microfoni dei telefoni non sono sensori professionali. Marcia ed errore di battuta sono affidabili; l'ampiezza è una stima. L'orologio audio del telefono può aggiungere un piccolo scarto (calibrabile nelle Opzioni).</p>"]
+]},
+pt: {
+app_tag:"Cronocomparador acústico",watch:"Relógio",bph:"Frequência",lift_s:"Levée",balance:"Balanço",signal:"Sinal",
+st_idle_long:"Toque em Ouvir e apoie o relógio no microfone",st_search_long:"Procurando batidas… aproxime o relógio do microfone",st_lock_long:"Detectando a frequência do calibre…",
+be:"Erro de batida",be_s:"tic vs tac",amp:"Amplitude",stab:"Estabilidade",stab_s:"σ da marcha",quality:"Qualidade",elapsed:"Tempo",beats:"batidas",
+tape_t:"Fita do cronocomparador",tick:"Tic",tock:"Tac",
+tape_h:"Cada ponto é uma batida. Linha horizontal = certo; subindo = adianta, descendo = atrasa; duas linhas separadas = erro de batida; pontos dispersos = ruído ou problema mecânico.",
+dev_t:"Desvio acumulado (a mais ou a menos)",per_hour:"Hora",per_day:"Dia",per_week:"Semana",per_month:"Mês",per_year:"Ano",one_min:"1 minuto de desvio em",
+health_t:"Saúde do relógio",health_h:"Combina marcha, erro de batida, amplitude e estabilidade numa pontuação.",
+scope_t:"Osciloscópio da batida",avg:"Média",live:"Ao vivo",
+scope_h:"Envelope acústico de cada batida: destravamento (1), impulso e queda (2). O Δt entre 1 e 2, com o ângulo de levée, determina a amplitude.",
+trend_t:"Tendência da sessão",rate:"Marcha",save:"Guardar",reset:"Reiniciar",share:"Relatório",
+pos_intro:"O teste de posições mede a marcha nas 6 posições padrão. A diferença entre elas (delta) revela o equilíbrio do balanço, o estado dos pivôs e a saúde do calibre.",
+pos_cfg:"Configuração",settle:"Estabilização",measure_s:"Medição",pos_tap:"Toque numa posição para incluí-la ou excluí-la.",
+ready:"Pronto",pos_ready:"Prepare o relógio",pos_ready_tx:"Dê corda completa antes de começar. Telefone imóvel e ambiente silencioso.",
+start_seq:"Iniciar sequência",stop_seq:"Parar",results:"Resultados",mean_rate:"Marcha média",delta:"Delta (máx − mín)",hv_diff:"Horizontal − vertical",
+max_be:"Erro de batida máx.",avg_amp:"Amplitude H / V",amp_drop:"Queda de amplitude H→V",standards:"Comparação com padrões",clear:"Apagar",
+log_intro:"O diário mede a precisão real no pulso durante dias, comparando o relógio com a hora do dispositivo (sincronizada pela rede). É o teste definitivo.",
+ref_clock:"Hora de referência",mark:"Marcar: ponteiro dos segundos nas 12",mark_h:"Toque exatamente quando o ponteiro passar nas 12. Se a diferença passar de 30 s, indique os minutos de diferença.",
+min_adj:"Minutos de diferença",manual_off:"Desvio manual (s)",add:"Adicionar",log_res:"Precisão real",log_rate:"Marcha real",log_span:"Período",cur_off:"Desvio atual",log_vs:"vs. cronocomparador",
+entries:"Registros",pr_t:"Reserva de marcha",pr_h:"Dê corda completa, toque Iniciar e deixe o relógio parado. Quando ele parar, toque «Parou».",
+pr_start:"Iniciar (corda completa)",pr_stop:"Parou",pr_none:"Nenhum teste em curso",pr_running:"Em curso desde",pr_result:"Reserva medida",
+w_t:"Meus relógios",w_add:"Adicionar",hist_t:"Histórico",import:"Importar",set_gen:"Geral",lang:"Idioma",theme:"Tema",th_dark:"Escuro",th_light:"Claro",th_auto:"Auto",
+wake:"Manter ecrã ligado",wake_h:"Evita o bloqueio durante a medição.",vib:"Vibração",vib_h:"Aviso háptico no teste de posições.",
+set_audio:"Áudio e análise",mic:"Microfone",mic_h:"Um microfone de contacto ou de auscultadores melhora muito o sinal. O processamento do navegador é desativado.",
+hp:"Filtro passa-alto",hp_h:"Remove ruído grave (vozes, motores, trânsito). Aumente-o em ambientes ruidosos.",sens:"Sensibilidade",sens_h:"Mais alta deteta batidas fracas, mas também mais ruído.",
+win:"Janela de média",win_h:"Janelas longas são mais precisas; curtas reagem mais depressa.",ppm:"Correção do relógio do dispositivo (ppm)",
+ppm_h:"O oscilador de áudio do telefone tem um pequeno desvio próprio. 1 ppm = 0,0864 s/d. Calibre-o com o diário de precisão real.",
+data:"Dados",data_h:"Tudo é guardado apenas neste dispositivo. Nada é enviado para servidores.",wipe:"Apagar todos os dados",
+foot:"Ferramenta indicativa. Para regulação profissional use um cronocomparador com microfone de contacto.",
+listen:"Ouvir",stop:"Parar",nav_measure:"Medir",nav_pos:"Posições",nav_log:"Diário",nav_watches:"Relógios",nav_settings:"Ajustes",
+st_idle:"Em pausa",st_search:"Procurando",st_lock:"Sincronizando",st_meas:"Medindo",st_weak:"Sinal fraco",st_demo:"Demo",
+gaining:"Adianta",losing:"Atrasa",on_time:"Certo",auto:"Auto",mic_default:"Predefinido",
+phase_settle:"Estabilizando",phase_measure:"Medindo",place:"Coloque o relógio:",pos_done:"Sequência concluída",
+p_DU:"Mostrador para cima",p_DD:"Mostrador para baixo",p_CU:"Coroa para cima",p_CD:"Coroa para baixo",p_CL:"Coroa à esquerda",p_CR:"Coroa à direita",
+n_days:"{v} dias",n_hours:"{v} h",n_min:"{v} min",saved:"Medição guardada",copied:"Relatório copiado",need_ok:"Ainda não há medição estável",
+mic_err:"Não foi possível aceder ao microfone",need_https:"O microfone requer HTTPS (GitHub Pages serve)",
+g1:"Excelente",g2:"Muito bom",g3:"Bom",g4:"Aceitável",g5:"Precisa de ajuste",g6:"Revisão recomendada",
+d_rate_cosc:"Marcha {v} s/d: dentro dos critérios de cronómetro COSC (−4/+6).",d_rate_ok:"Marcha {v} s/d: boa para uso diário; pode ser afinada.",
+d_rate_bad:"Marcha {v} s/d: fora da tolerância habitual; precisa de regulação.",d_mag:"Adiantamento extremo ({v} s/d): suspeita de magnetização. Experimente desmagnetizar.",
+d_be_ok:"Erro de batida {v} ms: simetria excelente.",d_be_warn:"Erro de batida {v} ms: aceitável; corrigir na próxima revisão.",
+d_be_bad:"Erro de batida {v} ms: alto; o relógio precisa de ajuste de batida.",
+d_amp_ok:"Amplitude {v}°: saudável.",d_amp_low:"Amplitude {v}°: algo baixa. Dê corda completa e meça de novo; se persistir, pode precisar de revisão.",
+d_amp_vlow:"Amplitude {v}°: muito baixa; provável lubrificação degradada, sujidade ou desgaste. Revisão recomendada.",
+d_amp_high:"Amplitude {v}°: muito alta; risco de ressalto. Verifique o ângulo de levée.",
+d_amp_na:"Amplitude indisponível: destravamento e queda não se distinguem bem. Verifique o ângulo de levée ou melhore o sinal.",
+d_stab:"Marcha instável (σ {v} s/d): reduza o ruído, imobilize o relógio ou verifique a mola.",d_sig:"Sinal fraco ou ruidoso: aproxime o microfone, procure silêncio ou aumente o filtro.",
+dp_delta_ok:"Delta {v} s/d: isocronismo excelente.",dp_delta_warn:"Delta {v} s/d: aceitável para um calibre padrão.",dp_delta_bad:"Delta {v} s/d: alto; possível desequilíbrio do balanço, pivôs gastos ou espiral deformada.",
+dp_drop_ok:"Queda de amplitude H→V de {v}°: normal.",dp_drop_bad:"Queda de amplitude H→V de {v}°: excessiva; verifique pivôs e lubrificação.",dp_hv:"As posições verticais atrasam {v} s/d em relação às horizontais; típico de amplitude baixa.",
+std_mean:"marcha média",std_delta:"delta",pass:"Cumpre",fail:"Não cumpre",na:"N/D",
+name:"Nome",caliber:"Calibre",notes:"Notas",edit:"Editar",delete:"Eliminar",cancel:"Cancelar",custom:"Personalizado",
+verify:"Valores típicos de catálogo; confirme o ângulo de levée com o fabricante. Se não souber, 52° é o mais comum.",
+w_edit_t:"Editar relógio",w_new_t:"Novo relógio",active:"Ativo",no_hist:"Ainda não há medições guardadas",quick:"Rápida",positions:"Posições",all:"Todos",
+confirm_del:"Eliminar?",confirm_wipe:"Apagar todos os relógios, medições e registros? Não pode ser desfeito.",imported:"Dados importados",
+log_need:"Adicione pelo menos dois registros separados por horas ou dias.",mark_done:"Registro adicionado",default_watch:"Meu relógio",
+guide_t:"Guia PurrTime",close:"Fechar",report:"Relatório PurrTime",score:"Pontuação",rate_err:"incerteza ±{v} s/d",amp_est:"estimada · Δt {v} ms",jitter:"jitter",
+demo_on:"Modo demo: relógio simulado",demo_off:"Modo demo desativado",gt_param:"Parâmetro",gt_exc:"Excelente",gt_ok:"Aceitável",gt_bad:"Rever",
+guide:[
+["Como medir","<ul><li>Dê corda completa (ou use o relógio algumas horas).</li><li>Numa sala silenciosa, apoie o relógio numa superfície macia com o microfone do telefone encostado à caixa (normalmente na borda inferior).</li><li>Escolha o relógio ou a frequência (ou «Auto»), indique o ângulo de levée e toque <b>Ouvir</b>.</li><li>Aguarde 20–30 s até a fita estabilizar e guarde.</li></ul>"],
+["Marcha (s/d)","<p>Segundos por dia que o relógio adianta (+) ou atrasa (−) na posição atual, calculados por regressão sobre centenas de batidas.</p>"],
+["Erro de batida (ms)","<p>Diferença de tempo entre o tic e o tac. Um balanço centrado dá 0 ms. Acima de 1 ms corrige-se na revisão; acima de 3 ms o relógio pode não arrancar sozinho.</p>"],
+["Amplitude e ângulo de levée","<p>A amplitude é a rotação do balanço em graus. Estima-se pelo tempo entre destravamento e queda e requer o <b>ângulo de levée</b> do calibre (normalmente 50–53°; 52° se desconhecido).</p>"],
+["Valores de referência","TABLE"],
+["Teste de posições","<p>Mede a marcha com o mostrador para cima/baixo e com a coroa em quatro orientações verticais. O <b>delta</b> mostra a qualidade da regulação. COSC: marcha média de −4 a +6 s/d e delta ≤ 10 s/d.</p>"],
+["Dicas","<ul><li>Desligue ventoinhas, ar condicionado e música.</li><li>Um microfone de auscultadores ou piezo de contacto melhora muito o resultado.</li><li>Pontos dispersos: aumente o filtro ou reduza a sensibilidade.</li><li>Use o diário para a precisão real ao longo de vários dias.</li></ul>"],
+["Limitações","<p>Os microfones de telefone não são sensores profissionais. Marcha e erro de batida são fiáveis; a amplitude é uma estimativa. O relógio de áudio do telefone pode acrescentar um pequeno desvio (calibrável nos Ajustes).</p>"]
+]}
+};
+
+</script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const KEY = 'purrtime.v1', LANGS = ['es', 'en', 'fr', 'de', 'it', 'pt'];
+const POS = ['DU', 'DD', 'CU', 'CD', 'CL', 'CR'];
+const CAL = [
+  ['ETA 2824-2', 28800, 52], ['ETA 2836-2', 28800, 52], ['ETA 2892-A2', 28800, 50], ['ETA 2671', 28800, 50], ['Valjoux 7750', 28800, 50],
+  ['ETA/Unitas 6497-6498', 18000, 44], ['Sellita SW200-1', 28800, 52], ['Sellita SW300-1', 28800, 50], ['Sellita SW500', 28800, 50],
+  ['Rolex 3135', 28800, 52], ['Rolex 3235', 28800, 52], ['Rolex 3285', 28800, 52], ['Rolex 3130', 28800, 52],
+  ['Seiko NH35 / NH36', 21600, 53], ['Seiko 4R35 / 4R36', 21600, 53], ['Seiko 6R15 / 6R35', 21600, 53], ['Seiko 7S26 / 7S36', 21600, 53],
+  ['Miyota 8215', 21600, 52], ['Miyota 9015', 28800, 52], ['Sea-Gull ST2130', 28800, 52]
+];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+/* ---------- store ---------- */
+const DEF = () => ({ settings: { lang: null, theme: 'dark', hp: 1500, sens: .6, win: 20, ppm: 0, wake: true, vib: true, mic: '', range: 10, settle: 10, mdur: 30, scope: 'avg', posSel: POS.slice() }, watches: [], history: [], logs: {}, pr: {}, active: null, lastPos: {}, logWatch: null });
+let S = DEF();
+try { const j = JSON.parse(localStorage.getItem(KEY)); if (j && typeof j === 'object') { S = Object.assign(DEF(), j); S.settings = Object.assign(DEF().settings, j.settings || {}); } } catch (e) { }
+const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } };
+if (!S.settings.lang) { const l = (navigator.language || 'en').slice(0, 2).toLowerCase(); S.settings.lang = LANGS.includes(l) ? l : 'en'; }
+if (!S.watches.length) { const w = { id: uid(), name: '', cal: 'ETA 2824-2', bph: 28800, lift: 52, notes: '' }; S.watches.push(w); S.active = w.id; }
+if (!S.watches.find(w => w.id === S.active)) S.active = S.watches[0].id;
+const W = () => S.watches.find(w => w.id === S.active) || S.watches[0];
+const wName = w => (w && w.name) || t('default_watch');
+
+/* ---------- i18n & format ---------- */
+let L = S.settings.lang;
+function t(k, v) { let s = (I18N[L] && I18N[L][k] !== undefined) ? I18N[L][k] : (I18N.en[k] !== undefined ? I18N.en[k] : k); if (v !== undefined && typeof s === 'string') s = s.replace('{v}', v); return s; }
+const nf = {}; const fmt = (v, d = 1) => { const k = L + d; if (!nf[k]) nf[k] = new Intl.NumberFormat(L, { minimumFractionDigits: d, maximumFractionDigits: d }); return nf[k].format(v); };
+const sgn = (v, d = 1) => { const r = Number(fmt(Math.abs(v), d).replace(/[^\d]/g, '')) === 0; return (r ? '±' : v > 0 ? '+' : '−') + fmt(Math.abs(v), d); };
+function dur(s) { const a = Math.abs(s), sg = s > 0 ? '+' : s < 0 ? '−' : ''; if (a < 60) return sg + fmt(a, a < 10 ? 1 : 0) + ' s'; if (a < 3600) { const m = Math.floor(a / 60), ss = Math.round(a % 60); return sg + m + 'm ' + String(ss).padStart(2, '0') + 's'; } if (a < 86400 * 2) { const h = Math.floor(a / 3600), m = Math.round((a % 3600) / 60); return sg + h + 'h ' + String(m).padStart(2, '0') + 'm'; } return sg + fmt(a / 86400, 1) + ' d'; }
+const dt = ms => new Date(ms).toLocaleString(L, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+function applyI18n() {
+  L = S.settings.lang; document.documentElement.lang = L;
+  $$('[data-i18n]').forEach(el => { const s = t(el.dataset.i18n); if (typeof s === 'string') el.textContent = s; });
+  renderSelects(); renderPosGrid(); renderPosSummary(); renderLog(); renderWatches(); renderHistory(); renderMeasure(true); updateRunUI();
+}
+
+/* ---------- theme & colours ---------- */
+let C = {};
+function applyTheme() {
+  const v = S.settings.theme, act = v === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : v;
+  document.documentElement.dataset.theme = act;
+  const cs = getComputedStyle(document.documentElement);
+  ['tick', 'tock', 'acc', 'acc2', 'mut', 'mut2', 'line', 'tx', 'ok', 'warn', 'bad', 'blue', 'bg'].forEach(k => C[k] = cs.getPropertyValue('--' + k).trim());
+  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = act === 'light' ? '#f4f1ea' : '#0a0c11';
+  $$('#themeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+}
+matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', applyTheme);
+
+/* ---------- toast & sheet ---------- */
+let toastT; function toast(m) { const e = $('#toast'); e.textContent = m; e.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('on'), 2600); }
+function openSheet(html) { $('#sheetBody').innerHTML = html; $('#scrim').classList.add('on'); $('#sheet').classList.add('on'); $('#sheet').scrollTop = 0; }
+function closeSheet() { $('#scrim').classList.remove('on'); $('#sheet').classList.remove('on'); }
+$('#scrim').onclick = closeSheet;
+const vib = p => { if (S.settings.vib && navigator.vibrate) try { navigator.vibrate(p); } catch (e) { } };
+
+/* ---------- views ---------- */
+let view = 'measure';
+$$('nav button').forEach(b => b.onclick = () => go(b.dataset.v));
+function go(v) {
+  view = v; $$('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  $$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
+  $('#fab').classList.toggle('hide', v !== 'measure');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (v === 'pos') { renderPosGrid(); renderPosSummary(); }
+  if (v === 'log') renderLog();
+  if (v === 'watches') { renderWatches(); renderHistory(); }
+  requestAnimationFrame(() => { drawScope(); drawTrend(); drawPosChart(); drawLogChart(); drawHistChart(); });
+}
+
+/* ---------- selects ---------- */
+function renderSelects() {
+  const ws = S.watches.map(w => `<option value="${w.id}">${esc(wName(w))}</option>`).join('');
+  $('#mWatch').innerHTML = ws; $('#mWatch').value = S.active;
+  $('#logWatch').innerHTML = ws; $('#logWatch').value = S.logWatch && S.watches.find(w => w.id === S.logWatch) ? S.logWatch : S.active;
+  const cur = $('#mBph').value || String(W().bph || 0);
+  $('#mBph').innerHTML = `<option value="0">${t('auto')}</option>` + PT.BPHS.map(b => `<option value="${b}">${b.toLocaleString(L)}</option>`).join('');
+  $('#mBph').value = cur;
+  if (!$('#mLift').value) $('#mLift').value = W().lift || 52;
+  $('#hFilter').innerHTML = `<option value="">${t('all')}</option>` + ws; $('#hFilter').value = hFilter;
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+$('#mWatch').onchange = e => { S.active = e.target.value; const w = W(); $('#mBph').value = String(w.bph || 0); $('#mLift').value = w.lift || 52; persist(); applyAnCfg(true); renderWatches(); };
+$('#mBph').onchange = () => applyAnCfg(true);
+$('#mLift').onchange = () => { applyAnCfg(false); };
+
+/* ---------- engine ---------- */
+const E = { on: false, mode: null, ctx: null, stream: null, node: null, src: null, det: null, an: null, syn: null, timer: null, t0: 0, res: null, lastTick: 0, snr: 0, wake: null, ph: 0, A: 0, own: false };
+const anCfg = () => ({ bph: +$('#mBph').value || 0, lift: +$('#mLift').value || 52, window: S.settings.win, ppm: S.settings.ppm });
+function applyAnCfg(reset) {
+  if (!E.an) return; const c = anCfg(); const bphChanged = c.bph !== E.an.cfg.bph;
+  Object.assign(E.an.cfg, c); if (PS.on && PS.phase === 'measure') E.an.cfg.window = S.settings.mdur;
+  if (reset && bphChanged) { E.an.reset(); E.res = null; }
+}
+
+async function start(mode) {
+  if (E.on) stop();
+  E.an = new PT.Analyzer(anCfg()); E.res = null;
+  if (mode === 'mic') {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast(t('need_https')); return false; }
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      E.ctx = new AC({ latencyHint: 'interactive' });
+      const c = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 };
+      if (S.settings.mic) c.deviceId = { exact: S.settings.mic };
+      try { E.stream = await navigator.mediaDevices.getUserMedia({ audio: c }); }
+      catch (e) { if (!S.settings.mic) throw e; delete c.deviceId; E.stream = await navigator.mediaDevices.getUserMedia({ audio: c }); }
+      if (E.ctx.state === 'suspended') await E.ctx.resume();
+      E.src = E.ctx.createMediaStreamSource(E.stream);
+      E.det = new PT.Detector(E.ctx.sampleRate, { hp: S.settings.hp, sens: S.settings.sens });
+      const sink = E.ctx.createGain(); sink.gain.value = 0; sink.connect(E.ctx.destination);
+      let ok = false;
+      if (E.ctx.audioWorklet && window.AudioWorkletNode) {
+        try {
+          const code = "class P extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(2048);this.n=0}process(i){const c=i[0]&&i[0][0];if(c){for(let k=0;k<c.length;k++){this.b[this.n++]=c[k];if(this.n===2048){this.port.postMessage(this.b,[this.b.buffer]);this.b=new Float32Array(2048);this.n=0}}}return true}}registerProcessor('pt-tap',P);";
+          const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
+          await E.ctx.audioWorklet.addModule(url);
+          E.node = new AudioWorkletNode(E.ctx, 'pt-tap', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1 });
+          E.node.port.onmessage = ev => feed(ev.data); ok = true;
+        } catch (e) { ok = false; }
+      }
+      if (!ok) { E.node = E.ctx.createScriptProcessor(4096, 1, 1); E.node.onaudioprocess = ev => feed(ev.inputBuffer.getChannelData(0).slice(0)); }
+      E.src.connect(E.node); E.node.connect(sink);
+      enumerateMics();
+    } catch (e) {
+      console.warn(e); cleanup();
+      const insecure = location.protocol !== 'https:' && !/^(localhost|127\.)/.test(location.hostname);
+      toast(t('mic_err') + (insecure ? ' · ' + t('need_https') : '')); return false;
+    }
+  }
+  E.on = true; E.mode = mode; E.t0 = performance.now(); E.lastTick = 0;
+  wakeOn(); updateRunUI(); return true;
+}
+function feed(buf) { if (!E.det || !E.an) return; E.det.cfg.period = E.an.T; E.det.process(buf, onTick); }
+function onTick(tk) { const a = E.an.acc; E.an.add(tk); E.snr = tk.snr; E.lastTick = performance.now(); if (E.an.acc > a) beatFx(); }
+function cleanup() {
+  try { E.node && E.node.disconnect(); } catch (e) { } try { E.src && E.src.disconnect(); } catch (e) { }
+  if (E.stream) E.stream.getTracks().forEach(x => x.stop());
+  if (E.ctx) try { E.ctx.close(); } catch (e) { }
+  if (E.timer) clearInterval(E.timer);
+  E.ctx = E.stream = E.node = E.src = E.syn = null; E.timer = null;
+}
+function stop() { cleanup(); E.on = false; E.mode = null; wakeOff(); updateRunUI(); }
+async function wakeOn() { if (!S.settings.wake || !('wakeLock' in navigator)) return; try { E.wake = await navigator.wakeLock.request('screen'); } catch (e) { } }
+function wakeOff() { try { E.wake && E.wake.release(); } catch (e) { } E.wake = null; }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && E.on && !E.wake) wakeOn(); });
+let beatT = 0; function beatFx() { const l = $('#logo'); l.classList.add('beat'); clearTimeout(beatT); beatT = setTimeout(() => l.classList.remove('beat'), 60); }
+
+$('#goBtn').onclick = async () => { if (E.on) { if (PS.on) posStop(); stop(); } else await start('mic'); };
+$('#resetBtn').onclick = () => { if (E.an) { E.an.reset(); applyAnCfg(false); E.res = null; E.t0 = performance.now(); } renderMeasure(true); };
+function updateRunUI() {
+  const g = $('#goBtn'); g.classList.toggle('on', E.on && E.mode === 'mic');
+  $('#goTx').textContent = E.on && E.mode === 'mic' ? t('stop') : t('listen');
+  $('#goIco').innerHTML = E.on && E.mode === 'mic' ? '<rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor" stroke="none"/>' : '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>';
+  renderStatus();
+}
+
+/* ---------- microphones ---------- */
+async function enumerateMics() {
+  try {
+    const d = (await navigator.mediaDevices.enumerateDevices()).filter(x => x.kind === 'audioinput');
+    $('#sMic').innerHTML = `<option value="">${t('mic_default')}</option>` + d.map((x, i) => `<option value="${esc(x.deviceId)}">${esc(x.label || 'Mic ' + (i + 1))}</option>`).join('');
+    $('#sMic').value = S.settings.mic;
+  } catch (e) { $('#sMic').innerHTML = `<option value="">${t('mic_default')}</option>`; }
+}
+
+/* ---------- status ---------- */
+function statusKey() {
+  if (!E.on) return 'idle'; const r = E.res || {}; const since = performance.now() - E.lastTick;
+  if (!E.lastTick || since > 1600) return 'search'; if (!r.ok) return 'lock'; if (r.quality < .45) return 'weak'; return 'meas';
+}
+function renderStatus() {
+  const k = statusKey(), p = $('#status');
+  p.className = 'pill ' + (k === 'meas' ? 'live' : (k === 'idle' ? '' : 'wait'));
+  $('#statusTx').textContent = t('st_' + k);
+}
+
+/* ---------- gauge ---------- */
+function buildGauge() {
+  const cx = 150, cy = 150, R = 122, P = (a, r) => { const q = a * Math.PI / 180; return [cx + r * Math.sin(q), cy - r * Math.cos(q)]; };
+  const arc = (a0, a1, r) => { const [x0, y0] = P(a0, r), [x1, y1] = P(a1, r); return `M${x0.toFixed(1)} ${y0.toFixed(1)}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`; };
+  let s = `<defs><linearGradient id="ndl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" style="stop-color:var(--acc)"/><stop offset="1" style="stop-color:var(--acc2)"/></linearGradient><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter></defs>`;
+  s += `<path d="${arc(-122, 122, R)}" style="stroke:var(--line)" stroke-width="14" fill="none" stroke-linecap="round"/>`;
+  [[-120, -61, 'bad'], [-59, -17, 'warn'], [-15, 23, 'ok'], [25, 59, 'warn'], [61, 120, 'bad']].forEach(([a, b, c]) => s += `<path d="${arc(a, b, R)}" style="stroke:var(--${c})" stroke-width="6" fill="none" stroke-linecap="round" opacity=".8"/>`);
+  for (let v = -30; v <= 30; v += 2.5) { const a = v * 4, big = v % 15 === 0, mid = v % 5 === 0; const [x0, y0] = P(a, R - 13), [x1, y1] = P(a, R - (big ? 24 : mid ? 20 : 17)); s += `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" style="stroke:var(${big ? '--tx' : '--mut2'})" stroke-width="${big ? 2 : 1.2}" stroke-linecap="round"/>`; }
+  [-30, -15, 0, 15, 30].forEach(v => { const [x, y] = P(v * 4, R - 37); s += `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" style="fill:var(--mut);font:600 10.5px var(--sans)">${v > 0 ? '+' + v : v}</text>`; });
+  s += `<g id="needle"><path d="M${cx - 3.5} ${cy}L${cx} ${cy - R + 26}L${cx + 3.5} ${cy}Z" fill="url(#ndl)"/><path d="M${cx} ${cy}L${cx} ${cy - R + 26}" style="stroke:var(--acc2)" stroke-width="1" filter="url(#gl)" opacity=".7"/></g>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="9" style="fill:var(--bg2);stroke:var(--acc)" stroke-width="2.5"/><circle cx="${cx}" cy="${cy}" r="3" style="fill:var(--acc)"/>`;
+  $('#gaugeSvg').innerHTML = s;
+}
+
+/* ---------- health ---------- */
+function health(r) {
+  const it = []; let sc = 0, w = 0; const R = r.rate, aR = Math.abs(R);
+  const s1 = aR <= 2 ? 100 : aR <= 6 ? 100 - (aR - 2) * 2.5 : aR <= 15 ? 90 - (aR - 6) * 3.3 : aR <= 30 ? 60 - (aR - 15) * 2 : Math.max(0, 30 - (aR - 30));
+  if (R > 60) it.push(['bad', 'd_mag', sgn(R, 0)]);
+  else if (R >= -4 && R <= 6) it.push(['ok', 'd_rate_cosc', sgn(R, 1)]);
+  else if (aR <= 15) it.push(['warn', 'd_rate_ok', sgn(R, 1)]);
+  else it.push(['bad', 'd_rate_bad', sgn(R, 1)]);
+  sc += s1 * .3; w += .3;
+  const B = r.be, s2 = B <= .3 ? 100 : B <= .6 ? 95 : B <= 1 ? 85 : B <= 1.5 ? 70 : B <= 2 ? 55 : B <= 3 ? 35 : 15;
+  it.push([B <= .6 ? 'ok' : B <= 1.5 ? 'warn' : 'bad', B <= .6 ? 'd_be_ok' : B <= 1.5 ? 'd_be_warn' : 'd_be_bad', fmt(B, 1)]);
+  sc += s2 * .25; w += .25;
+  if (isFinite(r.amp)) {
+    const A = r.amp, s3 = A >= 270 && A <= 315 ? 100 : A > 315 ? (A <= 335 ? 80 : 55) : A >= 250 ? 90 : A >= 220 ? 72 : A >= 200 ? 50 : A >= 180 ? 30 : 12;
+    it.push(A > 330 ? ['warn', 'd_amp_high', Math.round(A)] : A >= 250 ? ['ok', 'd_amp_ok', Math.round(A)] : A >= 200 ? ['warn', 'd_amp_low', Math.round(A)] : ['bad', 'd_amp_vlow', Math.round(A)]);
+    sc += s3 * .3; w += .3;
+  } else it.push(['info', 'd_amp_na']);
+  if (r.stab != null) { const st = r.stab, s4 = st <= 1 ? 100 : st <= 2.5 ? 90 : st <= 5 ? 72 : st <= 10 ? 50 : 25; if (st > 5) it.push(['warn', 'd_stab', fmt(st, 1)]); sc += s4 * .15; w += .15; }
+  if (r.quality < .5) it.push(['warn', 'd_sig']);
+  const score = Math.round(sc / w);
+  const g = score >= 92 ? 'g1' : score >= 82 ? 'g2' : score >= 70 ? 'g3' : score >= 58 ? 'g4' : score >= 42 ? 'g5' : 'g6';
+  return { score, grade: g, items: it };
+}
+const scoreCol = s => s >= 82 ? C.ok : s >= 58 ? C.acc : s >= 42 ? C.warn : C.bad;
+
+/* ---------- measure render ---------- */
+function setM(id, val, unit, cls, sub) {
+  const m = $(id); m.className = 'm ' + (cls || ''); m.querySelector('.v').innerHTML = val + (unit ? `<u>${unit}</u>` : '');
+  if (sub !== undefined) m.querySelector('.s').innerHTML = sub;
+}
+function renderMeasure(force) {
+  renderStatus();
+  const r = E.res;
+  const k = statusKey();
+  // level
+  if (E.on && E.det) { const db = 20 * Math.log10(Math.max(1e-6, E.det.level)); $('#lvlBar').style.width = Math.max(0, Math.min(100, (db + 60) / 60 * 100)) + '%'; $('#snrTx').textContent = E.snr && performance.now() - E.lastTick < 2000 ? Math.round(20 * Math.log10(E.snr)) + ' dB' : '—'; }
+  else { $('#lvlBar').style.width = '0%'; $('#snrTx').textContent = '—'; }
+  const el = E.on ? (performance.now() - E.t0) / 1000 : 0;
+  if (E.on) setM('#mT', Math.floor(el / 60) + ':' + String(Math.floor(el % 60)).padStart(2, '0'), '', '', `${E.an ? E.an.beats.length : 0} ${t('beats')}`);
+  if (!r || !r.ok) {
+    if (!r && !force) return;
+    if (E.on || force) {
+      $('#rateLbl').textContent = t(k === 'idle' ? 'st_idle_long' : k === 'search' ? 'st_search_long' : 'st_lock_long');
+      if (!r) { $('#rateVal').innerHTML = '—<sup>s/d</sup>'; $('#rateErr').innerHTML = '&nbsp;'; $('#needle') && ($('#needle').style.transform = 'rotate(0deg)'); }
+      if (r && r.bph) setM('#mBPH', (r.bph / 1000).toLocaleString(L, { maximumFractionDigits: 1 }) + 'k', '', '', `${fmt(r.bph / 7200, 1)} Hz · ${r.bph.toLocaleString(L)}`);
+    }
+    return;
+  }
+  const R = r.rate;
+  $('#rateVal').innerHTML = `${sgn(R, Math.abs(R) < 100 ? 1 : 0)}<sup>s/d</sup>`;
+  $('#rateVal').style.color = (R >= -4 && R <= 6) ? '' : Math.abs(R) <= 15 ? C.warn : C.bad;
+  const word = t(R > .5 ? 'gaining' : R < -.5 ? 'losing' : 'on_time');
+  $('#rateLbl').innerHTML = `${word} · <b class="num">${dur(R / 24)}</b> / ${t('per_hour').toLowerCase()}`;
+  $('#rateErr').textContent = `${t('rate_err', fmt(r.rateErr, 2))} · ${r.n} ${t('beats')}`;
+  $('#needle').style.transform = `rotate(${Math.max(-31, Math.min(31, R)) * 4}deg)`;
+  setM('#mBE', fmt(r.be, 1), 'ms', r.be <= .6 ? 'ok' : r.be <= 1.5 ? 'warn' : 'bad');
+  if (isFinite(r.amp)) setM('#mAMP', Math.round(r.amp), '°', r.amp >= 250 && r.amp <= 320 ? 'ok' : r.amp >= 200 && r.amp <= 340 ? 'warn' : 'bad', t('amp_est', fmt(r.dtMs, 1)));
+  else setM('#mAMP', '—', '°', '', t('na'));
+  setM('#mBPH', (r.bph / 1000).toLocaleString(L, { maximumFractionDigits: 1 }) + 'k', '', '', `${fmt(r.bph / 7200, 1)} Hz · ${r.bph.toLocaleString(L)}`);
+  setM('#mSTAB', r.stab != null ? '±' + fmt(r.stab, 1) : '—', 's/d', r.stab == null ? '' : r.stab <= 2 ? 'ok' : r.stab <= 6 ? 'warn' : 'bad');
+  setM('#mQ', Math.round(r.quality * 100), '%', r.quality >= .75 ? 'ok' : r.quality >= .45 ? 'warn' : 'bad', `${t('jitter')} ${fmt(r.sd, 2)} ms`);
+  // deviation
+  const pr = [[R / 24, '#dH'], [R, '#dD'], [R * 7, '#dW'], [R * 30.44, '#dM'], [R * 365.25, '#dY']];
+  pr.forEach(([v, id]) => $(id).textContent = dur(v));
+  const days = Math.abs(R) < .02 ? Infinity : 60 / Math.abs(R);
+  $('#d1m').textContent = !isFinite(days) ? '∞' : days >= 1 ? t('n_days', fmt(days, days < 10 ? 1 : 0)) : t('n_hours', fmt(days * 24, 1));
+  // health
+  const h = health(r);
+  $('#scoreV').textContent = h.score; $('#gradeV').textContent = t(h.grade); $('#gradeV').style.color = scoreCol(h.score);
+  const fg = $('#ringFg'); fg.style.strokeDashoffset = (226.2 * (1 - h.score / 100)).toFixed(1); fg.style.stroke = scoreCol(h.score);
+  $('#diag').innerHTML = h.items.map(([c, k, v]) => `<li class="${c}"><i></i><span>${esc(t(k, v))}</span></li>`).join('');
+  drawScope(); drawTrend();
+}
+
+/* ---------- canvas helpers ---------- */
+function prep(cv) {
+  const r = cv.getBoundingClientRect(); if (!r.width || !r.height) return null;
+  const d = Math.min(2.5, window.devicePixelRatio || 1), Wd = Math.round(r.width * d), Hd = Math.round(r.height * d);
+  if (cv.width !== Wd || cv.height !== Hd) { cv.width = Wd; cv.height = Hd; }
+  const x = cv.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); x.clearRect(0, 0, r.width, r.height); return { x, w: r.width, h: r.height };
+}
+function alpha(col, a) { if (col.startsWith('#')) { let h = col.slice(1); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; } return col; }
+function emptyMsg(x, w, h, msg) { x.fillStyle = C.mut2; x.font = '600 12px ' + getComputedStyle(document.body).fontFamily; x.textAlign = 'center'; x.fillText(msg, w / 2, h / 2 + 4); x.textAlign = 'left'; }
+
+/* tape */
+function drawTape() {
+  const P = prep($('#tape')); if (!P) return; const { x, w, h } = P;
+  const range = S.settings.range, pad = 26;
+  x.font = '600 9.5px ' + getComputedStyle(document.body).fontFamily;
+  for (let i = -2; i <= 2; i++) {
+    const y = h / 2 - i / 2 * (h / 2 - 12); x.strokeStyle = i === 0 ? alpha(C.acc, .35) : C.line; x.lineWidth = 1; x.setLineDash(i === 0 ? [] : [3, 4]);
+    x.beginPath(); x.moveTo(pad, y); x.lineTo(w, y); x.stroke(); x.setLineDash([]);
+    x.fillStyle = C.mut2; x.fillText((i > 0 ? '+' : '') + (i * range / 2), 4, y + 3);
+  }
+  const an = E.an; if (!an || !an.T || an.beats.length < 2) { emptyMsg(x, w, h, E.on ? t('st_search_long') : t('st_idle_long')); return; }
+  const b = an.beats, T = an.T, span = 20, tEnd = b[b.length - 1].t;
+  let i0 = b.length - 1; while (i0 > 0 && b[i0 - 1].t >= tEnd - span) i0--;
+  const ref = b[i0]; const offs = []; let sum = 0;
+  for (let i = i0; i < b.length; i++) { const o = (b[i].t - ref.t - (b[i].n - ref.n) * T) * 1000; offs.push(o); sum += o; }
+  const m = sum / offs.length, R2 = 2 * range, sc = (h / 2 - 12) / range;
+  const pw = w - pad - 6;
+  for (let k = 0; k < offs.length; k++) {
+    const bb = b[i0 + k]; const xx = pad + (bb.t - (tEnd - span)) / span * pw;
+    let o = offs[k] - m; o = ((o + range) % R2 + R2) % R2 - range;
+    const yy = h / 2 - o * sc, age = (tEnd - bb.t) / span;
+    const col = (bb.n & 1) ? C.tock : C.tick;
+    x.fillStyle = alpha(col, .25 + .75 * (1 - age));
+    x.beginPath(); x.arc(xx, yy, k > offs.length - 4 ? 3 : 1.9, 0, 6.283); x.fill();
+  }
+  const lx = pad + pw; x.strokeStyle = alpha(C.acc, .5); x.beginPath(); x.moveTo(lx, 6); x.lineTo(lx, h - 6); x.stroke();
+}
+
+/* scope */
+function drawScope() {
+  const cv = $('#scope'); const P = prep(cv); if (!P) return; const { x, w, h } = P;
+  const an = E.an, env = an ? (S.settings.scope === 'live' ? an.lastEnv : an.envAvg) : null;
+  const ms = q => (q / 200) * 20 - 3, X = v => (v + 3) / 20 * w;
+  x.font = '600 9.5px ' + getComputedStyle(document.body).fontFamily;
+  for (let v = 0; v <= 15; v += 5) { const xx = X(v); x.strokeStyle = C.line; x.beginPath(); x.moveTo(xx, 0); x.lineTo(xx, h); x.stroke(); x.fillStyle = C.mut2; x.fillText(v + ' ms', xx + 3, h - 5); }
+  if (!env) { emptyMsg(x, w, h, '—'); return; }
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, alpha(C.acc, .55)); g.addColorStop(1, alpha(C.acc, .02));
+  x.beginPath(); x.moveTo(0, h - 16);
+  for (let i = 0; i < env.length; i++) x.lineTo(i / (env.length - 1) * w, h - 16 - Math.min(1.05, env[i]) * (h - 30));
+  x.lineTo(w, h - 16); x.closePath(); x.fillStyle = g; x.fill();
+  x.beginPath(); for (let i = 0; i < env.length; i++) { const yy = h - 16 - Math.min(1.05, env[i]) * (h - 30); i ? x.lineTo(i / (env.length - 1) * w, yy) : x.moveTo(0, yy); }
+  x.strokeStyle = C.acc; x.lineWidth = 1.6; x.stroke(); x.lineWidth = 1;
+  const r = E.res; const mark = (v, lab, col) => { const xx = X(v); x.strokeStyle = col; x.setLineDash([4, 3]); x.beginPath(); x.moveTo(xx, 8); x.lineTo(xx, h - 16); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.beginPath(); x.arc(xx, 12, 8, 0, 6.283); x.fill(); x.fillStyle = C.bg; x.font = '800 10px sans-serif'; x.textAlign = 'center'; x.fillText(lab, xx, 15.5); x.textAlign = 'left'; };
+  mark(0, '1', C.tick);
+  if (r && r.ok && isFinite(r.dtMs)) { mark(r.dtMs, '2', C.tock); x.fillStyle = C.tx; x.font = '600 11px ' + getComputedStyle(document.body).fontFamily; x.fillText('Δt ' + fmt(r.dtMs, 2) + ' ms', X(r.dtMs) + 12, 30); }
+}
+
+/* trend */
+function drawTrend() {
+  const P = prep($('#trend')); if (!P) return; const { x, w, h } = P;
+  const hs = E.an ? E.an.hist : []; if (hs.length < 2) { emptyMsg(x, w, h, '—'); return; }
+  let mx = 5; hs.forEach(p => mx = Math.max(mx, Math.abs(p.rate))); mx = Math.ceil(mx * 1.2 / 5) * 5;
+  const t0 = hs[0].t, t1 = hs[hs.length - 1].t, X = tt => 28 + (tt - t0) / Math.max(1, t1 - t0) * (w - 60), Y = v => h / 2 - v / mx * (h / 2 - 12);
+  x.font = '600 9.5px ' + getComputedStyle(document.body).fontFamily;
+  [-mx, 0, mx].forEach(v => { x.strokeStyle = v === 0 ? alpha(C.acc, .3) : C.line; x.beginPath(); x.moveTo(28, Y(v)); x.lineTo(w - 30, Y(v)); x.stroke(); x.fillStyle = C.mut2; x.fillText((v > 0 ? '+' : '') + v, 2, Y(v) + 3); });
+  const YA = a => h - 10 - (a - 150) / 200 * (h - 22);
+  [150, 250, 350].forEach(a => { x.fillStyle = alpha(C.tick, .8); x.fillText(a + '°', w - 27, YA(a) + 3); });
+  const line = (fn, col, wd, dash) => { x.beginPath(); let st = false; hs.forEach(p => { const v = fn(p); if (!isFinite(v)) { st = false; return; } st ? x.lineTo(X(p.t), v) : (x.moveTo(X(p.t), v), st = true); }); x.strokeStyle = col; x.lineWidth = wd; x.setLineDash(dash || []); x.stroke(); x.setLineDash([]); x.lineWidth = 1; };
+  line(p => isFinite(p.amp) ? YA(p.amp) : NaN, alpha(C.tick, .9), 1.4, [4, 3]);
+  line(p => Y(Math.max(-mx, Math.min(mx, p.be * 10))), alpha(C.tock, .7), 1.2, [2, 3]);
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, alpha(C.acc, .3)); g.addColorStop(.5, alpha(C.acc, .02)); g.addColorStop(1, alpha(C.acc, .3));
+  x.beginPath(); x.moveTo(X(hs[0].t), Y(0)); hs.forEach(p => x.lineTo(X(p.t), Y(p.rate))); x.lineTo(X(t1), Y(0)); x.closePath(); x.fillStyle = g; x.fill();
+  line(p => Y(p.rate), C.acc, 2);
+}
+
+/* ---------- balance wheel ---------- */
+function animWheel(d) {
+  const r = E.res; const target = !E.on ? 0 : (r && r.ok && isFinite(r.amp) ? r.amp : 230);
+  E.A += (target - E.A) * Math.min(1, d * 2);
+  const f = ((r && r.bph) || (+$('#mBph').value) || 28800) / 7200 / 8;
+  E.ph += d * 2 * Math.PI * f; const ang = E.A * Math.sin(E.ph);
+  $('#wheelG').setAttribute('transform', `rotate(${ang.toFixed(2)})`);
+  let p = ''; const r0 = 9, r1 = 30, turns = 4.2, aRad = ang * Math.PI / 180 * .9;
+  for (let i = 0; i <= 90; i++) { const q = i / 90, rr = r0 + (r1 - r0) * q, th = q * turns * 2 * Math.PI + (1 - q) * aRad; p += (i ? 'L' : 'M') + (rr * Math.cos(th)).toFixed(2) + ' ' + (rr * Math.sin(th)).toFixed(2); }
+  $('#spring').setAttribute('d', p);
+}
+
+/* ---------- save / report ---------- */
+$('#saveBtn').onclick = () => {
+  const r = E.res; if (!r || !r.ok) return toast(t('need_ok'));
+  const h = health(r);
+  S.history.unshift({ id: uid(), t: Date.now(), wid: S.active, type: 'quick', rate: +r.rate.toFixed(2), be: +r.be.toFixed(2), amp: isFinite(r.amp) ? Math.round(r.amp) : null, bph: r.bph, lift: E.an.cfg.lift, stab: r.stab != null ? +r.stab.toFixed(2) : null, q: +r.quality.toFixed(2), score: h.score });
+  persist(); toast(t('saved')); renderHistory();
+};
+function reportText() {
+  const r = E.res; if (!r || !r.ok) return null; const h = health(r);
+  return [`${t('report')} — ${wName(W())} — ${new Date().toLocaleString(L)}`,
+  `${t('rate')}: ${sgn(r.rate, 1)} s/d (${t('rate_err', fmt(r.rateErr, 2))})`,
+  `${t('be')}: ${fmt(r.be, 1)} ms`, `${t('amp')}: ${isFinite(r.amp) ? Math.round(r.amp) + '°' : t('na')} (${t('lift_s')} ${E.an.cfg.lift}°)`,
+  `${t('bph')}: ${r.bph.toLocaleString(L)} bph`, r.stab != null ? `${t('stab')}: ±${fmt(r.stab, 1)} s/d` : '',
+  `${t('per_day')} ${dur(r.rate)} · ${t('per_week')} ${dur(r.rate * 7)} · ${t('per_month')} ${dur(r.rate * 30.44)}`,
+  `${t('score')}: ${h.score}/100 — ${t(h.grade)}`, '', ...h.items.map(([, k, v]) => '• ' + t(k, v))].filter(s => s !== null).join('\n');
+}
+$('#shareBtn').onclick = async () => {
+  const s = reportText(); if (!s) return toast(t('need_ok'));
+  if (navigator.share) { try { await navigator.share({ title: 'PurrTime', text: s }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(s); toast(t('copied')); } catch (e) { openSheet(`<h2>${t('report')}</h2><textarea class="inp" rows="14" style="font-family:var(--mono);font-size:12px">${esc(s)}</textarea>`); }
+};
+
+/* ---------- range seg / scope seg ---------- */
+function segInit(id, key, cb) { const s = $(id); s.querySelectorAll('button').forEach(b => { b.classList.toggle('on', String(S.settings[key]) === b.dataset.v); b.onclick = () => { S.settings[key] = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v; persist(); s.querySelectorAll('button').forEach(z => z.classList.toggle('on', z === b)); cb && cb(); }; }); }
+segInit('#rangeSeg', 'range', drawTape); segInit('#scopeSeg', 'scope', drawScope);
+
+/* ---------- positions ---------- */
+const PS = { on: false, idx: -1, phase: null, tEnd: 0, dur: 1, order: [], res: S.lastPos || {}, ownEngine: false };
+function posIcon(p) {
+  if (p === 'DU' || p === 'DD') {
+    const crownX = p === 'DU' ? 52 : 6;
+    return `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 54h52" opacity=".35"/>` +
+      (p === 'DU' ? `<path d="M11 40v3c0 4.4 9.4 8 21 8s21-3.6 21-8v-3" opacity=".55"/><ellipse cx="32" cy="40" rx="21" ry="8"/><ellipse cx="32" cy="40" rx="15" ry="5.2" opacity=".55"/><path d="M32 40l7-2.3M32 40l-2.5-3.4"/>`
+        : `<path d="M11 40v3c0 4.4 9.4 8 21 8s21-3.6 21-8v-3"/><ellipse cx="32" cy="40" rx="21" ry="8"/><ellipse cx="32" cy="40" rx="11" ry="3.6" stroke-dasharray="2 3" opacity=".7"/>`) +
+      `<rect x="${crownX}" y="39" width="6" height="6" rx="1.5"/><path d="M32 8v14M27 17l5 5 5-5" opacity=".5"/></svg>`;
+  }
+  const rot = { CR: 0, CU: -90, CD: 90, CL: 180 }[p];
+  return `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 58h52" opacity=".35"/><g transform="rotate(${rot} 32 32)"><rect x="25" y="8" width="14" height="7" rx="2" opacity=".55"/><rect x="25" y="49" width="14" height="7" rx="2" opacity=".55"/><circle cx="32" cy="32" r="16"/><rect x="48" y="29" width="5" height="6" rx="1.5"/><circle cx="32" cy="20.5" r="1.4" fill="currentColor"/><path d="M32 32v-8M32 32l5 3"/></g></svg>`;
+}
+function renderPosGrid() {
+  const sel = S.settings.posSel;
+  $('#pgrid').innerHTML = POS.map(p => {
+    const r = PS.res[p]; const on = sel.includes(p), cur = PS.on && PS.order[PS.idx] === p;
+    return `<div class="pc ${on ? '' : 'off'} ${cur ? 'cur' : ''} ${r && !r.fail ? 'done' : ''}" data-p="${p}"><span class="tag">${p}</span>${posIcon(p)}<small>${t('p_' + p)}</small><b class="num">${r ? (r.fail ? '✕' : sgn(r.rate, 1)) : '—'}</b><em class="num">${r && !r.fail ? `${r.amp ? r.amp + '° · ' : ''}${fmt(r.be, 1)} ms` : ''}</em></div>`;
+  }).join('');
+  $$('#pgrid .pc').forEach(el => el.onclick = () => { if (PS.on) return; const p = el.dataset.p, s = S.settings.posSel; const i = s.indexOf(p); i >= 0 ? s.splice(i, 1) : s.push(p); persist(); renderPosGrid(); });
+}
+function rangeInit(id, key, vid, fmtv, cb, scale = 1) {
+  const r = $(id); r.value = S.settings[key] * scale; const upd = () => { r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); vid && ($(vid).textContent = fmtv(+r.value)); };
+  upd(); r.oninput = () => { S.settings[key] = +r.value / scale; upd(); cb && cb(); }; r.onchange = persist;
+}
+rangeInit('#settleR', 'settle', '#settleV', v => v + ' s'); rangeInit('#mdurR', 'mdur', '#mdurV', v => v + ' s');
+$('#posGo').onclick = () => PS.on ? posStop() : posStart();
+async function posStart() {
+  const order = POS.filter(p => S.settings.posSel.includes(p)); if (!order.length) return;
+  if (E.on) PS.ownEngine = false;
+  else { if (!(await start('mic'))) return; PS.ownEngine = true; }
+  PS.order = order; PS.res = {}; PS.on = true; posStep(0);
+}
+function posStep(i) {
+  if (i >= PS.order.length) return posFinish();
+  const p = PS.order[i]; PS.idx = i; PS.phase = 'settle'; PS.dur = S.settings.settle; PS.tEnd = performance.now() + PS.dur * 1000;
+  vib([60, 60, 60]); renderStage(); renderPosGrid();
+}
+function posTick() {
+  if (!PS.on) return; const now = performance.now();
+  if (PS.phase === 'settle' && now >= PS.tEnd) {
+    PS.phase = 'measure'; PS.dur = S.settings.mdur; PS.tEnd = now + PS.dur * 1000;
+    if (E.an) { E.an.beats = []; E.an.hist = []; E.an.cfg.window = S.settings.mdur + 5; }
+    vib(150); renderStage();
+  } else if (PS.phase === 'measure' && now >= PS.tEnd) {
+    const r = E.an ? E.an.compute() : null; const p = PS.order[PS.idx];
+    PS.res[p] = r && r.ok ? { rate: +r.rate.toFixed(2), be: +r.be.toFixed(2), amp: isFinite(r.amp) ? Math.round(r.amp) : null } : { fail: true };
+    if (E.an) E.an.cfg.window = S.settings.win;
+    posStep(PS.idx + 1); return;
+  }
+  const left = Math.max(0, (PS.tEnd - now) / 1000);
+  $('#cdT').textContent = Math.ceil(left) + ' s';
+  $('#cdFg').style.strokeDashoffset = (339.3 * (left / PS.dur)).toFixed(1);
+}
+function renderStage() {
+  const on = PS.on, p = on ? PS.order[PS.idx] : null;
+  $('#posGo').innerHTML = on ? `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg><span>${t('stop_seq')}</span>` : `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg><span>${t('start_seq')}</span>`;
+  if (!on) { $('#phaseTag').className = 'phase'; $('#phaseTag').textContent = t('ready'); $('#stageName').textContent = t('pos_ready'); $('#stageTx').textContent = t('pos_ready_tx'); $('#cdIcon').innerHTML = ''; $('#cdT').textContent = '—'; $('#cdFg').style.strokeDashoffset = 339.3; return; }
+  $('#phaseTag').className = 'phase' + (PS.phase === 'measure' ? ' m' : ''); $('#phaseTag').textContent = `${PS.idx + 1}/${PS.order.length} · ${t(PS.phase === 'measure' ? 'phase_measure' : 'phase_settle')}`;
+  $('#stageName').textContent = t('p_' + p); $('#stageTx').textContent = t('place') + ' ' + t('p_' + p).toLowerCase() + '.';
+  $('#cdIcon').innerHTML = posIcon(p);
+}
+function posStop() { PS.on = false; if (PS.ownEngine) stop(); if (E.an) E.an.cfg.window = S.settings.win; renderStage(); renderPosGrid(); }
+function posFinish() { PS.on = false; S.lastPos = PS.res; persist(); vib([200, 100, 200]); toast(t('pos_done')); if (PS.ownEngine) stop(); renderStage(); renderPosGrid(); renderPosSummary(); }
+function posSummary(res) {
+  const ok = POS.filter(p => res[p] && !res[p].fail); if (!ok.length) return null;
+  const rates = ok.map(p => res[p].rate), mean = rates.reduce((a, b) => a + b, 0) / rates.length;
+  const H = ok.filter(p => p === 'DU' || p === 'DD'), V = ok.filter(p => !(p === 'DU' || p === 'DD'));
+  const avg = (arr, f) => { const v = arr.map(f).filter(x => x != null && isFinite(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const rH = avg(H, p => res[p].rate), rV = avg(V, p => res[p].rate), aH = avg(H, p => res[p].amp), aV = avg(V, p => res[p].amp);
+  return { n: ok.length, mean, delta: Math.max(...rates) - Math.min(...rates), maxBE: Math.max(...ok.map(p => res[p].be)), hv: rH != null && rV != null ? rH - rV : null, aH, aV, drop: aH != null && aV != null ? aH - aV : null, ampAll: avg(ok, p => res[p].amp) };
+}
+function renderPosSummary() {
+  const s = posSummary(PS.res);
+  $('#sMean').textContent = s ? sgn(s.mean, 1) + ' s/d' : '—';
+  $('#sDelta').textContent = s ? fmt(s.delta, 1) + ' s/d' : '—';
+  $('#sHV').textContent = s && s.hv != null ? sgn(s.hv, 1) + ' s/d' : '—';
+  $('#sBE').textContent = s ? fmt(s.maxBE, 1) + ' ms' : '—';
+  $('#sAmp').textContent = s && (s.aH || s.aV) ? `${s.aH ? Math.round(s.aH) : '—'}° / ${s.aV ? Math.round(s.aV) : '—'}°` : '—';
+  $('#sDrop').textContent = s && s.drop != null ? Math.round(s.drop) + '°' : '—';
+  const std = (name, crit, okf) => { const st = !s ? 'na' : okf(s) ? 'ok' : 'bad'; return `<div class="std"><b>${name}</b><small>${crit}</small><span class="badge ${st}">${t(st === 'ok' ? 'pass' : st === 'bad' ? 'fail' : 'na')}</span></div>`; };
+  $('#stds').innerHTML = std('COSC / ISO 3159', `${t('std_mean')} −4/+6 · ${t('std_delta')} ≤ 10`, s => s.mean >= -4 && s.mean <= 6 && s.delta <= 10) + std('METAS', `${t('std_mean')} 0/+5`, s => s.mean >= 0 && s.mean <= 5) + std('Rolex Superlative', `${t('std_mean')} −2/+2`, s => s.mean >= -2 && s.mean <= 2);
+  const d = [];
+  if (s) {
+    d.push(s.delta <= 10 ? ['ok', 'dp_delta_ok', fmt(s.delta, 1)] : s.delta <= 20 ? ['warn', 'dp_delta_warn', fmt(s.delta, 1)] : ['bad', 'dp_delta_bad', fmt(s.delta, 1)]);
+    if (s.drop != null) d.push(s.drop <= 60 ? ['ok', 'dp_drop_ok', Math.round(s.drop)] : ['bad', 'dp_drop_bad', Math.round(s.drop)]);
+    if (s.hv != null && s.hv > 6) d.push(['info', 'dp_hv', fmt(s.hv, 1)]);
+    d.push(s.maxBE <= .6 ? ['ok', 'd_be_ok', fmt(s.maxBE, 1)] : s.maxBE <= 1.5 ? ['warn', 'd_be_warn', fmt(s.maxBE, 1)] : ['bad', 'd_be_bad', fmt(s.maxBE, 1)]);
+  }
+  $('#posDiag').innerHTML = d.map(([c, k, v]) => `<li class="${c}"><i></i><span>${esc(t(k, v))}</span></li>`).join('');
+  drawPosChart();
+}
+function drawPosChart() {
+  const P = prep($('#posChart')); if (!P) return; const { x, w, h } = P;
+  const res = PS.res, ok = POS.filter(p => res[p] && !res[p].fail);
+  if (!ok.length) { emptyMsg(x, w, h, '—'); return; }
+  let mx = 6; ok.forEach(p => mx = Math.max(mx, Math.abs(res[p].rate))); mx = Math.ceil(mx * 1.25 / 2) * 2;
+  const top = 16, bot = h - 24, Y = v => (top + bot) / 2 - v / mx * ((bot - top) / 2), bw = w / POS.length;
+  const ff = getComputedStyle(document.body).fontFamily;
+  x.fillStyle = alpha(C.ok, .08); x.fillRect(0, Y(6), w, Y(-4) - Y(6));
+  x.strokeStyle = alpha(C.acc, .4); x.beginPath(); x.moveTo(0, Y(0)); x.lineTo(w, Y(0)); x.stroke();
+  POS.forEach((p, i) => {
+    const cx = i * bw + bw / 2; x.fillStyle = C.mut; x.font = '700 10px ' + ff; x.textAlign = 'center'; x.fillText(p, cx, h - 8);
+    const r = res[p]; if (!r || r.fail) return;
+    const y0 = Y(0), y1 = Y(r.rate), g = x.createLinearGradient(0, Math.min(y0, y1), 0, Math.max(y0, y1));
+    const col = r.rate >= -4 && r.rate <= 6 ? C.acc : Math.abs(r.rate) <= 15 ? C.warn : C.bad;
+    g.addColorStop(0, alpha(col, .95)); g.addColorStop(1, alpha(col, .35));
+    x.fillStyle = g; const bx = cx - bw * .28; x.beginPath(); x.roundRect ? x.roundRect(bx, Math.min(y0, y1), bw * .56, Math.max(2, Math.abs(y1 - y0)), 5) : x.rect(bx, Math.min(y0, y1), bw * .56, Math.max(2, Math.abs(y1 - y0))); x.fill();
+    x.fillStyle = C.tx; x.font = '600 10.5px ' + ff; x.fillText(sgn(r.rate, 1), cx, r.rate >= 0 ? y1 - 4 : y1 + 13);
+  });
+  x.textAlign = 'left';
+}
+$('#posSave').onclick = () => {
+  const s = posSummary(PS.res); if (!s) return toast(t('need_ok'));
+  S.history.unshift({ id: uid(), t: Date.now(), wid: S.active, type: 'pos', rate: +s.mean.toFixed(2), be: +s.maxBE.toFixed(2), amp: s.ampAll ? Math.round(s.ampAll) : null, delta: +s.delta.toFixed(2), res: PS.res, bph: E.an ? E.an.bph : null, lift: +$('#mLift').value || 52 });
+  persist(); toast(t('saved')); renderHistory();
+};
+$('#posClear').onclick = () => { if (PS.on) return; PS.res = {}; S.lastPos = {}; persist(); renderPosGrid(); renderPosSummary(); };
+
+/* ---------- log ---------- */
+const LW = () => $('#logWatch').value || S.active;
+$('#logWatch').onchange = e => { S.logWatch = e.target.value; persist(); renderLog(); };
+function logAdd(off) { const id = LW(); (S.logs[id] = S.logs[id] || []).push({ t: Date.now(), off: +off.toFixed(2) }); persist(); renderLog(); toast(`${t('mark_done')}: ${sgn(off, 1)} s`); vib(40); }
+$('#markBtn').onclick = () => { const now = Date.now(), M = Math.round(now / 60000) * 60000; const adj = parseInt($('#minAdj').value, 10) || 0; logAdd((M - now) / 1000 + adj * 60); $('#markBtn').classList.remove('flash'); void $('#markBtn').offsetWidth; $('#markBtn').classList.add('flash'); };
+$('#addMan').onclick = () => { const v = parseFloat(String($('#manOff').value).replace(',', '.')); if (isFinite(v)) { logAdd(v); $('#manOff').value = ''; } };
+$('#logClear').onclick = () => { if (confirm(t('confirm_del'))) { delete S.logs[LW()]; persist(); renderLog(); } };
+function logStats(e) {
+  if (!e || e.length < 2) return null; const t0 = e[0].t; const xs = e.map(p => (p.t - t0) / 864e5), ys = e.map(p => p.off);
+  const n = xs.length, mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n; let sxy = 0, sxx = 0;
+  for (let i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; }
+  if (sxx < 1e-6) return null; const b = sxy / sxx, a = my - b * mx;
+  return { rate: b, a, span: xs[n - 1], t0 };
+}
+function renderLog() {
+  if (!$('#logWatch').options.length) return;
+  const id = LW(), e = (S.logs[id] || []).slice().sort((a, b) => a.t - b.t), st = logStats(e);
+  $('#lRate').textContent = st ? sgn(st.rate, 2) + ' s/d' : '—';
+  $('#lSpan').textContent = st ? (st.span >= 1 ? t('n_days', fmt(st.span, 1)) : t('n_hours', fmt(st.span * 24, 1))) : '—';
+  $('#lOff').textContent = e.length ? (st ? sgn(st.a + st.rate * (Date.now() - st.t0) / 864e5, 1) : sgn(e[e.length - 1].off, 1)) + ' s' : '—';
+  const q = S.history.find(h => h.wid === id && h.type === 'quick');
+  $('#lVs').textContent = st && q ? sgn(st.rate - q.rate, 1) + ' s/d' : '—';
+  $('#logList').innerHTML = e.length ? e.slice().reverse().map((p, i, arr) => { const prev = arr[i + 1]; const r = prev ? (p.off - prev.off) / ((p.t - prev.t) / 864e5) : null; return `<div class="li"><div class="grow">${dt(p.t)}<small>${r != null && isFinite(r) ? sgn(r, 1) + ' s/d' : '—'}</small></div><div class="val">${sgn(p.off, 1)} s</div><button class="x" data-t="${p.t}">✕</button></div>`; }).join('') : `<div class="empty">${t('log_need')}</div>`;
+  $$('#logList .x').forEach(b => b.onclick = () => { S.logs[id] = (S.logs[id] || []).filter(p => p.t !== +b.dataset.t); persist(); renderLog(); });
+  renderPR(); drawLogChart();
+}
+function drawLogChart() {
+  const P = prep($('#logChart')); if (!P) return; const { x, w, h } = P;
+  const id = LW(), e = (S.logs[id] || []).slice().sort((a, b) => a.t - b.t);
+  if (e.length < 1) { emptyMsg(x, w, h, t('log_need')); return; }
+  const st = logStats(e), t0 = e[0].t, span = Math.max(1 / 24, (e[e.length - 1].t - t0) / 864e5);
+  let mn = Math.min(...e.map(p => p.off)), mx = Math.max(...e.map(p => p.off)); if (mx - mn < 4) { const c = (mx + mn) / 2; mn = c - 2; mx = c + 2; }
+  const pd = (mx - mn) * .15; mn -= pd; mx += pd;
+  const X = d => 34 + d / span * (w - 46), Y = v => h - 22 - (v - mn) / (mx - mn) * (h - 36), ff = getComputedStyle(document.body).fontFamily;
+  x.font = '600 9.5px ' + ff;
+  for (let i = 0; i <= 3; i++) { const v = mn + (mx - mn) * i / 3; x.strokeStyle = C.line; x.beginPath(); x.moveTo(34, Y(v)); x.lineTo(w - 8, Y(v)); x.stroke(); x.fillStyle = C.mut2; x.fillText((v > 0 ? '+' : '') + v.toFixed(1), 2, Y(v) + 3); }
+  if (mn < 0 && mx > 0) { x.strokeStyle = alpha(C.acc, .4); x.beginPath(); x.moveTo(34, Y(0)); x.lineTo(w - 8, Y(0)); x.stroke(); }
+  x.fillStyle = C.mut2; x.fillText('0', 34, h - 6); x.textAlign = 'right'; x.fillText(span >= 1 ? fmt(span, 1) + ' d' : fmt(span * 24, 1) + ' h', w - 8, h - 6); x.textAlign = 'left';
+  if (st) { x.strokeStyle = alpha(C.acc, .8); x.setLineDash([5, 4]); x.beginPath(); x.moveTo(X(0), Y(st.a)); x.lineTo(X(span), Y(st.a + st.rate * span)); x.stroke(); x.setLineDash([]); }
+  x.beginPath(); e.forEach((p, i) => { const xx = X((p.t - t0) / 864e5), yy = Y(p.off); i ? x.lineTo(xx, yy) : x.moveTo(xx, yy); }); x.strokeStyle = alpha(C.tick, .6); x.stroke();
+  e.forEach(p => { x.fillStyle = C.tick; x.beginPath(); x.arc(X((p.t - t0) / 864e5), Y(p.off), 3.5, 0, 6.283); x.fill(); });
+}
+function renderPR() {
+  const pr = S.pr[LW()];
+  if (pr && pr.start && !pr.end) { $('#prTx').textContent = t('pr_running') + ' ' + dt(pr.start); $('#prV').textContent = fmt((Date.now() - pr.start) / 36e5, 1) + ' h'; }
+  else if (pr && pr.end) { $('#prTx').textContent = t('pr_result'); $('#prV').textContent = fmt((pr.end - pr.start) / 36e5, 1) + ' h'; }
+  else { $('#prTx').textContent = t('pr_none'); $('#prV').textContent = '—'; }
+}
+$('#prStart').onclick = () => { S.pr[LW()] = { start: Date.now(), end: null }; persist(); renderPR(); vib(40); };
+$('#prStop').onclick = () => { const pr = S.pr[LW()]; if (pr && pr.start && !pr.end) { pr.end = Date.now(); persist(); renderPR(); vib(40); } };
+function drawRefClock() {
+  const d = new Date(), ms = d.getMilliseconds();
+  $('#refClock').innerHTML = d.toLocaleTimeString(L, { hour12: false }) + `<span>.${String(ms).padStart(3, '0')}</span>`;
+  $('#secBar').style.width = ((d.getSeconds() + ms / 1000) / 60 * 100) + '%';
+}
+
+/* ---------- watches & history ---------- */
+const wIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="5.5"/><path d="M9 6.8 9.8 2.5h4.4l.8 4.3M9 17.2l.8 4.3h4.4l.8-4.3M12 10v2l1.3 1"/></svg>';
+function renderWatches() {
+  $('#wList').innerHTML = S.watches.map(w => `<div class="wc ${w.id === S.active ? 'act' : ''}" data-id="${w.id}"><div class="ic">${wIco}</div><div class="grow"><b>${esc(wName(w))}</b><small>${esc(w.cal || t('custom'))} · ${w.bph ? w.bph.toLocaleString(L) + ' bph' : t('auto')} · ${w.lift}°</small></div>${w.id === S.active ? `<span class="badge ok">${t('active')}</span>` : ''}<button class="btn sm ghost" data-edit="${w.id}">${t('edit')}</button></div>`).join('');
+  $$('#wList .wc').forEach(el => el.onclick = ev => {
+    if (ev.target.closest('[data-edit]')) return watchForm(ev.target.closest('[data-edit]').dataset.edit);
+    S.active = el.dataset.id; const w = W(); persist(); renderSelects(); $('#mBph').value = String(w.bph || 0); $('#mLift').value = w.lift; applyAnCfg(true); renderWatches();
+  });
+}
+$('#wAdd').onclick = () => watchForm(null);
+function watchForm(id) {
+  const w = id ? S.watches.find(x => x.id === id) : { name: '', cal: 'ETA 2824-2', bph: 28800, lift: 52, notes: '' };
+  openSheet(`<h2>${t(id ? 'w_edit_t' : 'w_new_t')}</h2>
+  <div class="field"><label>${t('name')}</label><input class="inp" id="fN" value="${esc(w.name)}" placeholder="${esc(t('default_watch'))}"></div>
+  <div class="field"><label>${t('caliber')}</label><select class="inp" id="fC"><option value="">${t('custom')}</option>${CAL.map(c => `<option ${c[0] === w.cal ? 'selected' : ''}>${c[0]}</option>`).join('')}</select><div class="fhelp">${t('verify')}</div></div>
+  <div class="row" style="gap:10px"><div class="field grow"><label>${t('bph')}</label><select class="inp" id="fB"><option value="0">${t('auto')}</option>${PT.BPHS.map(b => `<option value="${b}" ${b === w.bph ? 'selected' : ''}>${b.toLocaleString(L)}</option>`).join('')}</select></div>
+  <div class="field grow"><label>${t('lift_s')} (°)</label><input class="inp num" id="fL" type="number" step="0.5" min="30" max="70" value="${w.lift}"></div></div>
+  <div class="field"><label>${t('notes')}</label><textarea class="inp" id="fT" rows="2">${esc(w.notes || '')}</textarea></div>
+  <div class="row"><button class="btn pri grow" id="fS">${t('save')}</button><button class="btn" id="fX">${t('cancel')}</button>${id && S.watches.length > 1 ? `<button class="btn danger" id="fD">${t('delete')}</button>` : ''}</div>`);
+  $('#fC').onchange = e => { const c = CAL.find(c => c[0] === e.target.value); if (c) { $('#fB').value = c[1]; $('#fL').value = c[2]; } };
+  $('#fX').onclick = closeSheet;
+  $('#fS').onclick = () => {
+    const o = { name: $('#fN').value.trim(), cal: $('#fC').value, bph: +$('#fB').value, lift: Math.max(30, Math.min(70, +$('#fL').value || 52)), notes: $('#fT').value };
+    if (id) Object.assign(w, o); else { o.id = uid(); S.watches.push(o); S.active = o.id; }
+    persist(); closeSheet(); renderSelects(); const a = W(); $('#mBph').value = String(a.bph || 0); $('#mLift').value = a.lift; applyAnCfg(true); renderWatches(); renderHistory(); renderLog();
+  };
+  if ($('#fD')) $('#fD').onclick = () => { if (!confirm(t('confirm_del'))) return; S.watches = S.watches.filter(x => x.id !== id); if (S.active === id) S.active = S.watches[0].id; persist(); closeSheet(); renderSelects(); renderWatches(); renderHistory(); };
+}
+let hFilter = '';
+$('#hFilter').onchange = e => { hFilter = e.target.value; renderHistory(); };
+const hList = () => S.history.filter(h => !hFilter || h.wid === hFilter);
+function renderHistory() {
+  const hs = hList();
+  $('#hList').innerHTML = hs.length ? hs.slice(0, 200).map(h => {
+    const w = S.watches.find(x => x.id === h.wid);
+    return `<div class="hi"><div class="t"><div><b>${esc(w ? wName(w) : '—')}</b><span class="kind">${t(h.type === 'pos' ? 'positions' : 'quick')}</span></div><div><small>${dt(h.t)}</small><button class="x" data-id="${h.id}">✕</button></div></div>
+    <div class="vals"><div><span>${t('rate')}</span> ${sgn(h.rate, 1)}</div><div><span>BE</span> ${fmt(h.be, 1)}</div><div><span>A</span> ${h.amp != null ? h.amp + '°' : '—'}</div>${h.delta != null ? `<div><span>Δ</span> ${fmt(h.delta, 1)}</div>` : ''}${h.score != null ? `<div><span>★</span> ${h.score}</div>` : ''}</div></div>`;
+  }).join('') : `<div class="empty">${t('no_hist')}</div>`;
+  $$('#hList .x').forEach(b => b.onclick = () => { S.history = S.history.filter(h => h.id !== b.dataset.id); persist(); renderHistory(); });
+  drawHistChart();
+}
+function drawHistChart() {
+  const P = prep($('#histChart')); if (!P) return; const { x, w, h } = P;
+  const hs = hList().slice().reverse(); if (hs.length < 1) { emptyMsg(x, w, h, t('no_hist')); return; }
+  let mx = 6; hs.forEach(p => mx = Math.max(mx, Math.abs(p.rate))); mx = Math.ceil(mx * 1.2);
+  const X = i => 30 + (hs.length === 1 ? .5 : i / (hs.length - 1)) * (w - 44), Y = v => h / 2 - v / mx * (h / 2 - 14);
+  x.font = '600 9.5px ' + getComputedStyle(document.body).fontFamily;
+  x.fillStyle = alpha(C.ok, .08); x.fillRect(30, Y(6), w - 44, Y(-4) - Y(6));
+  [-mx, 0, mx].forEach(v => { x.strokeStyle = v ? C.line : alpha(C.acc, .4); x.beginPath(); x.moveTo(30, Y(v)); x.lineTo(w - 10, Y(v)); x.stroke(); x.fillStyle = C.mut2; x.fillText((v > 0 ? '+' : '') + v, 2, Y(v) + 3); });
+  x.beginPath(); hs.forEach((p, i) => i ? x.lineTo(X(i), Y(p.rate)) : x.moveTo(X(i), Y(p.rate))); x.strokeStyle = alpha(C.acc, .6); x.lineWidth = 1.5; x.stroke(); x.lineWidth = 1;
+  hs.forEach((p, i) => { x.fillStyle = p.type === 'pos' ? C.tick : C.acc; x.beginPath(); x.arc(X(i), Y(p.rate), 3.5, 0, 6.283); x.fill(); });
+}
+function download(name, data, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+const stamp = () => new Date().toISOString().slice(0, 10);
+$('#expJson').onclick = () => download(`purrtime-${stamp()}.json`, JSON.stringify(S, null, 2), 'application/json');
+$('#expCsv').onclick = () => {
+  const rows = [['date', 'watch', 'calibre', 'type', 'rate_s_d', 'beat_error_ms', 'amplitude_deg', 'delta_s_d', 'bph', 'lift_deg', 'stability_s_d', 'score']];
+  S.history.forEach(h => { const w = S.watches.find(x => x.id === h.wid) || {}; rows.push([new Date(h.t).toISOString(), wName(w), w.cal || '', h.type, h.rate, h.be, h.amp ?? '', h.delta ?? '', h.bph ?? '', h.lift ?? '', h.stab ?? '', h.score ?? '']); });
+  download(`purrtime-${stamp()}.csv`, rows.map(r => r.map(c => /[",\n]/.test(String(c)) ? `"${String(c).replace(/"/g, '""')}"` : c).join(',')).join('\n'), 'text/csv');
+};
+$('#impJson').onclick = () => $('#impFile').click();
+$('#impFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const j = JSON.parse(await f.text()); if (!j || !Array.isArray(j.watches) || !j.watches.length) throw 0; S = Object.assign(DEF(), j); S.settings = Object.assign(DEF().settings, j.settings || {}); persist(); location.reload(); }
+  catch (er) { toast('JSON ✕'); } e.target.value = '';
+};
+
+/* ---------- settings ---------- */
+function settingsInit() {
+  $('#sLang').value = S.settings.lang;
+  $('#sLang').onchange = e => { S.settings.lang = e.target.value; persist(); applyI18n(); buildGauge(); renderStage(); };
+  $$('#themeSeg button').forEach(b => b.onclick = () => { S.settings.theme = b.dataset.v; persist(); applyTheme(); redrawAll(); });
+  $('#sWake').checked = S.settings.wake; $('#sWake').onchange = e => { S.settings.wake = e.target.checked; persist(); if (E.on) e.target.checked ? wakeOn() : wakeOff(); };
+  $('#sVib').checked = S.settings.vib; $('#sVib').onchange = e => { S.settings.vib = e.target.checked; persist(); };
+  $('#sMic').onchange = e => { S.settings.mic = e.target.value; persist(); if (E.on && E.mode === 'mic') start('mic'); };
+  rangeInit('#sHp', 'hp', '#hpV', v => v + ' Hz', () => { if (E.det) { E.det.cfg.hp = S.settings.hp; E.det.setFilter(); } });
+  rangeInit('#sSens', 'sens', '#sensV', v => v + '%', () => { if (E.det) E.det.cfg.sens = S.settings.sens; }, 100);
+  rangeInit('#sWin', 'win', '#winV', v => v + ' s', () => applyAnCfg(false));
+  $('#sPpm').value = S.settings.ppm; $('#sPpm').onchange = e => { S.settings.ppm = parseFloat(String(e.target.value).replace(',', '.')) || 0; persist(); applyAnCfg(false); };
+  $('#wipe').onclick = () => { if (!confirm(t('confirm_wipe'))) return; try { localStorage.removeItem(KEY); } catch (e) { } location.reload(); };
+}
+function redrawAll() { drawTape(); drawScope(); drawTrend(); drawPosChart(); drawLogChart(); drawHistChart(); }
+window.addEventListener('resize', () => requestAnimationFrame(redrawAll));
+
+/* ---------- guide ---------- */
+$('#helpBtn').onclick = () => {
+  const tb = `<table><tr><th>${t('gt_param')}</th><th>${t('gt_exc')}</th><th>${t('gt_ok')}</th><th>${t('gt_bad')}</th></tr>
+  <tr><td>${t('rate')}</td><td>−4 / +6 s/d</td><td>±15 s/d</td><td>&gt; ±30 s/d</td></tr>
+  <tr><td>${t('be')}</td><td>&lt; 0,6 ms</td><td>&lt; 1,5 ms</td><td>&gt; 3 ms</td></tr>
+  <tr><td>${t('amp')}*</td><td>270–315°</td><td>220–270°</td><td>&lt; 200°</td></tr>
+  <tr><td>Delta</td><td>≤ 10 s/d</td><td>≤ 20 s/d</td><td>&gt; 30 s/d</td></tr></table><p style="font-size:12px;opacity:.7">* ${t('p_DU')}, 100%.</p>`;
+  openSheet(`<h2>${t('guide_t')}</h2><div class="guide">${t('guide').map(([hh, b]) => `<h4>${hh}</h4>${b === 'TABLE' ? tb : b}`).join('')}</div><button class="btn pri" style="width:100%;margin-top:16px" id="gClose">${t('close')}</button>`);
+  $('#gClose').onclick = closeSheet;
+};
+
+/* ---------- loop ---------- */
+let lastUi = 0, lastF = 0;
+function frame(ts) {
+  requestAnimationFrame(frame);
+  const d = Math.min(.1, (ts - lastF) / 1000 || 0); lastF = ts;
+  animWheel(d);
+  if (view === 'measure' && E.on) drawTape();
+  if (view === 'log') drawRefClock();
+  if (ts - lastUi > 250) {
+    lastUi = ts;
+    if (E.on && E.an) { E.res = E.an.compute(); renderMeasure(); }
+    else renderStatus();
+    posTick();
+    if (view === 'log' && Math.floor(ts / 1000) !== Math.floor((ts - 250) / 1000)) renderPR();
+  }
+}
+
+/* ---------- init ---------- */
+applyTheme(); buildGauge(); settingsInit();
+$('#mBph').innerHTML = '<option value="0"></option>'; $('#mBph').value = '0';
+renderSelects(); $('#mBph').value = String(W().bph || 0); $('#mLift').value = W().lift || 52;
+applyI18n(); renderStage(); enumerateMics(); drawTape();
+requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
